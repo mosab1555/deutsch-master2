@@ -53,5 +53,8 @@
     "portable": {
       "artifactName": "Deutsch-Master-Portable.exe"
     }
+  },
+  "dependencies": {
+    "@capacitor/ios": "^6.2.2"
   }
 }
