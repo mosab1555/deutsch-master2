@@ -1,0 +1,15 @@
+{
+  "appId": "com.deutschmaster.app",
+  "appName": "Deutsch Master",
+  "webDir": "www",
+  "backgroundColor": "#070b18",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#070b18"
+    }
+  }
+}

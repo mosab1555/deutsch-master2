@@ -1,0 +1,57 @@
+{
+  "name": "deutsch-master",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Deutsch Master - Learn German (Android app via Capacitor, Windows app via Electron)",
+  "main": "electron/main.js",
+  "scripts": {
+    "www": "node tools/make-www.js",
+    "sync": "npm run www && cap sync",
+    "android": "cap open android",
+    "apk": "npm run www && cap sync android && cd android && gradlew assembleDebug",
+    "apk-release": "npm run www && cap sync android && cd android && gradlew assembleRelease",
+    "start-win": "electron electron/main.js",
+    "dist-win": "electron-builder --win nsis portable"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.2",
+    "@capacitor/cli": "^6.2.2",
+    "@capacitor/core": "^6.2.2",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.deutschmaster.app",
+    "productName": "Deutsch Master",
+    "files": [
+      "index.html",
+      "style.css",
+      "script.js",
+      "launch.js",
+      "launch.css",
+      "manifest.json",
+      "sw.js",
+      "icons/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "icons/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Deutsch Master",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "Deutsch-Master-Portable.exe"
+    }
+  }
+}
