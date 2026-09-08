@@ -2,7 +2,7 @@
 var DM_CACHE = "dm-v1";
 var DM_FILES = [
   "./", "./index.html",
-  "./style.css", "./script.js",
+  "./style.css", "./script.js", "./explain.js",
   "./launch.css", "./launch.js",
   "./manifest.json",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png"

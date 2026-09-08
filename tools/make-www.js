@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const root = path.join(__dirname, "..");
 const out = path.join(root, "www");
-const FILES = ["index.html", "style.css", "script.js", "launch.js", "launch.css", "manifest.json", "sw.js"];
+const FILES = ["index.html", "style.css", "script.js", "explain.js", "launch.js", "launch.css", "manifest.json", "sw.js"];
 function copy(src, dst) {
   fs.mkdirSync(path.dirname(dst), { recursive: true });
   fs.copyFileSync(src, dst);
