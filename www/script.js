@@ -194,8 +194,8 @@ const RAW_K1 = [
 ["danke","-","شكرًا","دانكه","مفردات","General","Danke, gut.","شكرًا، بخير."],
 ["ein bisschen","-","قليلًا","آين بسشن","مفردات","General","Ich spreche ein bisschen Deutsch.","أتحدث القليل من الألمانية."],
 ["ganz","-","تمامًا","جانتس","مفردات","General","Ganz gut, danke.","بخير تمامًا، شكرًا."],
-["in","-","في","إن","أداة","General","Ich wohne in Frankfurt.","أنا أسكن في فرانكفورت."],
-["nicht","-","لا / أداة نفي","نيشت","أداة","General","Ich verstehe das nicht.","أنا لا أفهم هذا."],
+["in","-","في","إن","أداة","General","Ich bin in Berlin.","أنا في برلين."],
+["nicht","-","لا / أداة نفي","نيشت","أداة","General","Ich komme heute nicht.","لن آتي اليوم."],
 ["noch einmal","-","مرة أخرى","نوخ آينمال","مفردات","General","Noch einmal, bitte.","مرة أخرى من فضلك."],
 ["oder","-","أو","أودر","أداة","General","Tee oder Kaffee?","شاي أم قهوة؟"],
 ["sehr","-","جدًا","زير","مفردات","General","Danke, sehr gut.","شكرًا، بخير جدًا."],
@@ -426,7 +426,7 @@ const RAW_K3 = [
 ["dirigieren","-","يقود فرقة موسيقية","ديريجيرن","فعل","Common Verbs","Er dirigiert gut.","هو يقود الفرقة جيدًا."],
 ["finden","-","يجد / يرى","فِندن","فعل","Common Verbs","Ich finde das gut.","أنا أرى هذا جيدًا."],
 ["klopfen","-","يدق","كلوپفن","فعل","Common Verbs","Er klopft an die Tür.","هو يدق الباب."],
-["sehen","-","يرى","زين","فعل","Common Verbs","Ich sehe dich.","أنا أراك."],
+["sehen","-","يرى","زين","فعل","Common Verbs","Siehst du den Film?","هل ترى الفيلم؟"],
 ["würfeln","-","يرمي الزهر","فورفلن","فعل","Common Verbs","Wir würfeln gern.","نحب رمي الزهر."],
 ["zeichnen","-","يرسم","تسايشنن","فعل","Common Verbs","Ich zeichne ein Haus.","أنا أرسم بيتًا."],
 ["zeigen","-","يُري","تسايجن","فعل","Common Verbs","Ich zeige dir die Stadt.","أنا أُريك المدينة."],
@@ -678,7 +678,7 @@ const RAW_K4 = [
 ["frisch","-","طازج","فريش","صفة","Adjectives"],
 ["gerne","-","بكل سرور","جيرنه","مفردات","General","Sehr gerne!","بكل سرور!"],
 ["gesund","-","صحي","جِزونت","صفة","Adjectives"],
-["gleich","-","حالًا","جلايش","مفردات","Time","Danke, gleichfalls!","شكرًا، وبالمثل!"],
+["gleich","-","حالًا","جلايش","مفردات","Time","Ich komme gleich.","سآتي حالًا."],
 ["gleichfalls","-","بالمثل","جلايش فالس","مفردات","General","Danke, gleichfalls!","شكرًا، وبالمثل!"],
 ["guten Appetit","-","بالهناء والشفاء","جوتن أبيتيت","مفردات","Food","Guten Appetit!","بالهناء والشفاء!"],
 ["halb","-","نصف","هالب","مفردات","Time","Es ist halb vier.","الساعة الثالثة والنصف."],
@@ -697,7 +697,7 @@ const RAW_K4 = [
 ["rund um","-","حول","روند أوم","أداة","General","Alles rund um Mode.","كل شيء حول الموضة."],
 ["satt","-","شبعان","زات","صفة","Adjectives"],
 ["seit","-","منذ","زايت","أداة","Time","Seit Montag.","منذ الاثنين."],
-["sonst","-","وإلا","زونست","مفردات","General","Sonst noch etwas?","شيء آخر؟"],
+["sonst","-","وإلا","زونست","مفردات","General","Sonst nichts, danke.","لا شيء آخر، شكرًا."],
 ["stressig","-","مجهد","شترِسِش","صفة","Adjectives"],
 ["süß","-","حلو","زوس","صفة","Adjectives"],
 ["teuer","-","غالٍ","توير","صفة","Adjectives"],
@@ -717,18 +717,18 @@ const RAW_K5 = [
 ["können","-","يستطيع أن","كونن","فعل","Common Verbs","Ich kann Deutsch sprechen.","أنا أستطيع التحدث بالألمانية."],
 ["müssen","-","يجب أن","موسن","فعل","Common Verbs","Ich muss lernen.","يجب أن أتعلم."],
 ["wollen","-","يريد أن","فولن","فعل","Common Verbs","Ich will einen Termin.","أنا أريد موعدًا."],
-["frühstücken","-","يفطر","فرو شتوكن","فعل","Common Verbs","Ich frühstücke um 6 Uhr.","أنا أفطر السادسة."],
+["frühstücken","-","يفطر","فرو شتوكن","فعل","Common Verbs","Wir frühstücken zusammen.","نفطر معًا."],
 ["duschen","-","يستحم","دوشن","فعل","Common Verbs","Ich dusche morgens.","أنا أستحم صباحًا."],
 ["beschreiben","-","يصف","بِشرايبن","فعل","Common Verbs","Er beschreibt die Stadt.","هو يصف المدينة."],
 ["besuchen","-","يزور","بيزوخن","فعل","Common Verbs","Der Freund besucht ihn.","الصديق يزوره."],
 ["bitten um","-","يطلب","بِتن أوم","فعل","Common Verbs","Ich bitte um Entschuldigung.","أنا أطلب المعذرة."],
-["bleiben","-","يبقى","بلايبن","فعل","Common Verbs","Sie bleibt meine Freundin.","هي ستبقى صديقتي."],
+["bleiben","-","يبقى","بلايبن","فعل","Common Verbs","Ich bleibe heute zu Hause.","سأبقى في البيت اليوم."],
 ["entschuldigen","-","يعتذر","إنتشولديجن","فعل","Common Verbs","Entschuldigen Sie bitte!","اعذرني من فضلك!"],
 ["telefonieren","-","يتصل هاتفيًا","تيليفونيرن","فعل","Common Verbs","Ich telefoniere mit dir.","أنا أتصل بك."],
 ["treffen","-","يُقابل","ترِفن","فعل","Common Verbs","Der Lehrer trifft den Schüler.","المعلم يُقابل التلميذ."],
 ["tun","-","يفعل","تون","فعل","Common Verbs","Was kann ich für Sie tun?","ماذا يمكنني أن أفعل لك؟"],
 ["überlegen","-","يُفكر","أوبر ليجن","فعل","Common Verbs","Ich überlege kurz.","أنا أفكر قليلًا."],
-["vereinbaren","-","يتفق على","فيرآينبارن","فعل","Common Verbs","Wir haben einen Termin vereinbart.","اتفقنا على موعد."],
+["vereinbaren","-","يتفق على","فيرآينبارن","فعل","Common Verbs","Wir vereinbaren ein Treffen.","نتفق على لقاء."],
 ["vorbereiten","-","يُحضّر","فور بِرايتن","فعل","Common Verbs","Ich bereite die Prüfung vor.","أنا أُحضّر للامتحان."],
 ["ziehen","-","يسحب","تسيِن","فعل","Common Verbs","Ziehen Sie eine Karte!","اسحب كارتًا!"],
 ["zu Mittag essen","-","يتغدى","تسو مِتاج إسن","فعل","Common Verbs","Wir essen zu Mittag.","نحن نتغدى."],
@@ -737,7 +737,7 @@ const RAW_K5 = [
 ["absagen","-","يُلغي","آب زاجن","فعل","Common Verbs","Ich sage den Termin ab.","أنا أُلغي الموعد."],
 ["verschieben","-","يُؤجل الموعد","فيرشيبن","فعل","Common Verbs","Ich verschiebe den Termin.","أنا أُؤجل الموعد."],
 ["ändern","-","يُغيّر","إندرن","فعل","Common Verbs","Ich ändere den Plan.","أنا أُغيّر الخطة."],
-["reagieren","-","يرد على","رياجيرن","فعل","Common Verbs","Er reagiert schnell.","هو يرد بسرعة."],
+["reagieren","-","يرد على","رياجيرن","فعل","Common Verbs","Sie reagiert freundlich.","هي ترد بلطف."],
 ["Baby","das","الرضيع","بيبي","اسم","Family"],
 ["Büro","das","المكتب","بوروه","اسم","Work"],
 ["Gästebuch","das","دفتر الضيوف","جِسته بوخ","اسم","Home"],
@@ -886,21 +886,162 @@ function pluralDistractors(w){
   let i=0;while(uniq.length<4){i++;const cand=("die "+w.de+(i===1?"en":(i===2?"e":"er")));if(uniq.indexOf(cand)<0)uniq.push(cand);}
   return shuffle(uniq.slice(0,4));
 }
-/* مولّد الأمثلة التلقائي حسب النوع والتصنيف */
-function autoExample(de,art,type,cat,ar){
-  if(type==="اسم"&&art!=="-"){
-    const A=art.charAt(0).toUpperCase()+art.slice(1);
-    return [A+" "+de+" ist gut.",ar+(art==="die"?" جيدة.":" جيد.")];
+/* مولّد الأمثلة: مثال فريد لكل كلمة — سياق حقيقي مناسب لمستوى A1/A2 مع ترجمة عربية.
+   حتمي (نفس الناتج كل مرة): الاختيار بهاش الكلمة + رقمها، والجملة تحتوي الكلمة نفسها فلا تطابق أبدًا. */
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=((h*31)+s.charCodeAt(i))|0;}return h<0?-h:h;}
+function artAkk(a){return a==="der"?"den":a;}
+function artDat(a){return a==="der"?"dem":a==="die"?"der":a==="das"?"dem":a;}
+function meinDat(a){return a==="der"?"meinem":a==="die"?"meiner":"meinem";}
+function capA(a){return a.charAt(0).toUpperCase()+a.slice(1);}
+const ADV_AR={heute:"اليوم",morgen:"غدًا",jetzt:"الآن",oft:"غالبًا",gern:"بسرور","jeden Tag":"كل يوم",gestern:"أمس",schon:"من قبل","am Sonntag":"يوم الأحد"};
+function fillTpl(t,c,adv,advAr){return t.split("{A}").join(capA(c.art)).split("{art}").join(c.art).split("{akk}").join(artAkk(c.art)).split("{dat}").join(artDat(c.art)).split("{datMein}").join(meinDat(c.art)).split("{de}").join(c.de).split("{ar}").join(c.ar).split("{adv}").join(adv||"").split("{advAr}").join(advAr||"").replace(/  +/g," ").trim();}
+function pickFrame(frames,h,n){return frames[(h+n*7)%frames.length];}
+const NOUN_UNIV=[
+{de:"Ich kenne {akk} {de} gut.",ar:"أعرف {ar} جيدًا."},
+{de:"Ich brauche {akk} {de} {adv}.",ar:"أحتاج {ar} {advAr}.",adv:["heute","morgen","jetzt"]},
+{de:"Ich suche {akk} {de}.",ar:"أبحث عن {ar}."},
+{de:"Ich habe {akk} {de} nicht gefunden.",ar:"لم أجد {ar}."},
+{de:"Siehst du {akk} {de}?",ar:"هل ترى {ar}؟"},
+{de:"Kennst du {akk} {de}?",ar:"هل تعرف {ar}؟"},
+{de:"Wo ist {art} {de}?",ar:"أين {ar}؟"},
+{de:"Ich mag {akk} {de} sehr.",ar:"أحب {ar} كثيرًا."},
+{de:"Wir sprechen über {akk} {de}.",ar:"نتحدث عن {ar}."},
+{de:"Ich denke oft an {akk} {de}.",ar:"أفكر كثيرًا في {ar}."},
+{de:"Ich warte auf {akk} {de}.",ar:"أنتظر {ar}."},
+{de:"Er fragt nach {dat} {de}.",ar:"هو يسأل عن {ar}."},
+{de:"Ich erzähle von {dat} {de}.",ar:"أحكي عن {ar}."},
+{de:"Ich sehe {akk} {de} {adv}.",ar:"أرى {ar} {advAr}.",adv:["jeden Tag","oft","gern"]},
+{de:"Hast du {akk} {de} schon gesehen?",ar:"هل رأيت {ar} من قبل؟"},
+{de:"Ich möchte {akk} {de} nicht.",ar:"لا أريد {ar}."},
+{de:"Kannst du {akk} {de} sehen?",ar:"هل يمكنك رؤية {ar}؟"},
+{de:"Ich muss {akk} {de} finden.",ar:"يجب أن أجد {ar}."},
+{de:"Wir haben {akk} {de} {adv} gesehen.",ar:"رأينا {ar} {advAr}.",adv:["gestern","heute","oft"]},
+{de:"Er liebt {akk} {de}.",ar:"هو يحب {ar}."},
+{de:"Er zeigt mir {akk} {de}.",ar:"هو يُريني {ar}."},
+{de:"Wir brauchen {akk} {de} nicht.",ar:"لا نحتاج {ar}."},
+{de:"Ich hole {akk} {de} {adv}.",ar:"سأُحضر {ar} {advAr}.",adv:["heute","morgen","jetzt"]},
+{de:"Hast du {akk} {de} dabei?",ar:"هل {ar} معك؟"},
+{de:"Ich verstehe {akk} {de} nicht.",ar:"لا أفهم {ar}."},
+{de:"Er kennt {akk} {de} nicht.",ar:"هو لا يعرف {ar}."},
+{de:"Was machst du mit {dat} {de}?",ar:"ماذا تفعل بـ {ar}؟"},
+{de:"Wie findest du {akk} {de}?",ar:"ما رأيك في {ar}؟"}];
+const FAMILY_EXTRA=[
+{de:"Ich besuche {akk} {de} {adv}.",ar:"أزور {ar} {advAr}.",adv:["am Sonntag","heute","morgen"]},
+{de:"Ich rufe {akk} {de} {adv} an.",ar:"أتصل بـ {ar} {advAr}.",adv:["heute","morgen","oft"]},
+{de:"Ich helfe {datMein} {de}.",ar:"أساعد {ar}."}];
+const FOOD_EXTRA=[
+{de:"{A} {de} schmeckt gut.",ar:"مذاق {ar} جيد."},
+{de:"Ich kaufe {akk} {de} im Supermarkt.",ar:"أشتري {ar} من السوبرماركت."},
+{de:"Möchtest du {akk} {de}?",ar:"هل تريد {ar}؟"}];
+const FOOD_ONLY={de:"Wir essen {akk} {de} gern.",ar:"نأكل {ar} بسرور."};
+const DRINK_ONLY={de:"Wir trinken {akk} {de} gern.",ar:"نشرب {ar} بسرور."};
+const DAY_FRAMES=[
+{de:"Heute ist {de}.",ar:"اليوم {ar}."},
+{de:"Am {de} habe ich Zeit.",ar:"يوم {ar} لدي وقت."},
+{de:"Wir treffen uns am {de}.",ar:"نلتقي يوم {ar}."},
+{de:"Am {de} arbeite ich nicht.",ar:"يوم {ar} لا أعمل."},
+{de:"Bist du am {de} da?",ar:"هل أنت موجود يوم {ar}؟"},
+{de:"Der Kurs ist am {de}.",ar:"الكورس يوم {ar}."}];
+const COUNTRY_FRAMES=[
+{de:"Ich komme aus {de}.",ar:"أنا من {ar}."},
+{de:"Er wohnt in {de}.",ar:"هو يسكن في {ar}."},
+{de:"Wir fahren nach {de}.",ar:"نسافر إلى {ar}."},
+{de:"Kennst du {de}?",ar:"هل تعرف {ar}؟"},
+{de:"Die Reise nach {de} ist schön.",ar:"الرحلة إلى {ar} جميلة."},
+{de:"Er lebt in {de}.",ar:"هو يعيش في {ar}."},
+{de:"Ich möchte nach {de} reisen.",ar:"أريد السفر إلى {ar}."},
+{de:"Bist du aus {de}?",ar:"هل أنت من {ar}؟"},
+{de:"Das Wetter in {de} ist gut.",ar:"الطقس في {ar} جيد."},
+{de:"Ich arbeite in {de}.",ar:"أعمل في {ar}."}];
+const LANG_FRAMES=[
+{de:"Ich spreche {de}.",ar:"أتحدث {ar}."},
+{de:"Ich lerne {de}.",ar:"أتعلم {ar}."},
+{de:"Er spricht {de}.",ar:"هو يتحدث {ar}."},
+{de:"Lernst du {de}?",ar:"هل تتعلم {ar}؟"},
+{de:"Ich übe {de} jeden Tag.",ar:"أتدرب على {ar} كل يوم."},
+{de:"Mein {de} ist gut.",ar:"مستواي في {ar} جيد."},
+{de:"Sprichst du {de}?",ar:"هل تتحدث {ar}؟"},
+{de:"Wir lernen {de} zusammen.",ar:"نتعلم {ar} معًا."},
+{de:"Ich verstehe {de} nicht.",ar:"لا أفهم {ar}."},
+{de:"Magst du {de}?",ar:"هل تحب {ar}؟"}];
+const MONTH_FRAMES=[
+{de:"Mein Geburtstag ist im {de}.",ar:"عيد ميلادي في {ar}."},
+{de:"Das Wetter im {de} ist schön.",ar:"الطقس في {ar} جميل."},
+{de:"Wir reisen im {de}.",ar:"نسافر في {ar}."},
+{de:"Im {de} lerne ich viel.",ar:"في {ar} أتعلم كثيرًا."},
+{de:"Der Kurs beginnt im {de}.",ar:"يبدأ الكورس في {ar}."},
+{de:"Bist du im {de} da?",ar:"هل أنت موجود في {ar}؟"},
+{de:"Im {de} habe ich Urlaub.",ar:"في {ar} لدي إجازة."},
+{de:"Im {de} ist es warm.",ar:"في {ar} الجو دافئ."}];
+const NUMBER_FRAMES=[
+{de:"Die Zahl {de} ist klein.",ar:"الرقم {ar} صغير."},
+{de:"Ich schreibe {de}.",ar:"أكتب {ar}."},
+{de:"Die Hausnummer ist {de}.",ar:"رقم المنزل هو {ar}."},
+{de:"Die Antwort ist {de}.",ar:"الإجابة هي {ar}."},
+{de:"Das kostet {de} Euro.",ar:"سعر هذا {ar} يورو."},
+{de:"Ich zähle: eins, zwei, {de}.",ar:"أعد: واحد، اثنان، {ar}."},
+{de:"Ich wähle die Nummer {de}.",ar:"أختار الرقم {ar}."},
+{de:"Kennst du die Zahl {de}?",ar:"هل تعرف الرقم {ar}؟"}];
+/* الصفات: فاعل ألماني صحيح + ترجمة عربية بصيغة ثابتة لا تتأثر بالجنس */
+const SUBJ_T=[["der","Film","الفيلم"],["das","Buch","الكتاب"],["der","Tag","اليوم"],["das","Wetter","الطقس"],["das","Essen","الطعام"],["der","Kuchen","الكعك"],["der","Hund","الكلب"],["der","Zug","القطار"],["die","Frage","السؤال"],["die","Antwort","الجواب"],["die","Übung","التمرين"],["die","Tür","الباب"],["das","Haus","البيت"],["das","Brot","الخبز"],["der","Tee","الشاي"],["der","Käse","الجبن"],["der","Preis","السعر"],["der","Test","الاختبار"],["der","Stift","القلم"],["die","Wand","الحائط"],["die","Farbe","اللون"],["die","Woche","الأسبوع"],["das","Verb","الفعل"],["der","Artikel","الأداة"]];
+const SUBJ_P=[["Er","هو"],["Ich","أنا"],["Wir","نحن"],["Mein Bruder","أخي"],["Mein Vater","أبي"],["Mein Mann","زوجي"],["Mein Sohn","ابني"],["Mein Freund","صديقي"],["Der Mann","الرجل"],["Der Lehrer","المعلم"]];
+function subjNom(s){if(s[0]==="Er"||s[0]==="Ich"||s[0]==="Wir"||s[0].indexOf("Mein")===0)return s[0];if(s[0]==="Der Mann"||s[0]==="Der Lehrer")return s[0];return capA(s[0])+" "+s[1];}
+function subjAkk(s){if(s[0]==="Er"||s[0]==="Ich"||s[0]==="Wir")return s[0];if(s[0].indexOf("Mein")===0)return s[0];if(s[0]==="Der Mann"||s[0]==="Der Lehrer")return "den "+s[0].split(" ")[1];return (s[0]==="der"?"den":s[0])+" "+s[1];}
+const ADJ_P_ONLY=["ledig","verheiratet","geschieden","verwitwet","verlobt","schwanger","krank","satt","wach","Portugiese"];
+const ADJ_COLOR=["blau","grün","rot"];
+const ADJ_TASTE=["lecker","süß","frisch"];
+function autoExample(de,art,type,cat,ar,n){
+  const idx=(typeof n==="number")?n:0;
+  const h0=hashStr(de+"|"+art+"|"+cat)^((idx*2654435761)|0);
+  const H=h0<0?-h0:h0;
+  const H2=(function(){const x=hashStr(cat+"#"+de);return x<0?-x:x;})();
+  if(type==="صفة"){
+    if(de==="gegenseitig")return ["Wir helfen uns gegenseitig.","نساعد بعضنا."];
+    if(de==="verschieden")return ["Jeder Tag ist verschieden.","كل يوم مختلف."];
+    if(de==="männlich"||de==="weiblich")return ["Der Artikel ist "+de+".","الأداة "+ar+"."];
+    let poolS,skel;
+    if(ADJ_P_ONLY.indexOf(de)>=0){poolS=SUBJ_P;skel=H%5;}
+    else if(ADJ_COLOR.indexOf(de)>=0){poolS=[SUBJ_T[20],SUBJ_T[19],SUBJ_T[18]];skel=H%4;}
+    else if(ADJ_TASTE.indexOf(de)>=0){poolS=[SUBJ_T[4],SUBJ_T[5],SUBJ_T[13],SUBJ_T[14],SUBJ_T[15]];skel=H%4;}
+    else if((H>>3)%2===0){poolS=SUBJ_T;skel=(H>>2)%5;}
+    else{poolS=SUBJ_P;skel=(H>>2)%5;}
+    const s=poolS[(H2>>8)%poolS.length];
+    const sar=s[2]||s[0];
+    if(poolS===SUBJ_T){
+      if(skel===0)return [subjNom(s)+" ist "+de+".",sar+" "+ar+"."];
+      if(skel===1)return ["Ich finde "+subjAkk(s)+" "+de+".","أجد "+sar+" "+ar+"."];
+      if(skel===2)return ["Ist "+subjNom(s)+" "+de+"?","هل "+sar+" "+ar+"؟"];
+      if(skel===3)return [subjNom(s)+" ist nicht "+de+".",sar+" ليس "+ar+"."];
+      return ["Wir finden "+subjAkk(s)+" "+de+".","نجد "+sar+" "+ar+"."];
+    }
+    if(skel===0)return [subjNom(s)+" ist "+de+".",sar+" "+ar+"."];
+    if(skel===1)return ["Bist du "+de+"?","هل أنت "+ar+"؟"];
+    if(skel===2)return ["Wir sind "+de+".","نحن "+ar+"."];
+    if(skel===3)return ["Ich bin "+de+".","أنا "+ar+"."];
+    return ["Ist er "+de+"?","هل هو "+ar+"؟"];
   }
+  if(art==="-"&&type==="اسم"&&cat==="Travel")return simplePick(COUNTRY_FRAMES,de,ar,H);
+  if(art==="-"&&type==="اسم"&&cat==="Languages")return simplePick(LANG_FRAMES,de,ar,H);
+  if(cat==="Months")return simplePick(MONTH_FRAMES,de,ar,H);
+  if(cat==="Numbers")return simplePick(NUMBER_FRAMES,de,ar,H);
   if(type==="فعل")return ["Ich möchte "+de+".","(أريد) "+ar];
-  if(type==="صفة")return ["Das ist "+de+".","هذا "+ar+"."];
+  if(type==="اسم"&&art!=="-"){
+    const c={art:art,de:de,ar:ar};
+    let pool=NOUN_UNIV;
+    if(cat==="Family")pool=FAMILY_EXTRA.concat(NOUN_UNIV);
+    else if(cat==="Food"||cat==="Drinks")pool=FOOD_EXTRA.concat([(cat==="Drinks"?DRINK_ONLY:FOOD_ONLY)]).concat(NOUN_UNIV);
+    else if(cat==="Days")pool=DAY_FRAMES.concat(NOUN_UNIV);
+    const f=pickFrame(pool,H,idx);
+    let adv="",advAr="";
+    if(f.adv){adv=f.adv[(H>>4)%f.adv.length];advAr=ADV_AR[adv]||adv;}
+    return [fillTpl(f.de,c,adv,advAr),fillTpl(f.ar,c,adv,advAr)];
+  }
   if(cat==="Days")return ["Am "+de+" lerne ich.","أتعلم يوم "+ar+"."];
-  if(cat==="Months")return ["Im "+de+" lerne ich Deutsch.","أتعلم الألمانية في "+ar+"."];
-  if(cat==="Numbers")return ["Die Zahl ist "+de+".","الرقم هو "+ar+"."];
   if(cat==="Languages")return ["Ich spreche "+de+".","أنا أتحدث "+ar+"."];
   if(cat==="Travel"&&art==="-")return ["Ich komme aus "+de+".","أنا من "+ar+"."];
   return [de+".",ar];
 }
+function simplePick(frames,de,ar,H){const f=frames[H%frames.length];return [f.de.split("{de}").join(de).split("{ar}").join(ar),f.ar.split("{de}").join(de).split("{ar}").join(ar)];}
 function buildVocab(){
   const blocks=[["K0",RAW_K0],["K1",RAW_K1],["K2",RAW_K2],["K3",RAW_K3],["K4",RAW_K4],["K5",RAW_K5]];
   const out=[],seen={};let n=0;
@@ -909,7 +1050,7 @@ function buildVocab(){
     b[1].forEach(function(r){
       const key=r[0]+"|"+r[1];
       if(seen[key])return;seen[key]=1;n++;
-      const auto=autoExample(r[0],r[1],r[4],r[5],r[2]);
+      const auto=autoExample(r[0],r[1],r[4],r[5],r[2],n);
       out.push({id:"k"+kap.toLowerCase()+"w"+n,de:r[0],art:r[1],ar:r[2],pron:r[3],type:r[4],cat:r[5],ex:r[6]||auto[0],exAr:r[7]||auto[1],kap:kap,level:"A1",plural:PLURAL[r[0]+"|"+r[1]]||""});
     });
   });

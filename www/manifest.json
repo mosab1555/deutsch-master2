@@ -1,7 +1,7 @@
 {
-  "name": "Deutsch Master - Learn German",
-  "short_name": "Deutsch Master",
-  "description": "Learn German. Master Your Future. A1 vocabulary, quizzes, flashcards and smart review.",
+  "name": "Deutsch Master Marketplace",
+  "short_name": "DM Market",
+  "description": "Global multi-vendor marketplace. Shop, sell and manage everything from one app.",
   "id": "./index.html",
   "start_url": "./index.html",
   "scope": "./",
@@ -11,7 +11,7 @@
   "lang": "ar",
   "background_color": "#070b18",
   "theme_color": "#070b18",
-  "categories": ["education", "reference"],
+  "categories": ["shopping", "business", "lifestyle"],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

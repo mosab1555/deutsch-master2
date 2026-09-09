@@ -11,9 +11,9 @@ function createWindow() {
     minHeight: 600,
     backgroundColor: "#070b18",
     autoHideMenuBar: true,
-    icon: path.join(__dirname, "..", "icons", "icon-256.png")
+    icon: path.join(__dirname, "..", "client", "icons", "icon-256.png")
   });
-  win.loadFile(path.join(__dirname, "..", "index.html"));
+  win.loadFile(path.join(__dirname, "..", "client", "index.html"));
 }
 
 app.whenReady().then(function () {

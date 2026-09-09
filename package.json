@@ -2,7 +2,7 @@
   "name": "deutsch-master",
   "version": "1.0.0",
   "private": true,
-  "description": "Deutsch Master - Learn German (Android app via Capacitor, Windows app via Electron)",
+  "description": "Deutsch Master Marketplace - global multi-vendor marketplace (Web via PWA, Android/iOS via Capacitor, Windows via Electron)",
   "main": "electron/main.js",
   "scripts": {
     "www": "node tools/make-www.js",
@@ -24,15 +24,7 @@
     "appId": "com.deutschmaster.app",
     "productName": "Deutsch Master",
     "files": [
-      "index.html",
-      "style.css",
-      "script.js",
-      "explain.js",
-      "launch.js",
-      "launch.css",
-      "manifest.json",
-      "sw.js",
-      "icons/**/*",
+      "client/**/*",
       "electron/**/*",
       "package.json"
     ],
