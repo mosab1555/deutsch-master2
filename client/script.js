@@ -1776,16 +1776,19 @@ function openExplain(id){
   let h='<div class="ex-nav"><button class="btn btn-ghost sm" id="exBack">📖 الفهرس</button><span class="tag kap-tag">'+kapName(g.kap)+'</span><span class="tag">A1</span></div>';
   h+='<div class="panel glass ex-hero"><h2>📚 '+escapeHtml(g.title)+'</h2><div class="ex-short">'+escapeHtml(g.body)+'</div></div>';
   if(E){
-    h+=exBlock("1️⃣ ما هي القاعدة؟",'<p>'+escapeHtml(E.what)+'</p>');
-    h+=exBlock("2️⃣ لماذا نستخدمها؟",'<p>'+escapeHtml(E.why)+'</p>');
-    h+=exBlock("3️⃣ متى نستخدمها؟",'<ul class="ex-ul">'+E.when.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>');
-    h+=exBlock("4️⃣ كيف نستخدمها؟",'<ol class="ex-ul">'+E.how.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ol>');
-    h+=exBlock("5️⃣ أمثلة بسيطة",E.examples.map(e=>'<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+'</div><div class="ex-ar">'+escapeHtml(e[1])+'</div></div>').join(""));
-    h+=exBlock("6️⃣ أمثلة من الحياة اليومية",E.daily.map(e=>'<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+'</div><div class="ex-ar">'+escapeHtml(e[1])+'</div></div>').join(""));
-    h+=exBlock("7️⃣ ملاحظات مهمة ⭐",'<ul class="ex-ul">'+E.notes.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>');
-    h+=exBlock("8️⃣ الأخطاء الشائعة",E.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ '+escapeHtml(m.w)+'</div><div class="ex-right">✅ '+escapeHtml(m.r)+'</div><div class="muted">'+escapeHtml(m.why)+'</div></div>').join(""));
-    h+=exBlock("9️⃣ مقارنة سريعة",'<p>'+escapeHtml(E.compare)+'</p>');
-    h+=exBlock("🔟 خلاصة القاعدة",'<div class="ex-sum">'+escapeHtml(E.summary)+'</div>');
+    h+='<details class="ex-lvl glass" open><summary>🟢 المستوى 1: الأساسيات</summary>'+
+    exBlock("1️⃣ ما هي القاعدة؟",'<p>'+escapeHtml(E.what)+'</p>')+
+    exBlock("2️⃣ لماذا نستخدمها؟",'<p>'+escapeHtml(E.why)+'</p>')+
+    exBlock("5️⃣ أمثلة بسيطة",E.examples.map(e=>'<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+'</div><div class="ex-ar">'+escapeHtml(e[1])+'</div></div>').join(""))+'</details>';
+    h+='<details class="ex-lvl glass"><summary>🟡 المستوى 2: التعمق</summary>'+
+    exBlock("3️⃣ متى نستخدمها؟",'<ul class="ex-ul">'+E.when.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
+    exBlock("4️⃣ كيف نستخدمها؟",'<ol class="ex-ul">'+E.how.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ol>')+
+    exBlock("6️⃣ أمثلة من الحياة اليومية",E.daily.map(e=>'<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+'</div><div class="ex-ar">'+escapeHtml(e[1])+'</div></div>').join(""))+
+    exBlock("9️⃣ مقارنة سريعة",'<p>'+escapeHtml(E.compare)+'</p>')+'</details>';
+    h+='<details class="ex-lvl glass"><summary>🔴 المستوى 3: الأخطاء والمراجعة</summary>'+
+    exBlock("7️⃣ ملاحظات مهمة ⭐",'<ul class="ex-ul">'+E.notes.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
+    exBlock("8️⃣ الأخطاء الشائعة",E.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ '+escapeHtml(m.w)+'</div><div class="ex-right">✅ '+escapeHtml(m.r)+'</div><div class="muted">'+escapeHtml(m.why)+'</div></div>').join(""))+
+    exBlock("🔟 خلاصة القاعدة",'<div class="ex-sum">'+escapeHtml(E.summary)+'</div>')+'</details>';
   }else{
     h+=exBlock("الشرح المختصر",'<p>'+escapeHtml(g.body)+'</p>');
   }
@@ -1804,7 +1807,7 @@ function openExplain(id){
       const i=parseInt(btn.getAttribute("data-i"),10);
       const fb=$("exQuizFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exQuizOpts .quiz-opt").forEach(x=>x.disabled=true);
-      if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;}
+      if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;try{if(typeof completeLesson==="function")completeLesson(g.id);}catch(e){}}
       else{btn.classList.add("wrong");det.querySelectorAll("#exQuizOpts .quiz-opt")[g.quiz.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;}
     }));
   }

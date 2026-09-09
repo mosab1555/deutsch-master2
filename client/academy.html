@@ -45,6 +45,13 @@
       <button class="nav-item" data-page="grammar"><span class="nav-ico">📐</span> القواعد</button>
       <button class="nav-item" data-page="explain"><span class="nav-ico">📚</span> الشرح</button>
       <button class="nav-item" data-page="quiz"><span class="nav-ico">📝</span> الاختبارات</button>
+      <button class="nav-item" data-page="journey"><span class="nav-ico">🗺️</span> الرحلة</button>
+      <button class="nav-item" data-page="listen"><span class="nav-ico">🎧</span> استماع</button>
+      <button class="nav-item" data-page="speak"><span class="nav-ico">🎤</span> تحدث</button>
+      <button class="nav-item" data-page="talk"><span class="nav-ico">💬</span> محادثة</button>
+      <button class="nav-item" data-page="real"><span class="nav-ico">🌍</span> مواقف</button>
+      <button class="nav-item" data-page="job"><span class="nav-ico">💼</span> الشغل</button>
+      <button class="nav-item" data-page="ach"><span class="nav-ico">🏆</span> إنجازاتي</button>
       <button class="nav-item" data-page="review"><span class="nav-ico">🧠</span> المراجعة <span class="badge" id="navReviewBadge">0</span></button>
       <button class="nav-item" data-page="mistakes"><span class="nav-ico">❌</span> أخطائي <span class="badge" id="navMistBadge">0</span></button>
       <button class="nav-item" data-page="stats"><span class="nav-ico">📊</span> الإحصائيات</button>
@@ -113,6 +120,7 @@
           <div class="row-flex"><button class="btn btn-primary sm" data-goto="vocab">📚 الكلمات</button><button class="btn btn-gold sm" data-goto="quiz">📝 ابدأ اختبار</button><button class="btn btn-green sm" data-goto="review">🧠 ابدأ المذاكرة</button><button class="btn btn-red sm" data-goto="mistakes">❌ مراجعة أخطائي</button></div>
           <div class="muted" id="lastQuizTxt">لم تحل أي اختبار بعد — ابدأ الآن! 🚀</div>
         </div>
+        <div id="dashLearn"></div>
         <div class="stats-grid">
           <div class="stat-card glass reveal"><div class="stat-ico">📖</div><div class="stat-num" data-count id="dSaved">0</div><div class="stat-label">كلمات محفوظة</div><div class="progress sm"><div class="progress-fill" id="dSavedBar"></div></div></div>
           <div class="stat-card glass reveal"><div class="stat-ico">🔁</div><div class="stat-num" data-count id="dReview">0</div><div class="stat-label">تحتاج مراجعة</div><div class="progress sm"><div class="progress-fill orange" id="dReviewBar"></div></div></div>
@@ -217,6 +225,48 @@
         </div>
         <div id="explainIndex"></div>
         <div id="explainDetail" class="hidden"></div>
+      </section>
+
+      <!-- JOURNEY -->
+      <section class="page" id="page-journey">
+        <div class="page-head"><h2>🗺️ German Journey</h2></div>
+        <div id="journeyBox"></div>
+      </section>
+
+      <!-- LISTEN -->
+      <section class="page" id="page-listen">
+        <div class="page-head"><h2>🎧 الاستماع</h2></div>
+        <div id="listenBox"></div>
+      </section>
+
+      <!-- SPEAK -->
+      <section class="page" id="page-speak">
+        <div class="page-head"><h2>🎤 التحدث</h2></div>
+        <div id="speakBox"></div>
+      </section>
+
+      <!-- TALK -->
+      <section class="page" id="page-talk">
+        <div class="page-head"><h2>💬 المحادثة</h2></div>
+        <div id="talkBox"></div>
+      </section>
+
+      <!-- REAL -->
+      <section class="page" id="page-real">
+        <div class="page-head"><h2>🌍 مواقف حقيقية</h2></div>
+        <div id="realBox"></div>
+      </section>
+
+      <!-- JOB -->
+      <section class="page" id="page-job">
+        <div class="page-head"><h2>💼 ألماني الشغل</h2></div>
+        <div id="jobBox"></div>
+      </section>
+
+      <!-- ACH -->
+      <section class="page" id="page-ach">
+        <div class="page-head"><h2>🏆 إنجازاتي</h2></div>
+        <div id="achBox"></div>
       </section>
 
       <!-- QUIZ -->
@@ -359,5 +409,6 @@
 
 <script src="explain.js"></script>
 <script src="script.js"></script>
+<script src="learn.js"></script>
 </body>
 </html>
