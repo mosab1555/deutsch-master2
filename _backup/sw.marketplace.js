@@ -1,7 +1,10 @@
-/* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v3";
+/* Deutsch Master Marketplace - offline support (PWA) */
+var DM_CACHE = "dmm-v2";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
+  "./css/tokens.css", "./css/app.css",
+  "./js/utils.js", "./js/i18n.js", "./js/local.js", "./js/api.js",
+  "./js/app.js", "./js/pages-shop.js", "./js/dashboards.js",
   "./style.css", "./script.js", "./explain.js",
   "./launch.css", "./launch.js",
   "./manifest.json",
