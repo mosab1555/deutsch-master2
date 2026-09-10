@@ -55,6 +55,10 @@ html[data-theme="light"] .search-wrap input{background:#fff}
 .search-results{position:absolute;top:110%;right:0;left:0;background:#101736;border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
 html[data-theme="light"] .search-results{background:#fff}
 .search-results.show{display:block}
+#notifDrop{position:absolute;top:110%;left:0;min-width:260px;max-width:90vw;background:#101736;border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
+html[data-theme="light"] #notifDrop{background:#fff}
+#notifDrop.show{display:block}
+.top-actions{position:relative}
 .search-hit{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border)}.search-hit:hover{background:rgba(var(--v2),.12)}
 .top-actions{margin-right:auto;display:flex;align-items:center;gap:8px}
 .icon-btn{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:9px 12px;cursor:pointer;transition:.25s;font-size:16px}

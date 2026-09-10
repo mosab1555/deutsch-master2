@@ -59,6 +59,11 @@
       <button class="nav-item" data-page="challenge"><span class="nav-ico">⚡</span> التحدي</button>
       <button class="nav-item" data-page="me"><span class="nav-ico">🙂</span> شخصيتي</button>
       <button class="nav-item" data-page="practice"><span class="nav-ico">🎯</span> تدريب ذكي</button>
+      <button class="nav-item" data-page="tutor"><span class="nav-ico">🤖</span> المدرّب</button>
+      <button class="nav-item" data-page="roadmap"><span class="nav-ico">🗺️</span> الخريطة</button>
+      <button class="nav-item" data-page="labs"><span class="nav-ico">🧪</span> المختبر</button>
+      <button class="nav-item" data-page="profile"><span class="nav-ico">👤</span> حسابي</button>
+      <button class="nav-item" data-page="analytics"><span class="nav-ico">📈</span> تقدمي</button>
       <button class="nav-item" data-page="review"><span class="nav-ico">🧠</span> المراجعة <span class="badge" id="navReviewBadge">0</span></button>
       <button class="nav-item" data-page="mistakes"><span class="nav-ico">❌</span> أخطائي <span class="badge" id="navMistBadge">0</span></button>
       <button class="nav-item" data-page="stats"><span class="nav-ico">📊</span> الإحصائيات</button>
@@ -90,6 +95,7 @@
           <option value="1.25">1.25x</option>
         </select>
         <button class="icon-btn" id="themeBtn" title="Dark / Light">🌙</button>
+        <select id="langSel" class="speed-select" title="اللغة"><option value="ar">🇪🇬 عربي</option><option value="en">🇬🇧 EN</option></select>
         <div class="streak-pill" id="topStreak">🔥 0</div>
       </div>
     </header>
@@ -319,6 +325,36 @@
         <div id="practiceBox"></div>
       </section>
 
+      <!-- TUTOR -->
+      <section class="page" id="page-tutor">
+        <div class="page-head"><h2>🤖 المدرّب</h2></div>
+        <div id="tutorBox"></div>
+      </section>
+
+      <!-- ROADMAP -->
+      <section class="page" id="page-roadmap">
+        <div class="page-head"><h2>🗺️ الخريطة</h2></div>
+        <div id="roadmapBox"></div>
+      </section>
+
+      <!-- LABS -->
+      <section class="page" id="page-labs">
+        <div class="page-head"><h2>🧪 المختبر</h2></div>
+        <div id="labsBox"></div>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="page" id="page-profile">
+        <div class="page-head"><h2>👤 حسابي</h2></div>
+        <div id="profileBox"></div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section class="page" id="page-analytics">
+        <div class="page-head"><h2>📈 تقدمي</h2></div>
+        <div id="analyticsBox"></div>
+      </section>
+
       <!-- QUIZ -->
       <section class="page" id="page-quiz">
         <div class="page-head"><h2>📝 الاختبارات</h2></div>
@@ -466,5 +502,6 @@
 <script src="learn.js"></script>
 <script src="play.js"></script>
 <script src="world.js"></script>
+<script src="study.js"></script>
 </body>
 </html>
