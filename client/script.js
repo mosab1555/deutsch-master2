@@ -1942,12 +1942,15 @@ function randOpts(words,correct,fn){
 const LVL_NAMES=["مبتدئ","متعلم","مجتهد","متقدم","محترف","خبير","أسطورة"];
 function levelFor(xp){const lvl=Math.floor(Math.sqrt((xp||0)/100))+1;const base=100*(lvl-1)*(lvl-1);const need=100*lvl*lvl-base;return{lvl:lvl,cur:(xp||0)-base,need:need,name:LVL_NAMES[Math.min(lvl-1,LVL_NAMES.length-1)]};}
 function addXP(n){S.xp=(S.xp||0)+n;save();return n;}
-function recordMistake(w,picked,kind){
+function recordMistake(w,picked,kind,extra){
   if(!w||!w.id)return;
   if(!S.mistakes)S.mistakes={};
   const m=S.mistakes[w.id]||{n:0};
   m.n++;m.last=picked||"";m.kind=kind||"";m.date=todayStr();
   m.de=fullDe(w);m.ar=w.ar;
+  if(extra&&extra.qid)m.qid=extra.qid;
+  if(extra&&extra.chapterId)m.chapterId=extra.chapterId;
+  if(extra&&extra.lessonId!==undefined)m.lessonId=extra.lessonId;
   S.mistakes[w.id]=m;
   const keys=Object.keys(S.mistakes);
   if(keys.length>200){keys.sort((a,b)=>S.mistakes[a].n-S.mistakes[b].n);for(let i=0;i<keys.length-200;i++)delete S.mistakes[keys[i]];}
@@ -2154,7 +2157,7 @@ function showFeedback(ok,q,pickedText){
     if(q.w&&S.mistakes&&S.mistakes[q.w.id]){S.mistakes[q.w.id].n--;if(S.mistakes[q.w.id].n<=0)delete S.mistakes[q.w.id];}
   }else{
     quizCombo=0;
-    if(q.w){bumpSilent(q.w.id,false);recordMistake(q.w,pickedText||"",q.kind);}
+    if(q.w){bumpSilent(q.w.id,false);if(q.fillItem)recordMistake(q.w,pickedText||"",q.kind,{qid:q.fillItem.id,chapterId:q.fillItem.chapterId,lessonId:q.fillItem.lessonId});else recordMistake(q.w,pickedText||"",q.kind);}
   }
   fb.textContent=(ok?"صحيح ✅ +"+gained+" XP ⭐"+(quizCombo>=2?"  🔥x"+quizCombo:""):"خطأ ❌ ")+q.explain;
   $("quizNext").disabled=false;
@@ -2231,6 +2234,12 @@ function renderMistakes(){
   }
   let ids=Object.keys(S.mistakes).sort((a,b)=>S.mistakes[b].n-S.mistakes[a].n);
   if(kf)ids=ids.filter(id=>{const w=wordById(id);return w&&w.kap===kf;});
+  try{
+    const perKap={};
+    Object.keys(S.mistakes).forEach(id=>{const w=wordById(id);const k=w?w.kap||"?":"?";perKap[k]=(perKap[k]||0)+S.mistakes[id].n;});
+    const line=Object.keys(perKap).sort().map(k=>k+": "+perKap[k]+" أخطاء").join(" • ");
+    if(line)$("mistCount").textContent=ids.length+" ("+line+")";
+  }catch(e){}
   $("mistCount").textContent=ids.length;
   $("navMistBadge").textContent=ids.length;
   const g=$("mistGrid");g.innerHTML="";
