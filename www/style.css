@@ -199,10 +199,10 @@ html[data-theme="light"] .grammar-ex{background:rgba(0,0,0,.05)}
 .quiz-opts{display:grid;gap:10px;margin:14px 0}
 .quiz-opt{padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;font-size:16px;font-weight:700;transition:box-shadow .35s ease,border-color .35s ease,transform .35s ease,background-color .35s ease;text-align:right}
 .quiz-opt:hover:not(:disabled){background:rgba(var(--v2),.15);transform:scale(1.01)}
-.quiz-opt.correct{background:linear-gradient(135deg,#15803d,#22c55e)!important;color:#fff;border-color:transparent;box-shadow:0 0 18px rgba(34,197,94,.6);animation:popGood .45s ease}
-.quiz-opt.wrong{background:linear-gradient(135deg,#991b1b,#ef4444)!important;color:#fff;border-color:transparent;box-shadow:0 0 14px rgba(239,68,68,.55);animation:shakeBad .4s ease}
-@keyframes popGood{0%{transform:scale(1)}35%{transform:scale(1.045);box-shadow:0 0 30px rgba(34,197,94,.9)}100%{transform:scale(1);box-shadow:0 0 18px rgba(34,197,94,.6)}}
-@keyframes shakeBad{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}55%{transform:translateX(4px)}80%{transform:translateX(-2px)}}
+.quiz-opt.correct{background:linear-gradient(135deg,#15803d,#22c55e)!important;color:#fff;border-color:#22c55e;box-shadow:0 0 22px rgba(34,197,94,.8);animation:popGood .5s ease}
+.quiz-opt.wrong{background:linear-gradient(135deg,#991b1b,#ef4444)!important;color:#fff;border-color:#ef4444;box-shadow:0 0 18px rgba(239,68,68,.8);animation:shakeBad .45s ease}
+@keyframes popGood{0%{transform:scale(1)}30%{transform:scale(1.08);box-shadow:0 0 34px rgba(34,197,94,1)}100%{transform:scale(1.02);box-shadow:0 0 22px rgba(34,197,94,.8)}}
+@keyframes shakeBad{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}45%{transform:translateX(6px)}70%{transform:translateX(-3px)}90%{transform:translateX(2px)}}
 @media (prefers-reduced-motion:reduce){.quiz-opt.correct,.quiz-opt.wrong{animation:none}}
 .order-answer.good{border-color:var(--green);box-shadow:0 0 16px rgba(34,197,94,.55);animation:popGood .45s ease}
 .order-answer.bad{border-color:var(--red);box-shadow:0 0 14px rgba(239,68,68,.55);animation:shakeBad .4s ease}
