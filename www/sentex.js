@@ -83,16 +83,16 @@ function fillToQuiz(f){
   return {kind:"sentence-fill",fillItem:f,w:sentexPseudoWord(f),
     prompt:String(f.s||"").replace("___","______"),
     opts:opts,correctText:correct,
-    explain:"الإجابة: "+correct+" — "+(f.why||"")};
+    explain:t("sx_correctans")+correct+" — "+(f.why||"")};
 }
 
 /* ---------- host abstraction: two pages, one engine ---------- */
 var SX={mode:"single",chapters:[],qs:[],idx:0,score:0,results:[]}; /* ✏️ تدريبات الجمل */
 var PX={mode:"single",chapters:[],qs:[],idx:0,score:0,results:[]}; /* 🧠 تدريب ذكي */
 function sxHost(name){
-  if(name==="practice")return {name:"practice",boxId:"practiceBox",title:"🧠 تدريب ذكي",
+  if(name==="practice")return {name:"practice",boxId:"practiceBox",title:"🧠 تدريب ذكي",titleKey:"title_practice",
     src:"smart-training",get st(){return PX;},set st(v){PX=v;}};
-  return {name:"sentex",boxId:"sentexBox",title:"✏️ تدريبات الجمل",
+  return {name:"sentex",boxId:"sentexBox",title:"✏️ تدريبات الجمل",titleKey:"title_sentex",
     src:"sentence-exercises",get st(){return SX;},set st(v){SX=v;}};
 }
 function sentexEnsure(){
@@ -114,10 +114,10 @@ function renderSxHome(H){
   const box=$(H.boxId);if(!box)return;
   const chs=sentexChapters();
   const bank=sentexBank();
-  if(!bank.length){box.innerHTML='<div class="panel glass">لا توجد أسئلة بعد.</div>';return;}
+  if(!bank.length){box.innerHTML='<div class="panel glass">'+t("sx_empty")+'</div>';return;}
   const p=H.name; /* id prefix: sx | px */
-  let h='<div class="panel glass"><h3>'+H.title+'</h3>'
-    +'<div class="muted">اختر Kapitel للتدريب — أسئلة إكمال الجمل الحقيقية. ('+bank.length+' سؤالًا، بدون مؤقّت ⏱️❌)</div></div>';
+  let h='<div class="panel glass"><h3>'+t(H.titleKey)+'</h3>'
+    +'<div class="muted">'+t("sx_sub")+" ("+bank.length+" "+t("sx_questions")+"))</div></div>";
   h+='<div class="grid-2">';
   chs.forEach(function(c){
     let pct=null;
@@ -126,18 +126,18 @@ function renderSxHome(H){
       if(pr&&pr.n)pct=Math.round(pr.ok/Math.max(1,pr.n)*100);
     }catch(e){}
     h+='<div class="panel glass"><h4>'+escapeHtml(sentexChapterName(c.id))+'</h4>'
-      +'<div class="muted">'+c.n+' سؤال</div>'
-      +(pct===null?'<div class="muted">لم تتدرب بعد</div>'
-        :'<div class="stat-bar-row"><span class="lbl">تقدمك</span><div class="bar"><div class="fill" style="width:'+pct+'%;background:linear-gradient(90deg,#7c3aed,#00d4ff)"></div></div><b>'+pct+'%</b></div>')
-      +'<div class="row-flex"><button class="btn btn-primary sm" data-'+p+'-single="'+c.id+'">ابدأ التدريب 🚀</button></div></div>';
+      +'<div class="muted">'+c.n+" "+t("sx_questions")+"</div>"
+      +(pct===null?'<div class="muted">'+t("sx_notyet")+'</div>'
+        :'<div class="stat-bar-row"><span class="lbl">'+t("sx_yourprog")+'</span><div class="bar"><div class="fill" style="width:'+pct+'%;background:linear-gradient(90deg,#7c3aed,#00d4ff)"></div></div><b>'+pct+'%</b></div>')
+      +'<div class="row-flex"><button class="btn btn-primary sm" data-'+p+'-single="'+c.id+'">'+t("sx_start")+'</button></div></div>';
   });
   h+='</div>';
   /* multi */
-  h+='<div class="panel glass"><h3>📚 اختيار عدة Kapitel</h3><div class="muted">علّم على الفصول ثم ابدأ — الأسئلة من المختارة فقط.</div><div class="row-flex" style="flex-wrap:wrap">'
+  h+='<div class="panel glass"><h3>'+t("sx_multi_h")+'</h3><div class="muted">'+t("sx_multi_sub")+'</div><div class="row-flex" style="flex-wrap:wrap">'
     +chs.map(function(c){return '<label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:8px 12px"><input type="checkbox" data-'+p+'-multi="'+c.id+'"> '+escapeHtml(c.id)+' ('+c.n+')</label>';}).join("")
-    +'</div><div class="row-flex"><button class="btn btn-gold sm" id="'+p+'MultiStart">ابدأ التدريب المحدد 🚀</button></div></div>';
+    +'</div><div class="row-flex"><button class="btn btn-gold sm" id="'+p+'MultiStart">'+t("sx_multi_btn")+'</button></div></div>';
   /* mixed */
-  h+='<div class="panel glass"><h3>🌍 جميع Kapitel — مختلط</h3><div class="muted">تدريب مختلط من كل الفصول ('+bank.length+' سؤالًا، نختار 20 بخلط حقيقي).</div><div class="row-flex"><button class="btn btn-green sm" id="'+p+'MixedStart">ابدأ المختلط 🌍</button></div></div>';
+  h+='<div class="panel glass"><h3>'+t("sx_mixed_h")+'</h3><div class="muted">'+t("sx_mixed_sub")+" ("+bank.length+" "+t("sx_questions")+'</div><div class="row-flex"><button class="btn btn-green sm" id="'+p+'MixedStart">'+t("sx_mixed_btn")+'</button></div></div>';
   h+='<div id="'+p+'Run"></div>';
   box.innerHTML=h;
   box.querySelectorAll("[data-"+p+"-single]").forEach(function(b){
@@ -146,7 +146,7 @@ function renderSxHome(H){
   const ms=$(p+"MultiStart");
   if(ms)ms.addEventListener("click",function(){
     const sel=Array.from(box.querySelectorAll("[data-"+p+"-multi]:checked")).map(function(x){return x.getAttribute("data-"+p+"-multi");});
-    if(!sel.length){toast("اختر Kapitel واحدًا على الأقل ☑️","err");return;}
+    if(!sel.length){toast(t("sx_nochoice"),"err");return;}
     startSxRun(H,sel,"multi");
   });
   const mx=$(p+"MixedStart");
@@ -165,7 +165,7 @@ function startSxRun(H,chapters,mode){
   const set={};chapters.forEach(function(k){set[k]=1;});
   /* strict isolation: chapterId must be in the selected set */
   let pool=bank.filter(function(f){return set[f.chapterId];});
-  if(!pool.length){toast("لا توجد أسئلة لهذا الاختيار ⚠️","err");return;}
+  if(!pool.length){toast(t("sx_noqs"),"err");return;}
   pool=sentexShuffle(pool);
   if(mode==="mixed")pool=pool.slice(0,Math.min(20,pool.length));
   H.st={mode:mode,chapters:chapters.slice(),qs:pool,idx:0,score:0,results:[]};
@@ -195,7 +195,7 @@ function renderSxQ(H){
   box.innerHTML='<div class="panel glass"><div class="quiz-top"><span>'+(ST.idx+1)+' / '+ST.qs.length+'</span>'
     +'<div class="progress"><div class="progress-fill" style="width:'+(ST.idx/ST.qs.length*100)+'%"></div></div>'
     +'<span>✅ '+ST.score+'</span></div>'
-    +'<div class="muted">'+escapeHtml(H.title)+' • 📚 '+escapeHtml(f.chapterName||f.chapterId||"")+' • '+escapeHtml(f.lvl||"")+'</div>'
+    +'<div class="muted">'+escapeHtml(t(H.titleKey))+' •📚 '+escapeHtml(f.chapterName||f.chapterId||"")+' • '+escapeHtml(f.lvl||"")+'</div>'
     +'<h3 class="fill-sent" dir="ltr" style="text-align:left" id="'+p+'Sent">'+sentexBlankHtml(f,null,false)+'</h3>'
     +'<div class="quiz-opts" id="'+p+'Opts">'
     +opts.map(function(o,j){return '<button class="quiz-opt" data-j="'+j+'" dir="ltr">'+letters[j]+') '+escapeHtml(o)+'</button>';}).join("")
@@ -223,8 +223,8 @@ function answerSx(H,j,correctPos,opts,f){
   if(sent)sent.innerHTML=sentexBlankHtml(f,opts[j],ok);
   const fb=$(p+"Fb");fb.classList.remove("hidden","ok","no");fb.classList.add(ok?"ok":"no");
   const correct=(f.o&&f.o[f.c])||"";
-  fb.innerHTML=(ok?"صحيح ✅ ":"خطأ ❌ ")
-    +(ok?escapeHtml(f.s.replace("___",correct))+"<br>":"إجابتك: <b>"+escapeHtml(opts[j])+"</b> • الصحيحة: <b style='color:var(--green)'>"+escapeHtml(correct)+"</b><br>")
+  fb.innerHTML=(ok?t("sx_correct"):t("sx_wrong"))
+    +(ok?escapeHtml(f.s.replace("___",correct))+"<br>":t("sx_yourans")+"<b>"+escapeHtml(opts[j])+"</b> • "+t("sx_correctans")+"<b style='color:var(--green)'>"+escapeHtml(correct)+"</b><br>")
     +"<span class='muted'>"+escapeHtml(f.why||"")+"</span>";
   /* progress + totals (reuse store) */
   if(ok){ST.score++;try{S.totalCorrect++;}catch(e){}}
@@ -268,18 +268,18 @@ function finishSx(H){
   }).join("");
   const wrongs=ST.results.filter(function(r){return !r.ok;});
   const wrongRows=wrongs.length?wrongs.map(function(r){
-    return '<div class="mist-err">❌ <b dir="ltr">'+escapeHtml(r.f.s.replace("___","______"))+'</b><br>إجابتك: <b>'+escapeHtml(r.picked)+'</b> | الصحيحة: <b style="color:var(--green)">'+escapeHtml(r.correct)+'</b><br><span class="muted">'+escapeHtml(r.f.why||"")+' • '+escapeHtml(r.f.chapterId||"")+'</span></div>';
-  }).join(""):'<div class="muted">ممتاز — بلا أخطاء! 🎉</div>';
+    return '<div class="mist-err">❌ <b dir="ltr">'+escapeHtml(r.f.s.replace("___","______"))+'</b><br>'+t("sx_yourans")+"<b>"+escapeHtml(r.picked)+"</b> | "+t("sx_correctans")+'<b style="color:var(--green)">'+escapeHtml(r.correct)+"</b><br><span class='muted'>"+escapeHtml(r.f.why||"")+' • '+escapeHtml(r.f.chapterId||"")+'</span></div>';
+  }).join(""):'<div class="muted">'+t("sx_noerr")+'</div>';
   const title=ST.mode==="single"?("Kapitel "+(ST.chapters[0]||"")):(ST.mode==="mixed"?"🌍 مختلط — جميع Kapitel":"📚 "+ST.chapters.join(" + "));
-  run.innerHTML='<div class="panel glass" style="text-align:center"><h3>🎯 النتيجة — '+escapeHtml(title)+'</h3>'
+  run.innerHTML='<div class="panel glass" style="text-align:center"><h3>'+t("sx_result")+escapeHtml(title)+'</h3>'
     +'<div class="stat-num" style="font-size:44px">'+score+' / '+total+'</div>'
     +'<div class="stat-num" style="font-size:28px">'+pct+'%</div>'
     +'<div class="progress" style="margin:10px 0"><div class="progress-fill" style="width:'+pct+'%"></div></div>'
     +perRows
-    +'<h4 style="margin-top:12px">أخطاؤك ('+wrongs.length+')</h4>'+wrongRows
-    +'<div class="row-flex" style="justify-content:center;margin-top:12px"><button class="btn btn-primary sm" id="'+p+'Again">🔄 تدريب جديد</button>'
-    +'<button class="btn btn-gold sm" id="'+p+'GoMist">❌ مراجعة أخطائي</button>'
-    +'<button class="btn btn-ghost sm" id="'+p+'Home">🏠 الرئيسية</button></div></div>';
+    +'<h4 style="margin-top:12px">'+t("sx_errors")+wrongs.length+')</h4>'+wrongRows
+    +'<div class="row-flex" style="justify-content:center;margin-top:12px"><button class="btn btn-primary sm" id="'+p+'Again">'+t("sx_again")+'</button>'
+    +'<button class="btn btn-gold sm" id="'+p+'GoMist">'+t("sx_gomist")+'</button>'
+    +'<button class="btn btn-ghost sm" id="'+p+'Home">'+t("sx_home")+'</button></div></div>';
   const HH=H;
   $(p+"Again").addEventListener("click",function(){renderSxHome(HH);const b=$(HH.boxId);if(b)b.scrollIntoView({behavior:"smooth"});});
   $(p+"GoMist").addEventListener("click",function(){showPage("mistakes");});
@@ -289,13 +289,7 @@ function finishSx(H){
 }
 function finishSentex(){finishSx(sxHost("sentex"));}
 
-/* ---------- i18n + page wiring (additive, never override pages) ---------- */
-try{
-  if(typeof I18N!=="undefined"){
-    if(I18N.ar)I18N.ar.sentex="تدريبات الجمل";
-    if(I18N.en)I18N.en.sentex="Sentence Exercises";
-  }
-}catch(e){}
+/* ---------- page wiring (I18N dict lives in study.js) ---------- */
 (function(){
   /* Route 🧠 تدريب ذكي to the SENT_FILL engine (override vocab-based version).
      play.js captured the old renderPractice inside PLAY_PAGES, so repoint it too. */

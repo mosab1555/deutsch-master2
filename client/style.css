@@ -400,3 +400,7 @@ html[data-theme="light"] .game-card select{background:#fff}
 #page-practice .fill-sent{font-size:22px}
 #practiceBox .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
 @media(max-width:860px){#sentexBox .grid-2{grid-template-columns:1fr}#practiceBox .grid-2{grid-template-columns:1fr}}
+
+/* German UI: allow long words to wrap without breaking layout */
+html[lang="de"] .nav-item{white-space:normal;line-height:1.35}
+html[lang="de"] .quiz-opt,html[lang="de"] .btn{white-space:normal}

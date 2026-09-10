@@ -78,7 +78,7 @@
     </nav>
     <div class="side-footer">
       <div class="streak-mini" id="sideStreak">🔥 0 يوم</div>
-      <div class="level-chip">المستوى الحالي: <b>A1</b></div>
+      <div class="level-chip"><span data-i18n="side_level">المستوى الحالي:</span> <b>A1</b></div>
     </div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -86,21 +86,21 @@
   <!-- Main -->
   <div class="main">
     <header class="topbar glass">
-      <button class="icon-btn hamburger" id="menuBtn" aria-label="القائمة">☰</button>
+      <button class="icon-btn hamburger" id="menuBtn" data-i18n-aria="aria_menu" aria-label="القائمة">☰</button>
       <div class="search-wrap">
         <span class="search-ico">🔍</span>
-        <input type="text" id="globalSearch" placeholder="ابحث: Haus / البيت / فعل / قاعدة...">
+        <input type="text" id="globalSearch" data-i18n-ph="search_ph" placeholder="ابحث: Haus / البيت / فعل / قاعدة...">
         <div class="search-results" id="searchResults"></div>
       </div>
       <div class="top-actions">
-        <select id="speedSelect" class="speed-select" title="سرعة النطق">
+        <select id="speedSelect" class="speed-select" data-i18n-title="speed_title" title="سرعة النطق">
           <option value="0.5">0.5x</option>
           <option value="0.75">0.75x</option>
           <option value="1" selected>1x</option>
           <option value="1.25">1.25x</option>
         </select>
         <button class="icon-btn" id="themeBtn" title="Dark / Light">🌙</button>
-        <select id="langSel" class="speed-select" title="اللغة"><option value="ar">🇪🇬 عربي</option><option value="en">🇬🇧 EN</option></select>
+        <select id="langSel" class="speed-select" data-i18n-title="lang_title" title="اللغة"><option value="ar" data-i18n="lang_ar">🇪🇬 عربي</option><option value="en" data-i18n="lang_en">🇬🇧 EN</option><option value="de" data-i18n="lang_de">🇩🇪 Deutsch</option></select>
         <div class="streak-pill" id="topStreak">🔥 0</div>
       </div>
     </header>
@@ -110,20 +110,20 @@
       <section class="page active" id="page-dashboard">
         <div class="hero glass reveal">
           <div class="hero-text">
-            <div class="hero-tag">🇩🇪 مستوى A1 • German Learning + Technology</div>
-            <h1>مرحبًا بك في <span class="grad-text">Deutsch Master</span></h1>
+            <div class="hero-tag" data-i18n="hero_tag">🇩🇪 مستوى A1 • German Learning + Technology</div>
+            <h1><span data-i18n="hero_welcome">مرحبًا بك في</span> <span class="grad-text">Deutsch Master</span></h1>
             <p class="typing-line"><span id="typingText"></span><span class="caret">|</span></p>
             <div class="hero-btns">
-              <button class="btn btn-primary" data-goto="vocab">ابدأ الكلمات 📚</button>
-              <button class="btn btn-ghost" data-goto="quiz">اختبر نفسك 📝</button>
-              <button class="btn btn-gold" data-goto="review">مراجعة اليوم 🧠</button>
+              <button class="btn btn-primary" data-goto="vocab" data-i18n="hero_words">ابدأ الكلمات 📚</button>
+              <button class="btn btn-ghost" data-goto="quiz" data-i18n="hero_quiz">اختبر نفسك 📝</button>
+              <button class="btn btn-gold" data-goto="review" data-i18n="hero_review">مراجعة اليوم 🧠</button>
             </div>
           </div>
           <div class="hero-card">
             <div class="hero-level">A1</div>
             <div class="hero-level-sub">Deutsch • Anfänger</div>
             <div class="hero-progress">
-              <div class="hero-progress-top"><span>نسبة التقدم</span><span id="heroProgressPct">0%</span></div>
+              <div class="hero-progress-top"><span data-i18n="hero_progress">نسبة التقدم</span><span id="heroProgressPct">0%</span></div>
               <div class="progress"><div class="progress-fill" id="heroProgressFill" style="width:0%"></div></div>
             </div>
           </div>
@@ -135,35 +135,35 @@
             <div class="xp-wrap"><div class="xp-top"><span>XP: <b id="xpNum">0</b></span><span id="xpNext">0 / 100</span></div><div class="progress"><div class="progress-fill gold" id="xpFill" style="width:0%"></div></div></div>
             <div class="gamer-stats"><span>🎯 <b id="accNum">0%</b></span><span>🏆 <b id="bestNum">0%</b></span><span>🔥 <b id="comboNum">0</b></span></div>
           </div>
-          <div class="row-flex"><button class="btn btn-primary sm" data-goto="vocab">📚 الكلمات</button><button class="btn btn-gold sm" data-goto="quiz">📝 ابدأ اختبار</button><button class="btn btn-green sm" data-goto="review">🧠 ابدأ المذاكرة</button><button class="btn btn-red sm" data-goto="mistakes">❌ مراجعة أخطائي</button></div>
+          <div class="row-flex"><button class="btn btn-primary sm" data-goto="vocab" data-i18n="dash_words">📚 الكلمات</button><button class="btn btn-gold sm" data-goto="quiz" data-i18n="dash_quiz">📝 ابدأ اختبار</button><button class="btn btn-green sm" data-goto="review" data-i18n="dash_review">🧠 ابدأ المذاكرة</button><button class="btn btn-red sm" data-goto="mistakes" data-i18n="mist_head">❌ مراجعة أخطائي</button></div>
           <div class="muted" id="lastQuizTxt">لم تحل أي اختبار بعد — ابدأ الآن! 🚀</div>
         </div>
         <div id="dashLearn"></div>
         <div class="stats-grid">
-          <div class="stat-card glass reveal"><div class="stat-ico">📖</div><div class="stat-num" data-count id="dSaved">0</div><div class="stat-label">كلمات محفوظة</div><div class="progress sm"><div class="progress-fill" id="dSavedBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">🔁</div><div class="stat-num" data-count id="dReview">0</div><div class="stat-label">تحتاج مراجعة</div><div class="progress sm"><div class="progress-fill orange" id="dReviewBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">📅</div><div class="stat-num" data-count id="dDays">0</div><div class="stat-label">أيام المذاكرة</div><div class="progress sm"><div class="progress-fill green" id="dDaysBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">📝</div><div class="stat-num" data-count id="dTests">0</div><div class="stat-label">اختبارات محلولة</div><div class="progress sm"><div class="progress-fill purple" id="dTestsBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">✅</div><div class="stat-num" data-count id="dCorrect">0</div><div class="stat-label">إجابات صحيحة</div><div class="progress sm"><div class="progress-fill gold" id="dCorrectBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">🔥</div><div class="stat-num" data-count id="dStreak">0</div><div class="stat-label">Streak أيام متتالية</div><div class="progress sm"><div class="progress-fill red" id="dStreakBar"></div></div></div>
+          <div class="stat-card glass reveal"><div class="stat-ico">📖</div><div class="stat-num" data-count id="dSaved">0</div><div class="stat-label" data-i18n="stat_saved">كلمات محفوظة</div><div class="progress sm"><div class="progress-fill" id="dSavedBar"></div></div></div>
+          <div class="stat-card glass reveal"><div class="stat-ico">🔁</div><div class="stat-num" data-count id="dReview">0</div><div class="stat-label" data-i18n="stat_due">تحتاج مراجعة</div><div class="progress sm"><div class="progress-fill orange" id="dReviewBar"></div></div></div>
+          <div class="stat-card glass reveal"><div class="stat-ico">📅</div><div class="stat-num" data-count id="dDays">0</div><div class="stat-label" data-i18n="stat_days">أيام المذاكرة</div><div class="progress sm"><div class="progress-fill green" id="dDaysBar"></div></div></div>
+          <div class="stat-card glass reveal"><div class="stat-ico">📝</div><div class="stat-num" data-count id="dTests">0</div><div class="stat-label" data-i18n="stat_tests">اختبارات محلولة</div><div class="progress sm"><div class="progress-fill purple" id="dTestsBar"></div></div></div>
+          <div class="stat-card glass reveal"><div class="stat-ico">✅</div><div class="stat-num" data-count id="dCorrect">0</div><div class="stat-label" data-i18n="stat_correct">إجابات صحيحة</div><div class="progress sm"><div class="progress-fill gold" id="dCorrectBar"></div></div></div>
+          <div class="stat-card glass reveal"><div class="stat-ico">🔥</div><div class="stat-num" data-count id="dStreak">0</div><div class="stat-label" data-i18n="stat_streak">Streak أيام متتالية</div><div class="progress sm"><div class="progress-fill red" id="dStreakBar"></div></div></div>
         </div>
 
         <div class="grid-2">
           <div class="panel glass reveal">
-            <h3>🎯 خطة اليوم</h3>
+            <h3 data-i18n="plan_today">🎯 خطة اليوم</h3>
             <div id="dashPlanner"></div>
-            <button class="btn btn-primary sm" data-goto="planner">فتح الخطة</button>
+            <button class="btn btn-primary sm" data-goto="planner" data-i18n="plan_open">فتح الخطة</button>
           </div>
           <div class="panel glass reveal">
-            <h3>⚡ إجراءات سريعة</h3>
+            <h3 data-i18n="quick_head">⚡ إجراءات سريعة</h3>
             <div class="quick-grid">
-              <button class="quick-btn" data-goto="flashcards">🃏 فلاش كارد</button>
+              <button class="quick-btn" data-goto="flashcards" data-i18n="quick_flash">🃏 فلاش كارد</button>
               <button class="quick-btn" data-quiz="article">der/die/das</button>
-              <button class="quick-btn" data-goto="sentences">💬 جمل A1</button>
-              <button class="quick-btn" data-goto="verbs">⚡ تصريف الأفعال</button>
-              <button class="quick-btn" data-quiz="listening">🎧 اختبار استماع</button>
-              <button class="quick-btn" data-goto="grammar">📐 قاعدة اليوم</button>
-              <button class="quick-btn" data-goto="mistakes">❌ أخطائي</button>
+              <button class="quick-btn" data-goto="sentences" data-i18n="quick_sent">💬 جمل A1</button>
+              <button class="quick-btn" data-goto="verbs" data-i18n="quick_verbs">⚡ تصريف الأفعال</button>
+              <button class="quick-btn" data-quiz="listening" data-i18n="quick_listen">🎧 اختبار استماع</button>
+              <button class="quick-btn" data-goto="grammar" data-i18n="quick_rule">📐 قاعدة اليوم</button>
+              <button class="quick-btn" data-goto="mistakes" data-i18n="quick_mist">❌ أخطائي</button>
             </div>
           </div>
         </div>
@@ -172,80 +172,80 @@
       <!-- VOCAB -->
       <section class="page" id="page-vocab">
         <div class="page-head">
-          <h2>📚 الكلمات الألمانية <span class="count-pill" id="vocabCount">0</span></h2>
-          <button class="btn btn-gold sm" id="openAddWord">+ إضافة كلمة</button>
+          <h2><span data-i18n="title_vocab">📚 الكلمات الألمانية</span> <span class="count-pill" id="vocabCount">0</span></h2>
+          <button class="btn btn-gold sm" id="openAddWord" data-i18n="add_word">+ إضافة كلمة</button>
         </div>
         <div class="filters glass">
-          <input type="text" id="vocabSearch" placeholder="ابحث بكلمة ألمانية أو عربية...">
-          <select id="filterCategory"><option value="">كل التصنيفات</option></select>
-          <select id="filterType"><option value="">كل الأنواع</option><option value="اسم">اسم</option><option value="فعل">فعل</option><option value="صفة">صفة</option><option value="ضمير">ضمير</option><option value="أداة">أداة</option><option value="مفردات">مفردات</option></select>
-          <select id="filterStatus"><option value="">كل الحالات</option><option value="new">🆕 جديدة</option><option value="review">🔁 مراجعة</option><option value="hard">🔴 صعبة</option><option value="known">✅ محفوظة</option><option value="later">⏳ لاحقًا</option></select>
-          <select id="filterArticle"><option value="">der/die/das الكل</option><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="-">بدون أداة</option></select>
-          <select id="filterKapitel"><option value="">كل الكبيتلات</option></select>
-          <select id="filterLevel"><option value="">كل المستويات</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select>
+          <input type="text" id="vocabSearch" data-i18n-ph="vocab_search_ph" placeholder="ابحث بكلمة ألمانية أو عربية...">
+          <select id="filterCategory"><option value="" data-i18n="f_allcats">كل التصنيفات</option></select>
+          <select id="filterType"><option value="" data-i18n="f_alltypes">كل الأنواع</option><option value="اسم" data-i18n="t_noun">اسم</option><option value="فعل" data-i18n="t_verb">فعل</option><option value="صفة" data-i18n="t_adj">صفة</option><option value="ضمير" data-i18n="t_pron">ضمير</option><option value="أداة" data-i18n="t_part">أداة</option><option value="مفردات" data-i18n="t_vocabw">مفردات</option></select>
+          <select id="filterStatus"><option value="" data-i18n="f_allstatus">كل الحالات</option><option value="new" data-i18n="s_new">🆕 جديدة</option><option value="review" data-i18n="s_review">🔁 مراجعة</option><option value="hard" data-i18n="s_hard">🔴 صعبة</option><option value="known" data-i18n="s_known">✅ محفوظة</option><option value="later" data-i18n="s_later">⏳ لاحقًا</option></select>
+          <select id="filterArticle"><option value="" data-i18n="f_allart">der/die/das الكل</option><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="-" data-i18n="f_noart">بدون أداة</option></select>
+          <select id="filterKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select>
+          <select id="filterLevel"><option value="" data-i18n="f_alllevels">كل المستويات</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select>
         </div>
         <div class="cards-grid" id="vocabGrid"></div>
       </section>
 
       <!-- FLASHCARDS -->
       <section class="page" id="page-flashcards">
-        <div class="page-head"><h2>🃏 Flashcards</h2>
+        <div class="page-head"><h2 data-i18n="title_flash">🃏 Flashcards</h2>
           <div class="row-flex">
-            <select id="flashCategory"><option value="">كل التصنيفات</option></select>
-            <select id="flashKapitel"><option value="">كل الكبيتلات</option></select>
-            <button class="btn btn-ghost sm" id="flashShuffle">🔀 خلط</button>
+            <select id="flashCategory"><option value="" data-i18n="f_allcats">كل التصنيفات</option></select>
+            <select id="flashKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select>
+            <button class="btn btn-ghost sm" id="flashShuffle" data-i18n="flash_shuffle">🔀 خلط</button>
           </div>
         </div>
         <div class="flash-wrap">
           <div class="flash-progress"><span id="flashCounter">1 / 1</span><div class="progress"><div class="progress-fill" id="flashBar"></div></div></div>
           <div class="flashcard" id="flashcard">
             <div class="flash-inner" id="flashInner">
-              <div class="flash-face flash-front"><div class="flash-article" id="flashArticle">der</div><div class="flash-word" id="flashWord">Tisch</div><div class="flash-plural" id="flashPlural"></div><div class="flash-hint">اضغط للقلب 🔄</div><button class="icon-btn speak-float" data-speak-flash>🔊</button></div>
+              <div class="flash-face flash-front"><div class="flash-article" id="flashArticle">der</div><div class="flash-word" id="flashWord">Tisch</div><div class="flash-plural" id="flashPlural"></div><div class="flash-hint" data-i18n="flash_hint">اضغط للقلب 🔄</div><button class="icon-btn speak-float" data-speak-flash>🔊</button></div>
               <div class="flash-face flash-back"><div class="flash-ar" id="flashAr">الطاولة</div><div class="flash-pron" id="flashPron">دير تيش</div><div class="flash-ex" id="flashEx"></div><button class="icon-btn speak-float" data-speak-flash-ex>🔊</button></div>
             </div>
           </div>
           <div class="flash-controls">
-            <button class="btn btn-ghost" id="flashPrev">⏮ السابق</button>
-            <button class="btn btn-green" data-flash-rate="known">😊 سهل</button>
-            <button class="btn btn-gold" data-flash-rate="review">😐 متوسط</button>
-            <button class="btn btn-red" data-flash-rate="hard">😟 صعب</button>
-            <button class="btn btn-ghost" id="flashNext">التالي ⏭</button>
+            <button class="btn btn-ghost" id="flashPrev" data-i18n="flash_prev">⏮ السابق</button>
+            <button class="btn btn-green" data-flash-rate="known" data-i18n="rate_easy">😊 سهل</button>
+            <button class="btn btn-gold" data-flash-rate="review" data-i18n="rate_mid">😐 متوسط</button>
+            <button class="btn btn-red" data-flash-rate="hard" data-i18n="rate_hard">😟 صعب</button>
+            <button class="btn btn-ghost" id="flashNext" data-i18n="quiz_next">التالي ⏭</button>
           </div>
         </div>
       </section>
 
       <!-- SENTENCES -->
       <section class="page" id="page-sentences">
-        <div class="page-head"><h2>💬 الجمل الألمانية</h2>
-          <div class="level-tabs"><button class="level-tab active" data-level="A1">A1</button><button class="level-tab" data-level="A2" disabled title="قريبًا">A2 🔒</button><button class="level-tab" data-level="B1" disabled title="قريبًا">B1 🔒</button></div>
+        <div class="page-head"><h2 data-i18n="title_sent">💬 الجمل الألمانية</h2>
+          <div class="level-tabs"><button class="level-tab active" data-level="A1">A1</button><button class="level-tab" data-level="A2" disabled data-i18n-title="soon_title" title="قريبًا">A2 🔒</button><button class="level-tab" data-level="B1" disabled data-i18n-title="soon_title" title="قريبًا">B1 🔒</button></div>
         </div>
-        <div class="row-flex" style="margin-top:0;margin-bottom:10px"><select id="sentenceKapitel"><option value="">كل الكبيتلات</option></select><input type="text" id="sentenceSearch" class="full-input" style="flex:1" placeholder="ابحث في الجمل..."></div>
+        <div class="row-flex" style="margin-top:0;margin-bottom:10px"><select id="sentenceKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select><input type="text" id="sentenceSearch" class="full-input" style="flex:1" data-i18n-ph="sent_search_ph" placeholder="ابحث في الجمل..."></div>
         <div class="sent-list" id="sentList"></div>
       </section>
 
       <!-- SENTENCE EXERCISES (standalone, not a game) -->
       <section class="page" id="page-sentex">
-        <div class="page-head"><h2>✏️ تدريبات الجمل</h2></div>
+        <div class="page-head"><h2 data-i18n="title_sentex">✏️ تدريبات الجمل</h2></div>
         <div id="sentexBox"></div>
       </section>
 
       <!-- VERBS -->
       <section class="page" id="page-verbs">
-        <div class="page-head"><h2>⚡ الأفعال الألمانية</h2><select id="verbKapitel"><option value="">كل الكبيتلات</option></select></div>
-        <input type="text" id="verbSearch" class="full-input" placeholder="ابحث عن فعل: lernen / يتعلم...">
+        <div class="page-head"><h2 data-i18n="title_verbs">⚡ الأفعال الألمانية</h2><select id="verbKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select></div>
+        <input type="text" id="verbSearch" class="full-input" data-i18n-ph="verb_search_ph" placeholder="ابحث عن فعل: lernen / يتعلم...">
         <div class="cards-grid" id="verbGrid"></div>
       </section>
 
       <!-- GRAMMAR -->
       <section class="page" id="page-grammar">
-        <div class="page-head"><h2>📐 القواعد (مقسمة لكل Kapitel)</h2><select id="grammarKapitel"><option value="">كل الكبيتلات</option></select></div>
+        <div class="page-head"><h2 data-i18n="title_grammar">📐 القواعد (مقسمة لكل Kapitel)</h2><select id="grammarKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select></div>
         <div class="grammar-list" id="grammarList"></div>
       </section>
 
       <!-- EXPLAIN -->
       <section class="page" id="page-explain">
-        <div class="page-head"><h2>📚 الشرح <span class="count-pill" id="explainCount">A1</span></h2>
-          <div class="row-flex"><select id="explainKapitel"><option value="">كل الكبيتلات</option></select></div>
+        <div class="page-head"><h2><span data-i18n="title_explain">📚 الشرح</span> <span class="count-pill" id="explainCount">A1</span></h2>
+          <div class="row-flex"><select id="explainKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select></div>
         </div>
         <div id="explainIndex"></div>
         <div id="explainDetail" class="hidden"></div>
@@ -259,50 +259,50 @@
 
       <!-- LISTEN -->
       <section class="page" id="page-listen">
-        <div class="page-head"><h2>🎧 الاستماع</h2></div>
+        <div class="page-head"><h2 data-i18n="title_listen">🎧 الاستماع</h2></div>
         <div id="listenBox"></div>
       </section>
 
       <!-- SPEAK -->
       <section class="page" id="page-speak">
-        <div class="page-head"><h2>🎤 التحدث</h2></div>
+        <div class="page-head"><h2 data-i18n="title_speak">🎤 التحدث</h2></div>
         <div id="speakBox"></div>
       </section>
 
       <!-- TALK -->
       <section class="page" id="page-talk">
-        <div class="page-head"><h2>💬 المحادثة</h2></div>
+        <div class="page-head"><h2 data-i18n="title_talk">💬 المحادثة</h2></div>
         <div id="talkBox"></div>
       </section>
 
       <!-- REAL -->
       <section class="page" id="page-real">
-        <div class="page-head"><h2>🌍 مواقف حقيقية</h2></div>
+        <div class="page-head"><h2 data-i18n="title_real">🌍 مواقف حقيقية</h2></div>
         <div id="realBox"></div>
       </section>
 
       <!-- JOB -->
       <section class="page" id="page-job">
-        <div class="page-head"><h2>💼 ألماني الشغل</h2></div>
+        <div class="page-head"><h2 data-i18n="title_job">💼 ألماني الشغل</h2></div>
         <div id="jobBox"></div>
       </section>
 
       <!-- ACH -->
       <section class="page" id="page-ach">
-        <div class="page-head"><h2>🏆 إنجازاتي</h2></div>
+        <div class="page-head"><h2 data-i18n="title_ach">🏆 إنجازاتي</h2></div>
         <div id="achBox"></div>
       </section>
 
       <!-- GAMES -->
       <section class="page" id="page-games">
-        <div class="page-head"><h2>🎮 الألعاب</h2></div>
+        <div class="page-head"><h2 data-i18n="title_games">🎮 الألعاب</h2></div>
         <div id="gamesBox"></div>
         <div id="gameBox"></div>
       </section>
 
       <!-- WORLD -->
       <section class="page" id="page-world">
-        <div class="page-head"><h2>🗺️ العالم</h2></div>
+        <div class="page-head"><h2 data-i18n="title_world">🗺️ العالم</h2></div>
         <div id="worldBox"></div>
       </section>
 
@@ -314,103 +314,103 @@
 
       <!-- EXP HUB -->
       <section class="page" id="page-exp">
-        <div class="page-head"><h2>🇩🇪 German Experiences</h2></div>
+        <div class="page-head"><h2 data-i18n="title_exp">🇩🇪 German Experiences</h2></div>
         <div id="expBox"></div>
       </section>
 
       <!-- MYGERMANY -->
       <section class="page" id="page-mygermany">
-        <div class="page-head"><h2>🌍 My Germany</h2></div>
+        <div class="page-head"><h2 data-i18n="title_mygermany">🌍 My Germany</h2></div>
         <div id="mygermanyBox"></div>
       </section>
 
       <!-- DLIFE -->
       <section class="page" id="page-dlife">
-        <div class="page-head"><h2>🎭 Deutsch Life — تدريب المواقف</h2></div>
+        <div class="page-head"><h2 data-i18n="title_dlife">🎭 Deutsch Life — تدريب المواقف</h2></div>
         <div id="dlifeBox"></div>
       </section>
 
       <!-- STORIES -->
       <section class="page" id="page-stories">
-        <div class="page-head"><h2>📖 قصص</h2></div>
+        <div class="page-head"><h2 data-i18n="title_stories">📖 قصص</h2></div>
         <div id="storiesBox"></div>
       </section>
 
       <!-- SURVIVE -->
       <section class="page" id="page-survive">
-        <div class="page-head"><h2>🇩🇪 البقاء في ألمانيا</h2></div>
+        <div class="page-head"><h2 data-i18n="title_survive">🇩🇪 البقاء في ألمانيا</h2></div>
         <div id="surviveBox"></div>
       </section>
 
       <!-- CHALLENGE -->
       <section class="page" id="page-challenge">
-        <div class="page-head"><h2>⚡ التحدي</h2></div>
+        <div class="page-head"><h2 data-i18n="title_challenge">⚡ التحدي</h2></div>
         <div id="chBox"></div>
       </section>
 
       <!-- ME -->
       <section class="page" id="page-me">
-        <div class="page-head"><h2>🙂 شخصيتي وتقريري</h2></div>
+        <div class="page-head"><h2 data-i18n="title_me">🙂 شخصيتي وتقريري</h2></div>
         <div id="meBox"></div>
       </section>
 
       <!-- PRACTICE -->
       <section class="page" id="page-practice">
-        <div class="page-head"><h2>🎯 تدريب ذكي</h2></div>
+        <div class="page-head"><h2 data-i18n="title_practice">🎯 تدريب ذكي</h2></div>
         <div id="practiceBox"></div>
       </section>
 
       <!-- TUTOR -->
       <section class="page" id="page-tutor">
-        <div class="page-head"><h2>🤖 المدرّب</h2></div>
+        <div class="page-head"><h2 data-i18n="title_tutor">🤖 المدرّب</h2></div>
         <div id="tutorBox"></div>
       </section>
 
       <!-- ROADMAP -->
       <section class="page" id="page-roadmap">
-        <div class="page-head"><h2>🗺️ الخريطة</h2></div>
+        <div class="page-head"><h2 data-i18n="title_roadmap">🗺️ الخريطة</h2></div>
         <div id="roadmapBox"></div>
       </section>
 
       <!-- LABS -->
       <section class="page" id="page-labs">
-        <div class="page-head"><h2>🧪 المختبر</h2></div>
+        <div class="page-head"><h2 data-i18n="title_labs">🧪 المختبر</h2></div>
         <div id="labsBox"></div>
       </section>
 
       <!-- PROFILE -->
       <section class="page" id="page-profile">
-        <div class="page-head"><h2>👤 حسابي</h2></div>
+        <div class="page-head"><h2 data-i18n="title_profile">👤 حسابي</h2></div>
         <div id="profileBox"></div>
       </section>
 
       <!-- ANALYTICS -->
       <section class="page" id="page-analytics">
-        <div class="page-head"><h2>📈 تقدمي</h2></div>
+        <div class="page-head"><h2 data-i18n="title_analytics">📈 تقدمي</h2></div>
         <div id="analyticsBox"></div>
       </section>
 
       <!-- QUIZ -->
       <section class="page" id="page-quiz">
-        <div class="page-head"><h2>📝 الاختبارات</h2></div>
+        <div class="page-head"><h2 data-i18n="title_quiz">📝 الاختبارات</h2></div>
         <div class="panel glass" id="quizSetup">
-          <h3>اختر نوع الاختبار</h3>
+          <h3 data-i18n="quiz_choose">اختر نوع الاختبار</h3>
           <div class="quiz-types">
-            <button class="quiz-type active" data-type="mixed">🎲 شامل (Recommended)</button>
-            <button class="quiz-type" data-type="article">🎯 الأدوات</button>
-            <button class="quiz-type" data-type="de-ar">📖 الكلمة → المعنى</button>
-            <button class="quiz-type" data-type="ar-de">🔄 عربي → ألماني</button>
-            <button class="quiz-type" data-type="plural">👥 الجمع</button>
-            <button class="quiz-type" data-type="write">✍️ كتابة الأداة</button>
-            <button class="quiz-type" data-type="listening">🎧 استماع</button>
-            <button class="quiz-type" data-type="listenArticle">🎧+🎯 استماع وأداة</button>
-            <button class="quiz-type" data-type="sentence">🧩 إكمال الجملة</button>
-            <button class="quiz-type" data-type="order">🔀 ترتيب الجملة</button>
-            <button class="quiz-type" data-type="quick">⚡ اختبار سريع ⏱️</button>
+            <button class="quiz-type active" data-type="mixed" data-i18n="qt_mixed">🎲 شامل (Recommended)</button>
+            <button class="quiz-type" data-type="article" data-i18n="qt_article">🎯 الأدوات</button>
+            <button class="quiz-type" data-type="de-ar" data-i18n="qt_dear">📖 الكلمة → المعنى</button>
+            <button class="quiz-type" data-type="ar-de" data-i18n="qt_arde">🔄 عربي → ألماني</button>
+            <button class="quiz-type" data-type="plural" data-i18n="qt_plural">👥 الجمع</button>
+            <button class="quiz-type" data-type="write" data-i18n="qt_write">✍️ كتابة الأداة</button>
+            <button class="quiz-type" data-type="listening" data-i18n="qt_listen">🎧 استماع</button>
+            <button class="quiz-type" data-type="listenArticle" data-i18n="qt_listenart">🎧+🎯 استماع وأداة</button>
+            <button class="quiz-type" data-type="sentence" data-i18n="qt_sentence">🧩 إكمال الجملة</button>
+            <button class="quiz-type" data-type="order" data-i18n="qt_order">🔀 ترتيب الجملة</button>
+            <button class="quiz-type" data-type="quick" data-i18n="qt_quick">⚡ اختبار سريع ⏱️</button>
           </div>
           <div class="row-flex">
-            <label>عدد الأسئلة: <select id="quizCount"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></label>
-            <button class="btn btn-primary" id="startQuiz">ابدأ الاختبار 🚀</button>
+            <label><span data-i18n="quiz_count">عدد الأسئلة:</span> <select id="quizCount"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></label>
+            <button class="btn btn-primary" id="startQuiz" data-i18n="quiz_start">ابدأ الاختبار 🚀</button>
           </div>
         </div>
         <div class="panel glass hidden" id="quizPlay">
@@ -420,55 +420,55 @@
           <div id="quizListenBtn"></div>
           <div class="quiz-opts" id="quizOpts"></div>
           <div class="quiz-order" id="quizOrder"></div>
-          <div class="quiz-write hidden" id="quizWrite"><input type="text" id="quizWriteInput" placeholder="اكتب الأداة: der / die / das" autocomplete="off"><button class="btn btn-primary sm" id="quizWriteCheck">تحقق ✅</button></div>
+          <div class="quiz-write hidden" id="quizWrite"><input type="text" id="quizWriteInput" data-i18n-ph="write_ph" placeholder="اكتب الأداة: der / die / das" autocomplete="off"><button class="btn btn-primary sm" id="quizWriteCheck" data-i18n="quiz_check">تحقق ✅</button></div>
           <div class="quiz-feedback hidden" id="quizFeedback"></div>
-          <div class="row-flex"><button class="btn btn-primary" id="quizNext" disabled>التالي ⏭</button><button class="btn btn-ghost" id="quizQuit">إنهاء ✖</button></div>
+          <div class="row-flex"><button class="btn btn-primary" id="quizNext" disabled data-i18n="quiz_next">التالي ⏭</button><button class="btn btn-ghost" id="quizQuit" data-i18n="quiz_quit">إنهاء ✖</button></div>
         </div>
         <div class="panel glass hidden" id="quizResult"></div>
-        <h3>📜 سجل الاختبارات</h3>
+        <h3 data-i18n="quiz_history">📜 سجل الاختبارات</h3>
         <div id="quizHistory" class="history-list"></div>
       </section>
 
       <!-- REVIEW -->
       <section class="page" id="page-review">
-        <div class="page-head"><h2>🧠 المراجعة الذكية</h2><button class="btn btn-primary sm" id="startReview">ابدأ جلسة مراجعة 🚀</button></div>
+        <div class="page-head"><h2 data-i18n="rev_head">🧠 المراجعة الذكية</h2><button class="btn btn-primary sm" id="startReview" data-i18n="rev_start">ابدأ جلسة مراجعة 🚀</button></div>
         <div class="grid-4" id="reviewLevels"></div>
-        <div class="panel glass"><h3>📌 كلمات تحتاج مراجعة اليوم (<span id="dueCount">0</span>)</h3><div class="cards-grid" id="dueGrid"></div></div>
+        <div class="panel glass"><h3><span data-i18n="rev_due">📌 كلمات تحتاج مراجعة اليوم</span> (<span id="dueCount">0</span>)</h3><div class="cards-grid" id="dueGrid"></div></div>
         <div class="panel glass hidden" id="reviewSession"></div>
       </section>
 
       <!-- MISTAKES -->
       <section class="page" id="page-mistakes">
-        <div class="page-head"><h2>❌ مراجعة أخطائي (<span id="mistCount">0</span>)</h2>
-          <div class="row-flex"><select id="mistKapitel"><option value="">كل الكبيتلات</option></select><button class="btn btn-primary sm" id="startMistakes">🎯 اختبر أخطائي فقط</button><button class="btn btn-ghost sm" id="clearMistakes">🗑️ مسح الأخطاء</button></div>
+        <div class="page-head"><h2><span data-i18n="mist_head">❌ مراجعة أخطائي</span> (<span id="mistCount">0</span>)</h2>
+          <div class="row-flex"><select id="mistKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select><button class="btn btn-primary sm" id="startMistakes" data-i18n="mist_test">🎯 اختبر أخطائي فقط</button><button class="btn btn-ghost sm" id="clearMistakes" data-i18n="mist_clear">🗑️ مسح الأخطاء</button></div>
         </div>
         <div class="cards-grid" id="mistGrid"></div>
       </section>
 
       <!-- STATS -->
       <section class="page" id="page-stats">
-        <div class="page-head"><h2>📊 الإحصائيات</h2><button class="btn btn-ghost sm" id="resetStats">تصفير الإحصائيات</button></div>
+        <div class="page-head"><h2 data-i18n="stats_head">📊 الإحصائيات</h2><button class="btn btn-ghost sm" id="resetStats" data-i18n="stats_reset">تصفير الإحصائيات</button></div>
         <div class="stats-grid" id="statsGrid"></div>
         <div class="grid-2">
-          <div class="panel glass"><h3>توزيع حالات الكلمات</h3><div id="statusBars"></div></div>
-          <div class="panel glass"><h3>نسبة النجاح</h3><div class="donut-wrap"><div class="donut" id="donut"><span id="donutTxt">0%</span></div><div class="donut-legend"><div>✅ صحيحة: <b id="legCorrect">0</b></div><div>❌ خاطئة: <b id="legWrong">0</b></div></div></div></div>
+          <div class="panel glass"><h3 data-i18n="stats_dist">توزيع حالات الكلمات</h3><div id="statusBars"></div></div>
+          <div class="panel glass"><h3 data-i18n="stats_acc">نسبة النجاح</h3><div class="donut-wrap"><div class="donut" id="donut"><span id="donutTxt">0%</span></div><div class="donut-legend"><div><span data-i18n="stats_correct">✅ صحيحة:</span> <b id="legCorrect">0</b></div><div><span data-i18n="stats_wrong">❌ خاطئة:</span> <b id="legWrong">0</b></div></div></div></div>
         </div>
-        <div class="panel glass"><h3>آخر 7 أيام مذاكرة</h3><div class="week-chart" id="weekChart"></div></div>
+        <div class="panel glass"><h3 data-i18n="stats_week">آخر 7 أيام مذاكرة</h3><div class="week-chart" id="weekChart"></div></div>
       </section>
 
       <!-- PLANNER -->
       <section class="page" id="page-planner">
-        <div class="page-head"><h2>🗓️ خطة المذاكرة</h2></div>
+        <div class="page-head"><h2 data-i18n="plan_head">🗓️ خطة المذاكرة</h2></div>
         <div class="grid-2">
-          <div class="panel glass"><h3>حدد هدفك اليومي</h3>
-            <label>عدد الكلمات اليومية <input type="number" id="planWords" min="1" max="100" value="20"></label>
-            <label>عدد الجمل <input type="number" id="planSentences" min="1" max="50" value="10"></label>
-            <label>عدد دقائق المذاكرة <input type="number" id="planMinutes" min="5" max="180" value="30"></label>
-            <button class="btn btn-primary" id="savePlan">حفظ الخطة 💾</button>
+          <div class="panel glass"><h3 data-i18n="plan_goal">حدد هدفك اليومي</h3>
+            <label><span data-i18n="plan_words">عدد الكلمات اليومية</span> <input type="number" id="planWords" min="1" max="100" value="20"></label>
+            <label><span data-i18n="plan_sents">عدد الجمل</span> <input type="number" id="planSentences" min="1" max="50" value="10"></label>
+            <label><span data-i18n="plan_mins">عدد دقائق المذاكرة</span> <input type="number" id="planMinutes" min="5" max="180" value="30"></label>
+            <button class="btn btn-primary" id="savePlan" data-i18n="plan_save">حفظ الخطة 💾</button>
           </div>
-          <div class="panel glass"><h3>تقدم اليوم</h3><div id="planProgress"></div>
-            <div class="row-flex"><button class="btn btn-ghost sm" id="planWordDone">+ كلمة ذاكرتها</button><button class="btn btn-ghost sm" id="planSentDone">+ جملة ذاكرتها</button><button class="btn btn-ghost sm" id="planMinDone">+ 5 دقائق</button></div>
-            <button class="btn btn-gold sm" id="planResetDay">تصفير تقدم اليوم</button>
+          <div class="panel glass"><h3 data-i18n="plan_prog">تقدم اليوم</h3><div id="planProgress"></div>
+            <div class="row-flex"><button class="btn btn-ghost sm" id="planWordDone" data-i18n="plan_dw">+ كلمة ذاكرتها</button><button class="btn btn-ghost sm" id="planSentDone" data-i18n="plan_ds">+ جملة ذاكرتها</button><button class="btn btn-ghost sm" id="planMinDone" data-i18n="plan_dm">+ 5 دقائق</button></div>
+            <button class="btn btn-gold sm" id="planResetDay" data-i18n="plan_reset">تصفير تقدم اليوم</button>
           </div>
         </div>
       </section>
@@ -481,21 +481,21 @@
 
       <!-- SETTINGS -->
       <section class="page" id="page-settings">
-        <div class="page-head"><h2>⚙️ الإعدادات</h2></div>
+        <div class="page-head"><h2 data-i18n="set_head">⚙️ الإعدادات</h2></div>
         <div class="grid-2">
-          <div class="panel glass"><h3>المظهر والصوت</h3>
-            <div class="row-flex"><span>الوضع:</span><button class="btn btn-ghost sm" id="themeBtn2">تبديل Dark / Light</button></div>
-            <label>سرعة النطق الافتراضية <select id="speedSelect2"><option value="0.5">0.5</option><option value="0.75">0.75</option><option value="1">1</option><option value="1.25">1.25</option></select></label>
-            <button class="btn btn-ghost sm" id="testVoice">🔊 تجربة الصوت الألماني</button>
+          <div class="panel glass"><h3 data-i18n="set_appear">المظهر والصوت</h3>
+            <div class="row-flex"><span data-i18n="set_mode">الوضع:</span><button class="btn btn-ghost sm" id="themeBtn2" data-i18n="set_toggle">تبديل Dark / Light</button></div>
+            <label><span data-i18n="set_speed">سرعة النطق الافتراضية</span> <select id="speedSelect2"><option value="0.5">0.5</option><option value="0.75">0.75</option><option value="1">1</option><option value="1.25">1.25</option></select></label>
+            <button class="btn btn-ghost sm" id="testVoice" data-i18n="set_voice">🔊 تجربة الصوت الألماني</button>
           </div>
-          <div class="panel glass"><h3>🎨 ألوان الموقع</h3>
-            <div class="muted">اختر Theme — يُطبق فورًا ويُحفظ.</div>
+          <div class="panel glass"><h3 data-i18n="set_colors">🎨 ألوان الموقع</h3>
+            <div class="muted" data-i18n="set_colorsub">اختر Theme — يُطبق فورًا ويُحفظ.</div>
             <div class="theme-grid" id="themeGrid"></div>
           </div>
-          <div class="panel glass"><h3>البيانات</h3>
-            <div class="row-flex"><button class="btn btn-ghost sm" id="exportData">📤 تصدير نسخة</button><button class="btn btn-ghost sm" id="importDataBtn">📥 استيراد</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
-            <button class="btn btn-red sm" id="wipeData">🗑️ مسح كل البيانات</button>
-            <p class="muted">كل البيانات محفوظة في LocalStorage ولا تضيع عند Refresh.</p>
+          <div class="panel glass"><h3 data-i18n="set_data">البيانات</h3>
+            <div class="row-flex"><button class="btn btn-ghost sm" id="exportData" data-i18n="set_export">📤 تصدير نسخة</button><button class="btn btn-ghost sm" id="importDataBtn" data-i18n="set_import">📥 استيراد</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
+            <button class="btn btn-red sm" id="wipeData" data-i18n="set_wipe">🗑️ مسح كل البيانات</button>
+            <p class="muted" data-i18n="set_note">كل البيانات محفوظة في LocalStorage ولا تضيع عند Refresh.</p>
           </div>
         </div>
       </section>
@@ -506,19 +506,19 @@
 <!-- Add Word Modal -->
 <div class="modal-overlay hidden" id="wordModal">
   <div class="modal glass">
-    <h3>➕ إضافة كلمة جديدة</h3>
+    <h3 data-i18n="modal_add">➕ إضافة كلمة جديدة</h3>
     <div class="form-grid">
-      <label>الكلمة بالألمانية (بدون أداة)<input id="nwDe" placeholder="Haus"></label>
-      <label>الأداة<select id="nwArt"><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="-">بدون أداة (فعل/صفة)</option></select></label>
-      <label>الترجمة بالعربية<input id="nwAr" placeholder="بيت"></label>
-      <label>النطق بالعربي<input id="nwPron" placeholder="هاوس"></label>
-      <label>مثال بالألمانية<input id="nwEx" placeholder="Das Haus ist groß."></label>
-      <label>ترجمة المثال<input id="nwExAr" placeholder="البيت كبير."></label>
-      <label>التصنيف<select id="nwCat"></select></label>
-      <label>النوع<select id="nwType"><option>اسم</option><option>فعل</option><option>صفة</option><option>ضمير</option><option>أداة</option><option>مفردات</option></select></label>
-      <label>المستوى<select id="nwLevel"><option>A1</option><option>A2</option><option>B1</option></select></label>
+      <label><span data-i18n="f_de">الكلمة بالألمانية (بدون أداة)</span><input id="nwDe" placeholder="Haus"></label>
+      <label><span data-i18n="f_art">الأداة</span><select id="nwArt"><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="-" data-i18n="f_noart2">بدون أداة (فعل/صفة)</option></select></label>
+      <label><span data-i18n="f_ar">الترجمة بالعربية</span><input id="nwAr" placeholder="بيت"></label>
+      <label><span data-i18n="f_pron">النطق بالعربي</span><input id="nwPron" placeholder="هاوس"></label>
+      <label><span data-i18n="f_ex">مثال بالألمانية</span><input id="nwEx" placeholder="Das Haus ist groß."></label>
+      <label><span data-i18n="f_exar">ترجمة المثال</span><input id="nwExAr" placeholder="البيت كبير."></label>
+      <label><span data-i18n="f_cat">التصنيف</span><select id="nwCat"></select></label>
+      <label><span data-i18n="f_type">النوع</span><select id="nwType"><option data-i18n="t_noun">اسم</option><option data-i18n="t_verb">فعل</option><option data-i18n="t_adj">صفة</option><option data-i18n="t_pron">ضمير</option><option data-i18n="t_part">أداة</option><option data-i18n="t_vocabw">مفردات</option></select></label>
+      <label><span data-i18n="f_level">المستوى</span><select id="nwLevel"><option>A1</option><option>A2</option><option>B1</option></select></label>
     </div>
-    <div class="row-flex"><button class="btn btn-primary" id="addWordBtn">Add Word ✅</button><button class="btn btn-ghost" id="closeModal">إلغاء</button></div>
+    <div class="row-flex"><button class="btn btn-primary" id="addWordBtn" data-i18n="modal_addbtn">Add Word ✅</button><button class="btn btn-ghost" id="closeModal" data-i18n="modal_cancel">إلغاء</button></div>
   </div>
 </div>
 
@@ -526,7 +526,7 @@
 <div class="modal-overlay hidden" id="detailModal">
   <div class="modal glass">
     <div id="detailBody"></div>
-    <div class="row-flex"><button class="btn btn-ghost" id="closeDetail">إغلاق ✖</button></div>
+    <div class="row-flex"><button class="btn btn-ghost" id="closeDetail" data-i18n="modal_close">إغلاق ✖</button></div>
   </div>
 </div>
 
