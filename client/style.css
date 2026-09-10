@@ -394,3 +394,7 @@ html[data-theme="light"] .game-card select{background:#fff}
 .myg-hero{background:linear-gradient(135deg,rgba(0,60,120,.18),rgba(0,0,0,.2))}
 .dl-stage{border-right:4px solid var(--gold)}
 @media (prefers-reduced-motion:reduce){.exp-myg,.exp-dl{transition:none}}
+/* Sentence Exercises (standalone learning feature, not a game) */
+#page-sentex .fill-sent{font-size:22px}
+#sentexBox .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+@media(max-width:860px){#sentexBox .grid-2{grid-template-columns:1fr}}

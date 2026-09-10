@@ -41,6 +41,7 @@
       <button class="nav-item" data-page="vocab"><span class="nav-ico">📚</span> الكلمات</button>
       <button class="nav-item" data-page="flashcards"><span class="nav-ico">🃏</span> Flashcards</button>
       <button class="nav-item" data-page="sentences"><span class="nav-ico">💬</span> الجمل</button>
+      <button class="nav-item" data-page="sentex"><span class="nav-ico">✏️</span> تدريبات الجمل</button>
       <button class="nav-item" data-page="verbs"><span class="nav-ico">⚡</span> الأفعال</button>
       <button class="nav-item" data-page="grammar"><span class="nav-ico">📐</span> القواعد</button>
       <button class="nav-item" data-page="explain"><span class="nav-ico">📚</span> الشرح</button>
@@ -220,6 +221,12 @@
         </div>
         <div class="row-flex" style="margin-top:0;margin-bottom:10px"><select id="sentenceKapitel"><option value="">كل الكبيتلات</option></select><input type="text" id="sentenceSearch" class="full-input" style="flex:1" placeholder="ابحث في الجمل..."></div>
         <div class="sent-list" id="sentList"></div>
+      </section>
+
+      <!-- SENTENCE EXERCISES (standalone, not a game) -->
+      <section class="page" id="page-sentex">
+        <div class="page-head"><h2>✏️ تدريبات الجمل</h2></div>
+        <div id="sentexBox"></div>
       </section>
 
       <!-- VERBS -->
@@ -529,6 +536,7 @@
 <script src="script.js"></script>
 <script src="learn.js"></script>
 <script src="play.js"></script>
+<script src="sentex.js"></script>
 <script src="world.js"></script>
 <script src="life.js"></script>
 <script src="study.js"></script>
