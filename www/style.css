@@ -257,6 +257,10 @@ html[data-theme="light"] .stat-bar-row .bar{background:rgba(0,0,0,.08)}
 #quizCombo{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-weight:800;padding:4px 12px;border-radius:14px;font-size:13px;white-space:nowrap}
 #quizTimerWrap{height:8px}
 .quiz-opt{min-height:54px;font-size:17px}
+.fill-sent{line-height:2.2}
+.fill-blank{display:inline-block;min-width:110px;text-align:center;border-bottom:3px dashed var(--cyan);color:var(--cyan);font-weight:900;padding:0 8px;margin:0 4px;transition:all .3s ease}
+.fill-blank.filled-ok{border-bottom-style:solid;border-color:var(--green);color:var(--green)}
+.fill-blank.filled-no{border-bottom-style:solid;border-color:var(--red);color:var(--red)}
 .order-chip{font-size:17px;padding:12px 18px;min-height:48px}
 /* Gamer strip */
 .gamer-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
