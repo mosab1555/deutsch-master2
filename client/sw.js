@@ -1,8 +1,8 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v8";
+var DM_CACHE = "german-academy-v9";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
-  "./style.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./world.js", "./study.js", "./life.js",
+  "./style.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./world.js", "./study.js", "./life.js", "./mygermany.js", "./dlife.js",
   "./launch.css", "./launch.js",
   "./manifest.json",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png"

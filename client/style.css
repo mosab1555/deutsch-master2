@@ -384,3 +384,9 @@ html[data-theme="light"] .game-card select{background:#fff}
 @keyframes stampIn{0%{transform:scale(.3) rotate(-20deg);opacity:0}60%{transform:scale(1.15) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 @media (max-width:860px){.lifemap{height:auto;display:flex;flex-direction:column;gap:8px;padding:10px}.lifemap-pin{position:static;transform:none;flex-direction:row;justify-content:flex-start;min-height:52px;font-size:20px}.lifemap-pin:hover{transform:scale(1.02)}}
 @media (prefers-reduced-motion:reduce){.stamp-pop{animation:none}}
+/* Experiences hub + My Germany + Deutsch Life identities */
+.exp-myg{background:linear-gradient(135deg,rgba(0,60,120,.25),rgba(0,212,255,.08));border:1px solid rgba(0,212,255,.35)}
+.exp-dl{background:linear-gradient(135deg,rgba(120,20,80,.22),rgba(245,196,81,.10));border:1px solid rgba(245,196,81,.4)}
+.myg-hero{background:linear-gradient(135deg,rgba(0,60,120,.18),rgba(0,0,0,.2))}
+.dl-stage{border-right:4px solid var(--gold)}
+@media (prefers-reduced-motion:reduce){.exp-myg,.exp-dl{transition:none}}
