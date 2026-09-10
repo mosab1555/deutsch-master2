@@ -419,3 +419,83 @@ const SENT_FILL=
 {id:"f84",s:"Das ___ ein Buch.",o:["ist","sind","bist","seid"],c:0,why:"المفرد يأخذ ist.",lvl:"A1",pos:"mid",typ:"verb",ctx:"general",start:"Das",chapterId:"K0",chapterName:"Einführung – مقدمة",chapterSrc:"ctx-reviewed",lessonId:null,lessonName:"Alle Lektionen",structureType:"midfield",subjectType:"noun-phrase",grammarTarget:"conjugation",sentenceStarter:"Das",answerType:"verb",blankPosition:"mid"},
 {id:"f85",s:"___ lernst du?",o:["Was","Wie","Wer","Wo"],c:0,why:"السؤال عن الشيء = Was.",lvl:"A1",pos:"start",typ:"question",ctx:"study",start:"Was",chapterId:"K0",chapterName:"Einführung – مقدمة",chapterSrc:"ctx-reviewed",lessonId:null,lessonName:"Alle Lektionen",structureType:"fronted_opener",subjectType:"wh-word",grammarTarget:"w-fragen",sentenceStarter:"Was",answerType:"question",blankPosition:"start"},
 {id:"f86",s:"Das ist ___ Buch.",o:["kein","keine","nicht","ein"],c:0,why:"نفي النكرة المحايدة.",lvl:"A1",pos:"before-noun",typ:"negation",ctx:"general",start:"Das",chapterId:"K0",chapterName:"Einführung – مقدمة",chapterSrc:"ctx-reviewed",lessonId:null,lessonName:"Alle Lektionen",structureType:"np_internal",subjectType:"noun-phrase",grammarTarget:"kein/nicht",sentenceStarter:"Das",answerType:"negation",blankPosition:"before-noun"}];
+
+/* ---------- challenge / me / practice pages ---------- */
+function dailySeed(str){let h=0;for(let i=0;i<str.length;i++){h=((h*31)+str.charCodeAt(i))|0;}return h<0?-h:h;}
+function renderChallenge(){
+  ensurePlay();
+  const box=$("chBox");if(!box)return;
+  const t=todayStr(),done=S.daily[t];
+  let h='<div class="panel glass"><h3>⚡ التحدي اليومي — '+t+'</h3>';
+  if(done){h+='<div class="muted">✅ مكتمل اليوم! النتيجة: '+done.score+'/'+done.total+' • ⭐+'+done.xp+'</div>';}
+  else{h+='<div class="muted">10 أسئلة مختارة لك اليوم من نقاط ضعفك والمراجعة.</div><div class="row-flex"><button class="btn btn-primary sm" id="chStart">ابدأ التحدي 🚀</button></div>';}
+  const days=Object.keys(S.daily).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+  if(days.length)h+='<div class="muted">أيام مكتملة مؤخرًا: '+days.slice(-7).join(" • ")+'</div>';
+  h+='</div>';
+  box.innerHTML=h;
+  const st=$("chStart");
+  if(st)st.addEventListener("click",()=>{
+    const seed=dailySeed(t);
+    const weak=weakWords(6);
+    let due=[];
+    try{due=srsDue().filter(w=>weak.indexOf(w)<0);}catch(e){}
+    const fresh=allWords().filter(w=>getStatus(w.id)==="new"&&weak.indexOf(w)<0);
+    const pool=weak.concat(due.filter(w=>weak.indexOf(w)<0)).concat(fresh).slice(0,10);
+    const list=pool.length?pool:shuffle(allWords()).slice(0,10);
+    void seed;
+    const qs=buildQuestions("mixed",10,list);
+    startQuizRun("mixed",qs);
+    const _fin=finishQuiz,_orig=finishQuiz;
+    finishQuiz=function(){
+      _fin();
+      finishQuiz=_orig;
+      try{
+        const last=(S.quizHistory&&S.quizHistory[0])||{score:0,total:10};
+        S.daily[t]={score:last.score,total:last.total,xp:last.xp||0};
+        save();renderChallenge();toast("🏆 تحدي اليوم مكتمل!","ok");
+      }catch(e){}
+    };
+  });
+}
+const AV_FACES=["🦊","🐼","🦁","🐸","🐵","🦄","🐝","🦉","🐢","🐙","🤖","👽"];
+const AV_TITLES=[[0,"مبتدئ"],[200,"متعلم نشيط"],[500,"نجم صاعد"],[1000,"بطل ألماني"],[2500,"أسطورة الدويتش"]];
+function renderMe(){
+  ensurePlay();
+  const box=$("meBox");if(!box)return;
+  const xp=S.xp||0;
+  const title=AV_TITLES.filter(x=>xp>=x[0]).pop()[1];
+  const known=allWords().filter(w=>getStatus(w.id)==="known").length;
+  let h='<div class="panel glass" style="text-align:center"><div style="font-size:64px">'+S.avatar.face+'</div><h3>'+title+'</h3><div class="muted">⭐ '+(S.xp||0)+' XP • '+coinStr()+' • 🔥 '+(S.streak.count||0)+' يوم</div><div class="muted">كلمات محفوظة: '+known+' / '+allWords().length+'</div>';
+  h+='<h4>اختر صورتك:</h4><div class="row-flex" style="justify-content:center">'+AV_FACES.map(f=>'<button class="icon-btn" data-av="'+f+'" style="'+(S.avatar.face===f?"border-color:var(--cyan);box-shadow:0 0 12px rgba(var(--v2),.5)":"")+'">'+f+'</button>').join("")+'</div>';
+  h+='<h4>الألقاب ('+AV_TITLES.filter(x=>xp>=x[0]).length+'/'+AV_TITLES.length+'):</h4><div class="muted">'+AV_TITLES.map(x=>(xp>=x[0]?"✅ ":"🔒 ")+x[1]+" ("+x[0]+" XP)").join(" • ")+'</div>';
+  const rw=S.rewards||{themes:[],frames:[],titles:[]};
+  h+='<h4>مكافآتي:</h4><div class="muted">ثيمات: '+(rw.themes.length||"—")+' • إطارات: '+(rw.frames.length||"—")+' • ألقاب: '+(rw.titles.length||"—")+'</div></div>';
+  box.innerHTML=h;
+  box.querySelectorAll("[data-av]").forEach(b=>b.addEventListener("click",()=>{S.avatar.face=b.getAttribute("data-av");save();renderMe();toast("تم تغيير الصورة "+S.avatar.face,"ok");}));
+}
+function renderPractice(){
+  ensurePlay();
+  const box=$("practiceBox");if(!box)return;
+  const weak=weakWords(8);
+  let due=[];
+  try{due=srsDue().filter(w=>weak.indexOf(w)<0).slice(0,6);}catch(e){}
+  const list=weak.concat(due).slice(0,12);
+  let h='<div class="panel glass"><h3>🎯 تدريب ذكي</h3><div class="muted">مبني على أخطائك ومراجعاتك ('+list.length+' كلمة).</div>';
+  if(!list.length)h+='<div class="muted">لا توجد كلمات ضعيفة حاليًا — ممتاز! 🎉</div>';
+  else h+='<div class="row-flex"><button class="btn btn-primary sm" id="prStart">ابدأ التدريب 🚀</button></div>';
+  h+='</div>';
+  box.innerHTML=h;
+  const st=$("prStart");
+  if(st)st.addEventListener("click",()=>{
+    const qs=buildQuestions("mixed",Math.min(10,list.length),list);
+    startQuizRun("mixed",qs);
+  });
+}
+/* wiring */
+const PLAY_PAGES={games:renderGames,challenge:renderChallenge,me:renderMe,practice:renderPractice};
+(function(){
+  try{
+    const _sp=showPage;
+    showPage=function(n){_sp(n);try{if(PLAY_PAGES[n])PLAY_PAGES[n]();}catch(e){console.error(e);}};
+  }catch(e){console.error(e);}
+})();

@@ -36,7 +36,8 @@ function mygSchedule(){
     {slot:"09:00",t:"Deutschkurs",de:"Ich lerne Deutsch.",ar:"أتعلم الألمانية.",skill:"comm",kind:"listen"},
     {slot:"11:00",t:work,de:work==="Universität"?"Ich höre eine Vorlesung.":"Ich arbeite.",ar:work==="Universität"?"أحضر محاضرة.":"أعمل.",skill:"work",kind:"reply"},
     {slot:"14:00",t:"Mittagessen",de:"Ich esse zu Mittag.",ar:"أتغدى.",skill:"shop",kind:"vocab",cat:"Food"},
-    {slot:"18:00",t:"Einkaufen",de:"Ich kaufe Brot und Milch.",ar:"أشتري خبزًا وحليبًا.",skill:"money",kind:"shopbuy"}];
+    {slot:"18:00",t:"Einkaufen",de:"Ich kaufe Brot und Milch.",ar:"أشتري خبزًا وحليبًا.",skill:"money",kind:"shopbuy"},
+    {slot:"19:00",t:"Freunde treffen",de:"Ich treffe meine Freunde.",ar:"أقابل أصدقائي.",skill:"social",kind:"speak"}];
 }
 /* dynamic events pool */
 const MYG_EVENTS=[
@@ -194,6 +195,23 @@ function mygRunDay(){
         }else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ احسب مجددًا: 2.50+1.80=4.30";dayLog.push(a.t+" ❌");}
         S.totalAnswered++;save();i++;setTimeout(act,2000);
       }));
+    }else if(a.kind==="speak"){
+      qb.innerHTML='<div class="muted">تحدث بالألمانية (أو اكتب إذا كان المايك غير مدعوم):</div><div class="quiz-write"><input type="text" id="mygSpk" placeholder="Antwort auf Deutsch..."><button class="btn btn-primary sm" id="mygMic">🎤</button><button class="btn btn-gold sm" id="mygSpkOk">تحقق ✅</button></div><div class="quiz-feedback hidden" id="mygFb"></div><div class="muted">مثال: '+escapeHtml(a.de)+'</div>';
+      try{
+        startMic($("mygMic"),$("mygSpk"),$("mygFb"),function(t){toast("سمعتك ✅","ok");});
+      }catch(e){}
+      $("mygSpkOk").addEventListener("click",()=>{
+        const v=$("mygSpk").value.trim(),fb=$("mygFb");fb.classList.remove("hidden");
+        if(v.length<2){fb.className="quiz-feedback no";fb.textContent="تحدث أو اكتب إجابة أولًا.";return;}
+        let ev={vocab:50,missing:[]};
+        try{if(typeof evaluateSpoken==="function")ev=evaluateSpoken(v,a.de);}catch(e){}
+        fb.className="quiz-feedback ok";
+        fb.textContent="إجابتك: "+v+" — تطابق الكلمات: "+ev.vocab+"%"+(ev.missing.length?" • ناقصك: "+ev.missing.join("، "):"")+" ✅";
+        earned+=15;addXP(15,"myg-speak");mygAddSkill(a.skill,4);mygAddSkill("comm",2);dayLog.push(a.t+" ✅");
+        S.totalAnswered++;S.totalCorrect++;
+        try{S.lstats.sn++;S.lstats.sok++;}catch(e){}
+        save();i++;setTimeout(act,2200);
+      });
     }else{i++;act();}
   }
   function events(){
