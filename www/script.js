@@ -2225,7 +2225,12 @@ function renderQuizHistory(){
 /* ============ مراجعة أخطائي ============ */
 function renderMistakes(){
   if(!S.mistakes)S.mistakes={};
-  const ids=Object.keys(S.mistakes).sort((a,b)=>S.mistakes[b].n-S.mistakes[a].n);
+  const kf=$("mistKapitel")?$("mistKapitel").value:"";
+  if($("mistKapitel")&&!$("mistKapitel").options.length||$("mistKapitel")&&$("mistKapitel").options.length<=1){
+    try{$("mistKapitel").innerHTML='<option value="">كل الكبيتلات</option>'+KAPITEL.filter(k=>k.id!=="KX").map(k=>'<option value="'+k.id+'">'+k.icon+" "+k.id+" • "+k.name+"</option>").join("");$("mistKapitel").value=kf;}catch(e){}
+  }
+  let ids=Object.keys(S.mistakes).sort((a,b)=>S.mistakes[b].n-S.mistakes[a].n);
+  if(kf)ids=ids.filter(id=>{const w=wordById(id);return w&&w.kap===kf;});
   $("mistCount").textContent=ids.length;
   $("navMistBadge").textContent=ids.length;
   const g=$("mistGrid");g.innerHTML="";
@@ -2234,6 +2239,7 @@ function renderMistakes(){
     const m=S.mistakes[id];const w=wordById(id);
     const d=document.createElement("div");d.className="mist-card glass";
     d.innerHTML='<div class="de-line" dir="ltr"><b>'+escapeHtml(m.de||(w?fullDe(w):id))+'</b></div>'+
+      (w&&w.kap?'<div class="muted">📚 '+escapeHtml(w.kap)+'</div>':"")+
       '<div class="word-ar">'+escapeHtml(m.ar||(w?w.ar:""))+'</div>'+
       '<div class="mist-err">❌ خطأك: <b>'+escapeHtml(m.last||"—")+'</b> • تكرر <b>'+m.n+'</b> '+(m.n>1?"مرات":"مرة")+'</div>'+
       '<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">🎯 اختبرني</button><button class="mini-btn" data-a="del">🗑️</button></div>';
@@ -2245,7 +2251,8 @@ function renderMistakes(){
 }
 function startMistakesQuiz(){
   const ids=Object.keys(S.mistakes||{});
-  const words=ids.map(wordById).filter(Boolean);
+  const kf=$("mistKapitel")?$("mistKapitel").value:"";
+  const words=ids.map(wordById).filter(w=>w&&(!kf||w.kap===kf));
   if(!words.length){toast("لا توجد أخطاء للاختبار 🎉","ok");return;}
   showPage("quiz");
   startQuizRun("mistakes",buildQuestions("mixed",Math.min(15,words.length),words));
