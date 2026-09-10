@@ -126,6 +126,27 @@ const GAMES=[
 {id:"pic",t:"📸 Picture Words",d:"ما هذه؟"},
 {id:"music",t:"🎵 Music Mode",d:"أكمل الأغنية"}];
 function trickNouns(){return allWords().filter(w=>w.type==="اسم"&&w.art!=="-"&&/^[A-ZÄÖÜ]/.test(w.de));}
+/* Safe option shuffling: Fisher-Yates over indices, correct answer remapped.
+   Scoring/feedback/XP/mistakes must always use the returned .correct. */
+function shuffleOptions(opts,correctIdx){
+  const order=shuffle(opts.map((_,i)=>i));
+  return {opts:order.map(i=>opts[i]),correct:order.indexOf(correctIdx)};
+}
+/* Balanced placement: never repeat the previous correct position for a key. */
+var _lastPos={};
+function balancedPos(n,key){
+  const last=_lastPos[key];
+  const choices=[];for(let i=0;i<n;i++)if(i!==last)choices.push(i);
+  const p=choices[Math.floor(Math.random()*choices.length)];
+  _lastPos[key]=p;return p;
+}
+function placeCorrect(allOpts,correctText,key){
+  const others=allOpts.filter(o=>o!==correctText);
+  const pos=balancedPos(allOpts.length,key);
+  const out=[];let oi=0;
+  for(let i=0;i<allOpts.length;i++){if(i===pos)out.push(correctText);else out.push(others[oi++]);}
+  return {opts:out,correct:pos};
+}
 function gameOpts(box,opts,cb){
   box.innerHTML='<div class="quiz-opts">'+opts.map((o,j)=>'<button class="quiz-opt" data-j="'+j+'">'+escapeHtml(o)+'</button>').join("")+'</div>';
   box.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{box.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);cb(parseInt(b.getAttribute("data-j"),10),b);}));
@@ -208,7 +229,20 @@ const BUILD_SENTS=[
 ["Ich","lerne","jeden","Tag","Deutsch.","أتعلم الألمانية كل يوم."],
 ["Der","Bus","kommt","morgen.","الأتوبيس يأتي غدًا."],
 ["Hast","du","Zeit?","هل لديك وقت؟"],
-["Ich","esse","einen","Apfel.","آكل تفاحة."]];
+["Ich","esse","einen","Apfel.","آكل تفاحة."],
+["Am","Montag","gehe","ich","zur","Schule.","أذهب للمدرسة يوم الاثنين."],
+["Meine","Mutter","kocht","heute.","أمي تطبخ اليوم."],
+["Wir","trinken","keinen","Kaffee.","نحن لا نشرب قهوة."],
+["Der","Hund","spielt","im","Garten.","الكلب يلعب في الحديقة."],
+["Kommst","du","morgen?","هل تأتي غدًا؟"],
+["Ich","habe","zwei","Brüder.","لدي أخوان."],
+["Die","Katze","schläft.","القطة نائمة."],
+["Er","liest","ein","Buch.","هو يقرأ كتابًا."]];
+function shuffledChips(words){
+  let opts=shuffle(words.map((w,k)=>({w:w,k:k})));
+  for(let t=0;t<8&&opts.map(x=>x.w).join(" ")===words.join(" ");t++)opts=shuffle(words.map((w,k)=>({w:w,k:k})));
+  return opts;
+}
 function gBuilder(box){
   const pool=shuffle(BUILD_SENTS).slice(0,6);
   let i=0,score=0;
@@ -216,7 +250,7 @@ function gBuilder(box){
     if(i>=pool.length){gameEnd("gameBox","🧩 Sentence Builder",score,pool.length,score*4+12,"builder");return;}
     const s=pool[i],words=s.slice(0,-1),ar=s[s.length-1];
     let cur=[];
-    const opts=shuffle(words.map((w,k)=>({w:w,k:k})));
+    const opts=shuffledChips(words);
     box.innerHTML='<div class="muted">جملة '+(i+1)+'/'+pool.length+' • '+escapeHtml(ar)+'</div><div class="order-answer" id="gAns"></div><div class="quiz-opts">'+opts.map(o=>'<button class="quiz-opt" data-k="'+o.k+'">'+escapeHtml(o.w)+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div><div class="quiz-feedback hidden" id="gFb"></div>';
     const ans=$("gAns");
     box.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{const o=opts.find(x=>x.k==b.getAttribute("data-k"));cur.push(o);b.disabled=true;b.classList.add("used");const c=document.createElement("span");c.className="order-chip";c.textContent=o.w;ans.appendChild(c);}));
@@ -417,13 +451,14 @@ function gPic(box){
       gameEnd("gameBox","📸 Picture Words",score,pool.length,score*5+10,"pic");return;
     }
     const it=pool[i];
-    const opts=shuffle([fullDe(it.w)].concat(shuffle(items.filter(x=>x!==it)).slice(0,3).map(x=>fullDe(x.w))));
+    const sh=placeCorrect([fullDe(it.w)].concat(shuffle(items.filter(x=>x!==it)).slice(0,3).map(x=>fullDe(x.w))),fullDe(it.w),"pic");
+    const opts=sh.opts,corr=sh.correct;
     box.innerHTML='<div class="muted">ما هذا؟ '+(i+1)+'/'+pool.length+'</div><div style="font-size:64px;text-align:center">'+it.em+'</div><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
     gameOpts($("gQ"),opts,j=>{
       const fb=$("gFb");fb.classList.remove("hidden");
-      if(opts[j]===fullDe(it.w)){fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+fullDe(it.w)+" = "+it.w.ar+" • جمع: "+(it.w.plural||"—");score++;S.totalCorrect++;}
+      if(j===corr){fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+fullDe(it.w)+" = "+it.w.ar+" • جمع: "+(it.w.plural||"—");score++;S.totalCorrect++;}
       else{fb.className="quiz-feedback no";fb.textContent="❌ هذا: "+fullDe(it.w)+" = "+it.w.ar;recordMistake(it.w,opts[j],"pic");}
-      S.totalAnswered++;sessTick(opts[j]===fullDe(it.w),it.w.id);save();i++;setTimeout(q,2000);
+      S.totalAnswered++;sessTick(j===corr,it.w.id);save();i++;setTimeout(q,2000);
     });
   }
   q();
@@ -442,13 +477,14 @@ function gMusic(box){
   function q(){
     if(i>=pool.length){gameEnd("gameBox","🎵 Music Mode",score,pool.length,score*5+10,"music");return;}
     const m=pool[i];
+    const sh=shuffleOptions(m[1],m[2]);
     box.innerHTML='<div class="muted">🎵 '+(i+1)+'/'+pool.length+' • '+escapeHtml(m[3])+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gHear">🔊 اسمع</button></div><h3 style="direction:ltr">'+escapeHtml(m[0])+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
     $("gHear").addEventListener("click",()=>speakGerman(m[0].replace("___",m[1][m[2]])));
-    gameOpts($("gQ"),m[1],j=>{
+    gameOpts($("gQ"),sh.opts,j=>{
       const fb=$("gFb");fb.classList.remove("hidden");
-      if(j===m[2]){fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+m[0].replace("___",m[1][m[2]]);score++;S.totalCorrect++;}
+      if(j===sh.correct){fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+m[0].replace("___",m[1][m[2]]);score++;S.totalCorrect++;}
       else{fb.className="quiz-feedback no";fb.textContent="❌ الصحيح: "+m[1][m[2]];}
-      S.totalAnswered++;sessTick(j===m[2]);save();i++;setTimeout(q,2000);
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,2000);
     });
   }
   q();

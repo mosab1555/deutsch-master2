@@ -395,30 +395,40 @@ function spDone(i){
 /* ---------- Conversation ---------- */
 const TALK_SITS=[
 {id:"intro",t:"👋 التعارف",steps:[
- ["Hallo! Wie heißt du?","أهلًا! ما اسمك؟",["Ich heiße Sara.","Ich bin 20 Jahre alt.","Tschüs!"],0],
- ["Woher kommst du?","من أين أنت؟",["Ich komme aus Spanien.","Ich wohne in Berlin.","Danke!"],0],
+ ["Hallo! Wie heißt du?","أهلًا! ما اسمك؟",["Ich bin 20 Jahre alt.","Ich heiße Sara.","Tschüs!"],1],
+ ["Woher kommst du?","من أين أنت؟",["Ich wohne in Berlin.","Danke!","Ich komme aus Spanien."],2],
  ["Was machst du gern?","ماذا تحب أن تفعل؟",["Ich lese gern Bücher.","Ich bin müde.","Bis später!"],0],
- ["Freut mich! Tschüs!","سعدت بلقائك! سلام!",["Freut mich auch! Tschüs!","Guten Appetit!","Prost!"],0]]},
+ ["Freut mich! Tschüs!","سعدت بلقائك! سلام!",["Guten Appetit!","Freut mich auch! Tschüs!","Prost!"],1]]},
 {id:"rest",t:"🍽️ في المطعم",steps:[
- ["Guten Tag! Was möchten Sie?","نهارك سعيد! ماذا تريد؟",["Ich möchte eine Pizza.","Wo ist der Bahnhof?","Ich bin 20."],0],
+ ["Guten Tag! Was möchten Sie?","نهارك سعيد! ماذا تريد؟",["Wo ist der Bahnhof?","Ich bin 20.","Ich möchte eine Pizza."],2],
  ["Sonst noch etwas?","شيء آخر؟",["Nein, danke. Zahlen, bitte!","Ja, ein Auto.","Tschüs!"],0],
- ["Das macht 12 Euro.","الحساب 12 يورو.",["Hier, bitte. Danke!","Guten Morgen!","Bis morgen!"],0],
- ["Guten Appetit!","بالهناء!",["Danke, gleichfalls!","Auf Wiedersehen!","Prost!"],0]]},
+ ["Das macht 12 Euro.","الحساب 12 يورو.",["Guten Morgen!","Hier, bitte. Danke!","Bis morgen!"],1],
+ ["Guten Appetit!","بالهناء!",["Auf Wiedersehen!","Prost!","Danke, gleichfalls!"],2]]},
 {id:"shop",t:"🛒 التسوق",steps:[
- ["Was kostet das Brot?","كم سعر الخبز؟",["Das Brot kostet 2 Euro.","Ich bin Lehrer.","Gute Nacht!"],0],
- ["Brauchen Sie eine Tüte?","هل تحتاج كيسًا؟",["Ja, bitte.","Nein, ich bin satt.","Danke, gleichfalls!"],0],
+ ["Was kostet das Brot?","كم سعر الخبز؟",["Ich bin Lehrer.","Das Brot kostet 2 Euro.","Gute Nacht!"],1],
+ ["Brauchen Sie eine Tüte?","هل تحتاج كيسًا؟",["Nein, ich bin satt.","Danke, gleichfalls!","Ja, bitte."],2],
  ["Sonst noch etwas?","شيء آخر؟",["Nein, das ist alles.","Ich wohne hier.","Tschüs!"],0],
- ["Danke! Tschüs!","شكرًا! سلام!",["Bitte! Tschüs!","Guten Appetit!","Prost!"],0]]},
+ ["Danke! Tschüs!","شكرًا! سلام!",["Guten Appetit!","Bitte! Tschüs!","Prost!"],1]]},
 {id:"uni",t:"🏫 الجامعة",steps:[
- ["Was studierst du?","ماذا تدرس؟",["Ich studiere Medizin.","Ich esse Pizza.","Gute Reise!"],0],
+ ["Was studierst du?","ماذا تدرس؟",["Ich esse Pizza.","Gute Reise!","Ich studiere Medizin."],2],
  ["Wann beginnt der Kurs?","متى يبدأ الكورس؟",["Um neun Uhr.","Im Kino.","Zu Hause!"],0],
- ["Verstehst du die Aufgabe?","هل تفهم المهمة؟",["Ja, alles klar.","Nein, ich schlafe.","Danke!"],0],
- ["Viel Erfolg!","بالتوفيق!",["Danke, gleichfalls!","Guten Appetit!","Prost!"],0]]},
+ ["Verstehst du die Aufgabe?","هل تفهم المهمة؟",["Nein, ich schlafe.","Ja, alles klar.","Danke!"],1],
+ ["Viel Erfolg!","بالتوفيق!",["Guten Appetit!","Prost!","Danke, gleichfalls!"],2]]},
 {id:"work",t:"💼 العمل",steps:[
- ["Wie sind Ihre Arbeitszeiten?","ما مواعيد عملك؟",["Von neun bis fünf Uhr.","Ich bin krank.","Im Bett!"],0],
+ ["Wie sind Ihre Arbeitszeiten?","ما مواعيد عملك؟",["Ich bin krank.","Von neun bis fünf Uhr.","Im Bett!"],1],
  ["Haben Sie Erfahrung?","هل لديك خبرة؟",["Ja, zwei Jahre.","Nein, danke.","Tschüs!"],0],
- ["Können Sie am Montag anfangen?","هل يمكنك البدء الاثنين؟",["Ja, gern.","Nein, nie.","Vielleicht!"],0],
- ["Willkommen im Team!","أهلًا بك في الفريق!",["Danke! Ich freue mich!","Gute Nacht!","Prost!"],0]]}];
+ ["Können Sie am Montag anfangen?","هل يمكنك البدء الاثنين؟",["Nein, nie.","Vielleicht!","Ja, gern."],2],
+ ["Willkommen im Team!","أهلًا بك في الفريق!",["Gute Nacht!","Danke! Ich freue mich!","Prost!"],1]]},
+{id:"hotel",t:"🏨 الفندق",steps:[
+ ["Guten Abend! Haben Sie reserviert?","مساء الخير! هل حجزت؟",["Ich bin 20.","Ja, auf den Namen Omar.","Tschüs!"],1],
+ ["Einzel- oder Doppelzimmer?","غرفة فردية أم مزدوجة؟",["Ich wohne hier.","Gute Nacht!","Einzelzimmer, bitte."],2],
+ ["Wie lange bleiben Sie?","كم ستبقى؟",["Ich bin nett.","Drei Nächte.","Prost!"],1],
+ ["Hier ist Ihr Schlüssel.","هذا مفتاحك.",["Danke schön!","Guten Appetit!","Bis morgen!"],0]]},
+{id:"freunde",t:"🎉 الأصدقاء",steps:[
+ ["Was machst du am Wochenende?","ماذا تفعل نهاية الأسبوع؟",["Ich bin ein Tisch.","Ich besuche meine Familie.","Gute Nacht!"],1],
+ ["Kommst du mit ins Kino?","هل تأتي معنا للسينما؟",["Ich bin 30 Jahre alt.","Das Wetter ist schön.","Ja, gern! Wann?"],2],
+ ["Wo treffen wir uns?","أين نتقابل؟",["Tschüs!","Vor dem Kino.","In meinem Kühlschrank."],1],
+ ["Bis später!","أراك لاحقًا!",["Bis später, mach's gut!","Guten Appetit!","Prost Mahlzeit!"],0]]}];
 function renderTalk(){
   ensureLearn();
   let h='<div class="panel glass"><h3>💬 المحادثة — تدريب تفاعلي</h3><div class="muted">اختر موقفًا ورد على الأسئلة (تدريب بقواعد ثابتة تناسب A1).</div></div><div class="grid-2" id="talkSits"></div><div id="talkBox"></div>';
@@ -440,15 +450,16 @@ function startTalk(id){
       renderTalk();window.scrollTo({top:0,behavior:"smooth"});return;
     }
     const st=sit.steps[i];
-    box.innerHTML='<div class="muted">'+sit.t+' — '+(i+1)+'/'+sit.steps.length+'</div><div class="talk-bot">🤖 '+escapeHtml(st[0])+' <button class="mini-btn" id="tkHear">🔊</button><div class="muted">'+escapeHtml(st[1])+'</div></div><div class="quiz-opts">'+st[2].map((o,j)=>'<button class="quiz-opt" data-j="'+j+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="tkFb"></div>';
+    const sh=shuffleOptions(st[2],st[3]);
+    box.innerHTML='<div class="muted">'+sit.t+' — '+(i+1)+'/'+sit.steps.length+'</div><div class="talk-bot">🤖 '+escapeHtml(st[0])+' <button class="mini-btn" id="tkHear">🔊</button><div class="muted">'+escapeHtml(st[1])+'</div></div><div class="quiz-opts">'+sh.opts.map((o,j)=>'<button class="quiz-opt" data-j="'+j+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="tkFb"></div>';
     $("tkHear").addEventListener("click",e=>{e.stopPropagation();speakGerman(st[0]);});
     setTimeout(()=>speakGerman(st[0]),300);
     box.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{
       const j=parseInt(b.getAttribute("data-j"),10);
       const fb=$("tkFb");fb.classList.remove("hidden");
       box.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
-      if(j===st[3]){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="ممتاز ✅ رد طبيعي!";score++;addXP(5);}
-      else{b.classList.add("wrong");box.querySelectorAll(".quiz-opt")[st[3]].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="الأفضل: "+st[2][st[3]];}
+      if(j===sh.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="ممتاز ✅ رد طبيعي!";score++;addXP(5);}
+      else{b.classList.add("wrong");box.querySelectorAll(".quiz-opt")[sh.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="الأفضل: "+sh.opts[sh.correct];}
       save();setTimeout(()=>{i++;step();},1800);
     }));
   }
