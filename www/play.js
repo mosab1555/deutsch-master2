@@ -329,28 +329,129 @@ function gMemory(box){
     }
   }));
 }
-/* Game 5: Missing Word */
-const MISS_ITEMS=[
-["Ich ___ aus Ägypten.",["komme","komme ich","kommen","kommt"],0,"الفاعل ich يأخذ komme في الآخر؟ لا — الفعل ثانيًا: Ich komme."],
-["Wir ___ einen Film.",["sehen","sehe","sieht","siehst"],0,"الفاعل wir يأخذ المصدر: sehen."],
-["Er ___ einen Stift.",["braucht","brauche","brauchen","brauchst"],0,"er المفرد يأخذ t: braucht."],
-["___ du Zeit?",["Hast","Haben","Hat","Habe"],0,"السؤال يبدأ بالفعل: Hast du؟"],
-["Ich ___ heute zu Hause.",["bleibe","bleibst","bleibt","bleiben"],0,"ich تأخذ e: bleibe."],
-["Er ___ gut Deutsch.",["spricht","spreche","sprichst","sprechen"],0,"er المفرد يأخذ t (مع تغير الجذر): spricht."],
-["Kinder ___ im Garten.",["spielen","spielt","spiele","spielst"],0,"الجمع يأخذ المصدر: spielen."],
-["___ kostet das?",["Was","Wer","Wo","Wann"],0,"السؤال عن الشيء = Was."]];
+/* Sentence Completion bank: varied blank position, answer type, structure,
+   context and level. s=sentence(___ = blank), o=options(correct first in data),
+   c=data index, why=short rule, lvl/pos/typ/ctx/start metadata, w=vocab link. */
+const SENT_FILL=[
+{s:"Ich ___ jeden Tag Deutsch.",o:["lerne","lernst","lernen","lernt"],c:0,why:"ich تأخذ e.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"study",start:"Ich",w:"lernen"},
+{s:"Du ___ in Berlin.",o:["wohnst","wohne","wohnt","wohnen"],c:0,why:"du تأخذ st.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"home",start:"Du",w:"wohnen"},
+{s:"Er ___ gern Fußball.",o:["spielt","spiele","spielst","spielen"],c:0,why:"er يأخذ t.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"sport",start:"Er",w:"spielen"},
+{s:"Wir ___ einen Film.",o:["sehen","sehe","sieht","siehst"],c:0,why:"wir تأخذ المصدر.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"home",start:"Wir",w:"sehen"},
+{s:"___ du Zeit?",o:["Hast","Haben","Hat","Habe"],c:0,why:"السؤال يبدأ بالفعل.",lvl:"A1",pos:"start",typ:"verb",ctx:"daily",start:"Hast"},
+{s:"Kinder ___ im Garten.",o:["spielen","spielt","spiele","spielst"],c:0,why:"الجمع يأخذ المصدر.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"home",start:"Kinder",w:"spielen"},
+{s:"Meine Mutter ___ heute zu Hause.",o:["bleibt","bleibst","bleiben","bleibe"],c:0,why:"المفرد المؤنث يأخذ t.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"family",start:"Meine",w:"bleiben"},
+{s:"Mein Bruder ___ in Berlin.",o:["wohnt","wohne","wohnst","wohnen"],c:0,why:"er ضمنيًا يأخذ t.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"family",start:"Mein",w:"wohnen"},
+{s:"Ich sehe ___ Mann.",o:["den","der","dem","die"],c:0,why:"مذكر مفعول → den.",lvl:"A1",pos:"before-noun",typ:"article",ctx:"daily",start:"Ich",w:"Mann"},
+{s:"Das ist ___ Bruder.",o:["mein","meine","meinen","meinem"],c:0,why:"مذكر فاعل → mein.",lvl:"A1",pos:"before-noun",typ:"poss",ctx:"family",start:"Das",w:"Bruder"},
+{s:"Ich kaufe ___ neuen Computer.",o:["einen","ein","eine","einem"],c:0,why:"مذكر مفعول → einen.",lvl:"A1",pos:"before-noun",typ:"article",ctx:"shopping",start:"Ich"},
+{s:"Maria ist nett. Ich mag ___.",o:["sie","ihr","du","es"],c:0,why:"مفعول sie ثابت.",lvl:"A1",pos:"end",typ:"pronoun",ctx:"friends",start:"Maria"},
+{s:"___ wohnst du?",o:["Wo","Wer","Wie","Wann"],c:0,why:"السؤال عن المكان = Wo.",lvl:"A1",pos:"start",typ:"question",ctx:"daily",start:"Wo"},
+{s:"Ich habe ___ Auto.",o:["kein","keine","nicht","ein"],c:0,why:"Auto محايد → kein.",lvl:"A1",pos:"after-verb",typ:"negation",ctx:"daily",start:"Ich",w:"Auto"},
+{s:"Das Auto ist sehr ___.",o:["schnell","langsam","schnelles","schnelle"],c:0,why:"الصفة بعد ist بدون نهاية.",lvl:"A1",pos:"end",typ:"adjective",ctx:"general",start:"Das"},
+{s:"Ich stehe ___ auf.",o:["früh","früher","frühe","frühen"],c:0,why:"الظرف بدون نهاية.",lvl:"A1",pos:"mid",typ:"adverb",ctx:"daily",start:"Ich"},
+{s:"Wir fahren ___ Berlin.",o:["nach","in","aus","zu"],c:0,why:"الاتجاه لمدينة = nach.",lvl:"A1",pos:"after-verb",typ:"prep",ctx:"travel",start:"Wir"},
+{s:"Zum Telefonieren kaufe ich ein neues ___.",o:["Handy","Haus","Brot","Auto"],c:0,why:"السياق (للاتصال) يحدد الكلمة.",lvl:"A1",pos:"before-noun",typ:"vocab",ctx:"shopping",start:"Zum",w:"Handy"},
+{s:"Heute ___ ich Deutsch.",o:["lerne","lernst","lernt","lernen"],c:0,why:"الفعل ثانيًا ثم الفاعل.",lvl:"A1",pos:"after-time",typ:"verb",ctx:"study",start:"Heute",w:"lernen"},
+{s:"___ Bruder wohnt in Berlin.",o:["Mein","Meine","Meinen","Ich"],c:0,why:"مذكر فاعل → Mein.",lvl:"A1",pos:"start",typ:"poss",ctx:"family",start:"Mein",w:"Bruder"},
+{s:"Ich sehe ___ alten Mann.",o:["den","der","dem","die"],c:0,why:"مذكر مفعول → den.",lvl:"A1",pos:"before-noun",typ:"article",ctx:"daily",start:"Ich",w:"Mann"},
+{s:"Meine Schwester ___ morgen nach Berlin.",o:["fährt","fahre","fährst","fahren"],c:0,why:"المفرد يأخذ t مع تغير الجذر.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"family",start:"Meine"},
+{s:"Am Wochenende ___ ich meine Freunde.",o:["besuche","besuchst","besuchen","besucht"],c:0,why:"ich تأخذ e.",lvl:"A1",pos:"after-time",typ:"verb",ctx:"friends",start:"Am"},
+{s:"___ gehe ich zur Universität.",o:["Heute","Ich","Gehe","Universität"],c:0,why:"الظرف أولًا ثم الفعل.",lvl:"A1",pos:"start",typ:"adverb",ctx:"study",start:"Heute"},
+{s:"Ich ___ jeden Morgen Kaffee.",o:["trinke","trinkst","trinkt","trinken"],c:0,why:"ich تأخذ e.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"food",start:"Ich",w:"trinken"},
+{s:"Ich warte ___ den Bus.",o:["auf","an","bei","zu"],c:0,why:"warten auf.",lvl:"A1",pos:"mid",typ:"prep",ctx:"travel",start:"Ich"},
+{s:"Der Kaffee ___ heiß.",o:["ist","sind","seid","bist"],c:0,why:"المفرد يأخذ ist.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"food",start:"Der",w:"Kaffee"},
+{s:"___ bitte die Tür!",o:["Mach","Machst","Machen","Macht"],c:0,why:"أمر du = الجذر.",lvl:"A1",pos:"start",typ:"imperative",ctx:"home",start:"Mach"},
+{s:"Ich ___ heute arbeiten.",o:["muss","musst","müssen","müsst"],c:0,why:"ich تأخذ muss.",lvl:"A1",pos:"after-subj",typ:"modal",ctx:"work",start:"Ich",w:"arbeiten"},
+{s:"Das ist ___ Schwester.",o:["meine","mein","meinen","meiner"],c:0,why:"مؤنثة → meine.",lvl:"A1",pos:"before-noun",typ:"poss",ctx:"family",start:"Das"},
+{s:"Wo ___ du gestern?",o:["warst","bist","war","wart"],c:0,why:"gestern ماضٍ: warst.",lvl:"A1",pos:"after-question",typ:"verb",ctx:"daily",start:"Wo"},
+{s:"Ich trinke ___ Kaffee.",o:["einen","ein","eine","einem"],c:0,why:"مذكر مفعول → einen.",lvl:"A1",pos:"before-noun",typ:"article",ctx:"food",start:"Ich",w:"Kaffee"},
+{s:"Die Kinder ___ laut.",o:["sind","seid","ist","bin"],c:0,why:"الجمع يأخذ sind.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"home",start:"Die"},
+{s:"___ kommt aus Ägypten?",o:["Wer","Was","Wo","Wie"],c:0,why:"السؤال عن العاقل = Wer.",lvl:"A1",pos:"start",typ:"question",ctx:"daily",start:"Wer"},
+{s:"Sie ___ jeden Tag.",o:["arbeitet","arbeiten","arbeitest","arbeite"],c:0,why:"Sie الرسمية تأخذ t.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"work",start:"Sie",w:"arbeiten"},
+{s:"Ich habe ___ Zeit.",o:["keine","kein","nicht","keiner"],c:0,why:"Zeit مؤنثة → keine.",lvl:"A1",pos:"after-verb",typ:"negation",ctx:"daily",start:"Ich"},
+{s:"Er ___ einen Hund.",o:["hat","habe","hast","haben"],c:0,why:"er تأخذ hat.",lvl:"A1",pos:"after-subj",typ:"verb",ctx:"home",start:"Er",w:"Hund"},
+{s:"Gestern ___ ich Fußball gespielt.",o:["habe","hast","hat","haben"],c:0,why:"الماضي مع haben.",lvl:"A2",pos:"after-time",typ:"aux",ctx:"sport",start:"Gestern",w:"Fußball"},
+{s:"Morgen ___ ich nach Kairo fahren.",o:["werde","wirst","wird","werden"],c:0,why:"المستقبل مع werden.",lvl:"A2",pos:"after-time",typ:"aux",ctx:"travel",start:"Morgen"},
+{s:"Ich habe gestern einen Film ___.",o:["gesehen","sehen","sieht","gesehene"],c:0,why:"التصريف الثالث آخر الجملة.",lvl:"A2",pos:"end",typ:"participle",ctx:"home",start:"Ich",w:"Film"},
+{s:"Wir sind nach Berlin ___.",o:["gefahren","fahren","fährt","fahrst"],c:0,why:"fahren تأخذ sein.",lvl:"A2",pos:"end",typ:"participle",ctx:"travel",start:"Wir"},
+{s:"Hast du die Hausaufgaben ___?",o:["gemacht","machen","macht","machst"],c:0,why:"التصريف الثالث.",lvl:"A2",pos:"end",typ:"participle",ctx:"school",start:"Hast"},
+{s:"Ich muss heute früh ___.",o:["aufstehen","aufstehe","stehe auf","aufsteht"],c:0,why:"المنفصل آخر الجملة بالمصدر.",lvl:"A2",pos:"end",typ:"separable",ctx:"daily",start:"Ich",w:"aufstehen"},
+{s:"Ruf mich bitte ___!",o:["an","auf","aus","zu"],c:0,why:"anrufen = يتصل.",lvl:"A2",pos:"end",typ:"separable",ctx:"daily",start:"Ruf"},
+{s:"Ich helfe ___ Bruder.",o:["meinem","meinen","mein","meine"],c:0,why:"helfen + Dativ.",lvl:"A2",pos:"before-noun",typ:"dativ",ctx:"family",start:"Ich",w:"Bruder"},
+{s:"Das Geschenk ist ___ dich.",o:["für","von","mit","zu"],c:0,why:"für + Akkusativ.",lvl:"A2",pos:"mid",typ:"prep",ctx:"friends",start:"Das"},
+{s:"___ regnet es heute.",o:["Es","Er","Sie","Das"],c:0,why:"الطقس = es.",lvl:"A2",pos:"start",typ:"pronoun",ctx:"weather",start:"Es"},
+{s:"Ich freue ___ auf den Urlaub.",o:["mich","dich","mir","michs"],c:0,why:"sich freuen auf + Akk.",lvl:"A2",pos:"mid",typ:"reflexive",ctx:"travel",start:"Ich"},
+{s:"___ ihr schon gegessen?",o:["Habt","Haben","Hat","Hast"],c:0,why:"ihr تأخذ habt.",lvl:"A2",pos:"start",typ:"aux",ctx:"food",start:"Habt"},
+{s:"Die Tasche ___ meiner Schwester.",o:["gehört","gehören","gehöre","gehörst"],c:0,why:"المفرد يأخذ t.",lvl:"A2",pos:"after-subj",typ:"verb",ctx:"family",start:"Die",w:"Tasche"},
+{s:"Wir treffen ___ am Bahnhof.",o:["uns","euch","sich","unsere"],c:0,why:"treffen + uns للجمع.",lvl:"A2",pos:"mid",typ:"reflexive",ctx:"travel",start:"Wir"},
+{s:"Kannst du mir ___?",o:["helfen","helfe","hilfst","hilft"],c:0,why:"بعد المساعد مصدر.",lvl:"A2",pos:"end",typ:"verb",ctx:"friends",start:"Kannst"},
+{s:"Er interessiert ___ für Autos.",o:["sich","dich","mich","sie"],c:0,why:"sich interessieren für.",lvl:"A2",pos:"mid",typ:"reflexive",ctx:"general",start:"Er"},
+{s:"Der Zug fährt ___ 10 Uhr ab.",o:["um","am","im","von"],c:0,why:"um للساعة.",lvl:"A2",pos:"mid",typ:"prep",ctx:"travel",start:"Der"},
+{s:"Meine Eltern ___ in Alexandria.",o:["wohnen","wohnt","wohne","wohnst"],c:0,why:"الجمع يأخذ المصدر.",lvl:"A2",pos:"after-subj",typ:"verb",ctx:"family",start:"Meine",w:"wohnen"},
+{s:"Ich bleibe zu Hause, ___ ich krank bin.",o:["weil","denn","aber","und"],c:0,why:"weil + فعل آخر الجملة.",lvl:"B1",pos:"mid",typ:"conjunction",ctx:"home",start:"Ich"},
+{s:"___ ich müde bin, lerne ich weiter.",o:["Obwohl","Aber","Weil","Denn"],c:0,why:"obwohl = مع أن.",lvl:"B1",pos:"start",typ:"conjunction",ctx:"study",start:"Obwohl"},
+{s:"Ich denke, ___ du recht hast.",o:["dass","was","wer","wie"],c:0,why:"dass للاعتقاد.",lvl:"B1",pos:"mid",typ:"conjunction",ctx:"general",start:"Ich"},
+{s:"Wenn es ___, bleiben wir zu Hause.",o:["regnet","regnen","regne","regnst"],c:0,why:"es regnet.",lvl:"B1",pos:"mid",typ:"verb",ctx:"weather",start:"Wenn"},
+{s:"Das Buch, ___ ich lese, ist spannend.",o:["das","was","der","die"],c:0,why:"ضمير الوصل = das.",lvl:"B1",pos:"mid",typ:"relative",ctx:"general",start:"Das",w:"Buch"},
+{s:"Er fragt, ___ der Zug kommt.",o:["wann","was","wer","wo"],c:0,why:"السؤال عن الوقت = wann.",lvl:"B1",pos:"mid",typ:"question",ctx:"travel",start:"Er"},
+{s:"Trotz ___ Wetters bleiben wir zu Hause.",o:["des","dem","der","den"],c:0,why:"trotz + Genitiv.",lvl:"B1",pos:"mid",typ:"genitive",ctx:"weather",start:"Trotz"},
+{s:"Je mehr ich lerne, ___ besser spreche ich.",o:["desto","als","wie","wenn"],c:0,why:"je...desto للمقارنة.",lvl:"B1",pos:"mid",typ:"conjunction",ctx:"study",start:"Je"},
+{s:"Ich weiß nicht, ___ ich machen soll.",o:["was","wer","wo","dass"],c:0,why:"was + soll.",lvl:"B1",pos:"mid",typ:"question",ctx:"general",start:"Ich"},
+{s:"Er arbeitet, ___ Geld zu verdienen.",o:["um","zu","für","damit"],c:0,why:"um...zu للغرض.",lvl:"B1",pos:"mid",typ:"umzu",ctx:"work",start:"Er"},
+{s:"Jeden Abend ___ ich Deutsch.",o:["lerne","lernst","lernt","lernen"],c:0,why:"الفعل ثانيًا ثم الفاعل.",lvl:"A2",pos:"after-time",typ:"verb",ctx:"study",start:"Jeden",w:"lernen"},
+{s:"___ besucht meinen Bruder?",o:["Wer","Wen","Was","Wo"],c:0,why:"السؤال عن الفاعل = Wer.",lvl:"A2",pos:"start",typ:"question",ctx:"family",start:"Wer"}];
+/* Sentence-completion picker: level filter + type distribution + anti-repeat.
+   Never repeats pos/typ/start/ctx back-to-back (soft constraint with fallback). */
+function pickFillBank(lvl,count){
+  let pool=SENT_FILL.filter(q=>!lvl||lvl==="mix"||q.lvl===lvl);
+  if(!pool.length)pool=SENT_FILL.slice();
+  pool=shuffle(pool);
+  const out=[],usedCtx={};
+  let lastPos="",lastTyp="",lastStart="";
+  const target={verb:2,article:1,prep:1,vocab:1,pronoun:1,negation:1};
+  const counts={};
+  for(const q of pool){
+    if(out.length>=count)break;
+    const t=target[q.typ]!=null;
+    if(t&&counts[q.typ]>=target[q.typ]&&out.length<count-2)continue;
+    if(out.length&&(q.pos===lastPos||q.typ===lastTyp||q.start===lastStart))continue;
+    if(usedCtx[q.ctx]>=2)continue;
+    out.push(q);counts[q.typ]=(counts[q.typ]||0)+1;usedCtx[q.ctx]=(usedCtx[q.ctx]||0)+1;
+    lastPos=q.pos;lastTyp=q.typ;lastStart=q.start;
+  }
+  for(const q of pool){
+    if(out.length>=count)break;
+    if(out.indexOf(q)<0)out.push(q);
+  }
+  return out.slice(0,count);
+}
+function fillFull(q){return q.s.replace("___",q.o[q.c]);}
+function fillToQuiz(q){
+  const sh=shuffleOptions(q.o,q.c);
+  let w=null;
+  try{if(q.w)w=findWord(q.w)||null;}catch(e){}
+  return {kind:"fillbank",prompt:"أكمل الجملة: "+q.s,opts:sh.opts,correct:sh.correct,correctText:sh.opts[sh.correct],
+    explain:"الإجابة: "+fillFull(q)+" — "+q.why,w:w,fillItem:q};
+}
 function gMissing(box){
-  const pool=shuffle(MISS_ITEMS).slice(0,6);
+  box.innerHTML='<div class="panel glass"><h3>🕳️ إكمال الجمل</h3><div class="muted">بدون وقت — خذ وقتك وفكّر. اختر المستوى:</div><div class="row-flex"><button class="btn btn-primary sm" data-fl="A1">A1</button><button class="btn btn-ghost sm" data-fl="A2">A2</button><button class="btn btn-ghost sm" data-fl="B1">B1</button><button class="btn btn-gold sm" data-fl="mix">🎲 متنوع</button></div></div><div id="gQ2"></div>';
+  box.querySelectorAll("[data-fl]").forEach(b=>b.addEventListener("click",()=>runFill(box,b.getAttribute("data-fl"))));
+}
+function runFill(box,lvl){
+  const pool=pickFillBank(lvl,10);
   let i=0,score=0;
   function q(){
-    if(i>=pool.length){gameEnd("gameBox","🕳️ Missing Word",score,pool.length,score*5+10,"missing");return;}
+    if(i>=pool.length){gameEnd("gameBox","🕳️ إكمال الجمل ("+lvl+")",score,pool.length,score*5+10,"missing");return;}
     const m=pool[i];
-    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+'</div><h3 style="direction:ltr">'+escapeHtml(m[0])+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
-    gameOpts($("gQ"),m[1],j=>{
+    const sh=shuffleOptions(m.o,m.c);
+    let w=null;
+    try{if(m.w)w=findWord(m.w)||null;}catch(e){}
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • <span class="tag">'+m.lvl+'</span></div><h3 style="direction:ltr">'+escapeHtml(m.s)+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,j=>{
       const fb=$("gFb");fb.classList.remove("hidden");
-      if(j===m[2]){fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+m[3];score++;S.totalCorrect++;}
-      else{fb.className="quiz-feedback no";fb.textContent="❌ "+m[3];}
-      S.totalAnswered++;sessTick(j===m[2]);save();i++;setTimeout(q,2000);
+      if(j===sh.correct){fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+m.s.replace("___",sh.opts[sh.correct])+" — "+m.why;score++;S.totalCorrect++;}
+      else{fb.className="quiz-feedback no";fb.textContent="❌ الصحيح: "+sh.opts[sh.correct]+" — "+m.why;if(w)recordMistake(w,sh.opts[j],"fillbank");}
+      S.totalAnswered++;sessTick(j===sh.correct,w?w.id:undefined);save();i++;setTimeout(q,2200);
     });
   }
   q();

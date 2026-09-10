@@ -2019,7 +2019,11 @@ function buildQuestions(type,count,forcedWords){
   }
   let kinds;
   if(type==="mixed")kinds=MIXED_KINDS;
-  else if(type==="quick")kinds=["article","de-ar","ar-de","plural","listening","sentence"];
+  else if(type==="quick")kinds=["article","de-ar","ar-de","plural","listening","order"];
+  else if(type==="sentence"&&!(forcedWords&&forcedWords.length)){
+    try{return pickFillBank("mix",count).map(fillToQuiz);}catch(e){}
+    kinds=[type];
+  }
   else kinds=[type];
   const picks=forcedWords&&forcedWords.length?forcedWords:pickWeighted(words,count);
   if(!picks.length)return[];
