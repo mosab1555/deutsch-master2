@@ -397,4 +397,6 @@ html[data-theme="light"] .game-card select{background:#fff}
 /* Sentence Exercises (standalone learning feature, not a game) */
 #page-sentex .fill-sent{font-size:22px}
 #sentexBox .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
-@media(max-width:860px){#sentexBox .grid-2{grid-template-columns:1fr}}
+#page-practice .fill-sent{font-size:22px}
+#practiceBox .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+@media(max-width:860px){#sentexBox .grid-2{grid-template-columns:1fr}#practiceBox .grid-2{grid-template-columns:1fr}}
