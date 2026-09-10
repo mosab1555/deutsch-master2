@@ -197,10 +197,15 @@ html[data-theme="light"] .grammar-ex{background:rgba(0,0,0,.05)}
 .quiz-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .quiz-top .progress{flex:1}
 .quiz-opts{display:grid;gap:10px;margin:14px 0}
-.quiz-opt{padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;font-size:16px;font-weight:700;transition:.25s;text-align:right}
+.quiz-opt{padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;font-size:16px;font-weight:700;transition:box-shadow .35s ease,border-color .35s ease,transform .35s ease,background-color .35s ease;text-align:right}
 .quiz-opt:hover:not(:disabled){background:rgba(var(--v2),.15);transform:scale(1.01)}
-.quiz-opt.correct{background:linear-gradient(135deg,#15803d,#22c55e)!important;color:#fff;border-color:transparent;box-shadow:0 0 18px rgba(34,197,94,.6)}
-.quiz-opt.wrong{background:linear-gradient(135deg,#991b1b,#ef4444)!important;color:#fff}
+.quiz-opt.correct{background:linear-gradient(135deg,#15803d,#22c55e)!important;color:#fff;border-color:transparent;box-shadow:0 0 18px rgba(34,197,94,.6);animation:popGood .45s ease}
+.quiz-opt.wrong{background:linear-gradient(135deg,#991b1b,#ef4444)!important;color:#fff;border-color:transparent;box-shadow:0 0 14px rgba(239,68,68,.55);animation:shakeBad .4s ease}
+@keyframes popGood{0%{transform:scale(1)}35%{transform:scale(1.045);box-shadow:0 0 30px rgba(34,197,94,.9)}100%{transform:scale(1);box-shadow:0 0 18px rgba(34,197,94,.6)}}
+@keyframes shakeBad{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}55%{transform:translateX(4px)}80%{transform:translateX(-2px)}}
+@media (prefers-reduced-motion:reduce){.quiz-opt.correct,.quiz-opt.wrong{animation:none}}
+.order-answer.good{border-color:var(--green);box-shadow:0 0 16px rgba(34,197,94,.55);animation:popGood .45s ease}
+.order-answer.bad{border-color:var(--red);box-shadow:0 0 14px rgba(239,68,68,.55);animation:shakeBad .4s ease}
 .quiz-opt:disabled{cursor:default;opacity:.9}
 .quiz-feedback{padding:14px;border-radius:12px;margin:10px 0;font-weight:700}
 .quiz-feedback.ok{background:rgba(34,197,94,.15);border:1px solid var(--green)}
