@@ -52,6 +52,13 @@
       <button class="nav-item" data-page="real"><span class="nav-ico">🌍</span> مواقف</button>
       <button class="nav-item" data-page="job"><span class="nav-ico">💼</span> الشغل</button>
       <button class="nav-item" data-page="ach"><span class="nav-ico">🏆</span> إنجازاتي</button>
+      <button class="nav-item" data-page="games"><span class="nav-ico">🎮</span> الألعاب</button>
+      <button class="nav-item" data-page="world"><span class="nav-ico">🗺️</span> العالم</button>
+      <button class="nav-item" data-page="stories"><span class="nav-ico">📖</span> قصص</button>
+      <button class="nav-item" data-page="survive"><span class="nav-ico">🇩🇪</span> البقاء</button>
+      <button class="nav-item" data-page="challenge"><span class="nav-ico">⚡</span> التحدي</button>
+      <button class="nav-item" data-page="me"><span class="nav-ico">🙂</span> شخصيتي</button>
+      <button class="nav-item" data-page="practice"><span class="nav-ico">🎯</span> تدريب ذكي</button>
       <button class="nav-item" data-page="review"><span class="nav-ico">🧠</span> المراجعة <span class="badge" id="navReviewBadge">0</span></button>
       <button class="nav-item" data-page="mistakes"><span class="nav-ico">❌</span> أخطائي <span class="badge" id="navMistBadge">0</span></button>
       <button class="nav-item" data-page="stats"><span class="nav-ico">📊</span> الإحصائيات</button>
@@ -269,6 +276,49 @@
         <div id="achBox"></div>
       </section>
 
+      <!-- GAMES -->
+      <section class="page" id="page-games">
+        <div class="page-head"><h2>🎮 الألعاب</h2></div>
+        <div id="gamesBox"></div>
+        <div id="gameBox"></div>
+      </section>
+
+      <!-- WORLD -->
+      <section class="page" id="page-world">
+        <div class="page-head"><h2>🗺️ العالم</h2></div>
+        <div id="worldBox"></div>
+      </section>
+
+      <!-- STORIES -->
+      <section class="page" id="page-stories">
+        <div class="page-head"><h2>📖 قصص</h2></div>
+        <div id="storiesBox"></div>
+      </section>
+
+      <!-- SURVIVE -->
+      <section class="page" id="page-survive">
+        <div class="page-head"><h2>🇩🇪 البقاء في ألمانيا</h2></div>
+        <div id="surviveBox"></div>
+      </section>
+
+      <!-- CHALLENGE -->
+      <section class="page" id="page-challenge">
+        <div class="page-head"><h2>⚡ التحدي</h2></div>
+        <div id="chBox"></div>
+      </section>
+
+      <!-- ME -->
+      <section class="page" id="page-me">
+        <div class="page-head"><h2>🙂 شخصيتي وتقريري</h2></div>
+        <div id="meBox"></div>
+      </section>
+
+      <!-- PRACTICE -->
+      <section class="page" id="page-practice">
+        <div class="page-head"><h2>🎯 تدريب ذكي</h2></div>
+        <div id="practiceBox"></div>
+      </section>
+
       <!-- QUIZ -->
       <section class="page" id="page-quiz">
         <div class="page-head"><h2>📝 الاختبارات</h2></div>
@@ -367,6 +417,10 @@
             <label>سرعة النطق الافتراضية <select id="speedSelect2"><option value="0.5">0.5</option><option value="0.75">0.75</option><option value="1">1</option><option value="1.25">1.25</option></select></label>
             <button class="btn btn-ghost sm" id="testVoice">🔊 تجربة الصوت الألماني</button>
           </div>
+          <div class="panel glass"><h3>🎨 ألوان الموقع</h3>
+            <div class="muted">اختر Theme — يُطبق فورًا ويُحفظ.</div>
+            <div class="theme-grid" id="themeGrid"></div>
+          </div>
           <div class="panel glass"><h3>البيانات</h3>
             <div class="row-flex"><button class="btn btn-ghost sm" id="exportData">📤 تصدير نسخة</button><button class="btn btn-ghost sm" id="importDataBtn">📥 استيراد</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
             <button class="btn btn-red sm" id="wipeData">🗑️ مسح كل البيانات</button>
@@ -410,5 +464,7 @@
 <script src="explain.js"></script>
 <script src="script.js"></script>
 <script src="learn.js"></script>
+<script src="play.js"></script>
+<script src="world.js"></script>
 </body>
 </html>

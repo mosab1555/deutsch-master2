@@ -4,398 +4,754 @@
    German content verified for A1 accuracy. */
 "use strict";
 
-const EXPLAIN_ORDER = ["g1","g2","g3","g4","g5","g6","g7","g8","g9","g10","g11","g12","g13","g14","g15","g16","g17","g18","g19","g20","g21","g22","g23","g24","g25","g26","g27","g28","g29","g30"];
+const EXPLAIN_ORDER = ["g1","g2","g3","g4","g5","g6","g7","g8","g9","g10","g11","g12","g13","g14","g15","g16","g17","g18","g19","g20","g21","g22","g23","g24","g25","g26","g27","g28","g29","g30","g31","g32","g33","g34","g35","g36","g37","g38","g39","g40"];
 
 const EXPLAIN = {
 
 g1: {
+level: "A1",
+goals: ["أفهم ما معنى Artikel ولماذا هو مهم.", "أفرق بين der و die و das.", "أتعلم أنماطًا تساعد على تخمين الجنس."],
 what: "كل اسم ألماني له «جنس» ثابت: مذكر يأخذ der، مؤنث يأخذ die، محايد يأخذ das. الأداة جزء من الكلمة نفسها وليست إضافة اختيارية.",
 why: "بدون الأداة الصحيحة الجملة تكون خاطئة، والأداة تغيّر شكل الصفات والضمائر وحروف الجر بعدها. من يحفظ الكلمة بدون أداتها سيخطئ في كل القواعد التالية (Akkusativ و Dativ والجمع).",
 when: ["مع أي اسم مفرد: der Tisch (الطاولة)، die Tasche (الحقيبة)، das Buch (الكتاب).", "عند الإشارة لشيء معروف: Der Kaffee ist heiß (القهوة ساخنة).", "لا نستخدم أداة مع الأفعال والصفات standalone ومعظم أسماء البلاد واللغات."],
 how: ["احفظ الكلمة هكذا دائمًا: der Freund، وليس Freund فقط.", "قاعدة مساعدة (ليست 100%): كلمات تنتهي بـ -ung و -heit و -keit و -schaft غالبًا مؤنثة (die). وكلمات تنتهي بـ -chen و -lein غالبًا محايدة (das).", "غير ذلك لا يوجد منطق: der Löffel (ملعقة مذكر) لكن die Gabel (شوكة مؤنث) — الحفظ هو الحل."],
-examples: [["der Tisch ist groß.", "الطاولة كبيرة."], ["die Lampe ist neu.", "المصباح جديد."], ["das Buch ist gut.", "الكتاب جيد."]],
-daily: [["Der Kaffee ist heiß.", "القهوة ساخنة."], ["Die Milch ist kalt.", "الحليب بارد."], ["Das Brot ist frisch.", "الخبز طازج."]],
+tables: [{cap: "الأنماط المساعدة (ليست مضمونة 100%)", head: ["النهاية", "غالبًا", "مثال"], rows: [["-ung, -heit, -keit, -schaft", "die (مؤنث)", "die Zeitung"], ["-chen, -lein", "das (محايد)", "das Mädchen"], ["-er (مهن)", "der (مذكر)", "der Lehrer"], ["غير ذلك", "يُحفظ", "der Tisch / die Tasche / das Buch"]]}],
+examples: [["Der Mann trinkt Kaffee.", "الرجل يشرب قهوة.", "دير مان ترينكت كافيه."], ["Die Frau liest ein Buch.", "المرأة تقرأ كتابًا.", "دي فراو ليست آين بوخ."], ["Das Kind spielt im Garten.", "الطفل يلعب في الحديقة.", "داس كيند شبيلت إم جارتن."]],
+daily: [["Der Bus kommt spät.", "الأتوبيس يأتي متأخرًا.", "دير بوس كومت شبيت."], ["Die Suppe ist heiß.", "الشوربة ساخنة.", "دي زوبه إست هايس."], ["Das Wetter ist schön.", "الطقس جميل.", "داس فيتر إست شون."]],
 notes: ["القاموس يكتب m للـ der و f للـ die و n للـ das — تعلم قراءة هذه الرموز.", "الجمع في الألمانية القياسية أداته die دائمًا مهما كانت أداة المفرد.", "في بطاقات هذا التطبيق نعرض الجمع مع أداة المفرد لتثبيت حفظها (der Eintrag ← der Einträge)، لكن القاعدة القياسية أن الجمع بـ die."],
 mistakes: [{w: "Tisch ist groß.", r: "Der Tisch ist groß.", why: "الاسم المفرد يحتاج أداته — لا تترك الاسم عاريًا."}, {w: "das Tasche", r: "die Tasche", why: "Tasche مؤنثة ثابتة — لا تخمن من المعنى العربي."}],
 compare: "der/die/das للمعرفة (شيء محدد) ← تقابلها ein/eine للنكرة (شيء غير محدد): Der Mann (الرجل المعروف) مقابل Ein Mann (رجل ما). التفصيل في شرح «المعرفة والنكرة».",
-summary: "كل اسم = أداة + اسم. احفظهما معًا دائمًا: der / die / das."
+summary: "كل اسم = أداة + اسم. احفظهما معًا دائمًا: der / die / das.",
+drill: [{t: "أكمل: ___ Tasche ist neu.", opts: ["der", "die", "das"], correct: 1, why: "Tasche مؤنثة ثابتة → die Tasche."}],
+review: {rule: "كل اسم له أداة ثابتة: der / die / das.", words: "Tisch, Tasche, Buch", example: "Der Mann trinkt Kaffee.", mistake: "ترك الاسم بدون أداة.", q: "ما أداة Mädchen؟ (das)"},
+relWords: ["Tisch", "Tasche", "Buch", "Mann", "Frau"]
 },
 
 g2: {
+level: "A1",
+goals: ["أفهم لماذا للجمع أشكال كثيرة.", "أحفظ الجمع مع المفرد دائمًا.", "أعرف أداة الجمع القياسية."],
 what: "الجمع في الألمانية له عدة نهايات (-e و -er و -n/-en و -s وتغيّر Umlaut أحيانًا) ولا توجد قاعدة واحدة تختصرها كلها، لذلك يُحفظ الجمع مع كل اسم.",
 why: "بدون حفظ الجمع ستخطئ في الكلام عن أكثر من شيء واحد، وهي من أكثر نقاط الامتحان في A1.",
 when: ["عند الحديث عن أكثر من واحد: zwei Bücher (كتابان).", "أداة الجمع القياسية في الألمانية هي die دائمًا: die Bücher، die Tische.", "ملاحظة خاصة بهذا التطبيق: البطاقات تعرض الجمع بأداة المفرد (der Tische، das Bücher) لتثبيت الأداة الأصلية — أما الامتحان والقاعدة القياسية فالجمع بـ die."],
 how: ["احفظ كل اسم هكذا: der Tisch → die Tische.", "أشهر الأنماط: der Tisch→Tische، das Buch→Bücher (مع Umlaut)، die Tasche→Taschen، das Kind→Kinder.", "الكلمات الأجنبية الحديثة غالبًا +s: das Taxi→Taxis، das Hotel→Hotels."],
-examples: [["der Tisch – die Tische", "الطاولة – الطاولات."], ["das Buch – die Bücher", "الكتاب – الكتب."], ["die Tasche – die Taschen", "الحقيبة – الحقائب."]],
+examples: [["der Tisch – die Tische", "الطاولة – الطاولات.", "دير تيش – دي تيشه."], ["das Buch – die Bücher", "الكتاب – الكتب.", "داس بوخ – دي بوخر."], ["die Tasche – die Taschen", "الحقيبة – الحقائب.", "دي تاشه – دي تاشن."]],
 daily: [["Die Kinder sind hier.", "الأطفال هنا."], ["Zwei Brötchen, bitte.", "خبزتان صغيرتان من فضلك."], ["Die Äpfel sind frisch.", "التفاح طازج."]],
 notes: ["بعض الكلمات جمعها = مفردها: der Lehrer→die Lehrer، das Fenster→die Fenster.", "Umlaut (ä ö ü) يظهر كثيرًا في الجمع: der Mann→die Männer، die Mutter→die Mütter."],
 mistakes: [{w: "die Buchs", r: "die Bücher", why: "الجمع لا يُخترع بإضافة s دائمًا — Buch جمعها Bücher."}, {w: "der Tische (في جملة رسمية)", r: "die Tische", why: "في الألمانية القياسية الجمع بـ die. صيغة der Tische موجودة في بطاقات التطبيق فقط كوسيلة حفظ للأداة. "}],
 compare: "المفرد له 3 أدوات (der/die/das) لكن الجمع له أداة واحدة قياسية (die). قارن: der Mann (مفرد) ← die Männer (جمع).",
-summary: "احفظ الجمع مع المفرد. القاعدة القياسية: الجمع بـ die."
+summary: "احفظ الجمع مع المفرد. القاعدة القياسية: الجمع بـ die.",
+drill: [{t: "ما جمع das Kind؟", opts: ["die Kinder", "die Kindes", "die Kinden"], correct: 0, why: "Kind جمعها Kinder مع Umlaut — تُحفظ."}],
+review: {rule: "الجمع يُحفظ مع المفرد، وأداته القياسية die.", words: "Tisch, Buch, Tasche", example: "Die Kinder sind hier.", mistake: "اختراع الجمع بإضافة s.", q: "ما جمع die Mutter؟ (die Mütter)"},
+relWords: ["Kind", "Buch", "Mann"]
 },
 
 g3: {
+level: "A1",
+goals: ["أعرف الحالات التي أكتب فيها حرفًا كبيرًا.", "أميز الاسم داخل الجملة بسرعة.", "أفرق بين sie و Sie."],
 what: "الحرف الأول يُكتب كبيرًا في 4 حالات فقط — وأهمها أن كل اسم ألماني يُكتب بحرف كبير دائمًا حتى في وسط الجملة.",
 why: "الكتابة بحرف صغير للاسم خطأ إملائي واضح وينقص الدرجات في الامتحان، لكنها في المقابل علامة تساعدك تميّز الأسماء داخل الجملة بسرعة.",
 when: ["أول الجملة: Heute lerne ich.", "أسماء العلم: Ahmed، Berlin.", "كل الأسماء: das Buch، der Tisch — حتى لو نكرة: ein Tisch.", "ضمير المخاطب الرسمي Sie (حضرتك) — وحرف S كبير دائمًا."],
 how: ["اسأل نفسك: هل الكلمة اسم (تشير لشيء/شخص)؟ ← اكتبها كبيرة.", "الفعل والصفة والحرف لا تكبر إلا في أول الجملة: lernen صغيرة، لكن Lernen كاسم (التعلّم) كبيرة."],
-examples: [["Das Buch ist neu.", "الكتاب جديد."], ["Ich trinke Kaffee.", "أشرب قهوة."], ["Können Sie mir helfen?", "هل يمكنك مساعدتي؟ (رسمي)"]],
+examples: [["Das Buch ist neu.", "الكتاب جديد.", "داس بوخ إست نوي."], ["Ich trinke Kaffee.", "أشرب قهوة.", "إش ترينكه كافيه."], ["Können Sie mir helfen?", "هل يمكنك مساعدتي؟ (رسمي)", "كونِن زي مير هِلفِن؟"]],
 daily: [["Ich kaufe Brot und Milch.", "أشتري خبزًا وحليبًا."], ["Berlin ist schön.", "برلين جميلة."], ["Sprechen Sie Deutsch?", "هل تتحدث الألمانية؟ (رسمي)"]],
 notes: ["sie (هي/هم) الصغيرة ≠ Sie (حضرتك) الكبيرة — الفرق فقط في الحرف الأول.", "اللغات كأسماء تُكتب كبيرة: Deutsch، Arabisch."],
 mistakes: [{w: "ich lerne deutsch.", r: "Ich lerne Deutsch.", why: "بداية الجملة كبيرة، واللغة كاسم كبيرة."}, {w: "ich habe ein buch.", r: "Ich habe ein Buch.", why: "Buch اسم — يكبر دائمًا حتى بعد ein."}],
 compare: "الإنجليزية تكبّر I فقط، الألمانية تكبّر كل الأسماء + Sie الرسمية.",
-summary: "اسم ← كبير دائمًا. Sie الرسمية ← كبيرة دائمًا."
+summary: "اسم ← كبير دائمًا. Sie الرسمية ← كبيرة دائمًا.",
+drill: [{t: "أي كتابة صحيحة؟", opts: ["ich habe ein buch.", "Ich habe ein Buch.", "Ich habe ein buch."], correct: 1, why: "بداية الجملة كبيرة + Buch اسم فيكبر."}],
+review: {rule: "الاسم يُكتب كبيرًا دائمًا.", words: "Buch, Tisch, Kaffee", example: "Ich trinke Kaffee.", mistake: "كتابة الاسم بحرف صغير.", q: "لماذا Sie كبيرة؟ (ضمير رسمي)"},
+relWords: ["Buch", "Tisch", "Kaffee"]
 },
 
 g4: {
+level: "A1",
+goals: ["أحفظ ضمائر الفاعل التسعة.", "أعرف متى أستخدم du ومتى Sie.", "أفرق بين sie الصغيرة و Sie الكبيرة."],
 what: "ضمائر الفاعل تحل محل الاسم الذي يقوم بالفعل: ich (أنا)، du (أنت)، er (هو)، es (هو/هي للمحايد)، sie (هي)، wir (نحن)، ihr (أنتم)، sie (هم)، Sie (حضرتك).",
+tables: [{cap: "ضمائر الفاعل", head: ["مفرد", "المعنى", "جمع", "المعنى"], rows: [["ich", "أنا", "wir", "نحن"], ["du", "أنت", "ihr", "أنتم"], ["er / es / sie", "هو / هو-محايد / هي", "sie / Sie", "هم / حضرتك"]]}],
+examples: [["Ich heiße Ahmed.", "أنا اسمي أحمد.", "إش هايسه أحمد."], ["Du sprichst gut.", "أنت تتحدث جيدًا.", "دو شبريخست جوت."], ["Wir wohnen in Kairo.", "نحن نسكن في القاهرة.", "فير فونِن إن كايرو."]],
 why: "بدونها ستكرر الأسماء في كل جملة. وهي مفتاح تصريف الأفعال: كل ضمير له نهاية فعل مختلفة.",
 when: ["بدل تكرار الاسم: Ahmed lernt. Er lernt viel (هو يتعلم كثيرًا).", "es للأشياء المحايدة والأطفال والحيوانات أحيانًا: Das Baby schläft. Es schläft.", "Sie الرسمية لمخاطبة الغرباء والموظفين والمعلمين."],
 how: ["احفظها مرتبة: ich – du – er/es/sie (مفرد) ← wir – ihr – sie/Sie (جمع).", "الفعل يتغير مع كل ضمير (التفصيل في شرح الأفعال المنتظمة)."],
-examples: [["Ich lerne Deutsch.", "أنا أتعلم الألمانية."], ["Du sprichst gut.", "أنت تتحدث جيدًا."], ["Wir wohnen in Kairo.", "نحن نسكن في القاهرة."]],
 daily: [["Er kommt morgen.", "هو يأتي غدًا."], ["Sie ist nett.", "هي لطيفة."], ["Wohnt ihr hier?", "هل تسكنون هنا؟"]],
 notes: ["du للصديق والعائلة والأطفال، و Sie للرسمي — الخلط بينهما خطأ اجتماعي قبل أن يكون لغويًا.", "sie الصغيرة = هي أو هم حسب الفعل، و Sie الكبيرة = حضرتك دائمًا."],
 mistakes: [{w: "Du lernt Deutsch.", r: "Du lernst Deutsch.", why: "du تأخذ نهاية st وليست t."}, {w: "sie kommen (قصد حضرتك)", r: "Sie kommen.", why: "حضرتك تُكتب S كبيرة دائمًا."}],
 compare: "ضمائر الفاعل (ich/du) للجملة العادية ← تقابلها ضمائر المفعول (mich/dich) في شرح Akkusativ.",
-summary: "ich du er/es/sie – wir ihr sie/Sie. كل ضمير = نهاية فعل."
+summary: "ich du er/es/sie – wir ihr sie/Sie. كل ضمير = نهاية فعل.",
+drill: [{t: "ما معنى ihr؟", opts: ["نحن", "أنتم", "هم"], correct: 1, why: "ihr = أنتم (مخاطب جمع غير رسمي)."}],
+review: {rule: "9 ضمائر فاعل، وكل ضمير له نهاية فعل.", words: "ich, du, Sie", example: "Wir wohnen in Kairo.", mistake: "استخدام du مع الغرباء.", q: "متى أستخدم Sie؟ (رسمي)"},
+relWords: ["wohnen", "lernen", "sprechen"]
 },
 
 g5: {
+level: "A1",
+goals: ["أصرف أي فعل منتظم مع كل الضمائر.", "أحفظ النهايات الست.", "أتعامل مع الجذور المنتهية بـ t/d."],
+tables: [{cap: "نهايات الفعل المنتظم (lernen)", head: ["الضمير", "النهاية", "مثال"], rows: [["ich", "-e", "lerne"], ["du", "-st", "lernst"], ["er/sie/es", "-t", "lernt"], ["wir", "-en", "lernen"], ["ihr", "-t", "lernt"], ["sie/Sie", "-en", "lernen"]]}],
+examples: [["Ich lerne Deutsch.", "أنا أتعلم الألمانية.", "إش ليرنه دويتش."], ["Du wohnst in Berlin.", "أنت تسكن في برلين.", "دو فونست إن برلين."], ["Wir spielen Fußball.", "نحن نلعب كرة القدم.", "فير شبيلِن فوس بال."]],
 what: "الأفعال المنتظمة (Regelmäßige Verben) تتصرف بنمط واحد ثابت: نحذف -en من المصدر ثم نضيف نهايات ثابتة.",
 why: "أغلب أفعال A1 منتظمة. إتقان هذا النمط يعني أنك تستطيع تصريف مئات الأفعال فورًا.",
 when: ["مع كل فعل ينتهي بـ -en ولا يتغير جذره: lernen، wohnen، spielen، machen."],
 how: ["الخطوات: lernen ← الجذر lern ← أضف النهاية.", "النهايات: ich -e (lerne)، du -st (lernst)، er/sie/es -t (lernt)، wir -en (lernen)، ihr -t (lernt)، sie/Sie -en (lernen).", "ملاحظة النطق: إذا انتهى الجذر بـ -t أو -d نضيف e مساعدة مع du/er: du arbeitest (وليس arbeitst)."],
-examples: [["Ich lerne Deutsch.", "أنا أتعلم الألمانية."], ["Du wohnst in Berlin.", "أنت تسكن في برلين."], ["Wir spielen Fußball.", "نحن نلعب كرة القدم."]],
 daily: [["Ich mache Kaffee.", "أنا أصنع قهوة."], ["Er hört Musik.", "هو يسمع موسيقى."], ["Spielt ihr Tennis?", "هل تلعبون التنس؟"]],
 notes: ["wir و sie/Sie دائمًا = المصدر نفسه — أسهل شكل للحفظ.", "du و er متشابهان لكن مختلفان: du lernst (بـ s) و er lernt (بدون s)."],
 mistakes: [{w: "du lernt", r: "du lernst", why: "du تأخذ st دائمًا في المنتظم."}, {w: "ich lernst", r: "ich lerne", why: "ich تأخذ e فقط — لا تخلط النهايات."}],
 compare: "المنتظم جذره ثابت (lern- دائمًا) ← الشاذ جذره يتغير (sprech- تصبح sprich- مع du/er).",
-summary: "احذف en ثم أضف: e – st – t – en – t – en."
+summary: "احذف en ثم أضف: e – st – t – en – t – en.",
+drill: [{t: "صرف spielen مع ihr؟", opts: ["spielt", "spielen", "spielst"], correct: 0, why: "ihr تأخذ t دائمًا: ihr spielt."}],
+review: {rule: "المنتظم: جذر ثابت + نهايات ثابتة.", words: "lernen, wohnen, spielen", example: "Du wohnst in Berlin.", mistake: "إعطاء du نهاية t.", q: "ما نهاية wir؟ (-en)"},
+relWords: ["lernen", "wohnen", "spielen"]
 },
 
 g6: {
+level: "A1",
+goals: ["أحفظ تصريف sein و haben كاملين.", "أفرق استخدام sein عن haben.", "أعرف أشهر الأفعال الشاذة الأخرى."],
+tables: [{cap: "sein (يكون) و haben (يمتلك)", head: ["", "sein", "haben"], rows: [["ich", "bin", "habe"], ["du", "bist", "hast"], ["er/sie/es", "ist", "hat"], ["wir", "sind", "haben"], ["ihr", "seid", "habt"], ["sie/Sie", "sind", "haben"]]}],
+examples: [["Ich bin Lehrer.", "أنا معلم.", "إش بين ليرر."], ["Du hast ein Buch.", "لديك كتاب.", "دو هاست آين بوخ."], ["Er spricht Deutsch.", "هو يتحدث الألمانية.", "إر شبريخت دويتش."]],
 what: "الأفعال الشاذة تغيّر جذرها مع du و er/es/sie، وأهمها إطلاقًا: sein (يكون) و haben (يمتلك) — يُحفظان كاملين لأنهما أساس كل شيء.",
 why: "sein و haben هما أكثر فعلين في اللغة، ويُستخدمان في كل جملة تقريبًا وفي تكوين الأزمنة لاحقًا.",
 when: ["sein للتعريف والحالة: Ich bin müde (أنا متعب).", "haben للملكية: Ich habe ein Auto.", "أفعال شاذة شائعة في A1: sprechen (sprichst/spricht)، sehen (siehst/sieht)، essen (isst)، fahren (fährst/fährt)."],
 how: ["sein: ich bin – du bist – er ist – wir sind – ihr seid – sie sind.", "haben: ich habe – du hast – er hat – wir haben – ihr habt – sie haben.", "القاعدة العامة للشواذ: التغيير فقط مع du و er/es/sie، وباقي الضمائر مثل المنتظم."],
-examples: [["Ich bin Lehrer.", "أنا معلم."], ["Du hast ein Buch.", "لديك كتاب."], ["Er spricht Deutsch.", "هو يتحدث الألمانية."]],
 daily: [["Bist du müde?", "هل أنت متعب؟"], ["Wir haben Zeit.", "لدينا وقت."], ["Sie ist krank.", "هي مريضة."]],
 notes: ["sein لا يُترجم دائمًا «يكون» حرفيًا: Ich bin 20 Jahre alt = عمري 20 سنة.", "haben + Akkusativ دائمًا: Ich habe einen Hund (وليس ein Hund)."],
 mistakes: [{w: "Ich bist Lehrer.", r: "Ich bin Lehrer.", why: "bist خاصة بـ du فقط."}, {w: "Er hab ein Auto.", r: "Er hat ein Auto.", why: "haben شاذ: er تأخذ hat وليست habt."}],
 compare: "sein للوصف (Ich bin gut) ← haben للملكية (Ich habe Zeit). لا تخلطهما.",
-summary: "احفظ sein و haben غيبًا — هما مفتاح A1 كله."
+summary: "احفظ sein و haben غيبًا — هما مفتاح A1 كله.",
+drill: [{t: "أكمل: du ___ (haben)؟", opts: ["hast", "habt", "habe"], correct: 0, why: "du مع haben تأخذ hast (شاذة تُحفظ)."}],
+review: {rule: "sein للوصف، haben للملكية — تصريف خاص.", words: "sein, haben, sprechen", example: "Ich bin Lehrer.", mistake: "تصريف sein مثل المنتظم.", q: "ما تصريف er من sein؟ (ist)"},
+relWords: ["sein", "haben", "sprechen"]
 },
 
 g7: {
+level: "A1",
+goals: ["أفرق بين الرسمي وغير الرسمي.", "أحيي وأودع في كل موقف.", "أستخدم du و Sie صح."],
+examples: [["Guten Morgen, Herr Schmidt!", "صباح الخير سيد شميدت!", "جوتن مورجن هير شمِت!"], ["Hallo, wie geht's?", "أهلًا، كيف حالك؟", "هالو في جيتس؟"], ["Tschüs, bis morgen!", "سلام، أراك غدًا!", "تشوس بِس مورجن!"]],
 what: "الألمانية تفرّق بين التحية الرسمية (للغرباء والعمل) وغير الرسمية (للأصدقاء والعائلة).",
 why: "استخدام Hallo مع مديرك أو Guten Tag مع صديقك المقرب يعطي انطباعًا خاطئًا — القاعدة اجتماعية بقدر ما هي لغوية.",
 when: ["رسمي: Guten Morgen (صباح الخير)، Guten Tag (نهارك سعيد)، Guten Abend (مساء الخير)، Auf Wiedersehen (مع السلامة).", "غير رسمي: Morgen!، Tag!، Hallo!، Tschüs! (سلام)، Ciao!."],
 how: ["في المتجر أو الإدارة أو مع شخص أكبر: استخدم الصيغة الكاملة + Sie.", "مع الأصدقاء: الصيغة المختصرة + du."],
-examples: [["Guten Morgen, Herr Schmidt!", "صباح الخير سيد شميدت!"], ["Hallo, wie geht's?", "أهلًا، كيف حالك؟"], ["Tschüs, bis morgen!", "سلام، أراك غدًا!"]],
 daily: [["Guten Tag, was möchten Sie?", "نهارك سعيد، ماذا تريد؟ (في محل)"], ["Hallo Mama, ich bin da!", "أهلًا ماما، وصلت!"]],
 notes: ["Wie geht es Ihnen؟ رسمي ← Wie geht's؟ غير رسمي.", "في جنوب ألمانيا والنمسا ستسمع Grüß Gott و Servus — افهمها ولا حاجة لاستخدامها في A1."],
 mistakes: [{w: "Hallo Herr Direktor, … (في إيميل رسمي)", r: "Guten Tag, Herr Direktor, …", why: "السياق الرسمي يحتاج الصيغة الكاملة."}, {w: "Auf Wiedersehen يا صاحبي", r: "Tschüs!", why: "مع الأصدقاء المختصرة طبيعية أكثر."}],
 compare: "رسمي = كامل + Sie ← غير رسمي = مختصر + du.",
-summary: "غريب/رسمي ← Guten… + Sie. صديق ← Hallo/Tschüs + du."
+summary: "غريب/رسمي ← Guten… + Sie. صديق ← Hallo/Tschüs + du.",
+drill: [{t: "تحية رسمية في المساء؟", opts: ["Guten Abend", "Hallo", "Tschüs"], correct: 0, why: "المساء رسميًا: Guten Abend."}],
+review: {rule: "رسمي = صيغة كاملة + Sie.", words: "Morgen, Tag, Tschüs", example: "Guten Morgen, Herr Schmidt!", mistake: "Hallo مع المدير.", q: "كيف أودع صديقًا؟ (Tschüs)"},
+relWords: ["heißen", "kommen", "sprechen"]
 },
 
 g8: {
+level: "A1",
+goals: ["أسأل عن الاسم والموطن واللغة.", "أجيب عن نفسي بجمل كاملة.", "أستخدم aus و wohnen صح."],
+examples: [["Wie heißen Sie?", "ما اسم حضرتك؟", "في هايسن زي؟"], ["Ich komme aus Marokko.", "أنا من المغرب.", "إش كومه أوس ماروكو."], ["Ich spreche Deutsch.", "أنا أتحدث الألمانية.", "إش شبريشه دويتش."]],
 what: "ثلاثة أسئلة تحفظك في أي تعارف: الاسم (Wie heißen Sie؟)، الموطن (Woher kommen Sie؟)، اللغة (Welche Sprachen sprechen Sie؟ / Was sprechen Sie؟).",
 why: "أول محادثة في حياتك بالألمانية ستكون هذه الأسئلة — وهي ثابتة في امتحان A1 الشفهي.",
 when: ["الاسم: Wie heißt du؟ (غير رسمي) / Wie heißen Sie؟ (رسمي).", "الموطن: Woher kommst du؟ — الجواب دائمًا مع aus: Ich komme aus Ägypten.", "اللغة: Was sprichst du؟ / Welche Sprache sprichst du؟ — الجواب: Ich spreche Deutsch und Arabisch."],
 how: ["الجواب النموذجي الكامل: Ich heiße Ahmed. Ich komme aus Ägypten. Ich spreche Arabisch und Deutsch.", "انتبه: aus + اسم البلد بدون أداة في الغالب: aus Deutschland، aus Spanien."],
-examples: [["Wie heißen Sie?", "ما اسم حضرتك؟"], ["Ich komme aus Marokko.", "أنا من المغرب."], ["Ich spreche Deutsch.", "أنا أتحدث الألمانية."]],
 daily: [["Woher kommst du?", "من أين أنت؟"], ["Sprichst du Englisch?", "هل تتحدث الإنجليزية?"]],
 notes: ["heißen فعل شاذ: du heißt (بـ ß واحدة) — وليست heißst.", "kommen + aus دائمًا للموطن، و wohnen + in للسكن: Ich wohne in Berlin."],
 mistakes: [{w: "Ich komme aus Ägypten aus.", r: "Ich komme aus Ägypten.", why: "aus مرة واحدة قبل البلد فقط."}, {w: "Was heißt du?", r: "Wie heißt du?", why: "السؤال عن الاسم بـ Wie وليس Was."}],
 compare: "Woher (من أين — الأصل) ← Wo (أين — المكان الحالي): Woher kommst du؟ مقابل Wo wohnst du؟",
-summary: "Wie heißt…؟ + Woher…؟ + aus + Was sprichst…؟ = تعارف كامل."
+summary: "Wie heißt…؟ + Woher…؟ + aus + Was sprichst…؟ = تعارف كامل.",
+drill: [{t: "كيف أسأل عن الموطن؟", opts: ["Woher kommst du?", "Wie heißt du?", "Was bist du?"], correct: 0, why: "الموطن = Woher (من أين)."}],
+review: {rule: "3 أسئلة للتعارف: الاسم والموطن واللغة.", words: "heißen, kommen, sprechen", example: "Ich komme aus Marokko.", mistake: "السؤال عن الاسم بـ Was.", q: "بماذا أجيب عن الموطن؟ (aus + البلد)"},
+relWords: ["heißen", "kommen", "wohnen"]
 },
 
 g9: {
+level: "A1",
+goals: ["أفرق بين das الأداة و das الإشارة.", "أستخدم Das ist / Das sind صح.", "لا أخلط بين das و dass."],
+examples: [["Das ist Ali.", "هذا علي.", "داس إست علي."], ["Das ist ein Buch.", "هذا كتاب.", "داس إست آين بوخ."], ["Das sind Frauen.", "هؤلاء نساء.", "داس زيند فراون."]],
 what: "كلمة das لها وظيفتان: (1) أداة الاسم المحايد: das Buch. (2) اسم إشارة بمعنى هذا/هذه/هؤلاء: Das ist Ali. Das sind Frauen.",
 why: "المبتدئ يراها نفس الكلمة فيظنها خطأ — فهم الفرق يفتح لك نوعًا كاملًا من الجمل (الإشارة والتعريف).",
 when: ["كأداة: قبل اسم محايد مفرد: das Kind، das Haus.", "كإشارة للمفرد: Das ist mein Bruder (هذا أخي).", "كإشارة للجمع: Das sind meine Freunde (هؤلاء أصدقائي) — الفعل sind يكشف الجمع."],
 how: ["إذا بعدها فعل مفرد (ist) + اسم مفرد ← غالبًا إشارة لمفرد.", "إذا بعدها sind + جمع ← إشارة لجمع بمعنى هؤلاء."],
-examples: [["Das ist Ali.", "هذا علي."], ["Das ist ein Buch.", "هذا كتاب."], ["Das sind Frauen.", "هؤلاء نساء."]],
 daily: [["Was ist das?", "ما هذا؟"], ["Das ist meine Tasche.", "هذه حقيبتي."], ["Sind das deine Schlüssel?", "هل هذه مفاتيحك؟"]],
 notes: ["das الإشارة لا تتغير مع الجنس في A1: Das ist der Lehrer / Das ist die Lehrerin — كلاهما صحيح.", "لا تخلط: dass (بـ s مزدوجة) معناها «أنّ» وهي مستوى أعلى — تجاهلها الآن."],
 mistakes: [{w: "Das sind ein Mann.", r: "Das ist ein Mann.", why: "sind للجمع، و ein Mann مفرد ← الفعل ist."}, {w: "Dass ist Ali.", r: "Das ist Ali.", why: "الإشارة بـ s واحدة فقط."}],
 compare: "das الأداة (قبل اسم واحد محايد) ← das الإشارة (في أول الجملة قبل الفعل).",
-summary: "das Buch = أداة. Das ist… = هذا. Das sind… = هؤلاء."
+summary: "das Buch = أداة. Das ist… = هذا. Das sind… = هؤلاء.",
+drill: [{t: "ما معنى Das sind Kinder؟", opts: ["هؤلاء أطفال", "هذا طفل", "هذه طفلة"], correct: 0, why: "sind + جمع = هؤلاء."}],
+review: {rule: "das أداة محايد، و Das ist/sind للإشارة.", words: "Buch, Ali, Frauen", example: "Das ist Ali.", mistake: "كتابة dass بدل das.", q: "متى أستخدم sind؟ (مع الجمع)"},
+relWords: ["Buch", "Kind", "Frau"]
 },
 
 g10: {
+level: "A1",
+goals: ["أحفظ معاني أدوات الاستفهام.", "أركب السؤال بترتيب صحيح.", "أفرق بين Wo و Woher و Wohin."],
+tables: [{cap: "أدوات الاستفهام", head: ["الأداة", "المعنى", "مثال"], rows: [["Was", "ماذا", "Was ist das?"], ["Wer", "من (عاقل)", "Wer ist das?"], ["Wo", "أين", "Wo wohnst du?"], ["Woher", "من أين", "Woher kommst du?"], ["Wohin", "إلى أين", "Wohin gehst du?"], ["Wie", "كيف", "Wie geht's?"], ["Wann", "متى", "Wann kommst du?"], ["Warum", "لماذا", "Warum nicht?"]]}],
+examples: [["Wo wohnst du?", "أين تسكن؟", "فو فونست دو؟"], ["Wer ist das?", "من هذا؟", "فير إست داس؟"], ["Was machst du?", "ماذا تفعل؟", "فاس ماخست دو؟"]],
 what: "أدوات الاستفهام التي تبدأ غالبًا بـ W: Was (ماذا)، Wer (من)، Wo (أين)، Woher (من أين)، Wohin (إلى أين)، Wie (كيف)، Wann (متى)، Warum (لماذا)، Wie viel (كم سعر/كمية)، Woher/Wohin للاتجاه.",
 why: "نصف محادثات A1 أسئلة. إتقانها يعني أنك تفهم السؤال وتجيب حتى لو لم تفهم كل الكلمات.",
 when: ["Was: عن الأشياء. Wer: عن الأشخاص (فاعل). Wo: عن المكان. Wann: عن الزمن. Wie: عن الكيفية والحال. Woher: عن الأصل."],
 how: ["القاعدة الذهبية: أداة الاستفهام أولًا ← الفعل المُصرّف ثانيًا ← الفاعل ثالثًا: Wo wohnst du؟", "الجواب بدون أداة الاستفهام: Ich wohne in Kairo."],
-examples: [["Wo wohnst du?", "أين تسكن؟"], ["Wer ist das?", "من هذا؟"], ["Was machst du?", "ماذا تفعل؟"]],
-daily: [["Wann kommst du?", "متى تأتي؟"], ["Wie geht's?", "كيف حالك؟"], ["Woher kommst du?", "من أين أنت؟"]],
+daily: [["Wann kommst du?", "متى تأتي؟"], ["Wie geht's?", "كيف حالك؟"], ["Woher kommt er?", "من أين هو؟"]],
 notes: ["Wie viel + اسم للكمية والسعر: Wie viel kostet das؟", "Warum (لماذا) جوابها بـ weil — لكن weil مستوى A2، في A1 يكفي فهم السؤال."],
 mistakes: [{w: "Wo du wohnst?", r: "Wo wohnst du?", why: "في السؤال الفعل ثانيًا قبل الفاعل."}, {w: "Was bist du?", r: "Wer bist du?", why: "للشخص العاقل نستخدم Wer وليس Was."}],
 compare: "Wo (أين الآن) ← Woher (من أين أتيت) ← Wohin (إلى أين تذهب): ثلاثة اتجاهات مختلفة.",
-summary: "W أولًا + فعل ثانيًا + فاعل. احفظ معاني الـ W."
+summary: "W أولًا + فعل ثانيًا + فاعل. احفظ معاني الـ W.",
+drill: [{t: "كيف أسأل عن المكان؟", opts: ["Wo", "Wann", "Wer"], correct: 0, why: "المكان = Wo (أين)."}],
+review: {rule: "أداة W أولًا ثم الفعل ثانيًا.", words: "wohnen, kommen, machen", example: "Wo wohnst du?", mistake: "وضع الفاعل قبل الفعل.", q: "ما معنى Wann؟ (متى)"},
+relWords: ["wohnen", "kommen", "heißen"]
 },
 
 g11: {
+level: "A1",
+goals: ["أعرف البلاد التي تأخذ أداة.", "أستخدم aus صح مع كل نوع.", "لا أضع أداة زائدة."],
+examples: [["Ich komme aus Spanien.", "أنا من إسبانيا.", "إش كومه أوس شبانين."], ["Ich komme aus der Türkei.", "أنا من تركيا.", "إش كومه أوس دير توركاي."], ["Er kommt aus Japan.", "هو من اليابان.", "إر كومت أوس يابان."]],
 what: "معظم أسماء البلاد بدون أداة: Deutschland، Ägypten، Spanien. لكن بعضها مؤنث مع die: die Schweiz، die Türkei، die Ukraine، die USA (جمع).",
 why: "الخطأ هنا شائع لأن العربية تقول «ألمانيا» بدون أداة بينما الألمانية تقول die Türkei بأداة — القاعدة تُحفظ كقائمة صغيرة.",
 when: ["بدون أداة: Ich komme aus Deutschland.", "مع die: Ich komme aus der Türkei. (aus + die تصبح der في Dativ — التفصيل في شرح Dativ).", "السؤال الدائم: Woher kommen Sie؟"],
 how: ["احفظ القائمة المؤنثة: die Schweiz، die Türkei، die Ukraine. والباقي في A1 بدون أداة.", "مع aus: بلد بدون أداة ← aus + اسم مباشرة. بلد مؤنث ← aus der + اسم."],
-examples: [["Ich komme aus Spanien.", "أنا من إسبانيا."], ["Ich komme aus der Türkei.", "أنا من تركيا."], ["Er kommt aus Japan.", "هو من اليابان."]],
 daily: [["Kommst du aus Italien?", "هل أنت من إيطاليا؟"], ["Sie kommt aus der Schweiz.", "هي من سويسرا."]],
 notes: ["die USA جمع لذلك: aus den USA.", "المدن كلها بدون أداة: aus Berlin، aus Kairo."],
 mistakes: [{w: "Ich komme aus die Türkei.", r: "Ich komme aus der Türkei.", why: "aus تأخذ Dativ فتتحول die إلى der."}, {w: "Ich komme aus der Deutschland.", r: "Ich komme aus Deutschland.", why: "Deutschland بدون أداة أصلًا."}],
 compare: "بلد عادي (بدون أداة) ← بلد مؤنث (die ثم der بعد aus).",
-summary: "الكل aus + بلد. فقط Schweiz/Türkei/Ukraine مؤنثة."
+summary: "الكل aus + بلد. فقط Schweiz/Türkei/Ukraine مؤنثة.",
+drill: [{t: "أكمل: Ich komme aus ___ Schweiz.", opts: ["der", "die", "das"], correct: 1, why: "Schweiz مؤنثة: die Schweiz (وبعد aus تصبح der في الجملة الكاملة)."}],
+review: {rule: "معظم البلاد بدون أداة إلا 3 مؤنثة.", words: "Deutschland, Türkei, Schweiz", example: "Ich komme aus Spanien.", mistake: "وضع أداة قبل Deutschland.", q: "ما أداة Türkei؟ (die)"},
+relWords: ["kommen", "wohnen", "sprechen"]
 },
 
 g12: {
+level: "A1",
+goals: ["أحفظ أيام الأسبوع.", "أستخدم am مع الأيام.", "أعمل موعدًا بالألمانية."],
+examples: [["Am Montag lerne ich.", "أتعلم يوم الاثنين.", "أم مونتاج ليرنه إش."], ["Heute ist Freitag.", "اليوم الجمعة.", "هويته إست فرايتاج."], ["Bis morgen!", "إلى الغد!", "بِس مورجن!"]],
 what: "أيام الأسبوع كلها مذكرة (der) وتُستخدم مع حرف الجر am عند الحديث عن حدوث شيء في يوم معين.",
 why: "لا يمكنك عمل موعد أو الحديث عن روتينك بدونها — وهي ثابتة في امتحان A1.",
 when: ["الأيام: Montag Dienstag Mittwoch Donnerstag Freitag Samstag/Sonnabend Sonntag.", "الحدث في يوم: am Montag (يوم الاثنين).", "اليوم نفسه: Heute ist Montag."],
 how: ["am + يوم = في هذا اليوم: Am Freitag habe ich Zeit.", "بدون am عند ذكر اليوم كمعلومة: Heute ist Sonntag."],
-examples: [["Am Montag lerne ich.", "أتعلم يوم الاثنين."], ["Heute ist Freitag.", "اليوم الجمعة."], ["Bis morgen!", "إلى الغد!"]],
 daily: [["Wann hast du Zeit? – Am Samstag.", "متى لديك وقت؟ – يوم السبت."], ["Am Sonntag schlafe ich lange.", "يوم الأحد أنام طويلًا."]],
 notes: ["Samstag = Sonnabend (نفس اليوم، الاسم الثاني شائع في الشمال).", "الجمع: أيام الأسبوع تجمع بـ -e: die Montage (نادر في A1 — يكفي المفرد)."],
 mistakes: [{w: "Im Montag", r: "Am Montag", why: "الأيام تأخذ am وليست im."}, {w: "Am Montag ist Montag.", r: "Heute ist Montag.", why: "عند الإخبار عن اليوم نفسه لا نحتاج am."}],
 compare: "am للأيام (am Montag) ← im للشهور والفصول (im Mai). التفصيل في شرح im/am.",
-summary: "الأيام مذكرة + am. Heute ist + يوم بدون حرف."
+summary: "الأيام مذكرة + am. Heute ist + يوم بدون حرف.",
+drill: [{t: "أكمل: ___ Samstag habe ich Zeit.", opts: ["Am", "Im", "Um"], correct: 0, why: "الأيام تأخذ am دائمًا."}],
+review: {rule: "أيام مذكرة + am للمواعيد.", words: "Montag, Freitag, Wochenende", example: "Am Montag lerne ich.", mistake: "استخدام im مع الأيام.", q: "كيف أقول يوم الأحد؟ (am Sonntag)"},
+relWords: ["lernen", "arbeiten", "kommen"]
 },
 
 g13: {
+level: "A1",
+goals: ["أفرق بين المعرفة والنكرة.", "أستخدم ein و eine صح.", "أعرف أن جمع النكرة بدون أداة."],
+tables: [{cap: "المعرفة ← النكرة", head: ["المعرفة", "النكرة", "مثال"], rows: [["der (مذكر)", "ein", "der Tisch → ein Tisch"], ["die (مؤنث)", "eine", "die Lampe → eine Lampe"], ["das (محايد)", "ein", "das Buch → ein Buch"]]}],
+examples: [["Das ist ein Hafen.", "هذا ميناء (غير معروف).", "داس إست آين هافن."], ["Der Hafen ist schön.", "الميناء جميل (معروف).", "دير هافن إست شون."], ["Das sind Äpfel.", "هذا تفاح (جمع نكرة).", "داس زيند إبفل."]],
 what: "المعرفة (der/die/das) لشيء معروف أو مذكور قبلًا، والنكرة (ein مذكر/محايد + eine مؤنث) لشيء جديد غير معروف. والجمع النكرة بدون أداة إطلاقًا.",
 why: "الفرق بين «الطاولة» و«طاولة ما» يغيّر المعنى تمامًا، والألمان يميزونه بدقة.",
 when: ["أول ذكر (جديد): Das ist ein Tisch. (هذه طاولة ما).", "بعد أن عرفناه: Der Tisch ist groß. (الطاولة كبيرة).", "جمع نكرة: Das sind Tische. (هذه طاولات — بدون أداة)."],
 how: ["ein + مذكر/محايد: ein Tisch، ein Buch.", "eine + مؤنث: eine Lampe.", "جمع نكرة = الاسم جمعًا بدون شيء قبله: keine أداة، kein ein."],
-examples: [["Das ist ein Hafen.", "هذا ميناء (غير معروف)."], ["Der Hafen ist schön.", "الميناء جميل (معروف)."], ["Das sind Äpfel.", "هذا تفاح (جمع نكرة)."]],
 daily: [["Ich habe ein Auto.", "لدي سيارة."], ["Hast du eine Tasche?", "هل لديك حقيبة؟"], ["Das sind meine Freunde.", "هؤلاء أصدقائي."]],
 notes: ["ein للمذكر تتغير في Akkusativ إلى einen: Ich habe einen Tisch. (التفصيل في شرح Akkusativ).", "النفي يقابلها: ein ← kein، و eine ← keine."],
 mistakes: [{w: "Das ist einen Tisch.", r: "Das ist ein Tisch.", why: "بعد ist (من أفعال Nominativ) لا يتغير شيء — ein تبقى ein."}, {w: "Das sind ein Tische.", r: "Das sind Tische.", why: "الجمع النكرة بدون أداة نهائيًا."}],
 compare: "der = الـ (معروف) ← ein = واحد ما (جديد). keine = نفي ein.",
-summary: "جديد ← ein/eine. معروف ← der/die/das. جمع جديد ← بدون أداة."
+summary: "جديد ← ein/eine. معروف ← der/die/das. جمع جديد ← بدون أداة.",
+drill: [{t: "أكمل بكلمة نكرة: Das ist ___ Lampe.", opts: ["ein", "eine", "der"], correct: 1, why: "Lampe مؤنثة → eine."}],
+review: {rule: "جديد = ein/eine، معروف = der/die/das.", words: "Tisch, Lampe, Äpfel", example: "Das ist ein Hafen.", mistake: "وضع أداة قبل جمع نكرة.", q: "كيف أقول طاولات (نكرة)؟ (Tische بدون أداة)"},
+relWords: ["Tisch", "Lampe", "Buch"]
 },
 
 g14: {
+level: "A1",
+goals: ["أنفي الاسم النكرة بـ kein.", "أفرق kein عن keine.", "أستخدم keine مع الجمع."],
+examples: [["Ich habe kein Auto.", "ليس لدي سيارة.", "إش هابه كاين أوتو."], ["Ich habe keine Tasche.", "ليس لدي حقيبة.", "إش هابه كاينه تاشه."], ["Ich habe keine Kinder.", "ليس لدي أطفال.", "إش هابه كاينه كيندر."]],
 what: "ننفي الاسم النكرة بـ kein (مذكر/محايد) و keine (مؤنث/جمع): Ich habe kein Auto. Ich habe keine Tasche. Ich habe keine Kinder.",
 why: "أشهر خطأ للمبتدئ هو استخدام nicht مكان kein — الألمان يفرقون بين نفي الاسم ونفي الفعل بدقة.",
 when: ["مع اسم نكرة مفرد مذكر/محايد: kein.", "مع اسم نكرة مفرد مؤنث: keine.", "مع أي جمع: keine دائمًا."],
 how: ["kein تتصرف مثل ein تمامًا: kein Tisch، keinen Tisch (في Akkusativ)، keine Tasche، keine Kinder.", "الخلاصة: احفظها كمرآة لـ ein/eine."],
-examples: [["Ich habe kein Auto.", "ليس لدي سيارة."], ["Ich habe keine Tasche.", "ليس لدي حقيبة."], ["Ich habe keine Kinder.", "ليس لدي أطفال."]],
-daily: [["Hast du Zeit? – Ich habe keine Zeit.", "هل لديك وقت؟ – ليس لدي وقت."], ["Kein Problem!", "لا مشكلة!"]],
+daily: [["Hast du Zeit? – Ich habe keine Zeit.", "هل لديك وقت؟ – ليس لدي وقت."], ["Viel Spaß!", "استمتع!"]],
 notes: ["kein تنفي الاسم فقط. نفي الفعل والصفة بالتفصيل في شرح nicht/kein.", "في Akkusativ: kein للمذكر تصبح keinen: Ich habe keinen Hund."],
 mistakes: [{w: "Ich habe kein Tasche.", r: "Ich habe keine Tasche.", why: "Tasche مؤنثة ← keine."}, {w: "Ich habe keine Auto.", r: "Ich habe kein Auto.", why: "Auto محايد ← kein."}],
 compare: "kein/keine للاسم النكرة ← nicht للفعل والصفة والمعرف. التفصيل في الدرس التالي.",
-summary: "مذكر/محايد مفرد ← kein. مؤنث أو أي جمع ← keine."
+summary: "مذكر/محايد مفرد ← kein. مؤنث أو أي جمع ← keine.",
+drill: [{t: "أكمل: Ich habe ___ Zeit.", opts: ["kein", "keine", "nicht"], correct: 1, why: "Zeit مؤنثة → keine Zeit."}],
+review: {rule: "kein للمذكر/المحايد، keine للمؤنث والجمع.", words: "Auto, Tasche, Kinder", example: "Ich habe kein Auto.", mistake: "استخدام kein مع المؤنث.", q: "كيف أنفي Kinder؟ (keine Kinder)"},
+relWords: ["Auto", "Tasche", "Zeit"],
+tables: [{cap: "kein في Akkusativ", head: ["", "Nominativ", "Akkusativ"], rows: [["مذكر", "kein", "keinen"], ["مؤنث", "keine", "keine"], ["محايد", "kein", "kein"]]}]
 },
 
+
 g15: {
+level: "A1",
+goals: ["آمر شخصًا غريبًا بأدب.", "أركب جملة الأمر الرسمية.", "أستخدم bitte للتهذيب."],
+examples: [["Fragen Sie!", "اسأل! (رسمي)", "فراجن زي!"], ["Gehen Sie links!", "اذهب يسارًا! (رسمي)", "جين زي لينكس!"], ["Nehmen Sie Platz!", "تفضل بالجلوس!", "نيمِن زي بلاتز!"]],
 what: "صيغة الأمر الرسمية مع Sie: نضع الفعل بالمصدر أولًا ثم Sie ثم علامة تعجب: Fragen Sie! Gehen Sie! Sprechen Sie!",
 why: "في التعامل الرسمي (الإدارة، الطبيب، المتجر) الأمر المباشر بدون Sie يعتبر وقحًا — هذه الصيغة تحميك.",
 when: ["إرشادات رسمية: Kommen Sie bitte! (تفضل!).", "لافتات وتعليمات: Drücken Sie! (اضغط!).", "مع الغرباء ومن هم أكبر سنًا أو مقامًا."],
 how: ["خطوة واحدة: المصدر + Sie + ! — بدون أي تغيير في الفعل.", "للتهذيب أضف bitte: Fragen Sie bitte!"],
-examples: [["Fragen Sie!", "اسأل! (رسمي)"], ["Gehen Sie links!", "اذهب يسارًا! (رسمي)"], ["Nehmen Sie Platz!", "تفضل بالجلوس!"]],
 daily: [["Drücken Sie die Taste!", "اضغط الزر!"], ["Warten Sie bitte!", "انتظر من فضلك!"]],
 notes: ["الأمر مع du مختلف تمامًا (Frag! / Geh!) وهو مستوى A2 غالبًا — في A1 ركّز على صيغة Sie.", "الفعل المنفصل تبقى قطعته في الآخر: Stehen Sie auf! (قف!)."],
 mistakes: [{w: "Sie fragen!", r: "Fragen Sie!", why: "في الأمر الفعل أولًا ثم الفاعل."}, {w: "Frage Sie!", r: "Fragen Sie!", why: "مع Sie نستخدم المصدر الكامل، وليس جذر du. "}],
 compare: "Fragen Sie! (رسمي لشخص غريب) ← Frag! (غير رسمي لصديق — للمستقبل).",
-summary: "رسمي = مصدر + Sie + !"
+summary: "رسمي = مصدر + Sie + !",
+drill: [{t: "ما الأمر الرسمي من kommen؟", opts: ["Kommen Sie!", "Kommst du!", "Kommt!"], correct: 0, why: "الرسمي = المصدر + Sie."}],
+review: {rule: "الأمر الرسمي: مصدر + Sie + !", words: "fragen, gehen, nehmen", example: "Fragen Sie!", mistake: "وضع Sie قبل الفعل.", q: "كيف آمر رسميًا من lesen؟ (Lesen Sie!)"},
+relWords: ["fragen", "gehen", "nehmen"]
 },
 
 g16: {
+level: "A1",
+goals: ["أضع الفعل ثانيًا دائمًا.", "أبدأ الجملة بالزمن صح.", "أفرق بين الخبر والسؤال."],
+examples: [["Ich lerne heute.", "أنا أتعلم اليوم.", "إش ليرنه هويته."], ["Heute lerne ich.", "اليوم أتعلم أنا.", "هويته ليرنه إش."], ["Er wohnt in Berlin.", "هو يسكن في برلين.", "إر فونت إن برلين."]],
 what: "القاعدة الذهبية: الفعل المُصرّف في المرتبة الثانية دائمًا في الجملة الخبرية الألمانية — مهما بدأت الجملة.",
 why: "من يطبقها يتحدث ألمانية صحيحة فورًا، ومن يخالفها تُفهم جملته لكنها خاطئة بوضوح.",
 when: ["الترتيب العادي: Ich (1) lerne (2) Deutsch.", "عند البدء بالزمن: Heute (1) lerne (2) ich Deutsch.", "السؤال: الفعل أولًا: Lernst du Deutsch؟"],
 how: ["حدد الفعل المُصرّف ← ضعه ثاني عنصر (وليس ثاني كلمة بالضرورة).", "باقي الجملة بحرية نسبية في A1: الفاعل ثم المفعول ثم الزمن/المكان."],
-examples: [["Ich lerne heute.", "أنا أتعلم اليوم."], ["Heute lerne ich.", "اليوم أتعلم أنا."], ["Er wohnt in Berlin.", "هو يسكن في برلين."]],
 daily: [["Morgen komme ich.", "غدًا آتي."], ["Ich trinke gern Kaffee.", "أشرب القهوة بسرور."]],
 notes: ["إذا بدأت بظرف (Heute/Morgen) يجب قلب الفاعل بعد الفعل: Heute lerne ich (وليس Heute ich lerne).", "الأفعال المساعدة أيضًا ثانية: Ich kann Deutsch sprechen."],
 mistakes: [{w: "Heute ich lerne Deutsch.", r: "Heute lerne ich Deutsch.", why: "الفعل يجب أن يكون الثاني — اقلب الفاعل بعده."}, {w: "Ich heute lerne.", r: "Ich lerne heute.", why: "الفعل ثانيًا قبل الظرف في الترتيب العادي."}],
 compare: "العربية حرة (أتعلم اليوم/اليوم أتعلم) ← الألمانية حرة أيضًا لكن الفعل ثابت في المرتبة الثانية.",
-summary: "اعثر على الفعل المُصرّف وضعه ثانيًا دائمًا."
+summary: "اعثر على الفعل المُصرّف وضعه ثانيًا دائمًا.",
+drill: [{t: "رتب: heute / ich / lerne؟", opts: ["Heute lerne ich.", "Heute ich lerne.", "Ich heute lerne."], correct: 0, why: "الفعل ثانيًا ثم الفاعل."}],
+review: {rule: "الفعل المُصرّف في المرتبة الثانية.", words: "lernen, wohnen, heute", example: "Heute lerne ich.", mistake: "ترك الفاعل قبل الفعل بعد الظرف.", q: "أين الفعل في السؤال؟ (أولًا)"},
+relWords: ["lernen", "wohnen", "heute"],
+tables: [{cap: "أماكن الفعل", head: ["النوع", "الترتيب", "مثال"], rows: [["خبرية", "الفعل ثانيًا", "Ich lerne heute."], ["خبرية بظرف", "ظرف + فعل + فاعل", "Heute lerne ich."], ["سؤال", "الفعل أولًا", "Lernst du?"]]}]
 },
 
+
 g17: {
+level: "A1",
+goals: ["أستخدم im مع الشهور والفصول.", "أستخدم am مع الأيام.", "أتذكر استثناء الليل."],
+examples: [["Im Sommer ist es heiß.", "في الصيف الجو حار.", "إم زومر إست إس هايس."], ["Am Freitag habe ich Zeit.", "يوم الجمعة لدي وقت.", "أم فرايتاج هابه إش تسايت."], ["In der Nacht schlafe ich.", "في الليل أنام.", "إن دير ناخت شلافه إش."]],
 what: "حروف الزمن: im للشهور والفصول (im Mai، im Sommer)، و am للأيام وأوقات اليوم (am Montag، am Morgen)، والليل استثناء: in der Nacht.",
 why: "الخلط بينهما من أشهر أخطاء A1 لأن العربية تقول «في» للكل — الألمانية تفرّق.",
 when: ["im + شهر/فصل: im Januar، im Frühling.", "am + يوم/تاريخ/وقت من اليوم: am Freitag، am Morgen، am Abend.", "in der Nacht (في الليل) تُحفظ كما هي."],
 how: ["im = in + dem (للمذكر/المحايد Dativ).", "am = an + dem.", "اسأل: هل هو شهر/فصل؟ ← im. هل هو يوم/صباح/مساء؟ ← am."],
-examples: [["Im Sommer ist es heiß.", "في الصيف الجو حار."], ["Am Freitag habe ich Zeit.", "يوم الجمعة لدي وقت."], ["In der Nacht schlafe ich.", "في الليل أنام."]],
 daily: [["Im Mai komme ich.", "في مايو آتي."], ["Am Morgen trinke ich Kaffee.", "في الصباح أشرب قهوة."]],
 notes: ["السنوات بدون حرف في A1: 2024 = zweitausendvierundzwanzig (يكفي فهمها).", "am Wochenende (في نهاية الأسبوع) تُحفظ كاملة."],
 mistakes: [{w: "Im Montag", r: "Am Montag", why: "اليوم يأخذ am."}, {w: "Am Sommer", r: "Im Sommer", why: "الفصل يأخذ im."}],
 compare: "im للكبير (شهر/فصل) ← am للصغير (يوم/صباح). والليل وحده in der Nacht.",
-summary: "شهر/فصل ← im. يوم/صباح/مساء ← am. ليل ← in der Nacht."
+summary: "شهر/فصل ← im. يوم/صباح/مساء ← am. ليل ← in der Nacht.",
+drill: [{t: "أكمل: ___ Mai.", opts: ["Im", "Am", "Um"], correct: 0, why: "الشهور تأخذ im."}],
+review: {rule: "im للكبير، am للصغير.", words: "Sommer, Freitag, Nacht", example: "Am Freitag habe ich Zeit.", mistake: "الخلط بين im و am.", q: "ماذا أقول في الليل؟ (in der Nacht)"},
+relWords: ["Montag", "Sommer", "Abend"]
 },
 
 g18: {
+level: "A1",
+goals: ["أفرق بين نفي الاسم ونفي الفعل.", "أستخدم kein مع النكرة فقط.", "أضع nicht في مكانها الصحيح."],
+tables: [{cap: "nicht أم kein؟", head: ["المنفي", "الأداة", "مثال"], rows: [["اسم نكرة", "kein/keine", "Ich habe kein Auto."], ["فعل", "nicht", "Ich schlafe nicht."], ["صفة", "nicht", "Nicht gut."], ["اسم معرف", "nicht", "Nicht mein Buch."]]}],
+examples: [["Ich studiere nicht.", "أنا لا أدرس.", "إش شتوديره نيشت."], ["Hast du kein Auto?", "أليس لديك سيارة؟", "هاست دو كاين أوتو؟"], ["Das ist nicht gut.", "هذا ليس جيدًا.", "داس إست نيشت جوت."]],
 what: "nicht تنفي الفعل والصفة والاسم المعرف. kein/keine تنفي الاسم النكرة فقط. هذا هو كل الفرق.",
 why: "بعد هذا الدرس لن تخطئ أبدًا بين «ليس لدي سيارة» (kein) و«أنا لا أقود» (nicht).",
 when: ["nicht + فعل: Ich schlafe nicht. (أنا لا أنام).", "nicht + صفة: Der Kaffee ist nicht heiß.", "nicht + اسم معرف: Das ist nicht mein Buch.", "kein + اسم نكرة: Ich habe kein Buch."],
 how: ["هل بعد النفي اسم نكرة؟ ← kein/keine.", "غير ذلك (فعل/صفة/معرف)؟ ← nicht.", "مكان nicht: بعد الفعل المُصرّف غالبًا، وقبل الصفة/المعرف المنفي."],
-examples: [["Ich studiere nicht.", "أنا لا أدرس."], ["Hast du kein Auto?", "أليس لديك سيارة؟"], ["Das ist nicht gut.", "هذا ليس جيدًا."]],
-daily: [["Ich komme heute nicht.", "لن آتي اليوم."], ["Kein Problem!", "لا مشكلة!"]],
+daily: [["Ich komme heute nicht.", "لن آتي اليوم."], ["Gute Reise!", "رحلة سعيدة!"]],
 notes: ["لا يجتمع kein + nicht معًا في A1 إطلاقًا.", "الجواب بالنفي: Nein، ثم الجملة المنفية كاملة."],
 mistakes: [{w: "Ich habe nicht Auto.", r: "Ich habe kein Auto.", why: "Auto اسم نكرة ← kein."}, {w: "Ich kein liebe dich.", r: "Ich liebe dich nicht.", why: "الفعل يُنفى بـ nicht بعده وليس kein قبله."}],
 compare: "kein = لا + اسم نكرة (لا سيارة) ← nicht = لا + فعل/صفة (لا أنام/ليس ساخنًا).",
-summary: "اسم نكرة ← kein. أي شيء آخر ← nicht."
+summary: "اسم نكرة ← kein. أي شيء آخر ← nicht.",
+drill: [{t: "كيف أنفي: Ich habe ein Buch؟", opts: ["Ich habe kein Buch.", "Ich habe nicht Buch.", "Ich kein habe Buch."], correct: 0, why: "اسم نكرة → kein."}],
+review: {rule: "kein للنكرة، nicht لغيرها.", words: "Buch, Auto, schlafen", example: "Ich studiere nicht.", mistake: "نفي الاسم بـ nicht.", q: "كيف أنفي الفعل liebe؟ (liebe nicht)"},
+relWords: ["Buch", "Auto", "lieben"]
 },
 
 g19: {
+level: "A1",
+goals: ["أسأل عن العمر وأجيب.", "أستخدم Jahre alt صح.", "أفرق Wie alt عن الأسئلة الأخرى."],
+examples: [["Wie alt bist du?", "كم عمرك؟", "في ألت بست دو؟"], ["Ich bin 15 Jahre alt.", "عمري 15 سنة.", "إش بين فونفتسين ياره ألت."], ["Wie alt ist er?", "كم عمره؟", "في ألت إست إر؟"]],
 what: "السؤال عن العمر ثابت: Wie alt bist du؟ (غير رسمي) / Wie alt sind Sie؟ (رسمي). والجواب: Ich bin … Jahre alt.",
 why: "جملة محفوظة كاملة تُستخدم في كل تعارف وفي الامتحان الشفهي.",
 when: ["السؤال لأي شخص في سياق ودود.", "الجواب بالرقم + Jahre alt."],
 how: ["Wie alt + فعل sein حسب الضمير + الضمير؟", "الجواب: Ich bin 20 Jahre alt."],
-examples: [["Wie alt bist du?", "كم عمرك؟"], ["Ich bin 15 Jahre alt.", "عمري 15 سنة."], ["Wie alt ist er?", "كم عمره؟"]],
 daily: [["Bist du 18?", "هل عمرك 18؟"], ["Mein Sohn ist 5 Jahre alt.", "ابني عمره 5 سنوات."]],
 notes: ["alt تعني «كبير/قديم» لكن في السؤال عن العمر معناها «كم عمرك» حصرًا.", "Jahre جمع Jahr (سنة) — لا تقل Jahr alt بالمفرد مع رقم."],
 mistakes: [{w: "Wie viel Jahre bist du?", r: "Wie alt bist du?", why: "السؤال عن العمر محفوظ بـ Wie alt وليس Wie viel."}, {w: "Ich bin 20 Jahre.", r: "Ich bin 20 Jahre alt.", why: "الصيغة الكاملة تتضمن alt في النهاية."}],
 compare: "Wie alt (العمر) ← Wie heißt (الاسم) ← Woher (الموطن): ثلاثة أسئلة التعارف.",
-summary: "Wie alt bist du؟ ← Ich bin … Jahre alt."
+summary: "Wie alt bist du؟ ← Ich bin … Jahre alt.",
+drill: [{t: "كيف تسأل عن العمر؟", opts: ["Wie alt bist du?", "Wie heißt du?", "Wo wohnst du?"], correct: 0, why: "العمر = Wie alt."}],
+review: {rule: "السؤال Wie alt والجواب Jahre alt.", words: "alt, Jahre, sein", example: "Ich bin 15 Jahre alt.", mistake: "نسيان alt في الجواب.", q: "أجب: عمري 20 سنة؟ (Ich bin 20 Jahre alt)"},
+relWords: ["sein", "Jahr", "alt"],
+tables: [{cap: "السؤال والجواب", head: ["", "الجملة"], rows: [["سؤال", "Wie alt bist du? / Wie alt sind Sie?"], ["جواب", "Ich bin … Jahre alt."]]}]
 },
 
+
 g20: {
+level: "A1",
+goals: ["أعرف ما هو المفعول به ولماذا يتغير.", "أطبق التغيير على المذكر فقط.", "أسأل بـ Wen و Was صح."],
+tables: [{cap: "التغيير في Akkusativ (المذكر فقط)", head: ["", "Nominativ (فاعل)", "Akkusativ (مفعول)"], rows: [["مذكر", "der / ein / kein / mein", "den / einen / keinen / meinen"], ["مؤنث", "die / eine", "die / eine (بدون تغيير)"], ["محايد", "das / ein", "das / ein (بدون تغيير)"]]}],
+examples: [["Ich esse einen Apfel.", "آكل تفاحة.", "إش إسه آينِن أبفل."], ["Ich sehe den Mann.", "أرى الرجل.", "إش زيه دين مان."], ["Ich liebe die Frau.", "أحب المرأة.", "إش ليبه دي فراو."]],
 what: "Akkusativ (حالة المفعول) تعني أن المفعول به يتغير شكله. والخبر السار: التغيير فقط في المذكر المفرد: der→den، ein→einen، kein→keinen، mein→meinen. المؤنث والمحايد والجمع لا يتغير شيء.",
 why: "بدونها ستقول Ich habe ein Hund (خطأ) بدل Ich habe einen Hund (صح). وهي بوابة فهم الجمل الطويلة.",
 when: ["بعد أفعال تأخذ مفعولًا: haben، essen، trinken، sehen، lieben، kaufen، besuchen.", "بعد حروف معينة في A1: für (من أجل) — التفصيل لاحقًا.", "السؤال عن المفعول: Wen؟ (من؟) و Was؟ (ماذا؟)."],
 how: ["حدد الفاعل والفعل والمفعول: Ich (فاعل) esse (فعل) einen Apfel (مفعول).", "إذا المفعول مذكر مفرد ← غيّر أداته. غير ذلك ← اتركه كما هو."],
-examples: [["Ich esse einen Apfel.", "آكل تفاحة."], ["Ich sehe den Mann.", "أرى الرجل."], ["Ich liebe die Frau.", "أحب المرأة. (لا تغيير)"]],
 daily: [["Hast du einen Stift?", "هل لديك قلم؟"], ["Ich kaufe das Brot.", "أشتري الخبز. (لا تغيير للمحايد)"], ["Sie besucht ihren Vater.", "هي تزور والدها."]],
 notes: ["الضمائر أيضًا تتغير (التفصيل في شرح ضمائر Akkusativ).", "الأسماء نفسها لا تتغير، فقط الأداة قبلها (ما عدا المفرد المذكر الضعيف وهو خارج A1)."],
 mistakes: [{w: "Ich habe ein Apfel.", r: "Ich habe einen Apfel.", why: "Apfel مذكر مفعول ← einen."}, {w: "Ich sehe die Mann.", r: "Ich sehe den Mann.", why: "Mann مذكر مفعول ← den."}],
 compare: "Nominativ (الفاعل: der/ein) ← Akkusativ (المفعول: den/einen) — الفرق فقط في المذكر.",
-summary: "مذكر مفعول فقط يتغير: der→den و ein→einen."
+summary: "مذكر مفعول فقط يتغير: der→den و ein→einen.",
+drill: [{t: "أكمل: Ich kaufe ___ Käse (مذكر)؟", opts: ["einen", "ein", "der"], correct: 0, why: "مذكر مفعول → einen."}],
+review: {rule: "المفعول يغير المذكر فقط.", words: "Apfel, Mann, Frau", example: "Ich esse einen Apfel.", mistake: "ترك ein مع المذكر المفعول.", q: "ما مفعول der Tisch؟ (den Tisch)"},
+relWords: ["Apfel", "Mann", "Brot"]
 },
 
 g21: {
+level: "A1",
+goals: ["أعرف الأفعال الثلاثة الاستثناء.", "لا أغير الأداة بعدها.", "أفرقها عن أفعال المفعول."],
+examples: [["Ich bin der Lehrer.", "أنا المعلم.", "إش بين دير ليرر."], ["Er wird mein Mann.", "سيصبح زوجي.", "إر فيرد ماين مان."], ["Das bleibt mein Problem.", "سيبقى هذا مشكلتي.", "داس بلايبت ماين بروبلم."]],
 what: "أفعال sein (يكون) و werden (يصبح) و bleiben (يبقى) لا تأخذ مفعولًا — ما بعدها يبقى في حالة Nominativ (بدون أي تغيير).",
 why: "المبتدئ بعد تعلم Akkusativ يتحمس ويغيّر كل شيء — هذه الأفعال الثلاثة هي الاستثناء الذي يجب حفظه.",
 when: ["Ich bin der Lehrer. (أنا المعلم).", "Er wird Arzt. (سيصبح طبيبًا).", "Sie bleibt meine Freundin. (ستبقى صديقتي)."],
 how: ["بعد هذه الأفعال الثلاثة: اترك الأداة كما هي (der تبقى der، ein يبقى ein)."],
-examples: [["Ich bin der Lehrer.", "أنا المعلم."], ["Er wird mein Mann.", "سيصبح زوجي."], ["Das bleibt mein Problem.", "سيبقى هذا مشكلتي."]],
 daily: [["Bist du der Chef?", "هل أنت المدير؟"], ["Ich werde müde.", "أشعر بالتعب (أصبح متعبًا)."]],
 notes: ["werden هنا بمعنى «يصبح» وليست للمستقبل في A1.", "هذا ينطبق أيضًا على heißen و scheinen لكنها خارج A1 — يكفي الثلاثة."],
 mistakes: [{w: "Ich bin den Lehrer.", r: "Ich bin der Lehrer.", why: "بعد sein لا يوجد مفعول — تبقى der."}, {w: "Er wird einen Arzt.", r: "Er wird Arzt.", why: "بعد werden تبقى Nominativ وبدون تغيير (والمهن غالبًا بدون أداة)."}],
 compare: "haben/essen/sehen + مفعول (Akkusativ) ← sein/werden/bleiben + وصف (Nominativ).",
-summary: "sein و werden و bleiben ← ما بعدهم Nominativ دائمًا."
+summary: "sein و werden و bleiben ← ما بعدهم Nominativ دائمًا.",
+drill: [{t: "أكمل: Ich bin ___ Lehrer.", opts: ["der", "den", "dem"], correct: 0, why: "بعد sein تبقى der (Nominativ)."}],
+review: {rule: "sein/werden/bleiben + وصف بدون تغيير.", words: "Lehrer, Mann, Problem", example: "Ich bin der Lehrer.", mistake: "وضع den بعد sein.", q: "لماذا der وليست den؟ (لا يوجد مفعول)"},
+relWords: ["Lehrer", "Mann", "bleiben"]
 },
 
 g22: {
+level: "A1",
+goals: ["أحفظ ضمائر المفعول.", "أستخدم mich و dich صح.", "أعرف ما لا يتغير."],
+tables: [{cap: "الفاعل ← المفعول", head: ["فاعل", "مفعول", "مثال"], rows: [["ich", "mich", "Er sieht mich."], ["du", "dich", "Ich liebe dich."], ["er", "ihn", "Sie sieht ihn."], ["wir", "uns", "Er hört uns."], ["ihr", "euch", "Ich rufe euch."]]}],
+examples: [["Ich liebe dich.", "أنا أحبك.", "إش ليبه دِش."], ["Er besucht mich.", "هو يزورني.", "إر بزوخت مِش."], ["Sie sieht ihn.", "هي تراه.", "زي زيت إين."]],
 what: "ضمائر المفعول (Akkusativ) تتغير عن ضمائر الفاعل: mich (ني)، dich (ك)، ihn/ihn (ه)، es (ه للمحايد)، sie (ها)، uns (نا)، euch (كم)، sie/Sie (هم/حضرتك).",
 why: "لا يمكنك قول «أحبك» أو «أراك» بدونها — وهي في كل محادثة.",
 when: ["بعد فعل + شخص كمفعول: Ich liebe dich. Er besucht mich.", "الجواب عن Wen؟: Wen liebst du؟ – Dich!"],
 how: ["احفظ الأزواج: ich→mich، du→dich، er→ihn، wir→uns، ihr→euch.", "es و sie و sie/Sie لا تتغير في Akkusativ — سهلة."],
-examples: [["Ich liebe dich.", "أنا أحبك."], ["Er besucht mich.", "هو يزورني."], ["Sie sieht ihn.", "هي تراه."]],
-daily: [["Hörst du mich?", "هل تسمعني؟"], ["Ich verstehe dich nicht.", "لا أفهمك."], ["Ruf mich an!", "اتصل بي!"]],
+daily: [["Hörst du mich?", "هل تسمعني؟"], ["Ich verstehe dich nicht.", "لا أفهمك."], ["Hilf mir bitte!", "ساعدني من فضلك!"]],
 notes: ["الفعل helfen يأخذ Dativ وليس Akkusativ (Ich helfe dir) — استثناء يُحفظ وحده.", "ترتيب الضمائر في الجملة مستوى A2 — في A1 يكفي استخدام ضمير واحد صحيح."],
 mistakes: [{w: "Ich liebe du.", r: "Ich liebe dich.", why: "بعد الفعل (مفعول) نستخدم dich وليس du."}, {w: "Er sieht ich.", r: "Er sieht mich.", why: "المفعول من ich هو mich."}],
 compare: "ich/du (فاعل قبل الفعل) ← mich/dich (مفعول بعد الفعل).",
-summary: "mich dich ihn uns euch — واحفظ أن es/sie ثابتة."
+summary: "mich dich ihn uns euch — واحفظ أن es/sie ثابتة.",
+drill: [{t: "أكمل: Ich sehe ___ (أنا/مفعول).", opts: ["mich", "ich", "mir"], correct: 0, why: "مفعول ich هو mich."}],
+review: {rule: "ضمائر المفعول تتغير عن الفاعل.", words: "dich, mich, ihn", example: "Ich liebe dich.", mistake: "استخدام du مكان dich.", q: "ما مفعول wir؟ (uns)"},
+relWords: ["lieben", "sehen", "hören"]
 },
 
 g23: {
+level: "A1",
+goals: ["أسأل عن الفاعل بـ Wer.", "أسأل عن المفعول بـ Wen.", "أسأل عن الشيء بـ Was."],
+examples: [["Wer kommt morgen?", "من يأتي غدًا؟", "فير كومت مورجن؟"], ["Wen besuchst du?", "من تزور؟", "فين بزوخست دو؟"], ["Was trinkst du?", "ماذا تشرب؟", "فاس ترينكست دو؟"]],
 what: "أدوات السؤال عن الأشخاص والأشياء: wer (من — للفاعل)، wen (من — للمفعول)، was (ماذا — لغير العاقل).",
 why: "الفرق بين wer و wen هو الفرق بين «من فعل؟» و«بمن فُعل؟» — أساس فهم الأسئلة في A1.",
 when: ["Wer + فعل (فاعل): Wer kommt؟ (من يأتي؟).", "Wen + فعل (مفعول عاقل): Wen liebst du؟ (من تحب؟).", "Was + فعل (غير عاقل): Was isst du؟ (ماذا تأكل؟)."],
 how: ["شخص يفعل ← Wer.", "شخص يُفعل به ← Wen.", "شيء ← Was."],
-examples: [["Wer ist das?", "من هذا؟"], ["Wen besuchst du?", "من تزور؟"], ["Was trinkst du?", "ماذا تشرب؟"]],
-daily: [["Wer ruft an?", "من يتصل؟"], ["Wen fragst du?", "من تسأل؟"], ["Was kostet das?", "كم سعر هذا؟"]],
+daily: [["Wer ruft an?", "من يتصل؟"], ["Wen fragst du?", "من تسأل؟"], ["Was isst du gern?", "ماذا تحب أن تأكل؟"]],
 notes: ["wen هي نفس wer لكن في حالة Akkusativ — أول لقاء لك بفكرة تصريف أدوات الاستفهام.", "الجواب عن Wer يكون بالفاعل (Nominativ)، وعن Wen بالمفعول (Akkusativ)."],
 mistakes: [{w: "Wen kommt?", r: "Wer kommt?", why: "الفاعل يُسأل عنه بـ Wer."}, {w: "Wer liebst du?", r: "Wen liebst du?", why: "المفعول العاقل يُسأل عنه بـ Wen."}],
 compare: "Wer (من فعل) ← Wen (بمن فُعل) ← Was (ماذا — لغير العاقل).",
-summary: "فاعل عاقل Wer. مفعول عاقل Wen. شيء Was."
+summary: "فاعل عاقل Wer. مفعول عاقل Wen. شيء Was.",
+drill: [{t: "أسأل عن المفعول العاقل بـ؟", opts: ["Wen", "Wer", "Was"], correct: 0, why: "المفعول العاقل = Wen."}],
+review: {rule: "Wer للفاعل، Wen للمفعول، Was للشيء.", words: "Wer, Wen, Was", example: "Wen besuchst du?", mistake: "السؤال عن المفعول بـ Wer.", q: "بماذا أسأل عن الطعام؟ (Was)"},
+relWords: ["besuchen", "essen", "lieben"]
 },
 
 g24: {
+level: "A1",
+goals: ["أسأل عن السعر.", "أطلب بأدب.", "أحاسب في المحل."],
+examples: [["Was kostet das?", "كم سعر هذا؟", "فاس كوستِت داس؟"], ["Sonst noch etwas?", "شيء آخر؟", "زونست نوخ إتفاس؟"], ["Zahlen, bitte!", "الحساب من فضلك!", "تسالِن بِته!"]],
 what: "جمل المحل والمطعم المحفوظة: السؤال عن السعر (Was kostet das؟)، وطلب شيء إضافي (Sonst noch etwas؟)، والردود المهذبة.",
 why: "أول موقف حقيقي ستعيشه في ألمانيا هو الشراء — هذه الجمل تكفيك تمامًا في A1.",
 when: ["السعر: Was kostet das؟ / Was kosten die Äpfel؟ (للمفرد kosten مفرد، وللجمع kosten جمع).", "في المطعم: Ich möchte … (أريد … بأدب). Zahlen, bitte! (الحساب من فضلك!).", "البائع: Sonst noch etwas؟ (شيء آخر؟)."],
 how: ["kosten تتصرف عادي: das kostet (مفرد) / die kosten (جمع).", "للطلب المهذب استخدم Ich möchte + Akkusativ: Ich möchte einen Kaffee."],
-examples: [["Was kostet das?", "كم سعر هذا؟"], ["Sonst noch etwas?", "شيء آخر؟"], ["Zahlen, bitte!", "الحساب من فضلك!"]],
 daily: [["Ich möchte zwei Brötchen.", "أريد خبزتين صغيرتين."], ["Das kostet 5 Euro.", "سعر هذا 5 يورو."], ["Guten Appetit!", "بالهناء والشفاء!"]],
 notes: ["möchte صيغة مهذبة من mögen — تُحفظ كاملة في A1: ich möchte، wir möchten.", "Euro لا تجمع في الألمانية: 5 Euro (وليس Euros)."],
 mistakes: [{w: "Was kostet die Äpfel?", r: "Was kosten die Äpfel?", why: "الجمع يأخذ kosten بالجمع."}, {w: "Ich will einen Kaffee. (بصوت عالٍ)", r: "Ich möchte einen Kaffee.", why: "will حادة — möchte مهذبة ومناسبة للطلب."}],
 compare: "Was kostet (سؤال عن سعر) ← Wie viel kostet (سؤال عن سعر مع توقع رقم) — نفس المعنى تقريبًا في A1.",
-summary: "Was kostet…؟ + Ich möchte… + Zahlen bitte = تسوق كامل."
+summary: "Was kostet…؟ + Ich möchte… + Zahlen bitte = تسوق كامل.",
+drill: [{t: "ماذا أقول عند الدفع؟", opts: ["Zahlen, bitte!", "Guten Tag!", "Bis morgen!"], correct: 0, why: "طلب الحساب = Zahlen, bitte."}],
+review: {rule: "3 جمل تكفيك في أي محل.", words: "kosten, möchten, zahlen", example: "Was kostet das?", mistake: "الطلب بصيغة الأمر الفظ.", q: "كيف أطلب قهوة بأدب؟ (Ich möchte…)"},
+relWords: ["kosten", "Brot", "Kaffee"]
 },
 
 g25: {
+level: "A1",
+goals: ["أفرق بين können و müssen و wollen.", "أركب جملة بفعلين صح.", "أصرف المساعد مع الفاعل."],
+tables: [{cap: "أشهر المساعدات", head: ["الفعل", "المعنى", "مثال"], rows: [["können", "يستطيع", "Ich kann schwimmen."], ["müssen", "يجب", "Ich muss lernen."], ["wollen", "يريد", "Ich will schlafen."], ["möchten", "يود (مهذب)", "Ich möchte Kaffee."]]}],
+examples: [["Ich kann Deutsch sprechen.", "أستطيع التحدث بالألمانية.", "إش كان دويتش شبريشن."], ["Ich muss lernen.", "يجب أن أتعلم.", "إش موس ليرنِن."], ["Wir wollen schwimmen.", "نريد السباحة.", "فير فولِن شفِمِن."]],
 what: "الأفعال المساعدة (Modalverben): können (يستطيع)، müssen (يجب)، wollen (يريد)، möchten (يود بأدب). الفعل المساعد مُصرّف في المرتبة الثانية، والفعل الأساسي بالمصدر في آخر الجملة.",
 why: "بدونها لا تستطيع التعبير عن القدرة والرغبة والضرورة — وهي قلب جمل A1 الطويلة.",
 when: ["القدرة: Ich kann Deutsch sprechen.", "الضرورة: Ich muss lernen.", "الرغبة: Ich will schlafen. / Ich möchte Kaffee."],
 how: ["الخطوات: (1) صرّف المساعد حسب الفاعل. (2) ضعه ثانيًا. (3) ضع الأساسي بالمصدر في الآخر.", "تصريف können: ich kann – du kannst – er kann – wir können – ihr könnt – sie können."],
-examples: [["Ich kann Deutsch sprechen.", "أستطيع التحدث بالألمانية."], ["Ich muss lernen.", "يجب أن أتعلم."], ["Wir wollen schwimmen.", "نريد السباحة."]],
 daily: [["Kannst du mir helfen?", "هل يمكنك مساعدتي؟"], ["Ich muss morgen arbeiten.", "يجب أن أعمل غدًا."], ["Möchtest du Kaffee?", "هل تود قهوة؟"]],
 notes: ["müssen قوية (إلزام) — للاقتراح اللطيف استخدم sollten (مستوى A2).", "wollen أقوى من möchten: الأول إرادة، والثاني تمنٍّ مهذب."],
 mistakes: [{w: "Ich kann sprechen Deutsch.", r: "Ich kann Deutsch sprechen.", why: "الفعل الأساسي بالمصدر في آخر الجملة دائمًا."}, {w: "Ich können sprechen.", r: "Ich kann sprechen.", why: "المساعد يُصرّف حسب الفاعل: ich kann."}],
 compare: "können (أستطيع — قدرة) ← müssen (يجب — إلزام) ← wollen/möchten (أريد — رغبة).",
-summary: "مساعد مُصرّف ثانيًا + أساسي مصدر أخيرًا."
+summary: "مساعد مُصرّف ثانيًا + أساسي مصدر أخيرًا.",
+drill: [{t: "أين الفعل الأساسي؟", opts: ["آخر الجملة بالمصدر", "ثانيًا مصرفًا", "يُحذف"], correct: 0, why: "الأساسي بالمصدر في الآخر دائمًا."}],
+review: {rule: "مساعد ثانيًا + أساسي أخيرًا.", words: "können, müssen, wollen", example: "Ich kann Deutsch sprechen.", mistake: "وضع الأساسي ثانيًا.", q: "صرف können مع ich؟ (ich kann)"},
+relWords: ["sprechen", "lernen", "schwimmen"]
 },
 
 g26: {
+level: "A1",
+goals: ["أقول الساعة تمامًا بـ um.", "أعبر عن الفترة بـ von..bis.", "أسأل بـ Wann و Wie lange."],
+examples: [["Ich frühstücke um 6 Uhr.", "أفطر السادسة.", "إش فروه شتوكه أُم زكس أور."], ["Von 6 bis 9 Uhr.", "من 6 إلى 9.", "فون زكس بِس نوين أور."], ["Wann beginnt der Film?", "متى يبدأ الفيلم؟", "فان بيجينت دير فيلم؟"]],
 what: "التعبير عن الوقت المحدد: um للساعة تمامًا (um 6 Uhr)، و von…bis للفترة (von 6 bis 9 Uhr). والسؤال: Wann؟ (متى) و Wie lange؟ (كم المدة).",
 why: "المواعيد والدوام والدراسة كلها بهذه الصيغ — لا غنى عنها.",
 when: ["تمام الساعة: um 6 Uhr، um halb 8.", "الفترة: von Montag bis Freitag، von 9 bis 12 Uhr.", "السؤال: Wann frühstückst du؟ – Um 7 Uhr."],
 how: ["um + رقم + Uhr.", "von + بداية + bis + نهاية."],
-examples: [["Ich frühstücke um 6 Uhr.", "أفطر السادسة."], ["Von 6 bis 9 Uhr.", "من 6 إلى 9."], ["Wann kommst du?", "متى تأتي؟"]],
 daily: [["Der Kurs ist von 9 bis 12 Uhr.", "الكورس من 9 إلى 12."], ["Wie lange lernst du? – Zwei Stunden.", "كم تتعلم؟ – ساعتين."]],
 notes: ["Uhr تُذكر مع الرقم دائمًا في الرسمي: um 6 Uhr (وليس um 6 فقط).", "bis وحدها بدون von صحيحة: Bis morgen! (إلى الغد!)."],
 mistakes: [{w: "Am 6 Uhr", r: "Um 6 Uhr", why: "الساعة تمامًا تأخذ um."}, {w: "Von 6 bis 9 Uhr bis.", r: "Von 6 bis 9 Uhr.", why: "bis مرة واحدة تكفي."}],
 compare: "um (نقطة: في السادسة) ← von..bis (فترة: من..إلى).",
-summary: "تمام ← um. فترة ← von..bis. سؤال ← Wann؟"
+summary: "تمام ← um. فترة ← von..bis. سؤال ← Wann؟",
+drill: [{t: "أكمل: ___ 8 Uhr (تمامًا).", opts: ["Um", "Am", "Im"], correct: 0, why: "الساعة تمامًا تأخذ um."}],
+review: {rule: "um للنقطة، von..bis للفترة.", words: "Uhr, von, bis", example: "Ich frühstücke um 6 Uhr.", mistake: "استخدام am مع الساعة.", q: "كيف أسأل عن الموعد؟ (Wann؟)"},
+relWords: ["frühstücken", "Uhr", "kommen"]
 },
 
 g27: {
+level: "A1",
+goals: ["أستخدم ضمائر الملكية.", "أفرق mein عن meine.", "أطبق meinen مع المذكر المفعول."],
+tables: [{cap: "mein في Nom و Akk", head: ["", "Nominativ", "Akkusativ"], rows: [["مذكر", "mein", "meinen"], ["مؤنث", "meine", "meine"], ["محايد", "mein", "mein"]]}],
+examples: [["Mein Name ist Ahmed.", "اسمي أحمد.", "ماين نامه إست أحمد."], ["Meine Mutter ist nett.", "أمي لطيفة.", "ماينه موتر إست نِت."], ["Wer besucht meinen Bruder?", "من يزور أخي؟", "فير بزوخت ماينِن برودر؟"]],
 what: "ضمائر الملكية: mein (ي)، dein (ك)، sein (ه)، ihr (ها)، unser (نا)، euer (كم)، ihr/Ihr (هم/حضرتك). وتتغير نهايتها مع المذكر المفعول فقط في A1: mein→meinen.",
 why: "«أبي وأمي وأخي» من أول كلماتك — وبدون النهايات الصحيحة ستخطئ في أشهر جملة: Ich besuche meinen Vater.",
 when: ["ملكية عادية: Mein Name ist Ahmed. Meine Mutter ist nett.", "مع مفعول مذكر: Ich besuche meinen Bruder. (وليس mein Bruder)."],
 how: ["القاعدة: نفس تصريف ein تمامًا. المؤنث يضيف e: meine. والمذكر المفعول يضيف en: meinen.", "الجدول المصغر: mein/meine/mein (مفرد) — meine (جمع). وفي Akkusativ: meinen/meine/mein."],
-examples: [["Mein Name ist Ahmed.", "اسمي أحمد."], ["Meine Mutter ist nett.", "أمي لطيفة."], ["Wer besucht meinen Bruder?", "من يزور أخي؟"]],
-daily: [["Ist das dein Buch?", "هل هذا كتابك؟"], ["Das ist meine Tasche.", "هذه حقيبتي."], ["Unser Lehrer ist gut.", "معلمنا جيد."]],
+daily: [["Ist das dein Buch?", "هل هذا كتابك؟"], ["Das ist mein Bruder.", "هذا أخي."], ["Unser Lehrer ist gut.", "معلمنا جيد."]],
 notes: ["euer تحذف e الثانية أحيانًا: eure Mutter (وليس euere) — تُقبل الصيغتان في A1.", "الملكية لا تأخذ أداة معها: mein der Vater خطأ — قل mein Vater فقط."],
 mistakes: [{w: "Ich besuche mein Bruder.", r: "Ich besuche meinen Bruder.", why: "Bruder مذكر مفعول ← meinen."}, {w: "Mein Mutter ist nett.", r: "Meine Mutter ist nett.", why: "Mutter مؤنثة ← Meine."}],
 compare: "ein (نكرة لشيء ما) ← mein (ملكية لشيء يخصني) — نفس النهايات تمامًا.",
-summary: "احفظ mein/meine ثم أضف n للمذكر المفعول: meinen."
+summary: "احفظ mein/meine ثم أضف n للمذكر المفعول: meinen.",
+drill: [{t: "أكمل: ___ Mutter ist nett (أمي).", opts: ["Meine", "Mein", "Meinen"], correct: 0, why: "Mutter مؤنثة → Meine."}],
+review: {rule: "الملكية مثل ein + تغيير المذكر المفعول.", words: "Name, Mutter, Bruder", example: "Meine Mutter ist nett.", mistake: "نسيان e المؤنث.", q: "ما مفعول mein Bruder؟ (meinen Bruder)"},
+relWords: ["Name", "Mutter", "Bruder"]
 },
 
 g28: {
+level: "A1",
+goals: ["أقرأ الساعة الرسمية والعامية.", "أفهم halb مع الساعة القادمة.", "أسأل عن الوقت."],
+examples: [["Es ist ein Uhr.", "الساعة الواحدة.", "إس إست آين أور."], ["Es ist halb vier.", "الثالثة والنصف.", "إس إست هالب فير."], ["Wie spät ist es?", "كم الساعة؟", "في شبيت إست إس؟"]],
 what: "الساعة بالألمانية لها صيغتان: رسمية (ein Uhr، halb vier) وعامية مختصرة (eins، halb vier). والنصف يُحسب للساعة القادمة: halb vier = الثالثة والنصف (3:30) وليست الرابعة والنصف!",
 why: "halb vier أشهر فخ في A1 — من يترجمها حرفيًا («نصف أربعة» = 4:30) يخطئ الموعد بنصف ساعة.",
 when: ["الرسمية: Es ist ein Uhr. (الواحدة). Es ist halb vier. (3:30).", "العامية: Es ist eins. (الساعة واحدة).", "الدقائق: vor (إلا) و nach (و): Viertel nach drei (3:15)، Viertel vor vier (3:45)."],
 how: ["الساعة الكاملة: Es ist + رقم + Uhr.", "النصف: halb + الساعة القادمة.", "حفظ halb: انظر للساعة التي لم تأتِ بعد."],
-examples: [["Es ist ein Uhr.", "الساعة الواحدة."], ["Es ist halb vier.", "الثالثة والنصف (3:30)."], ["Es ist Viertel nach drei.", "الثالثة والربع."]],
-daily: [["Wie spät ist es?", "كم الساعة؟"], ["Der Zug kommt um halb acht.", "القطار يأتي 7:30."]],
+daily: [["Sag mal, wie spät ist es?", "قل لي، كم الساعة؟"], ["Der Zug kommt um halb acht.", "القطار يأتي 7:30."]],
 notes: ["ein Uhr رسمية (للإذاعة والمواعيد) ← eins عامية (بين الأصدقاء).", "vor/nach التفصيل الكامل مستوى A2 — في A1 يكفي halb والتمام."],
 mistakes: [{w: "halb vier = 4:30", r: "halb vier = 3:30", why: "الألماني ينظر للنصف القادم: نصف الطريق إلى الرابعة."}, {w: "Es ist eins Uhr.", r: "Es ist ein Uhr. / Es ist eins.", why: "لا تجمع الصيغتين: إما ein Uhr أو eins وحدها."}],
 compare: "ein Uhr (رسمي كامل) ← eins (عامي مختصر). نفس الوقت، سياق مختلف.",
-summary: "halb + القادمة. halb vier = 3:30."
+summary: "halb + القادمة. halb vier = 3:30.",
+drill: [{t: "halb acht تعني؟", opts: ["7:30", "8:30", "8:00"], correct: 0, why: "النصف يُحسب للقادمة: 7:30."}],
+review: {rule: "halb + الساعة القادمة.", words: "Uhr, halb, spät", example: "Es ist halb vier.", mistake: "ترجمة halb حرفيًا.", q: "كيف أقول الثانية عشرة؟ (zwölf Uhr)"},
+relWords: ["Uhr", "kommen", "Zeit"],
+tables: [{cap: "قراءة الساعة", head: ["رسمي", "عامي", "المعنى"], rows: [["Es ist ein Uhr.", "Es ist eins.", "الواحدة"], ["Es ist halb vier.", "halb vier", "3:30"], ["Es ist Viertel nach drei.", "viertel vier", "3:15"]]}]
 },
 
+
 g29: {
+level: "A1",
+goals: ["أعتذر في المواقف الخفيفة والجادة.", "أرد على الاعتذار.", "أوقف غريبًا بأدب."],
+examples: [["Es tut mir leid.", "أنا آسف.", "إس توت مير لايد."], ["Entschuldigung!", "عذرًا!", "إنتشولديجونج!"], ["Kein Problem!", "لا مشكلة!", "كاين بروبلم!"]],
 what: "الاعتذار والرد عليه: للاعتذار Es tut mir leid (أنا آسف) أو Entschuldigung / Entschuldigen Sie. والرد: Kein Problem / Macht nichts / Schon gut (لا مشكلة).",
 why: "ستخطئ حتمًا في المواصلات والمتجر والشارع — هذه الجمل تنقذك اجتماعيًا.",
 when: ["خطأ صغير (دعس قدم): Oh, Entschuldigung!", "خطأ أكبر/مشاعر: Es tut mir leid.", "الرد دائمًا مطمئن: Kein Problem!"],
 how: ["Entschuldigung وحدها للمواقف الخفيفة والسريعة.", "Es tut mir leid للمواقف الجادة أو عند مخاطبة شخص تعرفه.", "Entschuldigen Sie (رسمي) عند إيقاف غريب لسؤاله."],
-examples: [["Es tut mir leid.", "أنا آسف."], ["Entschuldigung!", "عذرًا!"], ["Kein Problem!", "لا مشكلة!"]],
 daily: [["Entschuldigen Sie, wo ist der Bahnhof?", "عذرًا، أين محطة القطار؟"], ["Macht nichts!", "لا عليك!"], ["Schon gut!", "حصل خير!"]],
 notes: ["Entschuldigung اسم (العذر) ← Entschuldigen Sie فعل أمر (اعذرني) — كلاهما صحيح حسب السياق.", "لا تقل Sorry في الرسمي — احتفظ بها للأصدقاء فقط."],
 mistakes: [{w: "Es tut mich leid.", r: "Es tut mir leid.", why: "الفعل tut leid يأخذ Dativ: mir (لي) وليس mich."}, {w: "Kein Probleme!", r: "Kein Problem!", why: "الرد محفوظ بالمفرد: Problem بدون e."}],
 compare: "Entschuldigung (سريع/خفيف) ← Es tut mir leid (جاد/عميق).",
-summary: "اعتذر بـ Entschuldigung / Es tut mir leid ← ورد بـ Kein Problem."
+summary: "اعتذر بـ Entschuldigung / Es tut mir leid ← ورد بـ Kein Problem.",
+drill: [{t: "صديقك تأخر، ماذا تقول؟", opts: ["Es tut mir leid.", "Guten Appetit!", "Bis morgen!"], correct: 0, why: "الاعتذار الصادق = Es tut mir leid."}],
+review: {rule: "اعتذار خفيف أو جاد + رد مطمئن.", words: "leid, Entschuldigung, Problem", example: "Es tut mir leid.", mistake: "نسيان الرد على الاعتذار.", q: "كيف أرد على آسف؟ (Kein Problem)"},
+relWords: ["Bahnhof", "Problem", "danke"]
 },
 
 g30: {
+level: "A1",
+goals: ["أعرف حروف Dativ الخمسة.", "أستخدم mit mir و mit dir صح.", "أفهم لماذا aus der Türkei."],
+tables: [{cap: "حروف تأخذ Dativ دائمًا", head: ["الحرف", "المعنى", "مثال"], rows: [["mit", "مع", "mit mir"], ["bei", "عند", "bei dir"], ["aus", "من", "aus der Türkei"], ["von", "من/لدى", "von mir"], ["seit", "منذ", "seit Montag"]]}],
+examples: [["Ich komme mit dir.", "آتي معك.", "إش كومه مِت دير."], ["Ich bin bei dir.", "أنا عندك.", "إش بين باي دير."], ["Ich komme aus Berlin.", "أنا قادم من برلين.", "إش كومه أوس برلين."]],
 what: "حروف الجر mit (مع) و bei (عند) و aus (من) و von (من/لدى) و seit (منذ) تأخذ حالة Dativ دائمًا — أي تغيّر ما بعدها بطريقة ثابتة.",
 why: "في A1 يكفي أن تعرف أنها Dativ وتحفظ شكلين فقط: mit mir/dir (معي/معك) — الباقي تفصيله في A2.",
 when: ["mit + شخص: Ich komme mit dir. (آتي معك).", "bei + مكان/شخص: Ich bin bei dir. (أنا عندك).", "aus + أصل: Ich komme aus Ägypten."],
 how: ["في A1 احفظ الضمائر الجاهزة: mit mir، mit dir، bei mir، von mir.", "القاعدة الكاملة: der→dem، die→der، das→dem في Dativ — للقراءة فقط الآن، والاستخدام الكامل في A2.", "aus der Türkei مثال حي: die تحولت إلى der بسبب Dativ."],
-examples: [["Ich komme mit dir.", "آتي معك."], ["Ich bin bei dir.", "أنا عندك."], ["Ich komme aus der Türkei.", "أنا من تركيا."]],
 daily: [["Fährst du mit mir?", "هل تأتي معي؟"], ["Ich bin beim Arzt. (bei + dem = beim)", "أنا عند الطبيب."]],
 notes: ["لا تحفظ الجدول كاملًا الآن — احفظ الجمل الجاهزة، وافهم أن mit/bei/aus/von/seit = Dativ دائمًا.", "helfen + Dativ أيضًا: Ich helfe dir (أساعدك) — وليست dich."],
 mistakes: [{w: "Ich komme mit dich.", r: "Ich komme mit dir.", why: "mit تأخذ Dativ: dir وليست dich."}, {w: "Ich komme aus die Türkei.", r: "Ich komme aus der Türkei.", why: "aus تأخذ Dativ فتحولت die إلى der."}],
 compare: "Akkusativ (تغيير المذكر فقط: den) ← Dativ (تغيير أكبر: dem/der — للمستقبل، الآن احفظ الجمل).",
-summary: "mit/bei/aus/von/seit ← Dativ. احفظ: mit mir – mit dir."
-}
+summary: "mit/bei/aus/von/seit ← Dativ. احفظ: mit mir – mit dir.",
+drill: [{t: "أكمل: Ich komme mit ___ (أنت).", opts: ["dir", "dich", "du"], correct: 0, why: "mit تأخذ Dativ: mit dir."}],
+review: {rule: "5 حروف + Dativ دائمًا.", words: "mit, bei, aus, dir", example: "Ich komme mit dir.", mistake: "استخدام dich بعد mit.", q: "ما حالة الاسم بعد von؟ (Dativ)"},
+relWords: ["kommen", "Türkei", "helfen"]
+},
 
+g31: {
+level: "A1",
+goals: ["أسأل سؤال نعم/لا.", "أجيب بـ ja و nein صح.", "أفرقه عن سؤال W."],
+what: "سؤال نعم/لا (Ja/Nein-Frage) يبدأ بالفعل المُصرّف مباشرة بدون أداة استفهام: Kommst du؟ (هل تأتي؟). الجواب ja أو nein ثم جملة.",
+why: "أسرع نوع أسئلة في الحياة: في المحل (Noch etwas؟)، في البيت، في العمل. وفهمه يوضح قاعدة الفعل أولًا.",
+when: ["السؤال عن حدث: Spielst du Fußball؟", "التأكيد: Bist du müde؟", "العرض: Möchtest du Kaffee؟"],
+how: ["الفعل المُصرّف أولًا ← الفاعل ثانيًا ← الباقي: Lernst du Deutsch؟", "الجواب: Ja, … / Nein, … (مع تصحيح المعلومة عند الحاجة)."],
+examples: [["Kommst du morgen?", "هل تأتي غدًا؟", "كومست دو مورجن؟"], ["Du bist müde?", "هل أنت متعب؟", "دو بست موده؟"], ["Bist du bereit?", "هل أنت مستعد؟", "بست دو برايت؟"], ["Sprichst du Deutsch?", "هل تتحدث الألمانية؟", "شبريخست دو دويتش؟"]],
+daily: [["Hast du Zeit?", "هل لديك وقت؟", "هاست دو تسايت؟"], ["Schmeckt es?", "هل طعمه جيد؟", "شميكت إس؟"]],
+notes: ["نبرة الصوت الصاعدة آخر الجملة تدل على السؤال شفهيًا.", "Nein وحدها فظة أحيانًا — أضف جملة: Nein, ich habe keine Zeit."],
+mistakes: [{w: "Du kommst morgen? (بدون تغيير)", r: "Kommst du morgen?", why: "السؤال يبدأ بالفعل ثم الفاعل."}, {w: "Ja. (ردًا على سؤال لم يُفهم)", r: "Ja, ich komme morgen.", why: "الجواب الكامل أوضح وأكثر أدبًا."}],
+compare: "سؤال W (معلومة ناقصة: Wo…؟) ← سؤال نعم/لا (تأكيد معلومة كاملة).",
+summary: "فعل أولًا + فاعل = سؤال نعم/لا.",
+drill: [{t: "حوّل لسؤال: Du sprichst Deutsch.", opts: ["Sprichst du Deutsch?", "Du Deutsch sprichst?", "Sprechen du Deutsch?"], correct: 0, why: "الفعل المُصرّف في الأول."}],
+review: {rule: "السؤال يبدأ بالفعل.", words: "kommen, müde, sprechen", example: "Kommst du morgen?", mistake: "ترك ترتيب الخبر في السؤال.", q: "كيف أسأل: هل لديك وقت؟ (Hast du Zeit؟)"},
+relWords: ["kommen", "sprechen", "Zeit"]
+},
+
+g32: {
+level: "A1",
+goals: ["أعرف ما هو Nominativ.", "أميز الفاعل في الجملة.", "أستخدم أدواته صح."],
+what: "Nominativ (حالة الرفع) هي حالة الفاعل — من يقوم بالفعل: Der Mann schläft (الرجل نائم). وهي الصورة الأساسية للكلمة في القاموس.",
+why: "كل جملة تحتاج فاعلًا، وفهم Nominativ يجعل Akkusativ أسهل: الفاعل لا يتغير أبدًا، والمفعول يتغير أحيانًا.",
+when: ["الفاعل دائمًا: Ich lerne. Der Hund bellt.", "بعد sein/werden/bleiben: Ich bin Lehrer.", "الإجابة عن Wer؟ (من فعل؟)."],
+how: ["اسأل Wer؟ (من؟) — الجواب فاعل = Nominativ.", "الأدوات: der/die/das، ein/eine — بدون أي تغيير عن القاموس."],
+tables: [{cap: "Nominativ (بدون تغيير)", head: ["", "مذكر", "مؤنث", "محايد"], rows: [["معرفة", "der", "die", "das"], ["نكرة", "ein", "eine", "ein"]]}],
+examples: [["Der Mann schläft.", "الرجل نائم.", "دير مان شليفت."], ["Die Katze trinkt Milch.", "القطة تشرب حليبًا.", "دي كاتسه ترينكت مِلش."], ["Ein Kind lacht.", "طفل يضحك.", "آين كيند لاخت."]],
+daily: [["Mein Bruder arbeitet.", "أخي يعمل.", "ماين برودر أربايتِت."], ["Die Sonne scheint.", "الشمس مشرقة.", "دي زونه شاينت."]],
+notes: ["القاموس يعطيك Nominativ دائمًا — احفظ منه.", "لا تخلط: الفاعل nominativ ثابت، والمفعول akkusativ قد يتغير."],
+mistakes: [{w: "Den Mann schläft.", r: "Der Mann schläft.", why: "الفاعل لا يأخذ den أبدًا."}, {w: "Mich bin müde.", r: "Ich bin müde.", why: "الفاعل ich وليس mich."}],
+compare: "Nominativ (الفاعل الثابت) ← Akkusativ (المفعول المتغير أحيانًا).",
+summary: "الفاعل = Nominativ = صورة القاموس.",
+drill: [{t: "أين الفاعل؟ Der Hund bellt laut.", opts: ["Der Hund", "bellt", "laut"], correct: 0, why: "من ينبح؟ الكلب = الفاعل."}],
+review: {rule: "الفاعل nominativ بدون تغيير.", words: "Mann, Katze, Kind", example: "Der Mann schläft.", mistake: "وضع den للفاعل.", q: "ما حالة Ich في Ich lerne؟ (Nominativ)"},
+relWords: ["Mann", "schlafen", "Kind"]
+},
+
+g33: {
+level: "A1",
+goals: ["آمر صديقًا بالألمانية.", "أصرف الأمر مع du.", "أفرقه عن الأمر الرسمي."],
+what: "الأمر مع du (لصديق/طفل/عائلة): نحذف du ونستخدم جذر الفعل غالبًا: Komm! (تعال!)، Sprich! (تحدث!).",
+why: "مع الأصدقاء صيغة Sie تبدو متكلفة وبعيدة — الأمر الصحيح يقربك من الناس.",
+when: ["صديق: Mach schnell! (أسرع!)", "طفل: Iss dein Brot! (كُل خبزك!)", "عائلة: Komm her! (تعال هنا!)"],
+how: ["خذ تصريف du واحذف النهاية والضمير: du kommst ← Komm!", "الأفعال الشاذة تحتفظ بتغيرها: du sprichst ← Sprich!", "للتهذيب أضف bitte: Bitte, hilf mir!"],
+tables: [{cap: "الأمر", head: ["مع du (صديق)", "مع Sie (رسمي)"], rows: [["Komm!", "Kommen Sie!"], ["Sprich!", "Sprechen Sie!"], ["Geh!", "Gehen Sie!"]]}],
+examples: [["Komm her!", "تعال هنا!", "كوم هير!"], ["Sprich langsam!", "تحدث ببطء!", "شبريش لانجزَام!"], ["Iss dein Brot!", "كُل خبزك!", "إس داين بروت!"]],
+daily: [["Warte kurz!", "انتظر قليلًا!", "فارته كورتز!"], ["Hör zu!", "استمع!", "هور تسو!"]],
+notes: ["بعض الأفعال تضيف e: Arbeite! (اعمل!) — تُقبل بدونها أحيانًا لكن e أسلم.", "الأمر المنفصل: قطعته في الآخر: Steh auf! (انهض!)."],
+mistakes: [{w: "Du komm her!", r: "Komm her!", why: "الأمر يحذف du."}, {w: "Kommst her!", r: "Komm her!", why: "الأمر يستخدم الجذر بدون st."}],
+compare: "Komm! (صديق) ← Kommen Sie! (غريب). نفس المعنى، سياق مختلف.",
+summary: "صديق = جذر الفعل + !",
+drill: [{t: "آمر صديقًا أن يأتي؟", opts: ["Komm!", "Kommen Sie!", "Du kommst!"], correct: 0, why: "مع الصديق: الجذر + !"}],
+review: {rule: "أمر du = الجذر.", words: "kommen, sprechen, essen", example: "Komm her!", mistake: "ترك du أو st.", q: "آمر صديقًا أن يتحدث؟ (Sprich!)"},
+relWords: ["kommen", "sprechen", "essen"]
+},
+
+g34: {
+level: "A1",
+goals: ["أعرف ما هو الفعل المنفصل.", "أضع القطعة في آخر الجملة.", "أستخدم أشهر الأفعال المنفصلة."],
+what: "الفعل المنفصل (trennbares Verb) فعل بقطعة أولى تنفصل وتذهب لآخر الجملة: aufstehen (ينهض): Ich stehe früh auf.",
+why: "بدون فهم الانفصال ستقرأ auf وحدها وتتعجب — وهي من أكثر ظواهر A1 اليومية (يوميًا: aufstehen, einkaufen, anrufen).",
+when: ["aufstehen (ينهض)، einkaufen (يتسوق)، anrufen (يتصل)، mitkommen (يأتي مع)، fernsehen (يشاهد التلفاز)."],
+how: ["الفعل المُصرّف (بدون القطعة) ثانيًا ← القطعة في الآخر: Ich rufe dich an.", "في الأمر: القطعة آخرًا أيضًا: Ruf an!", "في المصدر مع مساعد: Ich muss einkaufen (ملتصقة!)."],
+examples: [["Ich stehe früh auf.", "أستيقظ مبكرًا.", "إش شتيه فرو أوف."], ["Ich kaufe heute ein.", "أتسوق اليوم.", "إش كاوفه هويته آين."], ["Ruf mich an!", "اتصل بي!", "روف مِش آن!"]],
+daily: [["Siehst du fern?", "هل تشاهد التلفاز؟", "زيست دو فيرن؟"], ["Kommst du mit?", "هل تأتي معي؟", "كومست دو مِت؟"]],
+notes: ["القاموس يكتب القطعة مع شرطة: auf|stehen — انتبه لها.", "مع Modalverben تلتصق القطعة: Ich will anrufen (وليس rufe…an)."],
+mistakes: [{w: "Ich aufstehe früh.", r: "Ich stehe früh auf.", why: "القطعة تنفصل وتذهب للآخر."}, {w: "Ich muss aufstehen? (أريد: أتصل)", r: "Ich muss anrufen.", why: "لكل فعل قطعته ومعناه — لا تخمن."}],
+compare: "فعل عادي (lernen: ثابت) ← فعل منفصل (anrufen: ينفصل).",
+summary: "الفعل ثانيًا + القطعة آخرًا.",
+drill: [{t: "أكمل: Ich stehe früh ___.", opts: ["auf", "an", "ein"], correct: 0, why: "aufstehen = ينهض."}],
+review: {rule: "القطعة في آخر الجملة.", words: "aufstehen, einkaufen, anrufen", example: "Ich stehe früh auf.", mistake: "ترك القطعة ملتصقة.", q: "أين القطعة في السؤال؟ (آخر الجملة)"},
+relWords: ["aufstehen", "einkaufen", "anrufen"]
+},
+
+g35: {
+level: "A1",
+goals: ["أرد على السؤال المنفي.", "أستخدم doch صح.", "أفرق ja عن doch."],
+what: "doch تعني «بل على العكس» — رد إيجابي على سؤال أو نفي: Du bist nicht müde؟ (ألست متعبًا؟) — Doch! (بل أنا متعب!).",
+why: "العربية تستخدم «بلى»، والألمانية doch — بدونها ستجيب ja في موضع خاطئ ويفهم عكس قصدك.",
+when: ["نفي سؤالك: Kommst du nicht؟ — Doch! (بل آتي!)", "تصحيح معلومة: Das ist nicht richtig. — Doch!", "ja للسؤال العادي، doch بعد النفي فقط."],
+how: ["سؤال فيه nicht/kein + أنت موافق على العكس ← Doch!", "ثم أكمل الجملة مثبتة: Doch, ich komme mit."],
+examples: [["Du bist nicht müde? — Doch!", "ألست متعبًا؟ — بل أنا متعب!", "دو بست نيشت موده؟ — دوخ!"], ["Du hast keine Zeit? — Doch!", "ليس لديك وقت؟ — بل لدي!", "دو هاست كاينه تسايت؟ — دوخ!"], ["Kommst du nicht mit? — Doch, gern!", "ألن تأتي معنا؟ — بل آتي بسرور!", "كومست دو نيشت مِت؟ — دوخ جيرن!"]],
+daily: [["Das stimmt nicht. — Doch!", "هذا غير صحيح. — بل صحيح!", "داس شتِمت نيشت. — دوخ!"], ["Magst du keinen Tee? — Doch!", "ألا تحب الشاي؟ — بل أحب!", "ماجست دو كاينِن تيه؟ — دوخ!"]],
+notes: ["doch لا تُستخدم إلا بعد نفي — مع السؤال العادي استخدم ja.", "doch أيضًا بمعنى «لكن» في سياقات أعلى — تجاهلها في A1."],
+mistakes: [{w: "Kommst du? — Doch!", r: "Kommst du? — Ja!", why: "لا نفي في السؤال → ja وليست doch."}, {w: "Nein! (وأنت تقصد الموافقة)", r: "Doch!", why: "الموافقة على عكس النفي = doch."}],
+compare: "ja (نعم لسؤال عادي) ← doch (بلى ردًا على نفي).",
+summary: "بعد النفي والموافقة = Doch!",
+drill: [{t: "Du lernst nicht? وأنت تتعلم. الرد؟", opts: ["Doch!", "Nein!", "Tschüs!"], correct: 0, why: "رد إيجابي على نفي = doch."}],
+review: {rule: "doch = بلى بعد النفي.", words: "doch, nein, ja", example: "Du bist nicht müde? — Doch!", mistake: "الرد بـ ja على سؤال منفي.", q: "متى أستخدم doch؟ (بعد النفي فقط)"},
+relWords: ["müde", "kommen", "lernen"]
+},
+
+g36: {
+level: "A1",
+goals: ["أستخدم أشهر حروف الجر.", "أفرق بين الاتجاه والمكان.", "أحفظ الحرف مع فعله."],
+what: "حرف الجر يربط الكلمة بباقي الجملة ويحدد معناها: in (في)، aus (من)، nach (إلى)، von (من/لدى)، mit (مع)، zu (إلى شخص/مكان)، für (من أجل).",
+why: "الحرف الخطأ يغير المعنى تمامًا: nach Berlin (إلى برلين) ≠ in Berlin (في برلين). والحروف تُحفظ مع الأفعال كوحدة.",
+when: ["الاتجاه لبلد/مدينة: nach Berlin.", "المكان: in Berlin.", "الأصل: aus Ägypten.", "الصحبة: mit Freunden.", "الغرض: für dich."],
+how: ["احفظ الثنائيات: kommen aus، wohnen in، fahren nach، sprechen mit.", "nach + بلا أداة (مدن/بلاد)، in + مكان معروف."],
+tables: [{cap: "اتجاه أم مكان؟", head: ["المعنى", "الحرف", "مثال"], rows: [["إلى مدينة/بلد", "nach", "nach Berlin"], ["في مكان", "in", "in Berlin"], ["من (أصل)", "aus", "aus Ägypten"], ["مع", "mit", "mit dir"], ["من أجل", "für", "für dich"]]}],
+examples: [["Ich fahre nach Berlin.", "أسافر إلى برلين.", "إش فاره ناخ برلين."], ["Ich wohne in Kairo.", "أسكن في القاهرة.", "إش فونه إن كايرو."], ["Das ist für dich.", "هذا من أجلك.", "داس إست فور دِش."]],
+daily: [["Kommst du mit mir?", "هل تأتي معي؟", "كومست دو مِت مير؟"], ["Ich komme aus der Schule.", "أنا قادم من المدرسة.", "إش كومه أوس دير شوله."]],
+notes: ["zu تُستخدم مع الأشخاص والأماكن الصغيرة: zu Ali، nach Hause.", "لا تترجم حرفيًا من العربية — احفظ الفعل مع حرفه."],
+mistakes: [{w: "Ich wohne nach Berlin.", r: "Ich wohne in Berlin.", why: "السكن = في = in، و nach للاتجاه فقط."}, {w: "Ich fahre in Berlin. (وأنا مسافر إليها)", r: "Ich fahre nach Berlin.", why: "الاتجاه إلى مدينة = nach."}],
+compare: "nach (إلى) ← in (في) ← aus (من): اتجاه ومكان وأصل.",
+summary: "الفعل + حرفه وحدة واحدة تُحفظ.",
+drill: [{t: "أكمل: Ich fahre ___ Berlin.", opts: ["nach", "in", "aus"], correct: 0, why: "الاتجاه لمدينة = nach."}],
+review: {rule: "كل حرف له معناه ومكانه.", words: "nach, in, aus", example: "Ich fahre nach Berlin.", mistake: "الترجمة الحرفية من العربية.", q: "كيف أقول: في برلين؟ (in Berlin)"},
+relWords: ["Berlin", "kommen", "wohnen"]
+},
+
+g37: {
+level: "A1",
+goals: ["أقول الساعة والتاريخ.", "أسأل عن الموعد.", "أستخدم am و um صح."],
+what: "الوقت بالألمانية: الساعة بـ um (um 8 Uhr)، واليوم بـ am (am Montag)، والتاريخ: der 3. Mai (الثالث من مايو).",
+why: "المواعيد هي أول استخدام حقيقي للغة: دراسة، عمل، طبيب، سفر.",
+when: ["الساعة: Es ist halb acht.", "اليوم: Am Freitag.", "التاريخ: Heute ist der dritte Mai."],
+how: ["um + الساعة، am + اليوم، der + الرقم بنقطة + الشهر للتاريخ.", "السؤال: Wann؟ (متى) و Um wie viel Uhr؟ (في أي ساعة؟)."],
+tables: [{cap: "الوقت", head: ["النوع", "الصيغة", "مثال"], rows: [["ساعة", "um + Uhr", "um 8 Uhr"], ["يوم", "am + Tag", "am Montag"], ["تاريخ", "der + رقم. + شهر", "der 3. Mai"]]}],
+examples: [["Der Termin ist um 9 Uhr.", "الموعد التاسعة.", "دير تيرمين إست أُم نوين أور."], ["Heute ist Montag.", "اليوم الاثنين.", "هويته إست مونتاج."], ["Mein Geburtstag ist im Mai.", "عيد ميلادي في مايو.", "ماين جيبورتستاج إست إم ماي."]],
+daily: [["Wann hast du Zeit?", "متى لديك وقت؟", "فان هاست دو تسايت؟"], ["Bis morgen um acht!", "إلى الغد الثامنة!", "بِس مورجن أُم أخت!"]],
+notes: ["الشهر وحده بـ im: im Mai — لكن التاريخ الكامل بـ der.", "الأرقام الترتيبية (dritte) للقراءة فقط الآن."],
+mistakes: [{w: "Am 8 Uhr", r: "Um 8 Uhr", why: "الساعة تأخذ um وليست am."}, {w: "Im Montag", r: "Am Montag", why: "اليوم يأخذ am."}],
+compare: "um (ساعة) ← am (يوم) ← im (شهر).",
+summary: "um ساعة، am يوم، der للتاريخ.",
+drill: [{t: "أكمل: ___ Freitag habe ich Zeit.", opts: ["Am", "Um", "Im"], correct: 0, why: "اليوم يأخذ am."}],
+review: {rule: "لكل وحدة زمنية حرفها.", words: "Uhr, Montag, Mai", example: "Der Termin ist um 9 Uhr.", mistake: "الخلط بين um و am.", q: "كيف أقول: في مايو؟ (im Mai)"},
+relWords: ["Uhr", "Montag", "Mai"]
+},
+
+g38: {
+level: "A1",
+goals: ["أعد من 0 إلى 100.", "أستخدم الأرقام في الأسعار والمواعيد.", "أفهم تركيب الأرقام الكبيرة."],
+what: "الأرقام 0-12 تُحفظ (null, eins…zwölf)، ومن 13-19 تركيب (dreizehn)، والعشرات (zwanzig, dreißig…)، والمركب معكوس: 21 = einundzwanzig (واحد وعشرون).",
+why: "السعر والوقت والعمر والعنوان — لا جملة يومية بدون أرقام.",
+when: ["العد: eins, zwei, drei…", "السعر: fünf Euro.", "العمر: zwanzig Jahre alt.", "السنة والهاتف تُقرأ رقمًا رقمًا."],
+how: ["13-19: رقم + zehn (ما عدا 16 sechzehn و 17 siebzehn).", "العشرات: -zig (ما عدا 30 dreißig).", "21+: آحاد + und + عشرات: vierundzwanzig."],
+tables: [{cap: "أساسيات", head: ["", "", ""], rows: [["0-3", "null, eins, zwei, drei", ""], ["11-12", "elf, zwölf", ""], ["10/20/30", "zehn, zwanzig, dreißig", ""], ["21", "einundzwanzig", "آحاد + und + عشرات"]]}],
+examples: [["Ich bin zwanzig Jahre alt.", "عمري عشرون سنة.", "إش بين تسفانتسيش ياره ألت."], ["Das kostet fünf Euro.", "سعره خمسة يورو.", "داس كوستِت فونف أويرو."], ["Ich habe zwei Brüder.", "لدي أخوان.", "إش هابه تسفاي برودر."]],
+daily: [["Meine Nummer ist 15.", "رقمي 15.", "ماينه نومر إست فونفتسين."], ["Es ist 7 Uhr.", "الساعة السابعة.", "إس إست زيبن أور."]],
+notes: ["eins (مع s) للعد وحده، و ein (بدون s) قبل الاسم: ein Buch.", "ß في dreißig تُحفظ كما هي."],
+mistakes: [{w: "zwanzigeins (21)", r: "einundzwanzig", why: "الآحاد أولًا ثم und ثم العشرات."}, {w: "ein Buch? (أريد: واحد فقط)", r: "eins (للعد وحده)", why: "eins للعد المجرد، و ein قبل الاسم."}],
+compare: "eins (رقم وحده) ← ein (أداة قبل اسم).",
+summary: "0-12 حفظ، والباقي تركيب معكوس.",
+drill: [{t: "كيف أقول 24؟", opts: ["vierundzwanzig", "zwanzigvier", "vierzigzwei"], correct: 0, why: "آحاد + und + عشرات."}],
+review: {rule: "الأرقام تركيب منطقي بعد 12.", words: "eins, zwanzig, Euro", example: "Das kostet fünf Euro.", mistake: "ترتيب الآحاد والعشرات.", q: "كيف أقول 30؟ (dreißig)"},
+relWords: ["Euro", "Jahr", "Uhr"]
+},
+
+g39: {
+level: "A1",
+goals: ["أتهجى اسمي بالألمانية.", "أنطق الحروف الصعبة (ch, sch, ä/ö/ü).", "أفرق الحروف المتشابهة سمعًا."],
+what: "الأبجدية الألمانية = الإنجليزية + ä ö ü ß. والنطق شبه ثابت: ما يُكتب يُنطق — عكس الإنجليزية.",
+why: "أول ما سيُطلب منك هاتفيًا: Buchstabieren Sie bitte! (تهجَّ من فضلك!).",
+when: ["تهجئة الاسم: A-h-m-e-d.", "نطق ch بعد i/e (خفيفة: ich) وبعد a/o/u (ثقيلة: Buch).", "sch = ش، sp = شب، st = شت في أول الكلمة."],
+how: ["احفظ أسماء الحروف: a (آ)، e (إيه)، i (إي)، o (أو)، u (أوو).", "ä ≈ إيه مفتوحة، ö ≈ أو مكسورة، ü ≈ يو مكسورة.", "ß = ss (تُنطق س)."],
+tables: [{cap: "أصوات مهمة", head: ["الحروف", "النطق", "مثال"], rows: [["sch", "ش", "Schule"], ["ch (بعد a/o/u)", "خ ثقيلة", "Buch"], ["ch (بعد i/e)", "خ خفيفة", "ich"], ["ä / ö / ü", "متحركات مميزة", "Bär / schön / Tür"], ["ß", "س", "Straße"]]}],
+examples: [["Ich buchstabiere meinen Namen.", "أتهجى اسمي.", "إش بوخشتابيره ماينِن نامِن."], ["Die Schule ist groß.", "المدرسة كبيرة.", "دي شوله إست جروس."], ["Deutsch ist schön.", "الألمانية جميلة.", "دويتش إست شون."]],
+daily: [["Wie schreibt man das?", "كيف يُكتب هذا؟", "في شرايبت مان داس؟"], ["Langsam, bitte!", "ببطء من فضلك!", "لانجزَام بِته!"]],
+notes: ["لا تنطق الإنجليزية: J = يوت (ي)، W = فيه (ف)، V = فاو (ف).", "التدريب بالاستماع أهم من الحفظ النظري — استخدم زر 🔊."],
+mistakes: [{w: "شوله (نطق sch مثل س)", r: "sch = ش دائمًا", why: "sch الألمانية = ش العربية."}, {w: "إش (خ ثقيلة)", r: "ich بخاء خفيفة", why: "بعد i/e الخاء خفيفة."}],
+compare: "الإنجليزية (كتابة ≠ نطق) ← الألمانية (ما يُكتب يُنطق غالبًا).",
+summary: "sch=ش، وch حسب ما قبلها.",
+drill: [{t: "كيف تُنطق sch؟", opts: ["ش", "س", "ك"], correct: 0, why: "sch = ش دائمًا."}],
+review: {rule: "النطق ثابت ومنطقي.", words: "Schule, Buch, ich", example: "Die Schule ist groß.", mistake: "نطق ch ثابت دائمًا.", q: "كيف أتهجى؟ (Buchstabieren Sie…)"},
+relWords: ["Schule", "Buch", "Name"]
+},
+
+g40: {
+level: "A1",
+goals: ["أستخدم können و müssen و wollen بثقة.", "أفرق mögen عن möchten.", "أصرف المساعد مع كل ضمير."],
+what: "خمسة مساعدات تحكم الجملة: können (يستطيع)، müssen (يجب)، wollen (يريد بقوة)، möchten (يود بأدب)، mögen (يحب). المساعد مُصرّف ثانيًا + الأساسي مصدرًا آخرًا.",
+why: "القدرة والوجوب والرغبة = نصف كلامك اليومي. و mögen/möchten الفرق بين الفظاظة والأدب.",
+when: ["قدرة: Ich kann schwimmen.", "وجوب: Ich muss arbeiten.", "رغبة قوية: Ich will schlafen.", "طلب مهذب: Ich möchte zahlen.", "حب: Ich mag Kaffee."],
+how: ["صرّف المساعد حسب الفاعل (ich kann, du kannst…).", "ضعه ثانيًا، والأساسي بالمصدر آخرًا.", "mögen غالبًا بدون فعل ثانٍ: Ich mag Tee."],
+tables: [{cap: "können و müssen", head: ["", "können", "müssen"], rows: [["ich", "kann", "muss"], ["du", "kannst", "musst"], ["er", "kann", "muss"], ["wir", "können", "müssen"]]}],
+examples: [["Kannst du schwimmen?", "هل تستطيع السباحة؟", "كانست دو شفِمِن؟"], ["Ich muss heute arbeiten.", "يجب أن أعمل اليوم.", "إش موس هويته أربايتن."], ["Ich mag Schokolade.", "أحب الشيكولاتة.", "إش ماج شوكولاده."]],
+daily: [["Ich möchte ein Wasser.", "أريد ماءً (بأدب).", "إش موشته آين فاسر."], ["Willst du mitkommen?", "هل تريد أن تأتي معنا؟", "فِلست دو مِتكومِن؟"]],
+notes: ["möchten شكل مهذب ثابت تقريبًا: ich möchte, wir möchten.", "wollen قوية — لا تستخدمها مع الغرباء للطلب."],
+mistakes: [{w: "Ich kann schwimme.", r: "Ich kann schwimmen.", why: "الأساسي بالمصدر الكامل آخرًا."}, {w: "Ich will einen Kaffee. (لجرسون)", r: "Ich möchte einen Kaffee.", why: "wollen فظة في الطلب — استخدم möchten."}],
+compare: "können (قدرة) ← müssen (وجوب) ← wollen (رغبة قوية) ← möchten (رغبة مهذبة).",
+summary: "المساعد ثانيًا مصرفًا + الأساسي أخيرًا مصدرًا.",
+drill: [{t: "أكمل بأدب: Ich ___ einen Kaffee.", opts: ["möchte", "will", "muss"], correct: 0, why: "الطلب المهذب = möchten."}],
+review: {rule: "5 مساعدات + ترتيب ثابت.", words: "können, müssen, möchten", example: "Ich kann schwimmen.", mistake: "تصريف الأساسي بدل المساعد.", q: "أين الفعل الأساسي؟ (آخر الجملة)"},
+relWords: ["schwimmen", "arbeiten", "Kaffee"]
+}
 };

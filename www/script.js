@@ -1199,7 +1199,17 @@ const RAW_GRAM = [
 ["Possessiv في Nom و Akk","K5","ضمائر الملكية تتغير مع المذكر المفعول: mein→meinen و dein→deinen.","Mein Name ist Ahmed.|اسمي أحمد.","Wer besucht meinen Bruder?|من يزور أخي؟","أكمل (أمي): ___ Mutter ist nett؟","Meine|Mein|Meinen","0","Mutter مؤنث: Meine Mutter."],
 ["الساعة رسمي/غير رسمي","K5","الرسمية ein Uhr والعامية eins، والنصف يُحسب للساعة القادمة: halb vier = 3:30.","Es ist ein Uhr.|الساعة الواحدة.","Es ist halb vier.|الثالثة والنصف.","halb vier تعني؟","3:30|4:30|4:00","0","النصف للساعة القادمة: 3:30."],
 ["الاعتذار والرد","K5","نعتذر: Es tut mir leid / Entschuldigen Sie، ونرد: Kein Problem / Macht nichts / Schon gut.","Es tut mir leid.|أنا آسف.","Kein Problem.|لا مشكلة.","ما الرد على Entschuldigung؟","Kein Problem.|Guten Tag.|Danke.","0","الرد: Kein Problem (لا مشكلة)."],
-["Dativ مع mit/bei/aus","K5","حروف mit و bei و aus و von و seit تأخذ Dativ دائمًا.","Ich komme mit dir.|آتي معك.","Ich bin bei dir.|أنا عندك.","أي حالة بعد mit؟","Dativ|Akkusativ|Nominativ","0","mit دائمًا + Dativ."]
+["Dativ مع mit/bei/aus","K5","حروف mit و bei و aus و von و seit تأخذ Dativ دائمًا.","Ich komme mit dir.|آتي معك.","Ich bin bei dir.|أنا عندك.","أي حالة بعد mit؟","Dativ|Akkusativ|Nominativ","0","mit دائمًا + Dativ."],
+["Ja/Nein-Fragen","K1","السؤال يبدأ بالفعل المُصرّف ثم الفاعل، والجواب ja أو nein.","Kommst du morgen?|هل تأتي غدًا؟","Bist du müde?|هل أنت متعب؟","كيف تسأل: هل تتحدث الألمانية؟","Sprichst du Deutsch?|Du sprichst Deutsch?|Sprechen du Deutsch?","0","الفعل أولًا: Sprichst du Deutsch؟"],
+["Nominativ","K4","Nominativ هي حالة الفاعل — صورة القاموس بدون تغيير: der/die/das.","Der Mann schläft.|الرجل نائم.","Ein Kind lacht.|طفل يضحك.","ما حالة الفاعل؟","Nominativ|Akkusativ|Dativ","0","الفاعل دائمًا Nominativ."],
+["Imperativ mit du","K3","الأمر مع الصديق يستخدم جذر الفعل: Komm! Sprich!","Komm her!|تعال هنا!","Warte kurz!|انتظر قليلًا!","آمر صديقًا أن يأتي؟","Komm!|Kommen Sie!|Du kommst!","0","مع الصديق: الجذر + !"],
+["trennbare Verben","K4","الفعل المنفصل تنفصل قطعته وتذهب لآخر الجملة: Ich stehe früh auf.","Ich stehe früh auf.|أستيقظ مبكرًا.","Ruf mich an!|اتصل بي!","أين تذهب القطعة؟","آخر الجملة|أول الجملة|تُحذف","0","القطعة دائمًا في الآخر."],
+["doch / nein / ja","K1","doch تعني بلى — رد إيجابي على سؤال منفي.","Du bist nicht müde? — Doch!|ألست متعبًا؟ — بل أنا متعب!","Kommst du? — Ja!|هل تأتي؟ — نعم!","Du lernst nicht؟ (وأنت تتعلم)","Doch!|Nein!|Tschüs!","0","الرد على النفي بالموافقة = doch."],
+["Präpositionen A1","K3","nach للاتجاه، in للمكان، aus للأصل، mit للصحبة، für للغرض.","Ich fahre nach Berlin.|أسافر إلى برلين.","Ich wohne in Kairo.|أسكن في القاهرة.","أكمل: Ich fahre ___ Berlin.","nach|in|aus","0","الاتجاه لمدينة = nach."],
+["Uhrzeit und Datum","K5","الساعة بـ um، واليوم بـ am، والتاريخ der + رقم + شهر.","Der Termin ist um 9 Uhr.|الموعد التاسعة.","Heute ist Montag.|اليوم الاثنين.","أكمل: ___ Freitag habe ich Zeit.","Am|Um|Im","0","اليوم يأخذ am."],
+["Zahlen","K1","الأرقام 0-12 تُحفظ، ثم تركيب: 21 = einundzwanzig.","Ich bin zwanzig Jahre alt.|عمري عشرون.","Das kostet fünf Euro.|سعره خمسة يورو.","كيف أقول 24؟","vierundzwanzig|zwanzigvier|vierzigzwei","0","آحاد + und + عشرات."],
+["Alphabet und Aussprache","K0","الألمانية تُنطق كما تُكتب غالبًا: sch = ش، و ch حسب ما قبلها.","Die Schule ist groß.|المدرسة كبيرة.","Ich buchstabiere meinen Namen.|أتهجى اسمي.","كيف تُنطق sch؟","ش|س|ك","0","sch = ش دائمًا."],
+["Modalverben im Detail","K5","können قدرة، müssen وجوب، wollen رغبة، möchten أدب: المساعد ثانيًا + الأساسي مصدرًا آخرًا.","Kannst du mir helfen?|هل يمكنك مساعدتي؟","Ich muss morgen arbeiten.|يجب أن أعمل غدًا.","أكمل بأدب: Ich ___ einen Kaffee.","möchte|will|muss","0","الطلب المهذب = möchten."]
 ];
 /* ============ محرك بناء الجمل والقواعد والأفعال ============ */
 function buildSent(){
@@ -1284,9 +1294,9 @@ function allVerbs(){
 }
 /* ============ STATE ============ */
 const LS_KEY = "deutsch_master_v2";
-function defaultState(){return{customWords:[],status:{},favs:[],quizHistory:[],totalCorrect:0,totalAnswered:0,testsTaken:0,studyDays:{},streak:{count:0,last:"",longest:0},planner:{words:20,sentences:10,minutes:30,day:"",dw:0,ds:0,dm:0},settings:{theme:"dark",speed:1},review:{},xp:0,bestPct:0,maxCombo:0,mistakes:{},lastQuiz:null};}
+function defaultState(){return{customWords:[],status:{},favs:[],quizHistory:[],totalCorrect:0,totalAnswered:0,testsTaken:0,studyDays:{},streak:{count:0,last:"",longest:0},planner:{words:20,sentences:10,minutes:30,day:"",dw:0,ds:0,dm:0},settings:{theme:"dark",speed:1,color:"default"},review:{},xp:0,bestPct:0,maxCombo:0,mistakes:{},lastQuiz:null};}
 let S = defaultState();
-try{const raw=localStorage.getItem(LS_KEY);if(raw){const p=JSON.parse(raw);S=Object.assign(defaultState(),p);S.streak=Object.assign({count:0,last:"",longest:0},p.streak||{});S.planner=Object.assign(defaultState().planner,p.planner||{});S.settings=Object.assign({theme:"dark",speed:1},p.settings||{});}}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);if(raw){const p=JSON.parse(raw);S=Object.assign(defaultState(),p);S.streak=Object.assign({count:0,last:"",longest:0},p.streak||{});S.planner=Object.assign(defaultState().planner,p.planner||{});S.settings=Object.assign({theme:"dark",speed:1,color:"default"},p.settings||{});}}catch(e){}
 try{const old=localStorage.getItem("deutsch_master_v1");if(old&&!localStorage.getItem(LS_KEY)){const p=JSON.parse(old);if(p.streak)S.streak=p.streak;if(p.studyDays)S.studyDays=p.studyDays;if(p.settings)S.settings=Object.assign({theme:"dark",speed:1},p.settings);if(p.planner)S.planner=p.planner;if(p.customWords)S.customWords=p.customWords;save();}}catch(e){}
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
 function todayStr(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
@@ -1412,7 +1422,48 @@ $("menuBtn").addEventListener("click",()=>{$("sidebar").classList.add("open");$(
 $("sidebarOverlay").addEventListener("click",()=>{$("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");});
 
 /* ============ THEME / SPEED ============ */
-function applyTheme(){document.documentElement.setAttribute("data-theme",S.settings.theme);$("themeBtn").textContent=S.settings.theme==="dark"?"🌙":"☀️";}
+function applyTheme(){document.documentElement.setAttribute("data-theme",S.settings.theme);$("themeBtn").textContent=S.settings.theme==="dark"?"🌙":"☀️";try{applyColor();}catch(e){}}
+/* ============ COLOR THEMES ============ */
+function hexRgb(h){h=String(h||"").replace("#","");if(h.length===3)h=h.split("").map(c=>c+c).join("");const n=parseInt(h,16);return [(n>>16)&255,(n>>8)&255,n&255].join(",");}
+const THEMES=[
+{id:"default",name:"Default Blue",c1:"#7c3aed",c2:"#00d4ff",gold:"#f5c451",p2:"#2563eb"},
+{id:"royal",name:"Royal Blue",c1:"#1d4ed8",c2:"#38bdf8",gold:"#fbbf24",p2:"#1e40af"},
+{id:"ocean",name:"Ocean",c1:"#0ea5e9",c2:"#22d3ee",gold:"#fcd34d",p2:"#0369a1"},
+{id:"cyan",name:"Cyan",c1:"#06b6d4",c2:"#67e8f9",gold:"#fde047",p2:"#0e7490"},
+{id:"purple",name:"Purple",c1:"#7c3aed",c2:"#a78bfa",gold:"#f5c451",p2:"#6d28d9"},
+{id:"violet",name:"Violet",c1:"#8b5cf6",c2:"#d946ef",gold:"#fbbf24",p2:"#7c3aed"},
+{id:"pink",name:"Pink",c1:"#ec4899",c2:"#f9a8d4",gold:"#fde68a",p2:"#be185d"},
+{id:"rose",name:"Rose",c1:"#f43f5e",c2:"#fda4af",gold:"#fef3c7",p2:"#be123c"},
+{id:"red",name:"Red",c1:"#ef4444",c2:"#f87171",gold:"#fde68a",p2:"#b91c1c"},
+{id:"orange",name:"Orange",c1:"#f97316",c2:"#fdba74",gold:"#fef08a",p2:"#c2410c"},
+{id:"sunset",name:"Sunset",c1:"#f59e0b",c2:"#ef4444",gold:"#fde68a",p2:"#b45309"},
+{id:"amber",name:"Amber",c1:"#f59e0b",c2:"#fcd34d",gold:"#fff7ed",p2:"#b45309"},
+{id:"yellow",name:"Yellow",c1:"#eab308",c2:"#fef08a",gold:"#fffbeb",p2:"#a16207"},
+{id:"lime",name:"Lime",c1:"#84cc16",c2:"#bef264",gold:"#fefce8",p2:"#4d7c0f"},
+{id:"green",name:"Green",c1:"#22c55e",c2:"#4ade80",gold:"#fef9c3",p2:"#15803d"},
+{id:"emerald",name:"Emerald",c1:"#10b981",c2:"#6ee7b7",gold:"#fef3c7",p2:"#047857"},
+{id:"teal",name:"Teal",c1:"#14b8a6",c2:"#5eead4",gold:"#fef9c3",p2:"#0f766e"},
+{id:"turquoise",name:"Turquoise",c1:"#06b6d4",c2:"#5eead4",gold:"#fef08a",p2:"#0e7490"},
+{id:"neon",name:"Neon",c1:"#22ff88",c2:"#00e5ff",gold:"#faff00",p2:"#00aa55"},
+{id:"midnight",name:"Midnight",c1:"#312e81",c2:"#155e75",gold:"#d4a017",p2:"#1e1b4b"},
+{id:"cyber",name:"Cyber",c1:"#d946ef",c2:"#22d3ee",gold:"#f0abfc",p2:"#a21caf"},
+{id:"darkpurple",name:"Dark Purple",c1:"#6d28d9",c2:"#4c1d95",gold:"#c4b5fd",p2:"#4c1d95"}];
+function themeById(id){return THEMES.find(t=>t.id===id)||THEMES[0];}
+function applyColor(id){
+  const t=themeById(id||(S.settings&&S.settings.color)||"default");
+  const r=document.documentElement.style;
+  r.setProperty("--violet",t.c1);r.setProperty("--neon",t.c2);r.setProperty("--cyan",t.c2);
+  r.setProperty("--gold",t.gold);r.setProperty("--p1",t.c1);r.setProperty("--p2",t.p2);
+  r.setProperty("--v1",hexRgb(t.c1));r.setProperty("--v2",hexRgb(t.c2));r.setProperty("--v3",hexRgb(t.gold));
+  r.setProperty("--grad","linear-gradient(135deg,"+t.c1+","+t.c2+")");
+}
+function setColor(id){S.settings.color=id;save();applyColor(id);renderThemes();toast("تم تطبيق اللون ✅","ok");}
+function renderThemes(){
+  const box=$("themeGrid");if(!box)return;
+  const cur=(S.settings&&S.settings.color)||"default";
+  box.innerHTML=THEMES.map(t=>'<div class="theme-card'+(t.id===cur?" selected":"")+'" data-th="'+t.id+'"><div class="theme-prev" style="background:linear-gradient(135deg,'+t.c1+','+t.c2+')"></div><div class="theme-name">'+t.name+'</div><div class="theme-hex">'+t.c1+' • '+t.c2+'</div></div>').join("");
+  box.querySelectorAll("[data-th]").forEach(c=>c.addEventListener("click",()=>setColor(c.getAttribute("data-th"))));
+}
 $("themeBtn").addEventListener("click",()=>{S.settings.theme=S.settings.theme==="dark"?"light":"dark";save();applyTheme();});
 $("themeBtn2").addEventListener("click",()=>{S.settings.theme=S.settings.theme==="dark"?"light":"dark";save();applyTheme();toast("تم تبديل المظهر ✅","ok");});
 function syncSpeed(v){S.settings.speed=parseFloat(v);$("speedSelect").value=String(S.settings.speed);$("speedSelect2").value=String(S.settings.speed);save();}
@@ -1763,6 +1814,8 @@ function renderExplainIndex(){
   idx.querySelectorAll("[data-ex]").forEach(b=>b.addEventListener("click",()=>openExplain(b.getAttribute("data-ex"))));
 }
 function exBlock(title,inner){return '<div class="ex-block glass"><h4>'+title+'</h4>'+inner+'</div>';}
+function exOne(e){return '<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+' <button class="mini-btn" data-spk="'+escapeHtml(e[0])+'" title="استمع 🔊">🔊</button></div><div class="ex-ar">'+escapeHtml(e[1])+'</div>'+(e[2]?'<div class="ex-pron">🗣️ نطق تقريبي: '+escapeHtml(e[2])+' <span class="muted">(تقريبي فقط — اعتمد على الصوت 🔊)</span></div>':"")+'</div>';}
+function exTable(t){return '<div class="ex-block glass"><h4>📊 '+escapeHtml(t.cap)+'</h4><div class="tbl-wrap"><table class="ex-table"><tr>'+t.head.map(h=>'<th>'+escapeHtml(h)+'</th>').join("")+'</tr>'+t.rows.map(r=>'<tr>'+r.map(c=>'<td>'+escapeHtml(c)+'</td>').join("")+'</tr>').join("")+'</table></div></div>';}
 function openExplain(id){
   const g=GRAMMAR.find(x=>x.id===id);if(!g)return;
   let E=null;try{E=(typeof EXPLAIN!=="undefined"&&EXPLAIN[id])?EXPLAIN[id]:null;}catch(e){E=null;}
@@ -1773,27 +1826,36 @@ function openExplain(id){
   const idx=$("explainIndex"),det=$("explainDetail");
   idx.classList.add("hidden");det.classList.remove("hidden");
   showPage("explain");
-  let h='<div class="ex-nav"><button class="btn btn-ghost sm" id="exBack">📖 الفهرس</button><span class="tag kap-tag">'+kapName(g.kap)+'</span><span class="tag">A1</span></div>';
+  const LV=(E&&E.level)||"A1";
+  let h='<div class="ex-nav"><button class="btn btn-ghost sm" id="exBack">📖 الفهرس</button><span class="tag kap-tag">'+kapName(g.kap)+'</span><span class="tag">مستوى '+LV+'</span></div>';
   h+='<div class="panel glass ex-hero"><h2>📚 '+escapeHtml(g.title)+'</h2><div class="ex-short">'+escapeHtml(g.body)+'</div></div>';
   if(E){
+    if(E.goals&&E.goals.length)h+=exBlock("🎯 ماذا سأتعلم؟",'<ul class="ex-ul">'+E.goals.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul><div class="row-flex"><button class="btn btn-ghost sm" id="exSimple">❓ مش فاهم — اشرح أبسط</button></div><div id="exSimpleBox"></div>');
     h+='<details class="ex-lvl glass" open><summary>🟢 المستوى 1: الأساسيات</summary>'+
     exBlock("1️⃣ ما هي القاعدة؟",'<p>'+escapeHtml(E.what)+'</p>')+
     exBlock("2️⃣ لماذا نستخدمها؟",'<p>'+escapeHtml(E.why)+'</p>')+
-    exBlock("5️⃣ أمثلة بسيطة",E.examples.map(e=>'<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+'</div><div class="ex-ar">'+escapeHtml(e[1])+'</div></div>').join(""))+'</details>';
+    exBlock("5️⃣ أمثلة بسيطة",E.examples.map(exOne).join(""))+'</details>';
     h+='<details class="ex-lvl glass"><summary>🟡 المستوى 2: التعمق</summary>'+
     exBlock("3️⃣ متى نستخدمها؟",'<ul class="ex-ul">'+E.when.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
     exBlock("4️⃣ كيف نستخدمها؟",'<ol class="ex-ul">'+E.how.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ol>')+
-    exBlock("6️⃣ أمثلة من الحياة اليومية",E.daily.map(e=>'<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+'</div><div class="ex-ar">'+escapeHtml(e[1])+'</div></div>').join(""))+
+    (E.tables&&E.tables.length?E.tables.map(exTable).join(""):"")+
+    exBlock("6️⃣ أمثلة من الحياة اليومية",E.daily.map(exOne).join(""))+
     exBlock("9️⃣ مقارنة سريعة",'<p>'+escapeHtml(E.compare)+'</p>')+'</details>';
     h+='<details class="ex-lvl glass"><summary>🔴 المستوى 3: الأخطاء والمراجعة</summary>'+
     exBlock("7️⃣ ملاحظات مهمة ⭐",'<ul class="ex-ul">'+E.notes.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
-    exBlock("8️⃣ الأخطاء الشائعة",E.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ '+escapeHtml(m.w)+'</div><div class="ex-right">✅ '+escapeHtml(m.r)+'</div><div class="muted">'+escapeHtml(m.why)+'</div></div>').join(""))+
+    exBlock("8️⃣ الأخطاء الشائعة",E.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ خطأ: '+escapeHtml(m.w)+'</div><div class="ex-right">✅ الصحيح: '+escapeHtml(m.r)+'</div><div class="muted">لماذا؟ '+escapeHtml(m.why)+'</div></div>').join(""))+
     exBlock("🔟 خلاصة القاعدة",'<div class="ex-sum">'+escapeHtml(E.summary)+'</div>')+'</details>';
+    if(E.drill&&E.drill.length){
+      h+='<div class="panel glass"><b>✍️ تدريب سريع:</b> '+escapeHtml(E.drill[0].t)+'<div class="quiz-opts" id="exDrillOpts" style="margin:8px 0">'+E.drill[0].opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exDrillFb"></div></div>';
+    }
   }else{
     h+=exBlock("الشرح المختصر",'<p>'+escapeHtml(g.body)+'</p>');
   }
-  const q=g.quiz?'<div class="panel glass"><b>❓ اختبر نفسك:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" id="exQuizOpts" style="margin:8px 0">'+g.quiz.opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exQuizFb"></div></div>':'';
+  const q=g.quiz?'<div class="panel glass"><b>❓ اختبار قصير:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" id="exQuizOpts" style="margin:8px 0">'+g.quiz.opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exQuizFb"></div></div>':'';
   h+=q;
+  if(E&&E.review){
+    h+='<div class="panel glass"><b>📌 ماذا تعلمت؟ Was habe ich gelernt?</b><ul class="ex-ul"><li>القاعدة: '+escapeHtml(E.review.rule)+'</li><li>كلمات مهمة: '+escapeHtml(E.review.words)+'</li><li>أهم مثال: '+escapeHtml(E.review.example)+'</li><li>خطأ تجنبه: '+escapeHtml(E.review.mistake)+'</li><li>سؤال سريع: '+escapeHtml(E.review.q)+'</li></ul><div class="row-flex"><button class="btn btn-gold sm" id="exReviewLater">🔁 راجع الدرس لاحقًا</button></div></div>';
+  }
   h+='<div class="ex-nav bottom"><button class="btn btn-ghost sm" id="exPrev" '+(gPrev?'':'disabled')+'>→ '+(gPrev?escapeHtml(gPrev.title):'لا يوجد')+'</button><button class="btn btn-gold sm" id="exIdx">📖 الفهرس</button><button class="btn btn-ghost sm" id="exNext" '+(gNext?'':'disabled')+'>'+(gNext?escapeHtml(gNext.title):'لا يوجد')+' ←</button></div>';
   det.innerHTML=h;
   window.scrollTo({top:0,behavior:"smooth"});
@@ -1802,13 +1864,40 @@ function openExplain(id){
   $("exIdx").addEventListener("click",goIdx);
   if(gPrev)$("exPrev").addEventListener("click",()=>openExplain(gPrev.id));
   if(gNext)$("exNext").addEventListener("click",()=>openExplain(gNext.id));
+  det.querySelectorAll("[data-spk]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();try{speakGerman(b.getAttribute("data-spk"));}catch(e){}}));
+  if($("exReviewLater"))$("exReviewLater").addEventListener("click",()=>{
+    try{
+      if(E&&E.relWords)E.relWords.forEach(function(dw){const w=allWords().find(x=>x.de===dw);if(w)setStatus(w.id,"review");});
+      save();markStudyDay();
+    }catch(e){}
+    toast("أُضيف الدرس للمراجعة 🔁","ok");showPage("review");
+  });
+  if($("exSimple"))$("exSimple").addEventListener("click",()=>{
+    const bx=$("exSimpleBox");if(!bx)return;
+    const n=parseInt(bx.dataset.n||"0",10)+1;bx.dataset.n=n;
+    const ex0=(E.examples&&E.examples[0])||["",""];
+    const m0=(E.mistakes&&E.mistakes[0])||{r:"",why:""};
+    if(n===1){bx.innerHTML='<div class="ex-sum">ببساطة، فكر فيها كده: '+escapeHtml(E.summary)+'<br>مثال: '+escapeHtml(ex0[0])+' = '+escapeHtml(ex0[1])+'</div>';}
+    else{bx.innerHTML='<div class="ex-sum" style="font-size:18px">كأنك تتعلم أول مرة 🌱<br>'+escapeHtml(E.summary)+'<br>✅ احفظ هذه فقط: '+escapeHtml(m0.r||ex0[0])+(m0.why?'<br>ليه؟ '+escapeHtml(m0.why):"")+'</div>';bx.dataset.n=0;}
+    bx.scrollIntoView({behavior:"smooth",block:"nearest"});
+  });
+  if(E&&E.drill&&E.drill.length){
+    const dr=E.drill[0];
+    det.querySelectorAll("#exDrillOpts .quiz-opt").forEach(btn=>btn.addEventListener("click",()=>{
+      const i=parseInt(btn.getAttribute("data-i"),10);
+      const fb=$("exDrillFb");fb.classList.remove("hidden");
+      det.querySelectorAll("#exDrillOpts .quiz-opt").forEach(x=>x.disabled=true);
+      if(i===dr.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+dr.why;}
+      else{btn.classList.add("wrong");det.querySelectorAll("#exDrillOpts .quiz-opt")[dr.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ الصحيح: "+dr.opts[dr.correct]+" — لماذا؟ "+dr.why;}
+    }));
+  }
   if(g.quiz){
     det.querySelectorAll("#exQuizOpts .quiz-opt").forEach(btn=>btn.addEventListener("click",()=>{
       const i=parseInt(btn.getAttribute("data-i"),10);
       const fb=$("exQuizFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exQuizOpts .quiz-opt").forEach(x=>x.disabled=true);
       if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;try{if(typeof completeLesson==="function")completeLesson(g.id);}catch(e){}}
-      else{btn.classList.add("wrong");det.querySelectorAll("#exQuizOpts .quiz-opt")[g.quiz.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;}
+      else{btn.classList.add("wrong");det.querySelectorAll("#exQuizOpts .quiz-opt")[g.quiz.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;try{if(S){S.gweak=S.gweak||{};S.gweak[g.id]=(S.gweak[g.id]||0)+1;save();}}catch(e){}}
     }));
   }
 }
@@ -2225,6 +2314,14 @@ function renderFavs(){
 }
 
 /* ============ SEARCH ============ */
+(function(){
+  const inp=$("globalSearch");if(!inp)return;
+  const wrap=inp.closest(".search-wrap");
+  const hasText=()=>inp.value.trim()!=="";
+  const sync=()=>{if(wrap)wrap.classList.toggle("has-text",hasText());};
+  inp.addEventListener("input",sync);sync();
+  try{inp.dataset.iconSync="1";}catch(e){}
+})();
 $("globalSearch").addEventListener("input",e=>{
   const q=e.target.value.trim().toLowerCase();const box=$("searchResults");
   if(q.length<2){box.classList.remove("show");box.innerHTML="";return;}
@@ -2236,7 +2333,7 @@ $("globalSearch").addEventListener("input",e=>{
   GRAMMAR.filter(g=>(g.title+g.body).toLowerCase().indexOf(q)>=0).slice(0,2).forEach(g=>hits.push({t:"📚 شرح: "+g.title+" ["+g.kap+"]",go:()=>openExplain(g.id)}));
   box.innerHTML="";
   if(!hits.length){box.innerHTML='<div class="search-hit">لا نتائج لـ "'+escapeHtml(q)+'"</div>';}
-  hits.forEach(h=>{const d=document.createElement("div");d.className="search-hit";d.textContent=h.t;d.addEventListener("click",()=>{h.go();box.classList.remove("show");$("globalSearch").value="";});box.appendChild(d);});
+  hits.forEach(h=>{const d=document.createElement("div");d.className="search-hit";d.textContent=h.t;d.addEventListener("click",()=>{h.go();box.classList.remove("show");$("globalSearch").value="";const w=$("globalSearch").closest(".search-wrap");if(w){w.classList.remove("has-text");w.classList.remove("focus");}});box.appendChild(d);});
   box.classList.add("show");
 });
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("searchResults").classList.remove("show");});
@@ -2310,6 +2407,7 @@ function applyAll(){
 /* ============ INIT ============ */
 fillCategories();fillKapitels();
 applyTheme();
+try{renderThemes();}catch(e){}
 $("speedSelect").value=String(S.settings.speed||1);
 $("speedSelect2").value=String(S.settings.speed||1);
 if("speechSynthesis" in window){try{window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){};}catch(e){}}

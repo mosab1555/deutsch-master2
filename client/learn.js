@@ -231,28 +231,159 @@ function renderSpeak(){
   $("speakBox").innerHTML=h;renderSp(0);
 }
 function hasSR(){try{return typeof window!=="undefined"&&(window.SpeechRecognition||window.webkitSpeechRecognition);}catch(e){return false;}}
+/* Speech recognition engine.
+   States: idle|starting|listening|processing|success|error|unsupported|permission-denied.
+   onend is NEVER treated as an error by itself. */
+var _micRec=null,_micState="idle",_micFinal="",_micInterim="",_micCancel=false,_micGen=0;
+function srCtor(){try{return window.SpeechRecognition||window.webkitSpeechRecognition||null;}catch(e){return null;}}
+function srErrorMsg(e){
+  const m=String((e&&e.error)||"unknown");
+  if(m==="not-allowed"||m==="permission-denied")return "🎤 تم رفض صلاحية الميكروفون. اسمح للمتصفح باستخدام الميكروفون ثم حاول مرة أخرى.";
+  if(m==="service-not-allowed")return "🎤 خدمة الميكروفون مرفوضة على هذا الجهاز. تحقق من إعدادات النظام والمتصفح.";
+  if(m==="no-speech")return "لم نسمع كلامًا. حاول التحدث بصوت واضح.";
+  if(m==="audio-capture")return "لم نتمكن من الوصول إلى الميكروفون. تأكد أن الميكروفون يعمل وغير مستخدم بواسطة تطبيق آخر.";
+  if(m==="network")return "حدثت مشكلة في خدمة التعرف الصوتي. تأكد من اتصال الإنترنت وحاول مرة أخرى.";
+  if(m==="language-not-supported")return "التعرف على الألمانية غير مدعوم في هذا المتصفح.";
+  if(m==="aborted")return "";
+  return "حدث خطأ غير معروف في التعرف الصوتي.";
+}
+function micSetState(btn,st,label){
+  _micState=st;
+  if(!btn)return;
+  if(st==="listening"||st==="starting"){btn.classList.add("live");btn.innerHTML=label||"🔴 جاري الاستماع... اضغط للإيقاف";}
+  else{btn.classList.remove("live");btn.innerHTML=label||"🎙️ اضغط للتحدث";}
+}
+function micIdle(btn){_micRec=null;micSetState(btn,"idle");_micFinal="";_micInterim="";}
+/* Optional mic permission probe. Never blocks: prompt/unknown => let the browser ask. */
+function micPermProbe(cb){
+  try{
+    if(navigator&&navigator.permissions&&navigator.permissions.query){
+      navigator.permissions.query({name:"microphone"}).then(
+        r=>cb(r&&r.state||"unknown"),
+        ()=>cb("unknown"));
+      return;
+    }
+  }catch(e){}
+  cb("unknown");
+}
+function micSecureOk(){
+  try{
+    if(typeof window==="undefined"||typeof window.isSecureContext==="undefined")return true;
+    if(window.isSecureContext)return true;
+    const h=String((window.location&&window.location.hostname)||"");
+    return h===""||h==="localhost"||h==="127.0.0.1";
+  }catch(e){return true;}
+}
+/* Honest transcript-based evaluator (no AI claims): word overlap + shape notes. */
+const SP_STOP=["ich","du","er","sie","es","wir","ihr","der","die","das","ein","eine","einen","einem","ist","sind","bin","bist","und","oder","nicht","kein","keine","im","in","am","an","auf","mit","zu","von","aus","für","um","ja","nein"];
+function evaluateSpoken(text,sample){
+  const tw=normDe(text).split(" ").filter(Boolean);
+  const sw=normDe(sample).split(" ").filter(Boolean);
+  const keys=sw.filter(w=>w.length>3&&SP_STOP.indexOf(w)<0);
+  const hit=keys.filter(k=>tw.indexOf(k)>=0);
+  const vocab=keys.length?Math.round(hit.length/keys.length*100):100;
+  const notes=[];
+  if(text&&text[0]===text[0].toUpperCase())notes.push("✅ بداية الجملة كبيرة.");
+  else notes.push("⚠️ ابدأ الجملة بحرف كبير.");
+  if(/[.!?]$/.test(text.trim()))notes.push("✅ علامة الترقيم موجودة.");
+  else notes.push("⚠️ أنهِ الجملة بـ . أو ؟ أو !");
+  const missing=keys.filter(k=>tw.indexOf(k)<0);
+  return {vocab:vocab,missing:missing,notes:notes,words:tw.length};
+}
+function startMic(btn,inp,fb,onFinal){
+  if(!btn||!inp)return;
+  btn.addEventListener("click",()=>{
+    /* toggle stop: natural stop, never an error */
+    if(_micState==="listening"||_micState==="starting"){
+      _micCancel=true;_micGen++;
+      try{if(_micRec)_micRec.stop();}catch(e){}
+      if(_micState==="starting"){micIdle(btn);}
+      return;
+    }
+    if(_micState!=="idle")return; /* single session guard */
+    const Ctor=srCtor();
+    if(!Ctor){
+      micIdle(btn);
+      toast("متصفحك لا يدعم التعرف على الكلام. جرّب Chrome أو Edge. ⌨️ اكتب إجابتك بدلًا من الكلام.","err");
+      return;
+    }
+    if(!micSecureOk()){toast("هذا السياق قد يمنع الميكروفون. الأفضل HTTPS أو localhost. ⌨️ يمكنك الكتابة.","err");}
+    _micCancel=false;
+    micSetState(btn,"starting","🎤 بدء الاستماع...");
+    const myGen=++_micGen;
+    micPermProbe(state=>{
+      if(_micCancel||myGen!==_micGen){micIdle(btn);return;}
+      if(state==="denied"){
+        micSetState(btn,"permission-denied");
+        toast("الميكروفون غير مسموح به. اسمح للموقع باستخدام الميكروفون من إعدادات المتصفح ثم حاول مرة أخرى.","err");
+        micSetState(btn,"idle");
+        return;
+      }
+      let r;
+      try{
+        r=new Ctor();
+        r.lang="de-DE";
+        r.continuous=false;
+        r.interimResults=true;
+        r.maxAlternatives=3;
+      }catch(e){micSetState(btn,"error");toast("تعذر إنشاء التعرف على الكلام. 🔄","err");micSetState(btn,"idle");return;}
+      _micRec=r;
+      let finalGot=false,errDone=false;
+      _micFinal="";_micInterim="";
+      if(fb){fb.classList.add("hidden");}
+      r.onstart=function(){micSetState(btn,"listening","🎤 جاري الاستماع... تحدث بالألمانية ⏹ إيقاف");};
+      r.onresult=function(e){
+        try{
+          micSetState(btn,"processing","⏳ معالجة الكلام...");
+          let interim="",final="";
+          for(let k=e.resultIndex||0;k<e.results.length;k++){
+            const res=e.results[k];
+            const t=res[0]&&res[0].transcript?res[0].transcript:"";
+            if(res.isFinal){if(t.length>final.length)final=t;}
+            else if(t.length>interim.length)interim=t;
+          }
+          if(final){finalGot=true;_micFinal=final;inp.value=final;}
+          else if(interim){_micInterim=interim;inp.value=interim;}
+          micSetState(btn,"listening","🎤 جاري الاستماع... تحدث بالألمانية ⏹ إيقاف");
+          if(finalGot&&typeof onFinal==="function"){try{onFinal(final);}catch(ex){}}
+        }catch(ex){}
+      };
+      r.onerror=function(e){
+        const m=srErrorMsg(e);
+        errDone=true;
+        micSetState(btn,"error");
+        if(m)toast(m,"err");
+        _micRec=null;
+        micSetState(btn,"idle");
+      };
+      r.onend=function(){
+        /* natural end (result received or user pressed stop) is NOT an error;
+           after a real error we already toasted — always return to idle */
+        _micRec=null;
+        if(finalGot){micSetState(btn,"success");toast("✅ تم التقاط الإجابة: "+_micFinal,"ok");}
+        micSetState(btn,"idle");
+      };
+      try{r.start();}catch(e){micSetState(btn,"error");toast("تعذر بدء التسجيل. تأكد من السماح بالميكروفون ثم حاول. 🔄","err");micSetState(btn,"idle");}
+    });
+  });
+}
 function renderSp(i){
   const box=$("spBox");
   if(i>=SPEAK_ITEMS.length){box.innerHTML='<div class="quiz-feedback ok">أكملت تمارين التحدث 🎤 أحسنت!</div>';return;}
   const it=SPEAK_ITEMS[i];
-  box.innerHTML='<div class="muted">تمرين '+(i+1)+'/'+SPEAK_ITEMS.length+'</div><h4>'+escapeHtml(it.q)+'</h4><div class="muted">'+escapeHtml(it.ar)+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="spHear">🔊 اسمع السؤال</button></div><div class="quiz-write"><input type="text" id="spIn" autocomplete="off" placeholder="Antwort auf Deutsch..."><button class="btn btn-primary sm" id="spMic">🎤 تحدث</button><button class="btn btn-gold sm" id="spOk">تحقق ✅</button></div><div class="quiz-feedback hidden" id="spFb"></div><div class="muted">مثال إجابة: '+escapeHtml(it.sample)+'</div>';
+  box.innerHTML='<div class="muted">تمرين '+(i+1)+'/'+SPEAK_ITEMS.length+'</div><h4>'+escapeHtml(it.q)+'</h4><div class="muted">'+escapeHtml(it.ar)+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="spHear">🔊 اسمع السؤال</button></div><div class="quiz-write"><input type="text" id="spIn" autocomplete="off" placeholder="Antwort auf Deutsch..."><button class="btn btn-primary sm mic-btn" id="spMic">🎙️ اضغط للتحدث</button><button class="btn btn-gold sm" id="spOk">تحقق ✅</button></div><div class="quiz-feedback hidden" id="spFb"></div><div class="muted">مثال إجابة: '+escapeHtml(it.sample)+'</div>';
   $("spHear").addEventListener("click",()=>speakGerman(it.q));
-  $("spMic").addEventListener("click",()=>{
-    const Ctor=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!Ctor){toast("التعرف الصوتي غير مدعوم — اكتب إجابتك","err");return;}
-    try{
-      const r=new Ctor();r.lang="de-DE";r.interimResults=false;
-      toast("🎤 تحدث الآن...","ok");
-      r.onresult=e=>{const t=e.results[0][0].transcript;$("spIn").value=t;toast("سمعتك: "+t,"ok");};
-      r.onerror=()=>toast("تعذر السماع — حاول مجددًا أو اكتب","err");
-      r.start();
-    }catch(e){toast("تعذر تشغيل المايك","err");}
+  startMic($("spMic"),$("spIn"),$("spFb"),function(final){
+    const fb=$("spFb");fb.classList.remove("hidden");
+    fb.className="quiz-feedback ok";fb.textContent="🎤 سمعتك: "+final+" — اضغط تحقق للتقييم.";
   });
   $("spOk").addEventListener("click",()=>{
     const v=$("spIn").value.trim(), fb=$("spFb");fb.classList.remove("hidden");
     if(v.length<2){fb.className="quiz-feedback no";fb.textContent="اكتب أو قل إجابة أولًا.";return;}
-    fb.className="quiz-feedback ok";fb.textContent="إجابتك: "+v+" — قارنها بالمثال: "+it.sample+" ✅";
-    spDone(i);setTimeout(()=>renderSp(i+1),2400);
+    const ev=evaluateSpoken(v,it.sample);
+    fb.className="quiz-feedback ok";
+    fb.textContent="إجابتك: "+v+" — تطابق الكلمات: "+ev.vocab+"% ("+ev.words+" كلمات)"+(ev.missing.length?" — ناقصك: "+ev.missing.join("، "):" — كلماتك كاملة 🎉")+" — "+ev.notes.join(" ");
+    spDone(i);setTimeout(()=>renderSp(i+1),3200);
   });
 }
 function spDone(i){
