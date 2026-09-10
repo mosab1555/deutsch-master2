@@ -14,6 +14,33 @@ function ensurePlay(){
   if(!S.gweak)S.gweak={};
 }
 function todayPlus(d){const t=new Date();t.setDate(t.getDate()+d);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");}
+/* ===== Shared game economy: coins, combo, lives, difficulty, wins ===== */
+var _combo=0;
+function comboMult(){return _combo>=10?3:_combo>=5?2:1;}
+function comboLabel(){return _combo>=10?"SUPER COMBO 🔥 x3":_combo>=5?"COMBO x2":"🔥"+_combo;}
+function comboHit(){
+  _combo++;
+  if(!S.bestCombo||_combo>S.bestCombo){S.bestCombo=_combo;save();}
+  if(_combo===3||_combo===5||_combo===10)toast("🔥 "+comboLabel()+"!","ok");
+  return comboMult();
+}
+function comboMiss(){_combo=0;}
+function earnCoins(n,src){ensurePlay();S.coins=(S.coins||0)+n;save();try{checkAch();}catch(e){}return S.coins;}
+function coinStr(){return "🪙 "+(S.coins||0);}
+function xpFloat(boxId,txt){
+  try{
+    const box=$(boxId);if(!box)return;
+    const d=document.createElement("div");d.className="xp-float";d.textContent=txt;
+    box.appendChild(d);setTimeout(()=>{try{d.remove();}catch(e){}},1200);
+  }catch(e){}
+}
+function hearts(n,max){let s="";for(let i=0;i<(max||3);i++)s+=i<n?"❤️":"🖤";return s;}
+var GLEVELS=["Easy","Normal","Hard","Expert"];
+function gLevel(id){ensurePlay();if(!S.glevel)S.glevel={};return S.glevel[id]||1;}
+function setGLevel(id,l){ensurePlay();if(!S.glevel)S.glevel={};S.glevel[id]=l;save();}
+function levelLocked(l){try{return l>=3&&(levelFor(S.xp||0).lvl||1)<10;}catch(e){return false;}}
+function levelCfg(l){return {rounds:l===0?5:l===1?8:l===2?10:12,secs:l===0?15:l===1?10:l===2?7:5};}
+function trackWin(win){ensurePlay();if(win)S.wins=(S.wins||0)+1;else S.losses=(S.losses||0)+1;save();}
 /* session tracking (wraps addXP, backward compatible) */
 const _sess={xp:0,n:0,ok:0,words:0,fixed:0,t0:Date.now(),acts:{}};
 if(typeof addXP==="function"&&!addXP._wrapped){
@@ -22,7 +49,7 @@ if(typeof addXP==="function"&&!addXP._wrapped){
   addXP._wrapped=true;
 }
 function sessTick(ok,word,fixed){
-  _sess.n++;if(ok)_sess.ok++;if(word)_sess.words++;if(fixed)_sess.fixed++;
+  _sess.n++;if(ok)_sess.ok++;if(word)_sess.words++;if(fixed){_sess.fixed++;try{S.fixedTotal=(S.fixedTotal||0)+1;}catch(e){}}
   try{const t=todayStr();S.timeLog[t]=(S.timeLog[t]||0)+0;save();}catch(e){}
 }
 setInterval(function(){
@@ -113,18 +140,23 @@ function recommend(){
 }
 /* ---------- Games Hub ---------- */
 const GAMES=[
-{id:"rush",t:"⚡ Article Rush",d:"der/die/das بسرعة مع Combo"},
-{id:"battle",t:"⚔️ Word Battle",d:"كلمة ضد الوقت"},
-{id:"builder",t:"🧩 Sentence Builder",d:"رتّب الجملة"},
-{id:"memory",t:"🃏 Memory Match",d:"طابق الأزواج"},
-{id:"missing",t:"🕳️ Missing Word",d:"أكمل الفراغ"},
-{id:"tf",t:"✅❌ True or False",d:"صح أم خطأ مع السبب"},
-{id:"speed",t:"⏱️ Speed Translation",d:"60 ثانية"},
-{id:"catch",t:"🎧 Listening Catch",d:"ماذا سمعت؟"},
-{id:"detective",t:"🕵️ Grammar Detective",d:"اكتشف الخطأ"},
-{id:"boss",t:"👹 Boss Battle",d:"اهزم الوحش"},
-{id:"pic",t:"📸 Picture Words",d:"ما هذه؟"},
-{id:"music",t:"🎵 Music Mode",d:"أكمل الأغنية"}];
+{id:"rush",t:"⚡ Article Rush",d:"der/die/das بسرعة مع Combo",xp:30},
+{id:"battle",t:"⚔️ Word Battle",d:"كلمة ضد الوقت",xp:30},
+{id:"builder",t:"🧩 Sentence Builder",d:"رتّب الجملة",xp:35},
+{id:"memory",t:"🃏 Memory Match",d:"طابق الأزواج",xp:25},
+{id:"missing",t:"🕳️ Missing Word",d:"أكمل الفراغ",xp:30},
+{id:"tf",t:"✅❌ True or False",d:"صح أم خطأ مع السبب",xp:30},
+{id:"speed",t:"⏱️ Speed Translation",d:"60 ثانية",xp:40},
+{id:"catch",t:"🎧 Listening Catch",d:"ماذا سمعت؟",xp:35},
+{id:"detective",t:"🕵️ Grammar Detective",d:"اكتشف الخطأ",xp:35},
+{id:"boss",t:"👹 Boss Battle",d:"اهزم الوحش",xp:50},
+{id:"pic",t:"📸 Picture Words",d:"ما هذه؟",xp:30},
+{id:"music",t:"🎵 Music Mode",d:"أكمل الأغنية",xp:30},
+{id:"gbattle",t:"⚔️ German Battle",d:"معركة ضد خصم + Boss",xp:60,expert:true},
+{id:"gbomb",t:"💣 Bomb Defusal",d:"فك القنبلة قبل الوقت",xp:60,expert:true},
+{id:"gdetect",t:"🕵️ German Detective",d:"قضية تفاعلية بالقصص",xp:50},
+{id:"gshop",t:"🛒 German Shop",d:"بائع في متجر ألماني",xp:50},
+{id:"grunner",t:"🏃 Word Runner",d:"اجري بالكلمات الصحيحة",xp:50}];
 function trickNouns(){return allWords().filter(w=>w.type==="اسم"&&w.art!=="-"&&/^[A-ZÄÖÜ]/.test(w.de));}
 /* Safe option shuffling: Fisher-Yates over indices, correct answer remapped.
    Scoring/feedback/XP/mistakes must always use the returned .correct. */
@@ -152,21 +184,26 @@ function gameOpts(box,opts,cb){
   box.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{box.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);cb(parseInt(b.getAttribute("data-j"),10),b);}));
 }
 function gameEnd(boxId,title,score,total,xp,key,extra){
-  ensurePlay();gRecord(key,score/total>=0.6,score);
+  ensurePlay();const win=score/total>=0.6;gRecord(key,win,score);
+  trackWin(win);
+  const coins=win?Math.round(10+score*2):Math.round(score);
+  earnCoins(coins,"game:"+key);
   addXP(xp,"game:"+key);markStudyDay();checkAch();
   const acc=total?Math.round(score/total*100):0;
-  $(boxId).innerHTML='<div class="panel glass" style="text-align:center">🎉<h3>'+title+'</h3><div>النتيجة: '+score+'/'+total+' ('+acc+'%)</div><div>⭐+'+xp+' XP'+(extra||"")+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 العب مجددًا</button><button class="btn btn-ghost sm" data-go2="games">🎮 الألعاب</button></div></div>';
+  $(boxId).innerHTML='<div class="panel glass" style="text-align:center">🎉<h3>'+title+'</h3><div>النتيجة: '+score+'/'+total+' ('+acc+'%)</div><div>⭐+'+xp+' XP • '+coinStr()+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 العب مجددًا</button><button class="btn btn-ghost sm" data-go2="games">🎮 الألعاب</button></div></div>';
   $("gAgain").addEventListener("click",()=>startGame(key));
   $(boxId).querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-go2"))));
 }
 function renderGames(){
   ensurePlay();
   const mood=S.daily.mood||"🙂";
-  $("gamesBox").innerHTML='<div class="panel glass"><h3>🎮 German Games</h3><div class="muted">مزاج اليوم: '+mood+' • العب وتعلّم واكسب XP حقيقيًا.</div><div class="row-flex"><button class="btn btn-ghost sm" id="moodBtn">😴🙂🔥 مزاجي</button><button class="btn btn-gold sm" data-go2="challenge">⚡ التحدي اليومي</button></div></div><div class="grid-2">'+GAMES.map(g=>{
-    const s=gStat(g.id);
-    return '<div class="panel glass"><h4>'+g.t+'</h4><div class="muted">'+g.d+'</div><div class="muted">أفضل نتيجة: '+(s.best||0)+' • لعب: '+s.n+'</div><button class="btn btn-primary sm" data-g="'+g.id+'">العب 🚀</button></div>';
+  $("gamesBox").innerHTML='<div class="panel glass"><h3>🎮 Game Center</h3><div class="muted">مزاج اليوم: '+mood+' • '+coinStr()+' • العب وتعلّم واكسب XP وCoins حقيقية.</div><div class="row-flex"><button class="btn btn-ghost sm" id="moodBtn">😴🙂🔥 مزاجي</button><button class="btn btn-gold sm" data-go2="challenge">⚡ التحدي اليومي</button><button class="btn btn-ghost sm" data-go2="me">📊 إحصائياتي</button></div></div><div class="grid-2">'+GAMES.map(g=>{
+    const s=gStat(g.id),lv=gLevel(g.id);
+    const locked=levelLocked(3)&&g.expert;
+    return '<div class="panel glass game-card"><h4>'+g.t+'</h4><div class="muted">'+g.d+'</div><div class="muted">الصعوبة: '+GLEVELS[lv]+' • XP متوقع: ~'+g.xp+'</div><div class="muted">أفضل نتيجة: '+(s.best||0)+' • لعب: '+s.n+'</div>'+(locked?'<div class="muted">🔒 Expert يُفتح عند Level 10</div><button class="btn btn-ghost sm" disabled>مغلق 🔒</button>':'<div class="row-flex"><select data-lv="'+g.id+'" title="الصعوبة">'+GLEVELS.map((l,i)=>'<option value="'+i+'"'+(i===lv?" selected":"")+'>'+l+'</option>').join("")+'</select><button class="btn btn-primary sm" data-g="'+g.id+'">PLAY 🚀</button></div>')+'</div>';
   }).join("")+'</div><div id="gameBox"></div>';
   $("gamesBox").querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>startGame(b.getAttribute("data-g"))));
+  $("gamesBox").querySelectorAll("[data-lv]").forEach(s=>s.addEventListener("change",()=>{setGLevel(s.getAttribute("data-lv"),parseInt(s.value,10));toast("الصعوبة: "+GLEVELS[parseInt(s.value,10)],"ok");}));
   $("gamesBox").querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-go2"))));
   $("moodBtn").addEventListener("click",()=>{
     const ms=["😴","🙂","🔥"];S.daily.mood=ms[(ms.indexOf(S.daily.mood||"🙂")+1)%3];save();renderGames();
@@ -176,7 +213,7 @@ function renderGames(){
 function startGame(id){
   const box=$("gameBox");if(!box){showPage("games");return;}
   box.scrollIntoView({behavior:"smooth"});
-  ({rush:gRush,battle:gBattle,builder:gBuilder,memory:gMemory,missing:gMissing,tf:gTF,speed:gSpeed,catch:gCatch,detective:gDetective,boss:gBoss,pic:gPic,music:gMusic}[id]||gRush)(box);
+  ({rush:gRush,battle:gBattle,builder:gBuilder,memory:gMemory,missing:gMissing,tf:gTF,speed:gSpeed,catch:gCatch,detective:gDetective,boss:gBoss,pic:gPic,music:gMusic,gbattle:gbattle,gbomb:gbomb,gdetect:gdetect,gshop:gshop,grunner:grunner}[id]||gRush)(box);
 }
 /* Game 1: Article Rush */
 function gRush(box){
@@ -490,6 +527,226 @@ function gMusic(box){
   }
   q();
 }
+/* ===== NEW GAMES: Battle / Bomb / Detective-story / Shop / Runner ===== */
+function battleQs(n){
+  const ws=shuffle(allWords()).slice(0,n),out=[];
+  ws.forEach((w,i)=>{
+    if(w.art!=="-"&&i%2===0)out.push({t:"اختر الأداة: ___ "+w.de,opts:["der","die","das"],correct:w.art==="der"?0:w.art==="die"?1:2,w:w,why:w.art+" "+w.de});
+    else{const os=shuffle([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar)));out.push({t:"ما معنى "+fullDe(w)+"؟",opts:os,correct:os.indexOf(w.ar),w:w,why:fullDe(w)+" = "+w.ar});}
+  });
+  return out;
+}
+function gbattle(box){
+  const lv=gLevel("gbattle"),cfg=levelCfg(lv);
+  const pool=battleQs(cfg.rounds);
+  let i=0,php=100,ehp=100,score=0,xp=0,t0=Date.now();
+  function q(){
+    if(i>=pool.length||ehp<=0||php<=0)return end();
+    const Q=pool[i],boss=(i+1)%5===0&&i>0;
+    if(boss)Q.t="👹 BOSS: "+Q.t;
+    let left=cfg.secs;
+    box.innerHTML='<div class="boss-arena">🧑⚔️👹</div><div class="muted">⚔️ جولة '+(i+1)+'/'+pool.length+(boss?" • 👹 BOSS":"")+'</div><div class="stat-bar-row"><span class="lbl">🧑 أنت</span><div class="bar"><div class="fill" style="width:'+php+'%;background:linear-gradient(90deg,#16a34a,#4ade80)"></div></div><b>'+php+'</b></div><div class="stat-bar-row"><span class="lbl">👹 خصم</span><div class="bar"><div class="fill" style="width:'+ehp+'%;background:linear-gradient(90deg,#991b1b,#ef4444)"></div></div><b>'+ehp+'</b></div><div class="muted">⏱️ <b id="gT">'+left+'</b> • '+comboLabel()+' • '+coinStr()+'</div><h3>'+escapeHtml(Q.t)+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    const sh=shuffleOptions(Q.opts,Q.correct);
+    const timer=setInterval(()=>{left--;const e=$("gT");if(e)e.textContent=left;if(left<=0){clearInterval(timer);answer(-1,true);}},1000);
+    gameOpts($("gQ"),sh.opts,j=>{clearInterval(timer);answer(j,false);});
+    function answer(j,timeout){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      const fast=!timeout&&((Date.now()-t0)<cfg.secs*500);
+      const ok=j===sh.correct;
+      if(ok){
+        const mult=comboHit(),dmg=(boss?24:12)+(fast?6:0);
+        ehp=Math.max(0,ehp-dmg);score++;
+        const gain=10*mult+(fast?5:0);
+        xp+=gain;earnCoins(2+mult,"gbattle");xpFloat("gameBox","+"+gain+" XP");
+        fb.className="quiz-feedback ok";fb.textContent="💥 أصبت الخصم -"+dmg+"! "+Q.why+" • "+comboLabel();
+        S.totalCorrect++;
+      }else{
+        comboMiss();php=Math.max(0,php-15);
+        fb.className="quiz-feedback no";fb.textContent="💔 الخصم يهاجم! الصحيح: "+sh.opts[sh.correct]+" — "+Q.why;
+        if(Q.w)recordMistake(Q.w,timeout?"—":sh.opts[j],"gbattle");
+      }
+      S.totalAnswered++;sessTick(ok,Q.w&&Q.w.id);save();i++;t0=Date.now();setTimeout(q,1600);
+    }
+  }
+  function end(){
+    const win=ehp<=0||(php>0&&score>=Math.ceil(pool.length*0.6));
+    trackWin(win);
+    if(win){addXP(xp+30,"gbattle");earnCoins(20,"gbattle-win");}
+    else addXP(Math.round(xp/2),"gbattle");
+    markStudyDay();checkAch();save();
+    box.innerHTML='<div class="panel glass" style="text-align:center">'+(win?"🏆<h3>Victory!</h3>":"💀<h3>Game Over</h3>")+'<div>النقاط: '+score+'/'+pool.length+' • ⭐+'+(win?xp+30:Math.round(xp/2))+' XP • '+coinStr()+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 معركة جديدة</button><button class="btn btn-ghost sm" data-go2="games">🎮</button></div></div>';
+    $("gAgain").addEventListener("click",()=>gbattle(box));
+    box.querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage("games")));
+  }
+  q();
+}
+/* Bomb Defusal */
+function gbomb(box){
+  const lv=gLevel("gbomb");
+  const total=lv===0?75:lv===1?90:lv===2?105:120;
+  const stages=["🔌 Wire","🔢 Code","🔒 Lock","⚡ Final switch"];
+  const pool=battleQs(8);
+  let i=0,left=total,lives=3,score=0,xp=0,timer=null;
+  function tick(){
+    left--;
+    const e=$("gT");if(e)e.textContent=left;
+    const f=$("gTime");if(f)f.style.width=Math.max(0,left/total*100)+"%";
+    if(left<=0){clearInterval(timer);boom();}
+  }
+  function q(){
+    if(i>=pool.length)return defused();
+    if(lives<=0)return boom();
+    const Q=pool[i],st=stages[Math.min(stages.length-1,Math.floor(i/2))];
+    box.innerHTML='<div class="muted">💣 '+st+' • مرحلة '+(i+1)+'/'+pool.length+' • '+hearts(lives,3)+' • '+comboLabel()+'</div><div class="progress sm"><div class="progress-fill red" id="gTime" style="width:'+(left/total*100)+'%"></div></div><div class="muted">⏱️ <b id="gT">'+left+'</b> • '+coinStr()+'</div><h3>💣 '+escapeHtml(Q.t)+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    if(!timer)timer=setInterval(tick,1000);
+    const sh=shuffleOptions(Q.opts,Q.correct);
+    gameOpts($("gQ"),sh.opts,j=>{
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){
+        const mult=comboHit();
+        score++;xp+=10*mult;earnCoins(2,"gbomb");xpFloat("gameBox","+"+(10*mult)+" XP");
+        fb.className="quiz-feedback ok";fb.textContent="✅ تم فك جزء! "+Q.why+" • "+comboLabel();S.totalCorrect++;
+      }else{
+        comboMiss();lives--;left=Math.max(0,left-10);
+        fb.className="quiz-feedback no";fb.textContent="🔴 خطأ! -10 ثوانٍ وخسارة حياة. الصحيح: "+sh.opts[sh.correct]+" — "+Q.why;
+        if(Q.w)recordMistake(Q.w,sh.opts[j],"gbomb");
+      }
+      S.totalAnswered++;sessTick(j===sh.correct,Q.w&&Q.w.id);save();i++;setTimeout(q,1500);
+    });
+  }
+  function boom(){
+    clearInterval(timer);timer=null;comboMiss();trackWin(false);
+    addXP(10,"gbomb");markStudyDay();checkAch();save();
+    box.innerHTML='<div class="panel glass" style="text-align:center">💥<h3>BOOM — Game Over</h3><div>نقاط: '+score+'/'+pool.length+' • ⭐+10 XP</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 حاول مجددًا</button><button class="btn btn-ghost sm" data-go2="games">🎮</button></div></div>';
+    $("gAgain").addEventListener("click",()=>gbomb(box));
+    box.querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage("games")));
+  }
+  function defused(){
+    clearInterval(timer);timer=null;trackWin(true);
+    addXP(xp+30,"gbomb");earnCoins(20,"gbomb-win");markStudyDay();checkAch();save();
+    box.innerHTML='<div class="panel glass" style="text-align:center">🎉<h3>Bomb Defused!</h3><div>نقاط: '+score+'/'+pool.length+' • وقت متبق: '+left+'ث • ⭐+'+(xp+30)+' XP • '+coinStr()+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 قنبلة جديدة</button><button class="btn btn-ghost sm" data-go2="games">🎮</button></div></div>';
+    $("gAgain").addEventListener("click",()=>gbomb(box));
+    box.querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage("games")));
+  }
+  q();
+}
+/* Detective story */
+const GDET_CASE={title:"🕵️ اختفاء في الفندق",scenes:[
+{q:"الموظف: Haben Sie reserviert؟ (هل حجزت؟) ماذا ترد؟",opts:["Ja, auf den Namen Omar.","Ich bin 20.","Tschüs!"],correct:0,why:"تأكيد الحجز بالاسم.",clue:"🧾 clue: الحجز باسم Omar."},
+{q:"النزيل السابق غادر مسرعًا. ماذا تسأل؟",opts:["Wo ist der Bahnhof?","Wann ist er gegangen?","Wie spät ist es?"],correct:1,why:"السؤال عن الوقت يكشف مسار الأحداث.",clue:"🕰️ clue: غادر الساعة 8."},
+{q:"الكاميرا أظهرت حقيبة حمراء. ما لون الحقيبة؟",opts:["Rot","Blau","Schwarz"],correct:0,why:"rote Tasche مذكورة.",clue:"👜 clue: حقيبة حمراء."},
+{q:"من رأى النزيل آخر مرة؟",opts:["Der Kellner um 8 Uhr.","Niemand.","Der Hund."],correct:0,why:"الجرسون شاهده الثامنة.",clue:"🧑‍🍳 clue: الجرسون شاهده."},
+{q:"أين ذهب على الأرجح؟",opts:["Zum Bahnhof.","Ins Bett.","In den See."],correct:0,why:"الحقيبة + الثامنة = قطار.",clue:"🚆 clue: تذكرة قطار ملغاة."}],
+suspects:["الرجل ذو الحقيبة الحمراء","الجرسون","موظف الاستقبال","لا أحد — سافر بنفسه"],answer:0,
+verdict:"المشتبه به: الرجل ذو الحقيبة الحمراء — غادر الثامنة بحقيبة حمراء نحو المحطة."};
+function gdetect(box){
+  let i=0,score=0,clues=[];
+  function scene(){
+    if(i>=GDET_CASE.scenes.length)return suspect();
+    const s=GDET_CASE.scenes[i];
+    const sh=shuffleOptions(s.opts,s.correct);
+    box.innerHTML='<div class="muted">'+GDET_CASE.title+' • مشهد '+(i+1)+'/'+GDET_CASE.scenes.length+' • أدلة: '+clues.length+'</div><h3>'+escapeHtml(s.q)+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,j=>{
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+s.why+"<br>"+s.clue;score++;clues.push(s.clue);S.totalCorrect++;}
+      else{fb.className="quiz-feedback no";fb.textContent="❌ "+s.why;}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(scene,2200);
+    });
+  }
+  function suspect(){
+    const sh=shuffleOptions(GDET_CASE.suspects,GDET_CASE.answer);
+    box.innerHTML='<div class="muted">🔎 الأدلة المجمعة: '+clues.length+'</div><div class="muted">'+clues.map(escapeHtml).join("<br>")+'</div><h3>Who is the suspect? من المشتبه به؟</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,j=>{
+      const fb=$("gFb");fb.classList.remove("hidden");
+      const ok=j===sh.correct;
+      if(ok){score++;S.totalCorrect++;}
+      fb.className=ok?"quiz-feedback ok":"quiz-feedback no";
+      fb.textContent=(ok?"🎉 قضية محلولة! ":"❌ ")+GDET_CASE.verdict;
+      S.totalAnswered++;save();
+      setTimeout(()=>gameEnd("gameBox","🕵️ German Detective",score,GDET_CASE.scenes.length+1,score*8+20,"gdetect"),2400);
+    });
+  }
+  scene();
+}
+/* Shop simulator */
+const SHOP_CASES=[
+{say:"Guten Tag! Ich möchte einen Apfel.",ar:"نهارك سعيد! أريد تفاحة.",need:"Apfel",items:["Apfel","Brot","Milch","Käse"],price:2},
+{say:"Ich brauche Milch. Was kostet sie?",ar:"أحتاج حليبًا. كم سعره؟",need:"Milch",items:["Milch","Tee","Reis","Fisch"],price:3},
+{say:"Haben Sie ein rotes Kleid?",ar:"هل لديك فستان أحمر؟",need:"Kleid",items:["Kleid","Hose","Hemd","Schuhe"],price:25},
+{say:"Ich möchte Brot. Sonst nichts.",ar:"أريد خبزًا. لا شيء آخر.",need:"Brot",items:["Brot","Kuchen","Apfel","Wurst"],price:4},
+{say:"Was kostet der Käse?",ar:"كم سعر الجبن؟",need:"Käse",items:["Käse","Butter","Eier","Milch"],price:5},
+{say:"Zahlen, bitte! Das ist alles.",ar:"الحساب من فضلك! هذا كل شيء.",need:"Kasse",items:["Kasse","Tür","Fenster","Tisch"],price:0}];
+function gshop(box){
+  const pool=shuffle(SHOP_CASES).slice(0,5);
+  let i=0,score=0,xp=0;
+  function q(){
+    if(i>=pool.length){trackWin(score>=3);if(score>=3)earnCoins(20,"gshop-win");addXP(xp+20,"gshop");markStudyDay();checkAch();save();
+      box.innerHTML='<div class="panel glass" style="text-align:center">🛒<h3>انتهت الوردية!</h3><div>زبائن سعداء: '+score+'/'+pool.length+' • ⭐+'+(xp+20)+' XP • '+coinStr()+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 وردية جديدة</button><button class="btn btn-ghost sm" data-go2="games">🎮</button></div></div>';
+      $("gAgain").addEventListener("click",()=>gshop(box));
+      box.querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage("games")));return;}
+    const c=pool[i];
+    const w=findWord(c.need);
+    const itemNames=c.items.map(n=>{const f=findWord(n);return f?fullDe(f):"der "+n;});
+    const needName=w?fullDe(w):"der "+c.need;
+    const sh=placeCorrect(itemNames,needName,"gshop");
+    box.innerHTML='<div class="muted">🛒 زبون '+(i+1)+'/'+pool.length+' • '+comboLabel()+'</div><div class="talk-bot">🧑 '+escapeHtml(c.say)+' <button class="mini-btn" id="gHear">🔊</button><div class="muted">'+escapeHtml(c.ar)+'</div></div><div class="muted">اختر المنتج الصحيح:</div><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    $("gHear").addEventListener("click",()=>speakGerman(c.say));
+    setTimeout(()=>speakGerman(c.say),300);
+    gameOpts($("gQ"),sh.opts,j=>{
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){
+        const mult=comboHit();score++;xp+=10*mult;earnCoins(3,"gshop");xpFloat("gameBox","+"+(10*mult)+" XP");
+        fb.className="quiz-feedback ok";fb.textContent="✅ أحسنت! "+(c.price?("السعر: "+c.price+" يورو. ") :"")+"Danke! • "+comboLabel();S.totalCorrect++;
+      }else{
+        comboMiss();
+        fb.className="quiz-feedback no";fb.textContent="❌ العميل أراد: "+needName;
+        if(w)recordMistake(w,sh.opts[j],"gshop");
+      }
+      S.totalAnswered++;sessTick(j===sh.correct,w&&w.id);save();i++;setTimeout(q,2200);
+    });
+  }
+  q();
+}
+/* Word Runner */
+function grunner(box){
+  const lv=gLevel("grunner");
+  const total=lv===0?8:lv===1?10:12;
+  const pool=shuffle(allWords()).slice(0,total);
+  let i=0,score=0,lives=3,speed=1;
+  function q(){
+    if(i>=pool.length||lives<=0)return end();
+    const w=pool[i];
+    const secs=Math.max(3,Math.round(10-speed));
+    let left=secs;
+    const os=shuffle([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar)));
+    box.innerHTML='<div class="muted">🏃 مسافة '+(i+1)+'/'+pool.length+' • سرعة x'+speed.toFixed(1)+' • '+hearts(lives,3)+' • '+comboLabel()+'</div><div class="progress sm"><div class="progress-fill" style="width:'+(i/pool.length*100)+'%"></div></div><div style="font-size:40px;text-align:center">🏃💨</div><h3 style="direction:ltr;text-align:center;font-size:30px">'+escapeHtml(fullDe(w))+'</h3><div class="muted" style="text-align:center">⏱️ <b id="gT">'+left+'</b></div><div id="gQ"></div>';
+    const timer=setInterval(()=>{left--;const e=$("gT");if(e)e.textContent=left;if(left<=0){clearInterval(timer);answer(-1);}},1000);
+    gameOpts($("gQ"),os,j=>{clearInterval(timer);answer(j);});
+    function answer(j){
+      if(os[j]===w.ar){
+        const mult=comboHit();score++;speed=Math.min(3,speed+0.15);
+        const gain=Math.round(8*mult);
+        addXP(gain,"grunner");earnCoins(2,"grunner");xpFloat("gameBox","+"+gain+" XP");
+        toast("⚡ أسرع! "+comboLabel(),"ok");S.totalCorrect++;
+      }else{
+        comboMiss();lives--;speed=Math.max(1,speed-0.3);
+        recordMistake(w,os[j],"grunner");toast("❌ "+fullDe(w)+" = "+w.ar,"err");
+      }
+      S.totalAnswered++;sessTick(os[j]===w.ar,w.id);save();i++;setTimeout(q,900);
+    }
+  }
+  function end(){
+    const win=lives>0&&score>=Math.ceil(pool.length*0.6);
+    trackWin(win);
+    const xp=Math.round(score*4+(win?25:5));
+    if(win)earnCoins(15,"grunner-win");
+    addXP(xp,"grunner");markStudyDay();checkAch();save();
+    box.innerHTML='<div class="panel glass" style="text-align:center">'+(win?"🏁<h3>وصلت النهاية!</h3>":"😮‍💨<h3>تعبت!</h3>")+'<div>نقاط: '+score+'/'+pool.length+' • ⭐+'+xp+' XP • '+coinStr()+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 اجري مجددًا</button><button class="btn btn-ghost sm" data-go2="games">🎮</button></div></div>';
+    $("gAgain").addEventListener("click",()=>grunner(box));
+    box.querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage("games")));
+  }
+  q();
+}
 /* ---------- Daily Challenge / Leaderboard / Session ---------- */
 function dailySeed(){const t=todayStr();let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return h<0?-h:h;}
 function dailyPlan(){
@@ -520,7 +777,7 @@ function renderChallenge(){
   const allDone=doneN>=items.length;
   let h='<div class="panel glass"><h3>⚡ التحدي اليومي ('+t+')</h3><div class="muted">مزاجك: '+p.mood+' • '+doneN+'/'+items.length+'</div><div class="progress"><div class="progress-fill" style="width:'+Math.round(doneN/Math.max(1,items.length)*100)+'%"></div></div>';
   items.forEach(x=>{h+='<div class="j-stage"><div><b>'+(d[x.id]?"✅ ":"")+escapeHtml(x.t)+'</b></div>'+(d[x.id]?"":'<button class="btn btn-ghost sm" data-cgo="'+x.go+'" data-cid="'+x.id+'">ابدأ</button>')+'</div>';});
-  if(allDone&&!d.celebrated){d.celebrated=1;addXP(30,"daily");save();h+='<div class="quiz-feedback ok">🏆 Daily Challenge Complete! ⭐+30</div>';}
+  if(allDone&&!d.celebrated){d.celebrated=1;addXP(30,"daily");earnCoins(15,"daily");save();h+='<div class="quiz-feedback ok">🏆 Daily Challenge Complete! ⭐+30 • 🪙+15</div>';}
   h+='</div>';
   h+='<div class="panel glass"><h3>👥 المتصدرون (تجريبي محلي — بدون إنترنت)</h3><div class="muted">نظام قابل للربط بسيرفر لاحقًا.</div><div id="lbBox"></div></div>';
   h+='<div class="panel glass"><h3>🎉 نتائج الجلسة</h3><div class="muted">منذ فتح الموقع.</div><div class="row-flex"><button class="btn btn-gold sm" id="sessEnd">إنهاء الجلسة وعرض النتيجة</button></div><div id="sessBox"></div></div>';
@@ -569,6 +826,12 @@ function renderMe(){
   // rewards
   const ds=achDefs(),got=ds.filter(a=>S.ach[a.id]).length;
   h+='<div class="panel glass"><h3>🎁 مكافآتي</h3><div class="muted">🏆 '+got+'/'+ds.length+' • 🧊 Freeze: '+(S.freeze.n||0)+' • 👹 Boss wins: '+(S.best.boss||0)+' • ⏱️ أفضل 60 ثانية: '+(gStat("speed").best||0)+'</div></div>';
+  // game stats
+  let gp=0;Object.keys(S.gstats||{}).forEach(k=>{gp+=S.gstats[k].n||0;});
+  let fav="—",favN=0;Object.keys(S.gstats||{}).forEach(k=>{if((S.gstats[k].n||0)>favN){favN=S.gstats[k].n;const g=GAMES.find(x=>x.id===k);fav=g?g.t:k;}});
+  const wins=S.wins||0,losses=S.losses||0;
+  const wr=(wins+losses)?Math.round(wins/(wins+losses)*100):0;
+  h+='<div class="panel glass"><h3>📊 My Game Stats</h3><div class="muted">🎮 ألعاب: '+gp+' • ✅ فوز: '+wins+' • ❌ خسارة: '+losses+' • 🏆 فوز: '+wr+'%</div><div class="progress"><div class="progress-fill" style="width:'+wr+'%"></div></div><div class="muted">⭐ XP الكلي: '+(S.xp||0)+' • '+coinStr()+' • 🔥 أفضل كومبو: '+(S.bestCombo||0)+' • ❤️ اللعبة المفضلة: '+fav+'</div></div>';
   $("meBox").innerHTML=h;
   $("meBox").querySelectorAll("[data-av]").forEach(b=>b.addEventListener("click",()=>{S.avatar.face=b.getAttribute("data-av");save();renderMe();toast("تم تغيير الصورة "+S.avatar.face,"ok");}));
   $("meBox").querySelectorAll("[data-fr]").forEach(b=>b.addEventListener("click",()=>{S.avatar.frame=b.getAttribute("data-fr");save();renderMe();toast("تم تغيير الإطار 🎉","ok");}));

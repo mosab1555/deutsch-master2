@@ -352,3 +352,18 @@ html[data-theme="light"] .talk-bot{background:rgba(0,0,0,.05)}
 .mic-btn{min-height:52px;font-size:18px}
 .mic-btn.live{background:linear-gradient(135deg,#991b1b,#ef4444)!important;color:#fff;border-color:transparent;animation:micpulse 1.2s infinite}
 @keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{box-shadow:0 0 0 10px rgba(239,68,68,0)}}
+/* Games platform */
+.game-card{transition:transform .25s ease,box-shadow .25s ease}
+.game-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(var(--v2),.35)}
+.game-card select{background:rgba(0,0,0,.25);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 10px;font-size:14px}
+html[data-theme="light"] .game-card select{background:#fff}
+.xp-float{position:sticky;display:inline-block;margin:6px auto;padding:4px 14px;border-radius:12px;background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;font-weight:800;animation:xpUp 1.2s ease forwards;z-index:5}
+@keyframes xpUp{0%{opacity:0;transform:translateY(8px) scale(.9)}20%{opacity:1;transform:translateY(0) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+.hit-shake{animation:shakeBad .4s ease}
+.dmg-flash{animation:dmgFlash .5s ease}
+@keyframes dmgFlash{0%{filter:brightness(1)}30%{filter:brightness(1.6) saturate(1.5)}100%{filter:brightness(1)}}
+.boss-arena{font-size:52px;text-align:center;animation:bossIdle 2s ease-in-out infinite}
+@keyframes bossIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.boss-arena,.xp-float{animation:none}}
+.quiz-opt,.btn{min-height:44px}
+@media (max-width:860px){.quiz-opt{min-height:52px;font-size:16px}.game-card select{font-size:16px;padding:10px}}

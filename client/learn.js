@@ -36,7 +36,17 @@ function achDefs(){
     {id:"g10",t:"النحوي",d:"أتمم 10 دروس قواعد",ok:gl>=10,p:Math.min(gl,10)+"/10"},
     {id:"li10",t:"المستمع",d:"أكمل 10 تمارين استماع",ok:(S.lstats.lok||0)>=10,p:Math.min(S.lstats.lok||0,10)+"/10"},
     {id:"sp5",t:"المتحدث",d:"أكمل 5 تمارين تحدث",ok:(S.lstats.sok||0)>=5,p:Math.min(S.lstats.sok||0,5)+"/5"},
-    {id:"a1",t:"بطل A1",d:"اجتز الاختبار النهائي",ok:a1done,p:a1done?"تم":"لم يتم"}
+    {id:"a1",t:"بطل A1",d:"اجتز الاختبار النهائي",ok:a1done,p:a1done?"تم":"لم يتم"},
+    {id:"art50",t:"🏆 Article Killer",d:"50 إجابة أدوات صحيحة",ok:(S.gstats&&S.gstats.rush&&S.gstats.rush.ok||0)>=50,p:Math.min((S.gstats&&S.gstats.rush&&S.gstats.rush.ok||0),50)+"/50"},
+    {id:"li20",t:"🎧 Listening Ear",d:"20 تمرين استماع",ok:(S.lstats.lok||0)>=20,p:Math.min(S.lstats.lok||0,20)+"/20"},
+    {id:"sp10",t:"🎙️ Brave Speaker",d:"10 جلسات تحدث",ok:(S.lstats.sok||0)>=10,p:Math.min(S.lstats.sok||0,10)+"/10"},
+    {id:"st14",t:"🔥 No Excuses",d:"14 يوم Streak",ok:(S.streak.count||0)>=14,p:Math.min(S.streak.count||0,14)+"/14"},
+    {id:"mh50",t:"🧠 Mistake Hunter",d:"صحح 50 خطأ",ok:(S.fixedTotal||0)>=50,p:Math.min(S.fixedTotal||0,50)+"/50"},
+    {id:"combo10",t:"🔥 10 Combo",d:"كومبو 10",ok:(S.bestCombo||0)>=10,p:Math.min(S.bestCombo||0,10)+"/10"},
+    {id:"xp10k",t:"⭐ 10,000 XP",d:"اجمع 10000 XP",ok:(S.xp||0)>=10000,p:(S.xp||0)+"/10000"},
+    {id:"gm100",t:"🎮 Game Master",d:"العب 100 لعبة",p:(function(){let n=0;try{Object.keys(S.gstats||{}).forEach(k=>{n+=S.gstats[k].n||0;});}catch(e){}return Math.min(n,100)+"/100";})(),ok:(function(){let n=0;try{Object.keys(S.gstats||{}).forEach(k=>{n+=S.gstats[k].n||0;});}catch(e){}return n>=100;})()},
+    {id:"gr100",t:"📚 Bookworm",d:"100 اختبار ودرس",p:Math.min((S.testsTaken||0)+gl,100)+"/100",ok:((S.testsTaken||0)+gl)>=100},
+    {id:"gerdy",t:"🇩🇪 Germany Ready",d:"أكمل مسار البقاء",ok:(function(){try{return S.journey&&S.journey.talk&&Object.keys(S.journey.talk).length>=5;}catch(e){return false;}})(),p:"محادثات"}
   ];
 }
 function checkAch(){
