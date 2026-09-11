@@ -66,6 +66,11 @@ function setHeaderLang(v){
 }
 function initHeaderLang(){
   try{
+    /* sidebar + settings language buttons (work with or without the old header menu) */
+    document.querySelectorAll("[data-setlang]").forEach(function(b){
+      if(b._wired)return;b._wired=true;
+      b.addEventListener("click",function(){setHeaderLang(b.getAttribute("data-setlang"));});
+    });
     const btn=$("langBtn"),menu=$("langMenu");
     if(!btn||!menu||btn._wired)return;btn._wired=true;
     const close=function(){menu.hidden=true;btn.setAttribute("aria-expanded","false");};
@@ -75,10 +80,6 @@ function initHeaderLang(){
     });
     menu.querySelectorAll("[data-lang]").forEach(function(b){
       b.addEventListener("click",function(){setHeaderLang(b.getAttribute("data-lang"));close();});
-    });
-    document.querySelectorAll("[data-setlang]").forEach(function(b){
-      if(b._wired)return;b._wired=true;
-      b.addEventListener("click",function(){setHeaderLang(b.getAttribute("data-setlang"));});
     });
     document.addEventListener("click",function(e){
       try{if(!menu.hidden&&!menu.contains(e.target)&&!btn.contains(e.target))close();}catch(_){}
