@@ -115,7 +115,8 @@ function renderSxHome(H){
   const chs=sentexChapters();
   const bank=sentexBank();
   if(!bank.length){box.innerHTML='<div class="panel glass">'+t("sx_empty")+'</div>';return;}
-  const p=H.name; /* id prefix: sx | px */
+  const p=H.name; /* id prefix for data-attrs/buttons: sentex | practice */
+  const runId=(H.name==="practice")?"pxRun":"sxRun"; /* MUST match renderSxQ/finishSx/startSxRun */
   let h='<div class="panel glass"><h3>'+t(H.titleKey)+'</h3>'
     +'<div class="muted">'+t("sx_sub")+" ("+bank.length+" "+t("sx_questions")+"))</div></div>";
   h+='<div class="grid-2">';
@@ -138,7 +139,7 @@ function renderSxHome(H){
     +'</div><div class="row-flex"><button class="btn btn-gold sm" id="'+p+'MultiStart">'+t("sx_multi_btn")+'</button></div></div>';
   /* mixed */
   h+='<div class="panel glass"><h3>'+t("sx_mixed_h")+'</h3><div class="muted">'+t("sx_mixed_sub")+" ("+bank.length+" "+t("sx_questions")+'</div><div class="row-flex"><button class="btn btn-green sm" id="'+p+'MixedStart">'+t("sx_mixed_btn")+'</button></div></div>';
-  h+='<div id="'+p+'Run"></div>';
+  h+='<div id="'+runId+'"></div>';
   box.innerHTML=h;
   box.querySelectorAll("[data-"+p+"-single]").forEach(function(b){
     b.addEventListener("click",function(){startSxRun(H,[b.getAttribute("data-"+p+"-single")],"single");});

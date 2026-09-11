@@ -67,6 +67,17 @@ html[data-theme="light"] #notifDrop{background:#fff}
 html[data-theme="light"] select,html[data-theme="light"] input{background:#fff}
 .speed-select{padding:9px}
 .streak-pill{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-weight:800;padding:9px 14px;border-radius:20px;box-shadow:0 0 15px rgba(245,158,11,.5)}
+/* Header language selector: always visible (incl. mobile <=860px) */
+.lang-wrap{position:relative}
+.lang-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;padding:8px 10px;line-height:1}
+.lang-btn svg{flex:none;display:block}
+.lang-btn-label{font-size:13px;font-weight:800;white-space:nowrap}
+.lang-menu{position:absolute;top:calc(100% + 8px);inset-inline-end:0;min-width:180px;max-width:70vw;padding:6px;border-radius:14px;z-index:80;display:flex;flex-direction:column;gap:2px}
+.lang-menu[hidden]{display:none}
+.lang-menu button{display:flex;align-items:center;gap:8px;min-height:44px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:var(--text);font-size:15px;font-weight:700;text-align:start;cursor:pointer;font-family:inherit}
+.lang-menu button:hover{background:rgba(var(--v2),.12)}
+.lang-menu button[aria-checked="true"]{background:rgba(var(--v2),.16);outline:1px solid var(--border)}
+@media(max-width:860px){.top-actions{gap:6px}.lang-btn{padding:8px}.lang-btn-label{font-size:12px}}
 .hamburger{display:none}
 .content{padding:20px 18px 60px;max-width:1200px;width:100%;margin:0 auto}
 .page{display:none;animation:pageIn .45s ease}

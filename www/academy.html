@@ -93,6 +93,17 @@
         <div class="search-results" id="searchResults"></div>
       </div>
       <div class="top-actions">
+        <div class="lang-wrap">
+          <button class="icon-btn lang-btn" id="langBtn" aria-label="Change language" aria-haspopup="menu" aria-expanded="false" data-i18n-aria="lang_btn_aria" data-i18n-title="lang_title" title="اللغة">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.9 5.7 3.9 9s-1.4 6.4-3.9 9c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3z"/></svg>
+            <span class="lang-btn-label" id="langBtnLabel">عربي</span>
+          </button>
+          <div class="lang-menu glass" id="langMenu" role="menu" hidden>
+            <button type="button" role="menuitemradio" aria-checked="true" data-lang="ar">🇪🇬 العربية</button>
+            <button type="button" role="menuitemradio" aria-checked="false" data-lang="de">🇩🇪 Deutsch</button>
+            <button type="button" role="menuitemradio" aria-checked="false" data-lang="en">🇬🇧 English</button>
+          </div>
+        </div>
         <select id="speedSelect" class="speed-select" data-i18n-title="speed_title" title="سرعة النطق">
           <option value="0.5">0.5x</option>
           <option value="0.75">0.75x</option>
