@@ -1570,7 +1570,7 @@ function renderVocab(){
   $("vocabCount").textContent=list.length;
   const g=$("vocabGrid");g.innerHTML="";
   if(!list.length){g.innerHTML='<div class="panel glass">لا توجد نتائج. جرّب بحثًا آخر أو أضف كلمة جديدة ➕</div>';return;}
-  list.slice(0,120).forEach(w=>g.appendChild(wordCard(w)));
+  list.forEach(w=>g.appendChild(wordCard(w)));
 }
 ["vocabSearch","filterCategory","filterType","filterStatus","filterArticle","filterKapitel","filterLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",renderVocab);});
 
