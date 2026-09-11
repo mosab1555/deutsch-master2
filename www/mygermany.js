@@ -39,6 +39,20 @@ function mygSchedule(){
     {slot:"18:00",t:"Einkaufen",de:"Ich kaufe Brot und Milch.",ar:"أشتري خبزًا وحليبًا.",skill:"money",kind:"shopbuy"},
     {slot:"19:00",t:"Freunde treffen",de:"Ich treffe meine Freunde.",ar:"أقابل أصدقائي.",skill:"social",kind:"speak"}];
 }
+/* Free-answer questions for the "speak" slot (A1, full German sentences).
+   q = question shown (German, full sentence) | qAr = question translation (muted).
+   a = INTERNAL model answer: used only for post-submit evaluation, NEVER rendered before submit. */
+const MYG_SPEAK_Q=[
+ {q:"Wen triffst du am Abend?",qAr:"من تقابل في المساء؟",a:"Ich treffe meine Freunde."},
+ {q:"Was möchtest du in Deutschland machen?",qAr:"ماذا تريد أن تفعل في ألمانيا؟",a:"Ich möchte eine Ausbildung machen."},
+ {q:"Wo möchtest du in Deutschland wohnen?",qAr:"أين تريد أن تعيش في ألمانيا؟",a:"Ich möchte in Berlin wohnen."},
+ {q:"Warum möchtest du nach Deutschland gehen?",qAr:"لماذا تريد الذهاب إلى ألمانيا؟",a:"Ich möchte dort arbeiten und lernen."},
+ {q:"Was möchtest du in Deutschland lernen?",qAr:"ماذا تريد أن تتعلم في ألمانيا؟",a:"Ich möchte Deutsch lernen."},
+ {q:"Was isst du gern zum Frühstück?",qAr:"ماذا تحب أن تأكل على الفطور؟",a:"Ich esse gern Brot und Käse."}];
+function mygSpeakQ(){
+  try{const m=ensureMyg();return MYG_SPEAK_Q[(Math.max(1,m.day)-1)%MYG_SPEAK_Q.length];}
+  catch(e){return MYG_SPEAK_Q[0];}
+}
 /* dynamic events pool */
 const MYG_EVENTS=[
 {id:"ev-train",t:"🚆 Dein Zug hat Verspätung.",q:"Was machst du?",opts:[{t:"Ich warte.",fx:{xp:10},r:"Geduldig. +10 XP."},{t:"Ich nehme einen anderen Zug.",fx:{xp:15,skill:["trans",4]},r:"Flexibel! Transport +4."},{t:"Ich rufe meinen Arbeitgeber an.",fx:{xp:20,skill:["work",3],coin:0},r:"Professionell! Arbeit +3."}]},
@@ -137,13 +151,21 @@ function mygRunDay(){
   const m=ensureMyg();
   const box=$("mygermanyBox");
   const sched=mygSchedule();
-  let i=0,earned=0;
+  let i=0,earned=0,curSq=null;
   const dayLog=[];
   function act(){
     if(i>=sched.length)return events();
     const a=sched[i];
-    box.innerHTML='<div class="muted">📅 اليوم '+m.day+' • '+a.slot+' • '+escapeHtml(a.t)+'</div><div class="panel glass"><div class="ex-de-l">'+escapeHtml(a.de)+' <button class="mini-btn" id="mygHear">🔊</button></div><div class="ex-ar">'+escapeHtml(a.ar)+'</div><div id="mygQ"></div></div>';
-    $("mygHear").addEventListener("click",()=>speakGerman(a.de));
+    if(a.kind==="speak"){
+      /* Q&A flow: full German question + muted Arabic translation only.
+         The model answer stays internal until the user submits. */
+      curSq=mygSpeakQ();
+      box.innerHTML='<div class="muted">📅 اليوم '+m.day+' • '+a.slot+' • '+escapeHtml(a.t)+'</div><div class="panel glass"><div class="muted">Frage</div><div class="ex-de-l" id="mygQDe">'+escapeHtml(curSq.q)+' <button class="mini-btn" id="mygHear">🔊</button></div><div class="muted" id="mygQAr">'+escapeHtml(curSq.qAr)+'</div><div id="mygQ"></div></div>';
+      $("mygHear").addEventListener("click",()=>speakGerman(curSq.q));
+    }else{
+      box.innerHTML='<div class="muted">📅 اليوم '+m.day+' • '+a.slot+' • '+escapeHtml(a.t)+'</div><div class="panel glass"><div class="ex-de-l">'+escapeHtml(a.de)+' <button class="mini-btn" id="mygHear">🔊</button></div><div class="ex-ar">'+escapeHtml(a.ar)+'</div><div id="mygQ"></div></div>';
+      $("mygHear").addEventListener("click",()=>speakGerman(a.de));
+    }
     const qb=$("mygQ");
     if(a.kind==="vocab"){
       const ws=mygCatWords(a.cat,1),w=ws[0];
@@ -196,7 +218,7 @@ function mygRunDay(){
         S.totalAnswered++;save();i++;setTimeout(act,2000);
       }));
     }else if(a.kind==="speak"){
-      qb.innerHTML='<div class="muted">تحدث بالألمانية (أو اكتب إذا كان المايك غير مدعوم):</div><div class="quiz-write"><input type="text" id="mygSpk" placeholder="Antwort auf Deutsch..."><button class="btn btn-primary sm" id="mygMic">🎤</button><button class="btn btn-gold sm" id="mygSpkOk">تحقق ✅</button></div><div class="quiz-feedback hidden" id="mygFb"></div><div class="muted">مثال: '+escapeHtml(a.de)+'</div>';
+      qb.innerHTML='<div class="muted">Deine Antwort — فكّر بنفسك واكتب إجابتك بالألمانية:</div><div class="quiz-write"><input type="text" id="mygSpk" placeholder="Antwort auf Deutsch..."><button class="btn btn-primary sm" id="mygMic">🎤</button><button class="btn btn-gold sm" id="mygSpkOk">تحقق ✅</button></div><div class="quiz-feedback hidden" id="mygFb"></div>';
       try{
         startMic($("mygMic"),$("mygSpk"),$("mygFb"),function(t){toast("سمعتك ✅","ok");});
       }catch(e){}
@@ -204,7 +226,7 @@ function mygRunDay(){
         const v=$("mygSpk").value.trim(),fb=$("mygFb");fb.classList.remove("hidden");
         if(v.length<2){fb.className="quiz-feedback no";fb.textContent="تحدث أو اكتب إجابة أولًا.";return;}
         let ev={vocab:50,missing:[]};
-        try{if(typeof evaluateSpoken==="function")ev=evaluateSpoken(v,a.de);}catch(e){}
+        try{if(typeof evaluateSpoken==="function")ev=evaluateSpoken(v,(curSq&&curSq.a)||a.de);}catch(e){}
         fb.className="quiz-feedback ok";
         fb.textContent="إجابتك: "+v+" — تطابق الكلمات: "+ev.vocab+"%"+(ev.missing.length?" • ناقصك: "+ev.missing.join("، "):"")+" ✅";
         earned+=15;addXP(15,"myg-speak");mygAddSkill(a.skill,4);mygAddSkill("comm",2);dayLog.push(a.t+" ✅");
