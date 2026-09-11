@@ -78,6 +78,7 @@ html[data-theme="light"] select,html[data-theme="light"] input{background:#fff}
 .lang-menu button:hover{background:rgba(var(--v2),.12)}
 .lang-menu button[aria-checked="true"]{background:rgba(var(--v2),.16);outline:1px solid var(--border)}
 @media(max-width:860px){.top-actions{gap:6px}.lang-btn{padding:8px}.lang-btn-label{font-size:12px}}
+@media(min-width:861px){.lang-wrap{display:none}}
 .hamburger{display:none}
 .content{padding:20px 18px 60px;max-width:1200px;width:100%;margin:0 auto}
 .page{display:none;animation:pageIn .45s ease}
