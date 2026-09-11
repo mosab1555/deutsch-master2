@@ -1,10 +1,12 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v12";
+var DM_CACHE = "german-academy-v13";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./world.js", "./study.js", "./life.js", "./mygermany.js", "./dlife.js",
   "./launch.css", "./launch.js",
   "./manifest.json",
+  "./img/words/6.jpeg", "./img/words/7.jpeg", "./img/words/9.jpeg", "./img/words/10.jpeg",
+  "./img/words/11.jpeg", "./img/words/12.jpeg", "./img/words/25.jpeg",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png"
 ];
 self.addEventListener("install", function (e) {

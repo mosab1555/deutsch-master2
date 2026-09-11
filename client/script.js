@@ -208,7 +208,20 @@ const RAW_K1 = [
 ["wie","-","كيف","في","أداة","General","Wie geht's?","كيف الحال؟"],
 ["wo","-","أين","فو","أداة","General","Wo wohnen Sie?","أين تسكن؟"],
 ["woher","-","من أين","فوهير","أداة","General","Woher kommen Sie?","من أين أنت؟"],
-["welch-","-","أي","فلش","أداة","General","Welche Sprachen sprechen Sie?","أي لغات تتحدث؟"]
+["welch-","-","أي","فلش","أداة","General","Welche Sprachen sprechen Sie?","أي لغات تتحدث؟"],
+["gut","-","جيد","جوت","صفة","Adjectives"],
+["langsam","-","بطيء - ببطء","لانجسام","صفة","Adjectives"],
+["minus","-","سالب","مينوس","مفردات","Numbers"],
+["guten Morgen","-","صباح الخير","جوتن مورجن","مفردات","General","Guten Morgen, Frau Weber!","صباح الخير سيدة فيبر!"],
+["guten Tag","-","طاب يومك","جوتن تاج","مفردات","General","Guten Tag, Herr Schmidt!","طاب يومك سيد شميدت!"],
+["guten Abend","-","مساء الخير","جوتن آبند","مفردات","General","Guten Abend! Wie geht es Ihnen?","مساء الخير! كيف حالك؟"],
+["hallo","-","أهلًا","هالو","مفردات","General","Hallo! Ich heiße Ali.","أهلًا! اسمي علي."],
+["auf Wiedersehen","-","إلى اللقاء","أوف فيدر زين","مفردات","General","Tschüs! Auf Wiedersehen!","مع السلامة! إلى اللقاء!"],
+["gute Nacht","-","تصبح على خير","جوته ناخت","مفردات","General","Gute Nacht! Bis morgen!","تصبح على خير! إلى الغد!"],
+["tschüs","-","مع السلامة","تشوس","مفردات","General","Tschüs! Bis bald!","مع السلامة! إلى اللقاء قريبًا!"],
+["ciao","-","وداعًا","تشاو","مفردات","General","Ciao! Wir sehen uns!","وداعًا! نراك!"],
+["bis bald","-","إلى اللقاء","بيس بالد","مفردات","General","Bis bald! Tschüs!","إلى اللقاء قريبًا! مع السلامة!"],
+["wie geht's?","-","كيف الحال","في جيتس","مفردات","General","Hallo! Wie geht's?","أهلًا! كيف الحال؟"]
 ];
 
 const RAW_K2 = [
@@ -418,7 +431,12 @@ const RAW_K2 = [
 ["geschieden","-","منفصل","جِشيدن","صفة","Adjectives"],
 ["verwitwet","-","أرمل","فيرفتفت","صفة","Adjectives"],
 ["verlobt","-","خاطب","فيرلوبت","صفة","Adjectives"],
-["schwanger","-","حامل","شفانجر","صفة","Adjectives"]
+["schwanger","-","حامل","شفانجر","صفة","Adjectives"],
+["eigene","-","خاص","أيجنه","صفة","Adjectives"],
+["pro","-","لكل","برو","أداة","General"],
+["von ... bis","-","من ... حتى","فون ... بيس","مفردات","General"],
+["einhundert","-","مائة","أين هوندرت","مفردات","Numbers"],
+["eintausend","-","ألف","أين تاوزنت","مفردات","Numbers"]
 ];
 const RAW_K3 = [
 ["aufstehen","-","يستيقظ","أوف شتين","فعل","Common Verbs","Ich stehe früh auf.","أنا أستيقظ مبكرًا."],
@@ -533,7 +551,13 @@ const RAW_K3 = [
 ["vielen Dank","-","شكرًا جزيلًا","فيلن دانك","مفردات","General","Vielen Dank!","شكرًا جزيلًا!"],
 ["grüß Gott","-","حياك الله (جنوب ألمانيا)","جروس جوت","مفردات","General","Grüß Gott!","حياك الله!"],
 ["grüezi","-","مرحبًا (سويسرا)","جرويتسي","مفردات","General","Grüezi!","مرحبًا!"],
-["moin","-","صباح الخير (شمال ألمانيا)","موين","مفردات","General","Moin!","صباح الخير!"]
+["moin","-","صباح الخير (شمال ألمانيا)","موين","مفردات","General","Moin!","صباح الخير!"],
+["single","-","أعزب [سينجل]","سينجل","مفردات","General"],
+["kreisen über","-","يدور حول","كرايزن أوبا","فعل","Common Verbs"],
+["Theater-Festival","das","مهرجان مسرحي","تياتر فستيفال","اسم","General"],
+["bis zu","-","حتى","بيس تسو","مفردات","General"],
+["dies-","-","هذا - هذه - هؤلاء","ديز","مفردات","General"],
+["erst-","-","أول","إرست","صفة","Time"]
 ];
 
 const RAW_K4 = [
@@ -850,7 +874,9 @@ const RAW_K5 = [
 ["vorher","-","قبل ذلك","فور هير","مفردات","Time","Wie vorher.","كما قبل."],
 ["wie lange","-","كم المدة؟","في لانجه","مفردات","Time","Wie lange arbeitest du?","كم تعمل؟"],
 ["willkommen","-","مرحبًا","فِل كومن","مفردات","General","Willkommen!","مرحبًا بك!"],
-["zu Hause","-","في البيت","تسو هاوزه","مفردات","Home","Ich bin zu Hause.","أنا في البيت."]
+["zu Hause","-","في البيت","تسو هاوزه","مفردات","Home","Ich bin zu Hause.","أنا في البيت."],
+["auf Wiederhören","-","إلى اللقاء (تليفونيا)","أوف فيدر هورن","مفردات","General","Auf Wiederhören! Bis morgen!","إلى اللقاء! إلى الغد!"],
+["Liebe Grüße","-","تحياتي القلبية","ليبه جروسه","مفردات","General","Liebe Grüße, dein Ali","تحياتي القلبية، علي"]
 ];
 /* ============ الجمع الكامل لكل اسم "De|art" -> الجمع ============ */
 const PLURAL_A = {
@@ -861,9 +887,23 @@ const PLURAL_A = {
 const PLURAL_B = {
 "Bild|das":"Bilder","Ding|das":"Dinge","Event|das":"Events","Haus|das":"Häuser","Hotel|das":"Hotels","Konzert|das":"Konzerte","Konzerthaus|das":"Konzerthäuser","Mal|das":"Male","Meer|das":"Meere","Orchester|das":"Orchester","Plakat|das":"Plakate","Rathaus|das":"Rathäuser","Requiem|das":"Requiems","Symbol|das":"Symbole","Ticket|das":"Tickets","Ziel|das":"Ziele","Festival|das":"Festivals","Arm|der":"Arme","Bahnhof|der":"Bahnhöfe","Besucher|der":"Besucher","Chor|der":"Chöre","Film|der":"Filme","Filmfan|der":"Filmfans","Fluss|der":"Flüsse","Gast|der":"Gäste","Hafen|der":"Häfen","Imperativ|der":"Imperative","Konsonant|der":"Konsonanten","Markt|der":"Märkte","Mensch|der":"Menschen","Meter|der":"Meter","Monat|der":"Monate","Ort|der":"Orte","Park|der":"Parks","Plan|der":"Pläne","Regisseur|der":"Regisseure","Satz|der":"Sätze","Schauspieler|der":"Schauspieler","Solist|der":"Solisten","Star|der":"Stars","Start|der":"Starts","Test|der":"Tests","Tisch|der":"Tische","Lampe|die":"Lampen","Turm|der":"Türme","Vokal|der":"Vokale","Weg|der":"Wege","Zug|der":"Züge","See|der":"Seen","Ausstellung|die":"Ausstellungen","Bauzeit|die":"Bauzeiten","Bildgeschichte|die":"Bildgeschichten","Brücke|die":"Brücken","Fahrkarte|die":"Fahrkarten","Gruppe|die":"Gruppen","Jahreszeit|die":"Jahreszeiten","Kirche|die":"Kirchen","Konzertkarte|die":"Konzertkarten","Kosten|die":"Kosten","Kunsthalle|die":"Kunsthallen","Lösung|die":"Lösungen","Mitte|die":"Mitten","Position|die":"Positionen","Produktion|die":"Produktionen","Stadttour|die":"Stadttouren","Station|die":"Stationen","Taxifahrt|die":"Taxifahrten","Wegbeschreibung|die":"Wegbeschreibungen","Welt|die":"Welten","See|die":"Seen",
 "Fleisch|das":"Fleisch","Obst|das":"Obst","Gemüse|das":"Gemüse","Abendessen|das":"Abendessen","Brot|das":"Brote","Brötchen|das":"Brötchen","Dessert|das":"Desserts","Ei|das":"Eier","Essen|das":"Essen","Fett|das":"Fette","Fischgericht|das":"Fischgerichte","Frühstück|das":"Frühstücke","Gericht|das":"Gerichte","Geschäft|das":"Geschäfte","Getränk|das":"Getränke","Hähnchen|das":"Hähnchen","Huhn|das":"Hühner","Lebensmittel|das":"Lebensmittel","Maß|das":"Maße","Mittagessen|das":"Mittagessen","Müsli|das":"Müslis","Paar|das":"Paare","Salz|das":"Salze","Stück|das":"Stücke","Sushi|das":"Sushis","Team|das":"Teams","Joghurt|der":"Joghurts","Keks|der":"Kekse","Hahn|der":"Hähne","Becher|der":"Becher","Cent|der":"Cents","Champignon|der":"Champignons","Chef|der":"Chefs","Döner|der":"Döner","Einkauf|der":"Einkäufe","Einkaufswagen|der":"Einkaufswagen","Einkaufszettel|der":"Einkaufszettel","Kassenzettel|der":"Kassenzettel","Emmentaler|der":"Emmentaler","Essig|der":"Essige","Fisch|der":"Fische","Kaffee|der":"Kaffees","Käse|der":"Käse","Kuchen|der":"Kuchen","Mittag|der":"Mittage","Orangensaft|der":"Orangensäfte","Preis|der":"Preise","Saft|der":"Säfte","Salat|der":"Salate","Schinken|der":"Schinken","Spaß|der":"Späße","Supermarkt|der":"Supermärkte","Tee|der":"Tees","Altstadt|die":"Altstädte","Arbeit|die":"Arbeiten","Arbeitszeit|die":"Arbeitszeiten","Assoziation|die":"Assoziationen","Bäckerei|die":"Bäckereien","Banane|die":"Bananen","Birne|die":"Birnen","Dose|die":"Dosen","Einladung|die":"Einladungen","Grillparty|die":"Grillpartys","Gurke|die":"Gurken","Henne|die":"Hennen","Kantine|die":"Kantinen","Kartoffel|die":"Kartoffeln","Limonade|die":"Limonaden","Mahlzeit|die":"Mahlzeiten","Marmelade|die":"Marmeladen","Methode|die":"Methoden","Metzgerei|die":"Metzgereien","Mindmap|die":"Mindmaps","Muttersprache|die":"Muttersprachen","Nachricht|die":"Nachrichten","Olive|die":"Oliven","Packung|die":"Packungen","Pizza|die":"Pizzen","Pommes frites|die":"Pommes frites","Schokolade|die":"Schokoladen","Suppe|die":"Suppen","Tüte|die":"Tüten","Uhr|die":"Uhren","Verpackung|die":"Verpackungen","Vorliebe|die":"Vorlieben","Wortgruppe|die":"Wortgruppen","Wurst|die":"Würste","Zeit|die":"Zeiten","Zwiebel|die":"Zwiebeln","Cola|die":"Colas",
-"Baby|das":"Babys","Büro|das":"Büros","Gästebuch|das":"Gästebücher","Kind|das":"Kinder","Modalverb|das":"Modalverben","Problem|das":"Probleme","Pronomen|das":"Pronomen","Satzende|das":"Satzenden","Saxofon|das":"Saxofone","Spiel|das":"Spiele","Telefongespräch|das":"Telefongespräche","Training|das":"Trainings","Viertel|das":"Viertel","Alltag|der":"Alltage","Ball|der":"Bälle","Eintrag|der":"Einträge","Englisch-Test|der":"Englisch-Tests","Geburtstag|der":"Geburtstage","Hamster|der":"Hamster","Hund|der":"Hunde","Junge|der":"Jungen","Kalender|der":"Kalender","Kunde|der":"Kunden","Mathe-Test|der":"Mathe-Tests","Sonntagnachmittag|der":"Sonntagnachmittage","Sprachkurs|der":"Sprachkurse","Stapel|der":"Stapel","Techniker|der":"Techniker","Vater|der":"Väter","Verwandte|der":"Verwandten","Großvater|der":"Großväter","Opa|der":"Opas","Sohn|der":"Söhne","Bruder|der":"Brüder","Enkel|der":"Enkel","Ehemann|der":"Ehemänner","Onkel|der":"Onkel","Neffe|der":"Neffen","Cousin|der":"Cousins","Aussage|die":"Aussagen","Bar|die":"Bars","Besprechung|die":"Besprechungen","Bibliothek|die":"Bibliotheken","Familie|die":"Familien","Fantasie|die":"Fantasien","Geige|die":"Geigen","halbe Stunde|die":"halbe Stunden","Hausaufgabe|die":"Hausaufgaben","Höflichkeit|die":"Höflichkeiten","Homepage|die":"Homepages","Idee|die":"Ideen","Maus|die":"Mäuse","Mensa|die":"Mensen","Minute|die":"Minuten","Musikschule|die":"Musikschulen","Party|die":"Partys","Praxis|die":"Praxen","Regel|die":"Regeln","Rollenkarte|die":"Rollenkarten","Satzklammer|die":"Satzklammern","Sekunde|die":"Sekunden","Sprachschule|die":"Sprachschulen","Großmutter|die":"Großmütter","Oma|die":"Omas","Mutter|die":"Mütter","Tochter|die":"Töchter","Schwester|die":"Schwestern","Enkelin|die":"Enkelinnen","Ehefrau|die":"Ehefrauen","Tante|die":"Tanten","Nichte|die":"Nichten","Cousine|die":"Cousinen","Eltern|die":"Eltern","Großeltern|die":"Großeltern","Geschwister|die":"Geschwister","Kinder|die":"Kinder","Enkelkinder|die":"Enkelkinder","Verwandten|die":"Verwandten","Eheleute|die":"Eheleute","Tageszeit|die":"Tageszeiten","Tour|die":"Touren","Trompete|die":"Trompeten","Uhrzeit|die":"Uhrzeiten","Uni|die":"Unis","Verspätung|die":"Verspätungen","Zeitangabe|die":"Zeitangaben","Zeitung|die":"Zeitungen","Grüße|die":"Grüße"
+"Baby|das":"Babys","Büro|das":"Büros","Gästebuch|das":"Gästebücher","Kind|das":"Kinder","Modalverb|das":"Modalverben","Problem|das":"Probleme","Pronomen|das":"Pronomen","Satzende|das":"Satzenden","Saxofon|das":"Saxofone","Spiel|das":"Spiele","Telefongespräch|das":"Telefongespräche","Training|das":"Trainings","Viertel|das":"Viertel","Alltag|der":"Alltage","Ball|der":"Bälle","Eintrag|der":"Einträge","Englisch-Test|der":"Englisch-Tests","Geburtstag|der":"Geburtstage","Hamster|der":"Hamster","Hund|der":"Hunde","Junge|der":"Jungen","Kalender|der":"Kalender","Kunde|der":"Kunden","Mathe-Test|der":"Mathe-Tests","Sonntagnachmittag|der":"Sonntagnachmittage","Sprachkurs|der":"Sprachkurse","Stapel|der":"Stapel","Techniker|der":"Techniker","Vater|der":"Väter","Verwandte|der":"Verwandten","Großvater|der":"Großväter","Opa|der":"Opas","Sohn|der":"Söhne","Bruder|der":"Brüder","Enkel|der":"Enkel","Ehemann|der":"Ehemänner","Onkel|der":"Onkel","Neffe|der":"Neffen","Cousin|der":"Cousins","Aussage|die":"Aussagen","Bar|die":"Bars","Besprechung|die":"Besprechungen","Bibliothek|die":"Bibliotheken","Familie|die":"Familien","Fantasie|die":"Fantasien","Geige|die":"Geigen","halbe Stunde|die":"halbe Stunden","Hausaufgabe|die":"Hausaufgaben","Höflichkeit|die":"Höflichkeiten","Homepage|die":"Homepages","Idee|die":"Ideen","Maus|die":"Mäuse","Mensa|die":"Mensen","Minute|die":"Minuten","Musikschule|die":"Musikschulen","Party|die":"Partys","Praxis|die":"Praxen","Regel|die":"Regeln","Rollenkarte|die":"Rollenkarten","Satzklammer|die":"Satzklammern","Sekunde|die":"Sekunden","Sprachschule|die":"Sprachschulen","Großmutter|die":"Großmütter","Oma|die":"Omas","Mutter|die":"Mütter","Tochter|die":"Töchter","Schwester|die":"Schwestern","Enkelin|die":"Enkelinnen","Ehefrau|die":"Ehefrauen","Tante|die":"Tanten","Nichte|die":"Nichten","Cousine|die":"Cousinen","Eltern|die":"Eltern","Großeltern|die":"Großeltern","Geschwister|die":"Geschwister","Kinder|die":"Kinder","Enkelkinder|die":"Enkelkinder","Verwandten|die":"Verwandten","Eheleute|die":"Eheleute","Tageszeit|die":"Tageszeiten","Tour|die":"Touren","Trompete|die":"Trompeten","Uhrzeit|die":"Uhrzeiten","Uni|die":"Unis","Verspätung|die":"Verspätungen","Zeitangabe|die":"Zeitangaben","Zeitung|die":"Zeitungen","Grüße|die":"Grüße","Theater-Festival|das":"Theater-Festivals"
 };
 const PLURAL = Object.assign({},PLURAL_A,PLURAL_B);
+/* Word -> sheet image (only for words added from the doutsch sheets; others have none) */
+const WORD_IMG = {
+"gut|-":"img/words/6.jpeg","langsam|-":"img/words/6.jpeg","minus|-":"img/words/6.jpeg",
+"guten Morgen|-":"img/words/7.jpeg","guten Tag|-":"img/words/7.jpeg","guten Abend|-":"img/words/7.jpeg",
+"hallo|-":"img/words/7.jpeg","auf Wiedersehen|-":"img/words/7.jpeg","gute Nacht|-":"img/words/7.jpeg",
+"tschüs|-":"img/words/7.jpeg","ciao|-":"img/words/7.jpeg","bis bald|-":"img/words/7.jpeg",
+"wie geht's?|-":"img/words/7.jpeg",
+"eigene|-":"img/words/9.jpeg","pro|-":"img/words/9.jpeg","von ... bis|-":"img/words/9.jpeg",
+"einhundert|-":"img/words/9.jpeg","eintausend|-":"img/words/9.jpeg",
+"single|-":"img/words/10.jpeg",
+"kreisen über|-":"img/words/11.jpeg","Theater-Festival|das":"img/words/11.jpeg",
+"bis zu|-":"img/words/12.jpeg","dies-|-":"img/words/12.jpeg","erst-|-":"img/words/12.jpeg",
+"auf Wiederhören|-":"img/words/25.jpeg","Liebe Grüße|-":"img/words/25.jpeg"
+};
 /* ============ KAPITEL ============ */
 const KAPITEL = [
 {id:"K0",name:"Einführung – مقدمة",icon:"🌟"},
@@ -1051,7 +1091,7 @@ function buildVocab(){
       const key=r[0]+"|"+r[1];
       if(seen[key])return;seen[key]=1;n++;
       const auto=autoExample(r[0],r[1],r[4],r[5],r[2],n);
-      out.push({id:"k"+kap.toLowerCase()+"w"+n,de:r[0],art:r[1],ar:r[2],pron:r[3],type:r[4],cat:r[5],ex:r[6]||auto[0],exAr:r[7]||auto[1],kap:kap,level:"A1",plural:PLURAL[r[0]+"|"+r[1]]||""});
+      out.push({id:"k"+kap.toLowerCase()+"w"+n,de:r[0],art:r[1],ar:r[2],pron:r[3],type:r[4],cat:r[5],ex:r[6]||auto[0],exAr:r[7]||auto[1],kap:kap,level:"A1",plural:PLURAL[r[0]+"|"+r[1]]||"",img:WORD_IMG[r[0]+"|"+r[1]]||""});
     });
   });
   return out;
@@ -1494,11 +1534,12 @@ function wordCard(w){
   const hasArt=w.art!=="-";
   const deLine=hasArt?'<span class="article '+artCls+'">'+artTxt+'</span><span class="word-de">'+escapeHtml(w.de)+'</span>':'<span class="word-de">'+escapeHtml(w.de)+'</span>';
   const plLine=(w.type==="اسم"&&w.plural)?'<div class="de-plural"><span class="article '+artCls+' sm">'+artTxt+'</span><span>'+escapeHtml(w.plural)+'</span><button class="mini-btn" data-act="speakPl" title="نطق الجمع">🔊</button></div>':'';
+  const imgLine=w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(full)+'" loading="lazy">':'';
   d.innerHTML=
     '<div class="de-line" data-act="detail" title="اضغط للتفاصيل والنطق 🔊">'+deLine+
     '<button class="mini-btn" data-act="speak" title="نطق">🔊</button>'+
     '<button class="mini-btn fav '+(fav?"active":"")+'" data-act="fav" title="مفضلة">❤️</button></div>'+
-    plLine+
+    plLine+imgLine+
     '<div class="word-ar">'+escapeHtml(w.ar)+'</div>'+
     '<div class="word-pron">النطق: '+escapeHtml(w.pron)+'</div>'+
     '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div>'+
@@ -2400,6 +2441,7 @@ function openWordDetail(id){
   const pl=(w.type==="اسم"&&w.plural)?'<div class="detail-pl"><span class="article '+artCls+' sm">'+w.art+'</span> '+escapeHtml(w.plural)+' <button class="icon-btn" id="dtSpeakPl" title="نطق الجمع">🔊</button></div>':'';
   $("detailBody").innerHTML=
     '<div class="detail-de">'+head+' <button class="icon-btn" id="dtSpeak">🔊</button></div>'+pl+
+    (w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(w.de)+'">':'')+
     '<div class="detail-ar">'+escapeHtml(w.ar)+'</div>'+
     '<div class="word-pron">النطق: '+escapeHtml(w.pron)+'</div>'+
     '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div>'+
