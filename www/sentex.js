@@ -53,6 +53,7 @@ function sentexShuffle(a){
    Defining them fixes that path AND powers the standalone features. */
 function pickFillBank(filter,count){
   let bank=sentexBank().slice();
+  bank=bank.filter(function(f){return !f.kind||f.kind==="fill";}); /* quiz builder: fill-blank only */
   if(typeof filter==="string"&&filter!=="mix"&&filter){
     bank=bank.filter(function(f){return f.chapterId===filter;});
   }else if(Object.prototype.toString.call(filter)==="[object Array]"&&filter.length){
@@ -189,15 +190,21 @@ function renderSxQ(H){
   const box=$(p+"Run");if(!box)return;
   const f=ST.qs[ST.idx];
   if(!f){finishSx(H);return;}
+  if(f.kind==="order"){renderSxOrder(H,f);return;}
   const letters=["A","B","C","D","E","F"];
   const order=sentexShuffle((f.o||[]).map(function(_,i){return i;}));
   const opts=order.map(function(i){return f.o[i];});
   const correctPos=order.indexOf(f.c);
+  const prompt=f.q?'<div class="muted" style="font-weight:800;margin-bottom:6px">'+escapeHtml(f.q)+'</div>':"";
+  const hasBlank=String(f.s||"").indexOf("___")>=0;
+  const disp=f.disp?'<h3 class="fill-sent" dir="ltr" style="text-align:left">'+escapeHtml(f.disp)+'</h3>'
+    :(hasBlank?'<h3 class="fill-sent" dir="ltr" style="text-align:left" id="'+p+'Sent">'+sentexBlankHtml(f,null,false)+'</h3>'
+    :'<h3 class="fill-sent" dir="ltr" style="text-align:left">'+escapeHtml(f.s||"")+'</h3>');
   box.innerHTML='<div class="panel glass"><div class="quiz-top"><span>'+(ST.idx+1)+' / '+ST.qs.length+'</span>'
     +'<div class="progress"><div class="progress-fill" style="width:'+(ST.idx/ST.qs.length*100)+'%"></div></div>'
     +'<span>✅ '+ST.score+'</span></div>'
     +'<div class="muted">'+escapeHtml(t(H.titleKey))+' •📚 '+escapeHtml(f.chapterName||f.chapterId||"")+' • '+escapeHtml(f.lvl||"")+'</div>'
-    +'<h3 class="fill-sent" dir="ltr" style="text-align:left" id="'+p+'Sent">'+sentexBlankHtml(f,null,false)+'</h3>'
+    +prompt+disp
     +'<div class="quiz-opts" id="'+p+'Opts">'
     +opts.map(function(o,j){return '<button class="quiz-opt" data-j="'+j+'" dir="ltr">'+letters[j]+') '+escapeHtml(o)+'</button>';}).join("")
     +'</div><div class="quiz-feedback hidden" id="'+p+'Fb"></div>'
@@ -219,9 +226,9 @@ function answerSx(H,j,correctPos,opts,f){
     if(bi===correctPos)b.classList.add("correct");
   });
   if(!ok&&box.children[j])box.children[j].classList.add("wrong");
-  /* fill the real blank with the user's pick */
+  /* fill the real blank with the user's pick (fill-blank items only) */
   const sent=$(p+"Sent");
-  if(sent)sent.innerHTML=sentexBlankHtml(f,opts[j],ok);
+  if(sent&&String(f.s||"").indexOf("___")>=0)sent.innerHTML=sentexBlankHtml(f,opts[j],ok);
   const fb=$(p+"Fb");fb.classList.remove("hidden","ok","no");fb.classList.add(ok?"ok":"no");
   const correct=(f.o&&f.o[f.c])||"";
   fb.innerHTML=(ok?t("sx_correct"):t("sx_wrong"))
@@ -239,6 +246,78 @@ function answerSx(H,j,correctPos,opts,f){
     save();
   }catch(e){}
   ST.results.push({ok:ok,picked:opts[j],correct:correct,f:f});
+  H.st=ST;
+  $(p+"Next").disabled=false;
+  const HH=H;
+  $(p+"Next").addEventListener("click",function(){const s=HH.st;s.idx++;HH.st=s;renderSxQ(HH);},{once:true});
+}
+function renderSxOrder(H,f){
+  const p=H.name==="practice"?"px":"sx";
+  const ST=H.st;
+  const box=$(p+"Run");if(!box)return;
+  const sh=sentexShuffle(f.words.map(function(_,k){return k;}));
+  box.innerHTML='<div class="panel glass"><div class="quiz-top"><span>'+(ST.idx+1)+' / '+ST.qs.length+'</span>'
+    +'<div class="progress"><div class="progress-fill" style="width:'+(ST.idx/ST.qs.length*100)+'%"></div></div>'
+    +'<span>✅ '+ST.score+'</span></div>'
+    +'<div class="muted">'+escapeHtml(t(H.titleKey))+' •📚 '+escapeHtml(f.chapterName||f.chapterId||"")+' • '+escapeHtml(f.lvl||"")+'</div>'
+    +'<div class="muted" style="font-weight:800;margin-bottom:6px">'+escapeHtml(f.q||"")+'</div>'
+    +'<div class="muted">'+escapeHtml(t("sx_order_hint"))+'</div>'
+    +'<div class="quiz-opts" id="'+p+'Chips">'
+    +sh.map(function(k){return '<button class="quiz-opt" data-k="'+k+'" dir="ltr">'+escapeHtml(f.words[k])+'</button>';}).join("")
+    +'</div>'
+    +'<div class="quiz-opts" id="'+p+'Ans" style="min-height:52px;border:1px dashed var(--border);border-radius:12px"></div>'
+    +'<div class="quiz-feedback hidden" id="'+p+'Fb"></div>'
+    +'<div class="row-flex"><button class="btn btn-gold sm" id="'+p+'Go">'+escapeHtml(t("gl_check"))+'</button>'
+    +'<button class="btn btn-ghost sm" id="'+p+'Clr">'+escapeHtml(t("gl_clear"))+'</button></div>'
+    +'<div class="row-flex"><button class="btn btn-primary" id="'+p+'Next" disabled>التالي ⏭</button>'
+    +'<button class="btn btn-ghost" id="'+p+'Quit">إنهاء ✖</button></div></div>';
+  $(p+"Quit").addEventListener("click",function(){finishSx(H);});
+  const picked=[];
+  box.querySelectorAll("#"+p+"Chips .quiz-opt").forEach(function(b){
+    b.addEventListener("click",function(){
+      if(b.disabled)return;b.disabled=true;
+      const k=parseInt(b.getAttribute("data-k"),10);
+      picked.push(k);
+      const a=$(p+"Ans");const s=document.createElement("button");s.className="quiz-opt";s.textContent=b.textContent;s.setAttribute("dir","ltr");
+      s.addEventListener("click",function(){
+        try{a.removeChild(s);}catch(e){}
+        const ix=picked.indexOf(k);if(ix>=0)picked.splice(ix,1);
+        b.disabled=false;
+      });
+      a.appendChild(s);
+    });
+  });
+  $(p+"Clr").addEventListener("click",function(){
+    picked.length=0;$(p+"Ans").innerHTML="";
+    box.querySelectorAll("#"+p+"Chips .quiz-opt").forEach(function(x){x.disabled=false;});
+  });
+  $(p+"Go").addEventListener("click",function(){
+    const ok=picked.length===f.words.length&&picked.every(function(v,ix){return v===ix;});
+    answerSxOrder(H,ok,picked.map(function(k){return f.words[k];}).join(" "),f.words.join(" "),f);
+  });
+}
+function answerSxOrder(H,ok,pickedStr,correctStr,f){
+  const p=H.name==="practice"?"px":"sx";
+  const ST=H.st;
+  const box=$(p+"Chips");if(!box)return;
+  Array.from(box.children).forEach(function(b){b.disabled=true;});
+  const go=$(p+"Go");if(go)go.disabled=true;
+  const clr=$(p+"Clr");if(clr)clr.disabled=true;
+  const fb=$(p+"Fb");fb.classList.remove("hidden","ok","no");fb.classList.add(ok?"ok":"no");
+  fb.innerHTML=(ok?t("sx_correct"):t("sx_wrong"))
+    +(ok?escapeHtml(correctStr)+"<br>":t("sx_yourans")+"<b>"+escapeHtml(pickedStr)+"</b> • "+t("sx_correctans")+"<b style='color:var(--green)'>"+escapeHtml(correctStr)+"</b><br>")
+    +"<span class='muted'>"+escapeHtml(f.why||"")+"</span>";
+  if(ok){ST.score++;try{S.totalCorrect++;}catch(e){}}
+  try{S.totalAnswered++;}catch(e){}
+  sentexRecordProgress(f,ok);
+  try{
+    if(!ok){
+      recordMistake(sentexPseudoWord(f),pickedStr,H.src,
+        {qid:f.id,chapterId:f.chapterId,lessonId:(f.lessonId===undefined?null:f.lessonId),source:H.src});
+    }
+    save();
+  }catch(e){}
+  ST.results.push({ok:ok,picked:pickedStr,correct:correctStr,f:f});
   H.st=ST;
   $(p+"Next").disabled=false;
   const HH=H;

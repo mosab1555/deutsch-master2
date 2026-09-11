@@ -260,15 +260,19 @@ function startJobSim(){
       box.innerHTML='<div class="quiz-feedback ok">📋 تقرير المقابلة: '+score+'/'+JOB_SIM.length+'<br>📚 كلمات استخدمتها: '+usedVoc.join("، ")+'<br>'+(score>=4?"ممتاز! جاهز للمقابلة الحقيقية 🎉":"درّب إجاباتك وحاول مجددًا 💪")+' ⭐+25</div>';return;
     }
     const it=JOB_SIM[i];
-    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+JOB_SIM.length+'</div><h4>'+escapeHtml(it.q)+'</h4><div class="muted">'+escapeHtml(it.ar)+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="jsHear">🔊 اسمع</button></div><div class="quiz-opts">'+it.opts.map((o,j)=>'<button class="quiz-opt" data-j="'+j+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="jsFb"></div>';
+    const order=shuffle(it.opts.map(function(_,k){return k;}));
+    const opts=order.map(function(k){return it.opts[k];});
+    const correct=order.indexOf(it.correct);
+    const correctText=it.opts[it.correct];
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+JOB_SIM.length+'</div><h4>'+escapeHtml(it.q)+'</h4><div class="muted">'+escapeHtml(it.ar)+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="jsHear">🔊 اسمع</button></div><div class="quiz-opts">'+opts.map((o,j)=>'<button class="quiz-opt" data-j="'+j+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="jsFb"></div>';
     $("jsHear").addEventListener("click",()=>speakGerman(it.q));
     setTimeout(()=>speakGerman(it.q),300);
     box.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{
       const j=parseInt(b.getAttribute("data-j"),10);
       const fb=$("jsFb");fb.classList.remove("hidden");
       box.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
-      if(j===it.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="إجابة مهنية ✅ "+it.why;score++;}
-      else{b.classList.add("wrong");box.querySelectorAll(".quiz-opt")[it.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="الأفضل: "+it.opts[it.correct]+" — لماذا؟ "+it.why;}
+      if(j===correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="إجابة مهنية ✅ "+it.why;score++;}
+      else{b.classList.add("wrong");box.querySelectorAll(".quiz-opt")[correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="الأفضل: "+correctText+" — لماذا؟ "+it.why;}
       setTimeout(()=>{i++;q();},2000);
     }));
   }
