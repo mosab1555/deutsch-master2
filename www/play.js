@@ -227,7 +227,7 @@ function gRush(box){
     if(i>=pool.length){const bonus=combo>=10?20:combo>=5?10:0;gameEnd("gameBox","⚡ Article Rush",score,pool.length,xp+bonus+pool.length*2,"rush",(bonus?" • Combo 🔥":""));return;}
     const w=pool[i];let left=T;
     box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • ⏱️ <b id="gT">'+left+'</b> • 🔥'+combo+'</div><h3 style="direction:ltr;text-align:center;font-size:30px">'+escapeHtml(w.de)+'</h3><div class="muted" style="text-align:center">'+escapeHtml(w.ar)+'</div><div id="gQ"></div>';
-    const timer=setInterval(()=>{left--;const e=$("gT");if(e)e.textContent=left;if(left<=0){clearInterval(timer);answer(-1);}},1000);
+    const timer=setInterval(()=>{left--;const e=$("gT");if(e)e.textContent=left;if(!box.isConnected){clearInterval(timer);return;}if(left<=0){clearInterval(timer);answer(-1);}},1000);
     gameOpts($("gQ"),["der","die","das"],j=>{clearInterval(timer);answer(j);});
     function answer(j){
       const ok=j===(w.art==="der"?0:w.art==="die"?1:2);
@@ -247,7 +247,7 @@ function gBattle(box){
     const w=pool[i],opts=shuffle([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar)));
     let left=10;
     box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • ⏱️ <b id="gT">'+left+'</b></div><h3 style="direction:ltr;text-align:center;font-size:28px">'+escapeHtml(fullDe(w))+'</h3><div id="gQ"></div>';
-    const timer=setInterval(()=>{left--;const e=$("gT");if(e)e.textContent=left;if(left<=0){clearInterval(timer);answer(-1);}},1000);
+    const timer=setInterval(()=>{left--;const e=$("gT");if(e)e.textContent=left;if(!box.isConnected){clearInterval(timer);return;}if(left<=0){clearInterval(timer);answer(-1);}},1000);
     gameOpts($("gQ"),opts,j=>{clearInterval(timer);answer(j);});
     function answer(j){
       const ok=opts[j]===w.ar;
@@ -540,6 +540,272 @@ function renderPractice(){
   });
 }
 /* wiring */
+/* Missing game engines (same primitives: gameOpts/shuffleOptions/placeCorrect/
+   gameEnd/speakGerman/addXP/recordMistake/sessTick). Correct position is always
+   remapped by the shuffle helper — never fixed first. */
+function gMissing(box){
+  const pool=shuffle(SENT_FILL.filter(f=>(!f.kind||f.kind==="fill")&&String(f.s||"").includes("___"))).slice(0,8);
+  let i=0,score=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length){gameEnd("gameBox","🕳️ Missing Word",score,pool.length,score*5+10,"missing");return;}
+    const f=pool[i],sh=shuffleOptions(f.o,f.c);
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+'</div><h3 style="direction:ltr;text-align:center;font-size:26px">'+escapeHtml(f.s.replace("___","…"))+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+f.why;score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ الصحيح: "+f.o[f.c]+" — "+f.why;recordMistake(sentexPseudoWord(f),sh.opts[j],"missing");}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1800);
+    });
+  }
+  q();
+}
+function gTF(box){
+  const pool=shuffle(allWords()).slice(0,8);
+  const items=pool.map(function(w,ix){
+    const truth=ix%2===0;
+    const other=allWords()[Math.floor(Math.random()*allWords().length)];
+    const claim=truth?w.ar:(other&&other.id!==w.id?other.ar:w.ar+"؟");
+    return {w:w,claim:claim,truth:truth};
+  });
+  let i=0,score=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length){gameEnd("gameBox","✅❌ True or False",score,pool.length,score*5+10,"tf");return;}
+    const it=items[i];
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+'</div><h3 style="direction:ltr;text-align:center;font-size:26px">'+escapeHtml(fullDe(it.w))+" = "+escapeHtml(it.claim)+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),["✅ صح","❌ خطأ"],function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      const ok=(j===0)===it.truth;
+      if(ok){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+fullDe(it.w)+" = "+it.w.ar;score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ الحقيقة: "+fullDe(it.w)+" = "+it.w.ar+ " — السبب: احفظ المعنى مع الكلمة!";}
+      S.totalAnswered++;sessTick(ok);save();i++;setTimeout(q,1800);
+    });
+  }
+  q();
+}
+function gSpeed(box){
+  const pool=shuffle(allWords()).slice(0,30);
+  let i=0,score=0,left=60,over=false;
+  const timer=setInterval(function(){left--;const e=$("gT");if(e)e.textContent=left;if(!box.isConnected){clearInterval(timer);over=true;return;}if(left<=0){clearInterval(timer);over=true;gameEnd("gameBox","⏱️ Speed Translation",score,i,score*4+10,"speed");}},1000);
+  function q(){
+    if(!box.isConnected)return;
+    if(over)return;
+    if(i>=pool.length){clearInterval(timer);gameEnd("gameBox","⏱️ Speed Translation",score,pool.length,score*4+10,"speed");return;}
+    const w=pool[i],sh=shuffleOptions([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar)),0);
+    box.innerHTML='<div class="muted">⏱️ <b id="gT">'+left+'</b> • نقاط: '+score+'</div><h3 style="direction:ltr;text-align:center;font-size:30px">'+escapeHtml(fullDe(w))+'</h3><div id="gQ"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      if(over)return;
+      if(j===sh.correct){b.classList.add("correct");score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");recordMistake(w,sh.opts[j],"speed");}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,600);
+    });
+  }
+  q();
+}
+function gCatch(box){
+  const pool=shuffle(allWords().filter(w=>w.de.length<=12)).slice(0,8);
+  let i=0,score=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length){gameEnd("gameBox","🎧 Listening Catch",score,pool.length,score*5+10,"catch");return;}
+    const w=pool[i],sh=shuffleOptions([fullDe(w)].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>fullDe(x))),0);
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+'</div><div class="row-flex" style="justify-content:center"><button class="btn btn-primary" id="gHear">🔊 استمع</button></div><div class="muted" style="text-align:center">ماذا سمعت؟</div><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    const play=function(){speakGerman(w.de);};
+    $("gHear").addEventListener("click",play);setTimeout(play,400);
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+fullDe(w)+" = "+w.ar;score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ سمعت: "+fullDe(w)+" = "+w.ar;}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1800);
+    });
+  }
+  q();
+}
+function gDetective(box){
+  const pool=shuffle(SENT_FILL.filter(f=>["error","correct","transform"].indexOf(f.kind)>=0)).slice(0,8);
+  let i=0,score=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length){gameEnd("gameBox","🕵️ Grammar Detective",score,pool.length,score*5+10,"detective");return;}
+    const f=pool[i],sh=shuffleOptions(f.o,f.c);
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • اكتشف الصحيح 🕵️</div><h4>'+escapeHtml(f.q||"اختر الجملة الصحيحة:")+'</h4>'+(f.disp?'<div class="muted">'+escapeHtml(f.disp)+'</div>':"")+'<div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+f.why;score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ الصحيح: "+f.o[f.c]+" — "+f.why;recordMistake(sentexPseudoWord(f),sh.opts[j],"detective");}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,2000);
+    });
+  }
+  q();
+}
+function gBoss(box){
+  const pool=shuffle(allWords()).slice(0,10);
+  let i=0,boss=10,you=3;
+  function q(){
+    if(!box.isConnected)return;
+    if(boss<=0||you<=0||i>=pool.length){
+      const win=boss<=0;
+      gameEnd("gameBox","👹 Boss Battle",win?10-you:0,10,win?50:10,"boss",win?" • الوحش سقط!":" • حاول مجددًا");
+      return;
+    }
+    const w=pool[i],sh=shuffleOptions([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar)),0);
+    box.innerHTML='<div class="muted">👹 الوحش: '+boss+' ❤️ • أنت: '+you+' ❤️</div><h3 style="direction:ltr;text-align:center;font-size:30px">'+escapeHtml(fullDe(w))+'</h3><div id="gQ"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      if(j===sh.correct){b.classList.add("correct");boss--;S.totalCorrect++;toast("💥 ضربة!","ok");}
+      else{b.classList.add("wrong");you--;recordMistake(w,sh.opts[j],"boss");toast("💔 "+fullDe(w)+" = "+w.ar,"err");}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1000);
+    });
+  }
+  q();
+}
+function gPic(box){
+  const pool=shuffle(allWords().filter(w=>w.img)).slice(0,8);
+  if(!pool.length){box.innerHTML='<div class="muted">لا صور متاحة بعد.</div>';return;}
+  let i=0,score=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length){gameEnd("gameBox","📸 Picture Words",score,pool.length,score*5+10,"pic");return;}
+    const w=pool[i],sh=shuffleOptions([fullDe(w)].concat(shuffle(allWords().filter(x=>x.id!==w.id&&!x.img)).slice(0,3).map(x=>fullDe(x))),0);
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • ما هذه؟</div><img class="word-img" src="'+w.img+'" alt="؟" style="max-height:220px"><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+fullDe(w)+" = "+w.ar;score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ "+fullDe(w)+" = "+w.ar;}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1800);
+    });
+  }
+  q();
+}
+function gMusic(box){
+  const lines=[];
+  try{REAL_SITS.forEach(s=>(s.phr||[]).concat(s.dlg||[]).forEach(p=>{if(p[0].split(" ").length>=3&&p[0].split(" ").length<=7)lines.push(p);}));}catch(e){}
+  const pool=shuffle(lines).slice(0,8);
+  let i=0,score=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length){gameEnd("gameBox","🎵 Music Mode",score,pool.length,score*5+10,"music");return;}
+    const words=pool[i][0].split(" "),last=words[words.length-1];
+    const sh=shuffleOptions([last,"Haus","Wasser","Tisch"].filter((v,ix,a)=>a.indexOf(v)===ix),0);
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • أكمل 🎵</div><h3 style="direction:ltr;text-align:center">'+escapeHtml(words.slice(0,-1).join(" ")+" …")+'</h3><div class="row-flex" style="justify-content:center"><button class="btn btn-ghost sm" id="gHear">🔊 اسمع اللحن</button></div><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    const play=function(){speakGerman(pool[i][0]);};
+    $("gHear").addEventListener("click",play);setTimeout(play,400);
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+pool[i][0]+" = "+pool[i][1];score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ "+pool[i][0]+" = "+pool[i][1];}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1800);
+    });
+  }
+  q();
+}
+function gbattle(box){
+  const pool=shuffle(allWords()).slice(0,6);
+  let i=0,you=0,cpu=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length||you>=4||cpu>=4){
+      const win=you>cpu;
+      gameEnd("gameBox","⚔️ German Battle",you,pool.length,you*8+10,"gbattle",win?" • فزت على الخصم!":" • الخصم فاز");
+      return;
+    }
+    const w=pool[i],sh=shuffleOptions([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar)),0);
+    box.innerHTML='<div class="muted">جولة '+(i+1)+' • أنت '+you+' ⚔️ الخصم '+cpu+'</div><div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:'+(you/4*100)+'%"></div></div><h3 style="direction:ltr;text-align:center;font-size:28px">'+escapeHtml(fullDe(w))+'</h3><div id="gQ"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      if(j===sh.correct){b.classList.add("correct");you++;S.totalCorrect++;}
+      else{b.classList.add("wrong");recordMistake(w,sh.opts[j],"gbattle");}
+      if(Math.random()<0.55)cpu++;
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1200);
+    });
+  }
+  q();
+}
+function gbomb(box){
+  const pool=shuffle(allWords()).slice(0,8);
+  let i=0,score=0,lives=3,timer=null;
+  function q(){
+    if(!box.isConnected)return;
+    if(lives<=0){clearInterval(timer);gameEnd("gameBox","💣 Bomb Defusal",score,pool.length,score*5,"gbomb"," • 💥 انفجرت!");return;}
+    if(i>=pool.length){clearInterval(timer);gameEnd("gameBox","💣 Bomb Defusal",score,pool.length,score*5+20,"gbomb"," • ✅ فككتها!");return;}
+    const w=pool[i];
+    const sh=shuffleOptions([fullDe(w)].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>fullDe(x))),0);
+    let left=12, done=false;
+    box.innerHTML='<div class="muted">💣 سؤال '+(i+1)+'/'+pool.length+' • ⏱️ <b id="gT">'+left+'</b> • ❤️ '+lives+'</div><h3 style="direction:ltr;text-align:center;font-size:28px">ما معنى: '+escapeHtml(w.ar)+'؟</h3><div id="gQ"></div>';
+    timer=setInterval(function(){left--;const e=$("gT");if(e)e.textContent=left;if(!box.isConnected){clearInterval(timer);return;}if(left<=0){clearInterval(timer);answer(-1);}},1000);
+    gameOpts($("gQ"),sh.opts,function(j){clearInterval(timer);answer(j);});
+    function answer(j){
+      if(done)return;done=true;
+      if(j===sh.correct){score++;S.totalCorrect++;toast("✅ سلك مقطوع!","ok");}
+      else{lives--;if(j>=0)recordMistake(w,fullDe(w),"gbomb");toast("❌ "+fullDe(w),"err");}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,900);
+    }
+  }
+  q();
+}
+function gdetect(box){
+  const lines=[];
+  try{REAL_SITS.forEach(s=>(s.dlg||[]).forEach(p=>lines.push({de:p[0],ar:p[1],sit:s.t})));}catch(e){}
+  const pool=shuffle(lines).slice(0,8);
+  let i=0,score=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=pool.length){gameEnd("gameBox","🕵️ German Detective",score,pool.length,score*5+10,"gdetect");return;}
+    const it=pool[i];
+    const others=shuffle(lines.filter(x=>x.de!==it.de)).slice(0,3).map(x=>x.de);
+    const sh=shuffleOptions([it.de].concat(others),0);
+    box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • 🕵️ سمعت بالعربي: <b>'+escapeHtml(it.ar)+'</b> ('+escapeHtml(it.sit)+')</div><div class="muted">ماذا قيل بالألمانية؟</div><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+it.de;score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ قيل: "+it.de;}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1800);
+    });
+  }
+  q();
+}
+function gshop(box){
+  const stock=shuffle(allWords().filter(w=>w.cat==="Food"||/Brot|Milch|Kaffee|Tee|Apfel|Wasser|Käse|Zucker/i.test(w.de))).slice(0,6);
+  const pit=["Guten Tag!","Hallo!","Guten Morgen!"][Math.floor(Math.random()*3)];
+  let i=0,score=0,kasse=0;
+  function q(){
+    if(!box.isConnected)return;
+    if(i>=stock.length){gameEnd("gameBox","🛒 German Shop",score,stock.length,score*5+10,"gshop"," • الكاشير: €"+kasse.toFixed(2));return;}
+    const w=stock[i],price=(1+Math.floor(Math.random()*9))+[0.3,0.5,0.8,0.99][Math.floor(Math.random()*4)];
+    const right=["Gerne! Das kostet €"+price.toFixed(2)+".","Sonst noch etwas?","Danke, tschüs!"][i%3];
+    const sh=shuffleOptions([right,"Wie heißen Sie?","Wo wohnen Sie?"].filter((v,ix,a)=>a.indexOf(v)===ix),0);
+    box.innerHTML='<div class="muted">زبون '+(i+1)+'/'+stock.length+' • الكاشير: €'+kasse.toFixed(2)+'</div><div class="panel glass"><div class="ex-de-l">🧑 "'+escapeHtml(pit+" Ich möchte "+fullDe(w)+", bitte.")+'"</div><div class="ex-ar">يريد: '+escapeHtml(w.ar)+' (السعر €'+price.toFixed(2)+')</div></div><div class="muted">رد البائع المناسب:</div><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      const fb=$("gFb");fb.classList.remove("hidden");
+      if(j===sh.correct){b.classList.add("correct");kasse=Math.round((kasse+price)*100)/100;fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ بيع موفق!";score++;S.totalCorrect++;}
+      else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ الأفضل: "+right;}
+      S.totalAnswered++;sessTick(j===sh.correct);save();i++;setTimeout(q,1800);
+    });
+  }
+  q();
+}
+function grunner(box){
+  let lives=3,score=0,lvl=1,timer=null;
+  function gate(){
+    if(!box.isConnected)return;
+    if(lives<=0){clearInterval(timer);gameEnd("gameBox","🏃 Word Runner",score,score,score*3+10,"grunner"," • مسافة: "+score);return;}
+    const pool=allWords().filter(w=>w.type==="اسم"&&w.art!=="-");
+    const w=shuffle(pool)[0];
+    const sh=shuffleOptions([w.art,w.art==="der"?"die":"der",w.art==="das"?"die":"das"],0);
+    const secs=Math.max(4,9-lvl);
+    let left=secs;
+    box.innerHTML='<div class="muted">🏃 مسافة: '+score+' • ❤️ '+lives+' • مستوى '+lvl+' • ⏱️ <b id="gT">'+left+'</b></div><h3 style="direction:ltr;text-align:center;font-size:34px">… '+escapeHtml(w.de)+'</h3><div class="muted" style="text-align:center">اختر البوابة الصحيحة (الأداة)!</div><div id="gQ"></div>';
+    timer=setInterval(function(){left--;const e=$("gT");if(e)e.textContent=left;if(!box.isConnected){clearInterval(timer);return;}if(left<=0){clearInterval(timer);miss();}},1000);
+    gameOpts($("gQ"),sh.opts,function(j,b){
+      clearInterval(timer);
+      if(j===sh.correct){b.classList.add("correct");score++;if(score%5===0)lvl++;S.totalCorrect++;}
+      else{b.classList.add("wrong");miss();return;}
+      S.totalAnswered++;sessTick(true);save();setTimeout(gate,700);
+    });
+    function miss(){lives--;recordMistake(w,w.art,"grunner");S.totalAnswered++;sessTick(false);save();toast("❌ "+w.art+" "+w.de,"err");setTimeout(gate,900);}
+  }
+  gate();
+}
+
 const PLAY_PAGES={games:renderGames,challenge:renderChallenge,me:renderMe,practice:renderPractice};
 (function(){
   try{
