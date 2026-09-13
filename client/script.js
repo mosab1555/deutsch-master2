@@ -1449,9 +1449,16 @@ function renderStreak(){
 }
 
 /* ============ NAV ============ */
+/* Lazy-init for heavy sections: their grids render on first visit instead of
+   at startup, so initial load stays fast and one section's error can never
+   blank the others (each render is also individually guarded). */
+const DM_LAZY={vocab:renderVocab,sentences:renderSentences,verbs:renderVerbs,grammar:renderGrammar,explain:renderExplainIndex};
+const dmRendered={};
+function ensureSection(n){if(DM_LAZY[n]&&!dmRendered[n]){dmRendered[n]=1;try{DM_LAZY[n]();}catch(e){console.error(e);}}}
 function showPage(name){
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
+  try{ensureSection(name);}catch(e){console.error(e);}
   $("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");
   window.scrollTo({top:0,behavior:"smooth"});
   requestAnimationFrame(observeReveals);
@@ -1606,14 +1613,27 @@ function filteredVocab(){
     return true;
   });
 }
-function renderVocab(){
+/* Paginated: renders first page only (~60 cards) so startup and every
+   keystroke stay fast; "show more" appends the rest on demand. Count pill
+   always reflects the FULL filtered total. */
+let vocabLimit=60;const VOCAB_PAGE=60;let vocabT=null;
+function renderVocab(more){
+  if(!more)vocabLimit=VOCAB_PAGE;
   const list=filteredVocab();
   $("vocabCount").textContent=list.length;
   const g=$("vocabGrid");g.innerHTML="";
   if(!list.length){g.innerHTML='<div class="panel glass">لا توجد نتائج. جرّب بحثًا آخر أو أضف كلمة جديدة ➕</div>';return;}
-  list.forEach(w=>g.appendChild(wordCard(w)));
+  list.slice(0,vocabLimit).forEach(w=>g.appendChild(wordCard(w)));
+  if(list.length>vocabLimit){
+    const b=document.createElement("button");
+    b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
+    b.textContent="عرض المزيد ("+(list.length-vocabLimit)+" ⬇)";
+    b.addEventListener("click",()=>{vocabLimit+=VOCAB_PAGE;try{renderVocab(true);}catch(e){console.error(e);}});
+    g.appendChild(b);
+  }
 }
-["vocabSearch","filterCategory","filterType","filterStatus","filterArticle","filterKapitel","filterLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",renderVocab);});
+function renderVocabSoon(){try{clearTimeout(vocabT);}catch(e){}vocabT=setTimeout(()=>{try{renderVocab();}catch(e){console.error(e);}},160);}
+["vocabSearch","filterCategory","filterType","filterStatus","filterArticle","filterKapitel","filterLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",renderVocabSoon);});
 
 /* ============ DASHBOARD ============ */
 function animateCount(el,to){
@@ -2441,7 +2461,7 @@ function openWordDetail(id){
   const pl=(w.type==="اسم"&&w.plural)?'<div class="detail-pl"><span class="article '+artCls+' sm">'+w.art+'</span> '+escapeHtml(w.plural)+' <button class="icon-btn" id="dtSpeakPl" title="نطق الجمع">🔊</button></div>':'';
   $("detailBody").innerHTML=
     '<div class="detail-de">'+head+' <button class="icon-btn" id="dtSpeak">🔊</button></div>'+pl+
-    (w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(w.de)+'">':'')+
+    (w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(w.de)+'" loading="lazy">':'')+
     '<div class="detail-ar">'+escapeHtml(w.ar)+'</div>'+
     '<div class="word-pron">النطق: '+escapeHtml(w.pron)+'</div>'+
     '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div>'+
@@ -2457,9 +2477,12 @@ function openWordDetail(id){
 }
 $("closeDetail").addEventListener("click",()=>$("detailModal").classList.add("hidden"));
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").classList.add("hidden");});
+function safeRender(fn){try{fn();}catch(e){console.error(e);}}
 function renderAll(){
-  renderStreak();renderDashboard();renderVocab();renderReview();renderMistakes();renderSentences();renderVerbs();renderGrammar();renderExplainIndex();renderQuizHistory();renderStats();renderPlanner();renderFavs();
-  observeReveals();
+  safeRender(renderStreak);safeRender(renderDashboard);safeRender(renderReview);safeRender(renderMistakes);safeRender(renderQuizHistory);safeRender(renderStats);safeRender(renderPlanner);safeRender(renderFavs);
+  /* Heavy grids re-render only after their first lazy visit (see ensureSection). */
+  Object.keys(DM_LAZY).forEach(n=>{if(dmRendered[n])safeRender(DM_LAZY[n]);});
+  safeRender(observeReveals);
 }
 function applyAll(){
   applyTheme();syncSpeed(S.settings.speed||1);

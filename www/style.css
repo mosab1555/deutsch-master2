@@ -409,3 +409,17 @@ html[data-theme="light"] .game-card select{background:#fff}
 /* German UI: allow long words to wrap without breaking layout */
 html[lang="de"] .nav-item{white-space:normal;line-height:1.35}
 html[lang="de"] .quiz-opt,html[lang="de"] .btn{white-space:normal}
+
+/* Mobile perf: static BG (no infinite blurred animation) + cheaper glass blur.
+   Desktop look is unchanged; only small screens take the lighter path. */
+@media(max-width:860px){
+  .blob{animation:none;filter:blur(60px);opacity:.3}
+  .grid-overlay{display:none}
+  .glass{backdrop-filter:blur(8px)}
+  .sidebar{backdrop-filter:blur(8px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .blob{animation:none}
+  .page{animation:none}
+  .word-card{animation:none}
+}
