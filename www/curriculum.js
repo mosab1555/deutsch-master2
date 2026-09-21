@@ -197,6 +197,7 @@ function loadScript(src,cb){
 }
 function afterMergeRefresh(){
   try{if(typeof renderAll==="function")renderAll();}catch(e){}
+  try{if(typeof refreshFlashList==="function")refreshFlashList();}catch(e){}
   try{currRefreshHooks();}catch(e){}
 }
 /* ensure a whole LEVEL (base + extras, in file order) */

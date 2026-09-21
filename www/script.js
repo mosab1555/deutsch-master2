@@ -1754,6 +1754,30 @@ function buildFlash(){
   if(!flashList.length)flashList=allWords().slice();
   flashIdx=0;renderFlash();
 }
+/* Keep the flashcard deck in sync when vocabulary grows or shrinks (custom
+   words, studio import/delete, lazy A2/B1/B2 merge) WITHOUT disturbing the
+   session: matching new words are appended (shuffled), removed words are
+   dropped, and the current card position is preserved when possible. */
+function refreshFlashList(){
+  try{
+    if(!flashList)flashList=[];
+    const cur=flashList.length?flashList[flashIdx%flashList.length]:null;
+    const curId=cur&&cur.id;
+    const c=$("flashCategory").value;
+    const k=$("flashKapitel")?$("flashKapitel").value:"";
+    const pass=function(w){return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k);};
+    const live={};allWords().forEach(w=>{live[w.id]=1;});
+    const seen={};flashList.forEach(w=>{seen[w.id]=1;});
+    const fresh=shuffle(allWords().filter(w=>!seen[w.id]&&pass(w)));
+    let list=flashList.filter(w=>live[w.id]&&pass(w));
+    if(fresh.length)list=list.concat(fresh);
+    if(!list.length)list=allWords().slice();
+    flashList=list;
+    if(curId){const ix=flashList.findIndex(w=>w.id===curId);flashIdx=ix>=0?ix:0;}
+    else if(flashIdx>=flashList.length)flashIdx=0;
+    renderFlash();
+  }catch(e){}
+}
 function renderFlash(){
   if(!flashList.length)return;
   const w=flashList[flashIdx%flashList.length];
@@ -2611,7 +2635,7 @@ $("addWordBtn").addEventListener("click",()=>{
   w.kap="KX";S.customWords.push(w);save();
   $("wordModal").classList.add("hidden");
   ["nwDe","nwAr","nwPron","nwEx","nwExAr"].forEach(id=>$(id).value="");
-  renderAll();markStudyDay();toast("تمت إضافة الكلمة ✅","ok");
+  renderAll();refreshFlashList();markStudyDay();toast("تمت إضافة الكلمة ✅","ok");
 });
 
 /* ============ SETTINGS DATA ============ */
