@@ -1598,20 +1598,29 @@ function fillKapitels(){
   ["filterKapitel","flashKapitel","sentenceKapitel","verbKapitel","grammarKapitel","explainKapitel"].forEach(function(id){const el=$(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="">كل الكبيتلات</option>'+opts;el.value=cur;});
 }
 function filteredVocab(){
-  const q=($("vocabSearch").value||"").trim().toLowerCase();
+  const raw=($("vocabSearch").value||"");
+  const qn=dmNorm(raw);
   const c=$("filterCategory").value,t=$("filterType").value,s=$("filterStatus").value,a=$("filterArticle").value;
   const k=$("filterKapitel")?$("filterKapitel").value:"";
   const lv=$("filterLevel")?$("filterLevel").value:"";
-  return allWords().filter(w=>{
+  const passAttr=function(w){
     if(lv&&(w.level||"A1")!==lv)return false;
     if(c&&w.cat!==c)return false;
     if(t&&w.type!==t)return false;
     if(s&&getStatus(w.id)!==s)return false;
     if(a&&w.art!==a)return false;
     if(k&&(w.kap||"KX")!==k)return false;
-    if(q){const hay=(w.de+" "+w.ar+" "+w.pron+" "+w.ex).toLowerCase();if(hay.indexOf(q)<0)return false;}
     return true;
-  });
+  };
+  /* Empty query: natural bank order (unchanged behavior). */
+  if(!qn)return allWords().filter(passAttr);
+  /* Live instant search with strict prefix-first ranking (same engine as the
+     header global search): exact > prefix > word-boundary > substring >
+     translation > fuzzy. So "hau" ranks "das Haus" first instead of returning
+     bank order where any example sentence containing "hau" could win. */
+  const out=[];
+  dmWordHits(qn,"mixed").forEach(function(h){if(passAttr(h.w))out.push(h.w);});
+  return out;
 }
 /* Paginated: renders first page only (~60 cards) so startup and every
    keystroke stay fast; "show more" appends the rest on demand. Count pill
