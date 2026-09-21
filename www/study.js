@@ -531,8 +531,8 @@ function openGLab(id){
       +(it.ar?'<div class="muted">'+escapeHtml(it.ar)+'</div>':"");
     if(it.type==="order"){
       const sh=glShuffle(it.words.map(function(w,k){return k;}));
-      qb.innerHTML=head+'<div class="quiz-opts" id="glChips">'+sh.map(function(k){return '<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(it.words[k])+'</button>';}).join("")+'</div>'
-        +'<div class="quiz-opts" id="glAns" style="min-height:52px;border:1px dashed var(--border);border-radius:12px"></div>'
+      qb.innerHTML=head+'<div class="quiz-opts" id="glChips" dir="ltr">'+sh.map(function(k){return '<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(it.words[k])+'</button>';}).join("")+'</div>'
+        +'<div class="quiz-opts" id="glAns" style="min-height:52px;border:1px dashed var(--border);border-radius:12px" dir="ltr"></div>'
         +'<div class="quiz-feedback hidden" id="glFb"></div>'
         +'<div class="row-flex"><button class="btn btn-gold sm" id="glCheck">'+escapeHtml(t("gl_check"))+'</button><button class="btn btn-ghost sm" id="glClear">'+escapeHtml(t("gl_clear"))+'</button></div>';
       const picked=[];

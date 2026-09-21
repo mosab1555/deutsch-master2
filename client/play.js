@@ -344,7 +344,7 @@ function gBuilder(box){
     const s=pool[i],words=s.words,ar=s.ar;
     let cur=[];
     const opts=shuffledChips(words);
-    box.innerHTML='<div class="muted">جملة '+(i+1)+'/'+pool.length+' • '+escapeHtml(ar)+'</div><div class="order-answer" id="gAns"></div><div class="quiz-opts">'+opts.map(o=>'<button class="quiz-opt" data-k="'+o.k+'">'+escapeHtml(o.w)+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div><div class="quiz-feedback hidden" id="gFb"></div>';
+    box.innerHTML='<div class="muted">جملة '+(i+1)+'/'+pool.length+' • '+escapeHtml(ar)+'</div><div class="order-answer" id="gAns" dir="ltr"></div><div class="quiz-opts" dir="ltr">'+opts.map(o=>'<button class="quiz-opt" data-k="'+o.k+'">'+escapeHtml(o.w)+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div><div class="quiz-feedback hidden" id="gFb"></div>';
     const ans=$("gAns");
     box.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{const o=opts.find(x=>x.k==b.getAttribute("data-k"));cur.push(o);b.disabled=true;b.classList.add("used");const c=document.createElement("span");c.className="order-chip";c.textContent=o.w;ans.appendChild(c);}));
     $("gClear").addEventListener("click",()=>{cur=[];ans.innerHTML="";ans.classList.remove("good","bad");box.querySelectorAll(".quiz-opt").forEach(x=>{x.disabled=false;x.classList.remove("used");});});
@@ -923,10 +923,10 @@ function gEscape(box){
         if(j===sh.correct){b.classList.add("correct");done(true,"صحيح ✅ "+L.f.why);}
         else{b.classList.add("wrong");done(false,"❌ "+L.f.why);}
       });
-    }else if(L.kind==="order"&&L.f){
+}else if(L.kind==="order"&&L.f){
       const sh=shuffle(L.f.words.map((w,k)=>k));
       let cur=[];
-      host.innerHTML='<div class="muted">'+escapeHtml(L.f.q||"رتّب:")+'</div><div class="order-answer" id="gAns"></div><div class="quiz-opts">'+sh.map(k=>'<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(L.f.words[k])+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div>';
+      host.innerHTML='<div class="muted">'+escapeHtml(L.f.q||"رتّب:")+'</div><div class="order-answer" id="gAns" dir="ltr"></div><div class="quiz-opts" dir="ltr">'+sh.map(k=>'<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(L.f.words[k])+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div>';
       const ans=$("gAns");
       host.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{const k=parseInt(b.getAttribute("data-k"),10);cur.push(k);b.disabled=true;const c=document.createElement("span");c.className="order-chip";c.textContent=L.f.words[k];ans.appendChild(c);}));
       $("gClear").addEventListener("click",()=>{cur=[];ans.innerHTML="";host.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=false);});
@@ -996,12 +996,12 @@ function gRandom(box){
         if(j===sh.correct){b.classList.add("correct");done(true,"صحيح ✅");}
         else{b.classList.add("wrong");done(false,"❌ "+fullDe(w));}
       });
-    }else if(t==="order"){
+}else if(t==="order"){
       const pool=kapSents().filter(f=>f.kind==="order"),f=shuffle(pool.length?pool:kapSents())[0];
       const words=f.words||f.s.replace("___","").split(" ").filter(Boolean);
       const sh=shuffle(words.map((w,k)=>k));
       let cur=[];
-      host.innerHTML='<div id="gQ" class="quiz-opts">'+sh.map(k=>'<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(words[k])+'</button>').join("")+'</div><div class="order-answer" id="gAns"></div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div>';
+      host.innerHTML='<div id="gQ" class="quiz-opts" dir="ltr">'+sh.map(k=>'<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(words[k])+'</button>').join("")+'</div><div class="order-answer" id="gAns" dir="ltr"></div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div>';
       const ans=$("gAns");
       host.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{const k=parseInt(b.getAttribute("data-k"),10);cur.push(k);b.disabled=true;const c=document.createElement("span");c.className="order-chip";c.textContent=words[k];ans.appendChild(c);}));
       $("gClear").addEventListener("click",()=>{cur=[];ans.innerHTML="";host.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=false);});
@@ -1045,10 +1045,10 @@ function gConv(box){
         if(j===sh.correct){b.classList.add("correct");done(true,"رد مناسب ✅");}
         else{b.classList.add("wrong");done(false,"❌ الأفضل: "+s.dlg[1][0]);}
       });
-    }else if(mode===1){
+}else if(mode===1){
       const words=s.dlg[2][0].split(" "),sh=shuffle(words.map((w,k)=>k));
       let cur=[];
-      host.innerHTML='<div class="ex-de-l">🧑 "'+escapeHtml(s.dlg[2][0])+'"</div><div class="muted">رتّب الرد: '+escapeHtml(s.dlg[2][1])+'</div><div class="order-answer" id="gAns"></div><div class="quiz-opts">'+sh.map(k=>'<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(words[k])+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div>';
+      host.innerHTML='<div class="ex-de-l">🧑 "'+escapeHtml(s.dlg[2][0])+'"</div><div class="muted">رتّب الرد: '+escapeHtml(s.dlg[2][1])+'</div><div class="order-answer" id="gAns" dir="ltr"></div><div class="quiz-opts" dir="ltr">'+sh.map(k=>'<button class="quiz-opt" data-k="'+k+'">'+escapeHtml(words[k])+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="gClear">مسح</button><button class="btn btn-primary sm" id="gCheck">تحقق ✅</button></div>';
       const ans=$("gAns");
       host.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{const k=parseInt(b.getAttribute("data-k"),10);cur.push(k);b.disabled=true;const c=document.createElement("span");c.className="order-chip";c.textContent=words[k];ans.appendChild(c);}));
       $("gClear").addEventListener("click",()=>{cur=[];ans.innerHTML="";host.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=false);});

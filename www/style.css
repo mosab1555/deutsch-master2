@@ -418,6 +418,74 @@ html[lang="de"] .quiz-opt,html[lang="de"] .btn{white-space:normal}
   .glass{backdrop-filter:blur(8px)}
   .sidebar{backdrop-filter:blur(8px)}
 }
+
+/* ---------- True mobile layout fix (root-cause, no overflow hiding) ----------
+   Root causes found on phones (360-430px):
+   1) .flash-wrap had max-width:600px but no width:100%/min-width:0 guard,
+      so flex children with intrinsic widths pushed the page wider.
+   2) .flash-word (44px/32px) + .flash-ar (36px) + padding:24px allowed long
+      German words to exceed the 340px content box.
+   3) .page-head .row-flex selects kept intrinsic min-width:auto and refused
+      to shrink, pushing the header past the viewport.
+   4) .topbar never wrapped, so search + actions overflowed together.
+   5) Order-answer / quiz chips are German LTR content inside an RTL page and
+      need dir="ltr" (set in JS) + wrapping guards here. */
+html,body{max-width:100%}
+img,table{max-width:100%}
+.app,.main,.content,.page,.panel,.flash-wrap,.flashcard,.flash-inner,.flash-face,.flash-controls,.page-head,.topbar{max-width:100%}
+.app,.main,.content,.page,.panel,.flash-wrap,.page-head,.topbar,.row-flex,.quiz-opts,.order-answer{min-width:0}
+@media(max-width:560px){
+  .topbar{flex-wrap:wrap;gap:8px}
+  .search-wrap{flex:1 1 140px;min-width:0;max-width:100%}
+  .search-wrap input{min-width:0;max-width:100%}
+  .top-actions{flex-wrap:wrap;gap:6px;max-width:100%;min-width:0}
+  .top-actions .icon-btn,.top-actions .streak-pill{flex-shrink:0;min-width:0}
+  .streak-pill{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
+  .content{padding:12px 10px 60px}
+  .page-head{flex-direction:column;align-items:stretch;gap:8px}
+  .page-head h2{font-size:20px;line-height:1.4;overflow-wrap:anywhere;min-width:0}
+  .page-head .row-flex{width:100%;margin-top:0}
+  .page-head .row-flex select,.page-head .row-flex button{flex:1 1 140px;min-width:0;max-width:100%}
+  .filters input,.filters select{flex:1 1 140px;min-width:0;max-width:100%}
+  /* Flashcards */
+  .flash-wrap{width:100%;max-width:100%;margin:0 auto;padding:0 2px}
+  .flash-progress{gap:8px}
+  .flash-progress span{white-space:nowrap;flex-shrink:0}
+  .flashcard{width:100%;height:300px;margin-bottom:12px}
+  .flash-face{padding:16px;gap:8px;overflow:hidden}
+  .flash-word{font-size:27px;line-height:1.25;text-align:center;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+  .flash-ar{font-size:27px;line-height:1.35;text-align:center;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+  .flash-pron{font-size:15px;text-align:center;max-width:100%;overflow-wrap:anywhere}
+  .flash-ex{font-size:13px;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+  .flash-plural{font-size:15px;max-width:100%;overflow-wrap:anywhere;text-align:center}
+  .flash-article{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .speak-float{top:10px;left:10px;padding:7px 10px}
+  .flash-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;justify-content:stretch}
+  .flash-controls .btn{width:100%;max-width:100%;min-width:0;margin:0;padding:12px 8px;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .flash-controls .btn:last-child{grid-column:1/-1}
+  /* Order questions: German LTR chips must wrap, never push width */
+  .quiz-opts{max-width:100%}
+  .quiz-opt{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+  .order-answer{max-width:100%;overflow-wrap:anywhere}
+  .order-chip{max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
+  #page-sentex .fill-sent,#page-practice .fill-sent{font-size:18px;line-height:2;overflow-wrap:anywhere}
+  .fill-blank{min-width:72px;max-width:100%;overflow-wrap:anywhere}
+}
+@media(max-width:380px){
+  .flashcard{height:280px}
+  .flash-word{font-size:24px}
+  .flash-ar{font-size:24px}
+  .flash-face{padding:14px}
+  .hero-btns .btn,.flash-controls .btn{font-size:13px}
+}
+
+/* Order-answer/chips are German LTR content: visual order must equal click
+   order on both desktop and mobile (page is RTL). dir="ltr" is set in JS;
+   this CSS guard covers every order container even if markup is older. */
+.order-answer,.quiz-order,#sxAns,#pxAns,#glAns,#gAns,#orderAns{direction:ltr;text-align:left}
+.order-answer{flex-wrap:wrap}
+.quiz-order{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;min-width:0;max-width:100%}
+#sxChips,#pxChips,#glChips,#gQ{direction:ltr}
 @media (prefers-reduced-motion:reduce){
   .blob{animation:none}
   .page{animation:none}

@@ -2128,8 +2128,8 @@ function renderQ(){
     $("quizListenBtn").appendChild(b);setTimeout(()=>speak(txt),400);
   }
   if(q.kind==="order"){
-    const ans=document.createElement("div");ans.className="order-answer";ans.id="orderAns";
-    const pool=document.createElement("div");pool.className="quiz-order";
+    const ans=document.createElement("div");ans.className="order-answer";ans.id="orderAns";ans.setAttribute("dir","ltr");
+    const pool=document.createElement("div");pool.className="quiz-order";pool.setAttribute("dir","ltr");
     let picked=[];
     q.parts.forEach(p=>{
       const c=document.createElement("button");c.className="order-chip";c.textContent=p;

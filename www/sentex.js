@@ -262,10 +262,10 @@ function renderSxOrder(H,f){
     +'<div class="muted">'+escapeHtml(t(H.titleKey))+' •📚 '+escapeHtml(f.chapterName||f.chapterId||"")+' • '+escapeHtml(f.lvl||"")+'</div>'
     +'<div class="muted" style="font-weight:800;margin-bottom:6px">'+escapeHtml(f.q||"")+'</div>'
     +'<div class="muted">'+escapeHtml(t("sx_order_hint"))+'</div>'
-    +'<div class="quiz-opts" id="'+p+'Chips">'
+    +'<div class="quiz-opts" id="'+p+'Chips" dir="ltr">'
     +sh.map(function(k){return '<button class="quiz-opt" data-k="'+k+'" dir="ltr">'+escapeHtml(f.words[k])+'</button>';}).join("")
     +'</div>'
-    +'<div class="quiz-opts" id="'+p+'Ans" style="min-height:52px;border:1px dashed var(--border);border-radius:12px"></div>'
+    +'<div class="quiz-opts" id="'+p+'Ans" style="min-height:52px;border:1px dashed var(--border);border-radius:12px" dir="ltr"></div>'
     +'<div class="quiz-feedback hidden" id="'+p+'Fb"></div>'
     +'<div class="row-flex"><button class="btn btn-gold sm" id="'+p+'Go">'+escapeHtml(t("gl_check"))+'</button>'
     +'<button class="btn btn-ghost sm" id="'+p+'Clr">'+escapeHtml(t("gl_clear"))+'</button></div>'
