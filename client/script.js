@@ -2403,20 +2403,127 @@ function renderFavs(){
   inp.addEventListener("input",sync);sync();
   try{inp.dataset.iconSync="1";}catch(e){}
 })();
-$("globalSearch").addEventListener("input",e=>{
-  const q=e.target.value.trim().toLowerCase();const box=$("searchResults");
-  if(q.length<2){box.classList.remove("show");box.innerHTML="";return;}
-  const hits=[];
-  allWords().filter(w=>(w.de+w.ar).toLowerCase().indexOf(q)>=0).slice(0,5).forEach(w=>hits.push({t:"📚 "+(w.art!=="-"?w.art+" ":"")+w.de+" — "+w.ar+" ["+(w.kap||"KX")+"]",go:()=>{showPage("vocab");$("vocabSearch").value=w.de;renderVocab();}}));
-  allVerbs().filter(v=>(v.inf+v.ar).indexOf(q)>=0).slice(0,3).forEach(v=>hits.push({t:"⚡ "+v.inf+" — "+v.ar+" ["+v.kap+"]",go:()=>{showPage("verbs");$("verbSearch").value=v.inf;renderVerbs();}}));
-  SENTENCES.filter(s=>(s.de+s.ar).toLowerCase().indexOf(q)>=0).slice(0,3).forEach(s=>hits.push({t:"💬 "+s.de+" ["+s.kap+"]",go:()=>{showPage("sentences");$("sentenceSearch").value=s.de;renderSentences();}}));
-  GRAMMAR.filter(g=>(g.title+g.body).toLowerCase().indexOf(q)>=0).slice(0,3).forEach(g=>hits.push({t:"📐 "+g.title+" ["+g.kap+"]",go:()=>showPage("grammar")}));
-  GRAMMAR.filter(g=>(g.title+g.body).toLowerCase().indexOf(q)>=0).slice(0,2).forEach(g=>hits.push({t:"📚 شرح: "+g.title+" ["+g.kap+"]",go:()=>openExplain(g.id)}));
+/* Robust search engine: single dynamic source (allWords/SENTENCES/GRAMMAR),
+   umlaut-tolerant, case/space-insensitive, level-aware, ranked. No static lists. */
+function dmNorm(s){
+  return String(s==null?"":s).trim().replace(/\s+/g," ").toLowerCase()
+    .replace(/ß/g,"ss").replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u")
+    .replace(/ae/g,"a").replace(/oe/g,"o").replace(/ue/g,"u");
+}
+if(typeof window!=="undefined")window.dmNorm=dmNorm;
+if(typeof window!=="undefined"&&!window.gsLevel)window.gsLevel="mixed";
+function dmWordHits(qn,level){
+  const out=[];
+  let words=[];
+  try{words=allWords();}catch(e){return out;}
+  for(let i=0;i<words.length;i++){
+    const w=words[i];
+    const wl=w.level||"A1";
+    if(level&&level!=="mixed"&&wl!==level)continue;
+    const full=(w.art&&w.art!=="-"?w.art+" ":"")+w.de;
+    const F=[
+      {t:"de",v:w.de},{t:"full",v:full},{t:"plural",v:w.plural||""},
+      {t:"ar",v:w.ar||""},{t:"en",v:w.en||""},{t:"pron",v:w.pron||""},{t:"ex",v:w.ex||""}
+    ];
+    let best=-1,via="";
+    for(let f=0;f<F.length;f++){
+      const n=dmNorm(F[f].v);
+      if(!n)continue;
+      if(n===qn){best=0;via=F[f].t;break;}
+      if(best!==0&&n.indexOf(qn)===0){best=1;via=F[f].t;}
+      else if(best<0&&n.indexOf(qn)>=0){best=2;via=F[f].t;}
+    }
+    if(best>=0)out.push({w:w,score:best+(wl==="A1"?0:0.1),via:via});
+  }
+  out.sort((a,b)=>a.score-b.score);
+  return out;
+}
+if(typeof window!=="undefined")window.dmWordHits=dmWordHits;
+const VIA_AR={de:"الكلمة",full:"الكلمة مع الأداة",plural:"الجمع",ar:"المعنى العربي",en:"المعنى الإنجليزي",pron:"النطق",ex:"المثال"};
+let gsTimer=null;
+function gsClose(box){
+  box.classList.remove("show");
+  try{$("globalSearch").value="";}catch(e){}
+  try{const w=$("globalSearch").closest(".search-wrap");if(w){w.classList.remove("has-text");w.classList.remove("focus");}}catch(e){}
+}
+function runGlobalSearch(){
+  const inp=$("globalSearch"),box=$("searchResults");
+  if(!inp||!box)return;
+  const raw=inp.value,level=window.gsLevel||"mixed";
+  const qn=dmNorm(raw);
+  if(qn.length<2){box.classList.remove("show");box.innerHTML="";return;}
+  /* pull lazy levels in background so later keystrokes include them, then refresh */
+  try{
+    if(window.Curriculum&&window.Curriculum.ensure){
+      ["A2","B1","B2"].forEach(L=>{if(!window.Curriculum.loaded[L])window.Curriculum.ensure(L,()=>{try{if(dmNorm($("globalSearch").value)===qn)runGlobalSearch();}catch(e){}});});
+    }
+  }catch(e){}
+  const hits=dmWordHits(qn,level).slice(0,8);
   box.innerHTML="";
-  if(!hits.length){box.innerHTML='<div class="search-hit">لا نتائج لـ "'+escapeHtml(q)+'"</div>';}
-  hits.forEach(h=>{const d=document.createElement("div");d.className="search-hit";d.textContent=h.t;d.addEventListener("click",()=>{h.go();box.classList.remove("show");$("globalSearch").value="";const w=$("globalSearch").closest(".search-wrap");if(w){w.classList.remove("has-text");w.classList.remove("focus");}});box.appendChild(d);});
+  const bar=document.createElement("div");
+  bar.className="search-hit";
+  bar.innerHTML='<span class="muted">المستوى:</span> ';
+  const sel=document.createElement("select");
+  sel.id="gsLevel";
+  [["mixed","🎲 مختلط"],["A1","A1"],["A2","A2"],["B1","B1"],["B2","B2"]].forEach(o=>{
+    const op=document.createElement("option");op.value=o[0];op.textContent=o[1];
+    if(level===o[0])op.selected=true;sel.appendChild(op);
+  });
+  sel.addEventListener("change",()=>{window.gsLevel=sel.value;runGlobalSearch();});
+  sel.addEventListener("click",ev=>ev.stopPropagation());
+  bar.appendChild(sel);
+  const cnt=document.createElement("span");
+  cnt.className="muted";cnt.textContent=" • "+hits.length+" نتيجة";
+  bar.appendChild(cnt);
+  box.appendChild(bar);
+  hits.forEach(h=>{
+    const w=h.w;
+    const full=(w.art&&w.art!=="-"?w.art+" ":"")+w.de;
+    const d=document.createElement("div");d.className="search-hit";
+    d.innerHTML='<div><b>📚 '+escapeHtml(full)+'</b> <span class="tag">'+escapeHtml(w.level||"A1")+'</span> <span class="tag kap-tag">'+escapeHtml(w.kap||"")+'</span></div>'
+      +'<div class="word-ar">'+escapeHtml(w.ar||"")+(w.en?' <span class="muted">• '+escapeHtml(w.en)+'</span>':"")+'</div>'
+      +((w.plural||w.pron)?'<div class="muted">👥 '+escapeHtml(w.plural||"—")+' • 🔊 '+escapeHtml(w.pron||"")+'</div>':"")
+      +(w.ex?'<div class="muted">💬 '+escapeHtml(w.ex)+'</div>':"")
+      +'<div class="muted">مطابقة: '+escapeHtml(VIA_AR[h.via]||h.via)+'</div>'
+      +'<div class="row-flex"><button class="mini-btn" data-gs="speak">🔊 نطق</button><button class="mini-btn" data-gs="detail">📖 التفاصيل</button></div>';
+    d.querySelector('[data-gs="speak"]').addEventListener("click",ev=>{ev.stopPropagation();try{speak(full);}catch(e){}});
+    const open=ev=>{ev.stopPropagation();try{if(typeof openWordDetail==="function")openWordDetail(w.id);else{showPage("vocab");$("vocabSearch").value=w.de;renderVocab();}}catch(e){}gsClose(box);};
+    d.querySelector('[data-gs="detail"]').addEventListener("click",open);
+    d.addEventListener("click",open);
+    box.appendChild(d);
+  });
+  try{
+    const ql=qn;
+    allVerbs().filter(v=>dmNorm(v.inf+" "+v.ar).indexOf(ql)>=0).slice(0,2).forEach(v=>{
+      const d=document.createElement("div");d.className="search-hit";
+      d.textContent="⚡ "+v.inf+" — "+v.ar+" ["+v.kap+"]";
+      d.addEventListener("click",()=>{showPage("verbs");$("verbSearch").value=v.inf;renderVerbs();gsClose(box);});
+      box.appendChild(d);
+    });
+    SENTENCES.filter(s=>dmNorm(s.de+" "+s.ar).indexOf(ql)>=0).slice(0,2).forEach(s=>{
+      const d=document.createElement("div");d.className="search-hit";
+      d.textContent="💬 "+s.de+" ["+s.kap+"]";
+      d.addEventListener("click",()=>{showPage("sentences");$("sentenceSearch").value=s.de;if(typeof currApplySentFilter==="function")currApplySentFilter(false);else renderSentences();gsClose(box);});
+      box.appendChild(d);
+    });
+    const gs=GRAMMAR.filter(g=>dmNorm(g.title+" "+g.body).indexOf(ql)>=0);
+    gs.slice(0,2).forEach(g=>{
+      const d=document.createElement("div");d.className="search-hit";
+      d.textContent="📐 "+g.title+" ["+g.kap+"]";
+      d.addEventListener("click",()=>{showPage("grammar");gsClose(box);});
+      box.appendChild(d);
+    });
+    gs.slice(0,1).forEach(g=>{
+      const d=document.createElement("div");d.className="search-hit";
+      d.textContent="📚 شرح: "+g.title+" ["+g.kap+"]";
+      d.addEventListener("click",()=>{openExplain(g.id);gsClose(box);});
+      box.appendChild(d);
+    });
+  }catch(e){}
+  if(box.children.length<=1){box.innerHTML='<div class="search-hit">لا نتائج لـ "'+escapeHtml(raw.trim())+'"</div>';box.appendChild(bar);}
   box.classList.add("show");
-});
+}
+$("globalSearch").addEventListener("input",()=>{try{clearTimeout(gsTimer);}catch(e){}gsTimer=setTimeout(runGlobalSearch,120);});
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("searchResults").classList.remove("show");});
 
 /* ============ ADD WORD ============ */
