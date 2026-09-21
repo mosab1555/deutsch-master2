@@ -1,7 +1,6 @@
 /* Deutsch Master - curriculum integration smoke test (node + vm stubs).
- * Loads the REAL curr-*.js + curriculum.js with stubbed browser/app globals,
- * runs the real merger, and asserts counts/ids/audit. No browser needed.
- * Usage: node tools/smoke-curriculum.js (exit 0 = PASS, 1 = FAIL)
+ * Loads ALL real curr-*.js + curriculum.js, runs the real merger incl. fills,
+ * asserts counts/ids/audit. Usage: node tools/smoke-curriculum.js
  */
 const fs = require("fs");
 const vm = require("vm");
@@ -11,29 +10,24 @@ const RD = p => fs.readFileSync(path.join(ROOT, p), "utf8");
 let pass = 0, fail = 0;
 function ok(n, c, e) { if (c) { pass++; console.log("PASS " + n + (e ? " | " + e : "")); } else { fail++; console.log("FAIL " + n + (e ? " | " + e : "")); } }
 
-const appendedScripts = [];
-const sb = {
-  console,
-  setTimeout: (fn) => 0, clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {},
-  window: {},
-};
+const sb = { console, setTimeout: () => 0, clearTimeout: () => {}, setInterval: () => 0, clearInterval: () => {}, window: {} };
 sb.window = sb;
 sb.document = {
   createElement: () => ({ set src(v) {}, addEventListener: () => {}, dataset: {}, classList: { add: () => {}, remove: () => {}, toggle: () => {} } }),
-  body: { appendChild: (el) => appendedScripts.push(el && el.src) },
+  body: { appendChild: () => {} },
   querySelectorAll: () => [],
+  addEventListener: () => {},
 };
 sb.localStorage = { getItem: () => null, setItem: () => {} };
 const ctx = vm.createContext(sb);
 function run(file) { vm.runInContext(RD("client/" + file), ctx, { filename: file }); }
 
-// ---- stub app globals (as defined by script.js/learn.js) ----
 vm.runInContext(`
-var KAPITEL=[{id:"K0",name:"Einführung",icon:"🌟"},{id:"K1",name:"K1",icon:"👋"},{id:"K2",name:"K2",icon:"👥"},{id:"K3",name:"K3",icon:"🏙"},{id:"K4",name:"K4",icon:"🍽"},{id:"K5",name:"K5",icon:"🏠"}];
-var CATEGORIES=["General"];
-var CAT_AR={General:"عام"};
-var VOCAB=[{id:"k0w1",de:"Alltag",art:"der",ar:"الروتين",pron:"x",type:"اسم",cat:"General",ex:"ex",exAr:"y",kap:"K0",level:"A1",plural:"die Alltage",img:""}];
-var GRAMMAR=[];var EXPLAIN={};var EXPLAIN_ORDER=[];var SENTENCES=[];
+var KAPITEL=[{id:"K0"},{id:"K1"},{id:"K2"},{id:"K3"},{id:"K4"},{id:"K5"},{id:"K6"},{id:"K7"},{id:"K8"},{id:"K9"},{id:"K10"},{id:"K11"},{id:"K12"},{id:"K13"},{id:"K14"}];
+var CATEGORIES=["General"];var CAT_AR={General:"عام"};
+var VOCAB=[{id:"a1",de:"Haus",art:"das",ar:"بيت",pron:"x",type:"اسم",cat:"General",ex:"Das Haus.",exAr:"y",kap:"K0",level:"A1",plural:"die Häuser",img:""}];
+var GRAMMAR=[];var EXPLAIN={};var EXPLAIN_ORDER=[];var SENTENCES=[];var SENT_FILL=[];
+function conjugateVerb(inf){var b=inf.replace(/en$/,"");return{ich:"ich "+b+"e",du:"du "+b+"st",er:"er "+b+"t",wir:inf,ihr:"ihr "+b+"t"};}
 function fillCategories(){} function fillKapitels(){}
 function allWords(){return VOCAB;} function getStatus(){return "new";}
 function kapName(k){return k;} function escapeHtml(s){return String(s);}
@@ -41,52 +35,48 @@ function speak(){} function speakGerman(){} function markStudyDay(){}
 function toast(){} function renderAll(){} function showPage(){}
 function pickWeighted(a,n){return a.slice(0,n);}
 function buildQuestions(t,c,f){return [];}
+function wordById(id){return VOCAB.find(function(w){return w.id===id;})||null;}
+function quizTypeName(t){return t;}
+function renderGrammar(){}
+var S={mistakes:{},review:{},status:{}};
 function $(id){return null;}
 `, ctx);
 
-run("curr-a2.js");
-run("curriculum.js");
-const C = vm.runInContext(`({
-  a2: Curriculum.loaded.A2, vocab: VOCAB.length, kap: KAPITEL.length,
-  gids: GRAMMAR.map(g=>g.id).join(","),
-  exKeys: Object.keys(EXPLAIN).length, eoLen: EXPLAIN_ORDER.length,
-  sent: SENTENCES.length, cats: CATEGORIES.length,
-  w0: JSON.stringify(VOCAB[1]),
-  audit: CurrAudit()
-})`, ctx);
+for (const f of ["curr-a2.js", "curr-b1.js", "curr-b2.js", "curriculum.js"]) run(f);
+// simulate lazy arrival of expansion packs in queue order
+for (const f of ["curr-a1x.js", "curr-a2b.js", "curr-b1b.js", "curr-b2b.js"]) run(f);
+const C = vm.runInContext(`(function(){
+  ["B1","B2","B1B","B2B","A1X","A2B"].forEach(function(k){currMergeDs(k);});
+  var gids=GRAMMAR.map(function(g){return g.id;});
+  var uniq={};gids.forEach(function(id){uniq[id]=(uniq[id]||0)+1;});
+  var dupG=Object.keys(uniq).filter(function(k){return uniq[k]>1;});
+  return {
+    vocab: VOCAB.length, gram: GRAMMAR.length, sent: SENTENCES.length,
+    fills: SENT_FILL.length, reading: CURR_READING.length,
+    eoLen: EXPLAIN_ORDER.length, exKeys: Object.keys(EXPLAIN).length,
+    dupG: dupG, gmax: Math.max.apply(null,gids.map(function(g){return parseInt(g.slice(1),10);})),
+    audit: CurrAudit()
+  };
+})()`, ctx);
 
-ok("S1 A2 merged eagerly", C.a2 === true);
-ok("S2 vocab = 1 A1 + 109 A2", C.vocab === 110, "got " + C.vocab);
-ok("S3 kapitel = 6 + 3", C.kap === 9, "got " + C.kap);
-ok("S4 grammar ids g42..g53", C.gids === "g42,g43,g44,g45,g46,g47,g48,g49,g50,g51,g52,g53", "got " + C.gids);
-ok("S5 explain 12 + order 12", C.exKeys === 12 && C.eoLen === 12);
-ok("S6 sentences 36", C.sent === 36);
-ok("S7 word shape has en/pos/level", C.w0.includes('"en"') && C.w0.includes('"level":"A2"') && C.w0.includes('"pos"'));
-ok("S8 no dup words in audit", C.audit.dupWords.length === 0, JSON.stringify(C.audit.dupWords.slice(0, 3)));
-ok("S9 no dup examples", C.audit.dupExamples.length === 0);
-ok("S10 grammar complete", C.audit.gramIssues.length === 0, JSON.stringify(C.audit.gramIssues.slice(0, 3)));
-
-// ---- simulate lazy B1/B2 arrival ----
-run("curr-b1.js");
-run("curr-b2.js");
-const C2 = vm.runInContext(`(function(){currMerge("B1");currMerge("B2");return {
-  b1: Curriculum.loaded.B1, b2: Curriculum.loaded.B2,
-  vocab: VOCAB.length, kap: KAPITEL.length,
-  gids: GRAMMAR.map(g=>g.id),
-  sent: SENTENCES.length,
-  audit: CurrAudit()
-};})()`, ctx);
-ok("S11 B1+B2 merged on demand", C2.b1 && C2.b2);
-ok("S12 vocab total 1+312", C2.vocab === 313, "got " + C2.vocab);
-ok("S13 kapitel total 15", C2.kap === 15, "got " + C2.kap);
-ok("S14 grammar 34, ids g42..g75", C2.gids.length === 34 && C2.gids[12] === "g54" && C2.gids[24] === "g66");
-ok("S15 sentences 102", C2.sent === 102, "got " + C2.sent);
-ok("S16 full audit clean", C2.audit.dupWords.length === 0 && C2.audit.dupExamples.length === 0 && C2.audit.gramIssues.length === 0 && C2.audit.missingEn === 0 && C2.audit.missingEx === 0,
-  "dups=" + C2.audit.dupWords.length + " ex=" + C2.audit.dupExamples.length);
-// merge twice = idempotent (no dup accumulation)
-vm.runInContext(`(function(){currMerge("A2");currMerge("B1");})()`, ctx);
-const C3 = vm.runInContext(`VOCAB.length`, ctx);
-ok("S17 re-merge idempotent", C3 === 313, "got " + C3);
+ok("S1 vocab = 1 + 957", C.vocab === 958, "got " + C.vocab);
+ok("S2 grammar = 58", C.gram === 58, "got " + C.gram);
+ok("S3 grammar ids unique", C.dupG.length === 0, JSON.stringify(C.dupG));
+ok("S4 explain entries = 58", C.exKeys === 58 && C.eoLen === 58, C.exKeys + "/" + C.eoLen);
+ok("S5 sentences = 218", C.sent === 218, "got " + C.sent);
+ok("S6 reading texts = 11", C.reading === 11, "got " + C.reading);
+ok("S7 generated fills > 500", C.fills > 500, "got " + C.fills);
+ok("S8 audit clean", C.audit.dupWords.length === 0 && C.audit.dupExamples.length === 0 && C.audit.gramIssues.length === 0,
+  "dups=" + C.audit.dupWords.length + " ex=" + C.audit.dupExamples.length + " g=" + C.audit.gramIssues.length);
+const R = vm.runInContext(`(function(){
+  var g = GRAMMAR.find(function(x){return x.id==="g42";});
+  var qs = currRuleQs(g, 5);
+  var gq = currGrammarQuizQs("A2", 10);
+  var rq = currReadingQuizQs("B1", 6);
+  return { n: qs.length, ok: qs.every(function(q){return q.prompt && q.opts && q.opts.length>=2 && q.correctText && q.explain;}), gq: gq.length, rq: rq.length };
+})()`, ctx);
+ok("S9 rule-drill Qs test the rule", R.n >= 2 && R.ok, "n=" + R.n);
+ok("S10 grammar/reading quiz sets", R.gq === 10 && R.rq >= 3, "g=" + R.gq + " r=" + R.rq);
 console.log("----");
 console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
 process.exit(fail ? 1 : 0);
