@@ -222,7 +222,7 @@
       <!-- SENTENCES -->
       <section class="page" id="page-sentences">
         <div class="page-head"><h2 data-i18n="title_sent">💬 الجمل الألمانية</h2>
-          <div class="level-tabs"><button class="level-tab active" data-level="A1">A1</button><button class="level-tab" data-level="A2" disabled data-i18n-title="soon_title" title="قريبًا">A2 🔒</button><button class="level-tab" data-level="B1" disabled data-i18n-title="soon_title" title="قريبًا">B1 🔒</button></div>
+          <div class="level-tabs"><button class="level-tab active" data-level="all" data-i18n="sent_all">الكل</button><button class="level-tab" data-level="A1">A1</button><button class="level-tab" data-level="A2">A2</button><button class="level-tab" data-level="B1">B1</button><button class="level-tab" data-level="B2">B2</button></div>
         </div>
         <div class="row-flex" style="margin-top:0;margin-bottom:10px"><select id="sentenceKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select><input type="text" id="sentenceSearch" class="full-input" style="flex:1" data-i18n-ph="sent_search_ph" placeholder="ابحث في الجمل..."></div>
         <div class="sent-list" id="sentList"></div>
@@ -413,6 +413,7 @@
             <button class="quiz-type" data-type="quick" data-i18n="qt_quick">⚡ اختبار سريع ⏱️</button>
           </div>
           <div class="row-flex">
+            <label><span data-i18n="quiz_level">المستوى:</span> <select id="quizLevel"><option value="mixed" data-i18n="qlv_mixed">🎲 كل المستويات</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option></select></label>
             <label><span data-i18n="quiz_count">عدد الأسئلة:</span> <select id="quizCount"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></label>
             <button class="btn btn-primary" id="startQuiz" data-i18n="quiz_start">ابدأ الاختبار 🚀</button>
           </div>
@@ -528,7 +529,7 @@
       <label><span data-i18n="f_exar">ترجمة المثال</span><input id="nwExAr" placeholder="البيت كبير."></label>
       <label><span data-i18n="f_cat">التصنيف</span><select id="nwCat"></select></label>
       <label><span data-i18n="f_type">النوع</span><select id="nwType"><option data-i18n="t_noun">اسم</option><option data-i18n="t_verb">فعل</option><option data-i18n="t_adj">صفة</option><option data-i18n="t_pron">ضمير</option><option data-i18n="t_part">أداة</option><option data-i18n="t_vocabw">مفردات</option></select></label>
-      <label><span data-i18n="f_level">المستوى</span><select id="nwLevel"><option>A1</option><option>A2</option><option>B1</option></select></label>
+      <label><span data-i18n="f_level">المستوى</span><select id="nwLevel"><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select></label>
     </div>
     <div class="row-flex"><button class="btn btn-primary" id="addWordBtn" data-i18n="modal_addbtn">Add Word ✅</button><button class="btn btn-ghost" id="closeModal" data-i18n="modal_cancel">إلغاء</button></div>
   </div>
@@ -555,5 +556,7 @@
 <script src="mygermany.js"></script>
 <script src="dlife.js"></script>
 <script src="glab.js"></script>
+<script src="curr-a2.js"></script>
+<script src="curriculum.js"></script>
 </body>
 </html>
