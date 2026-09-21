@@ -2412,34 +2412,99 @@ function dmNorm(s){
 }
 if(typeof window!=="undefined")window.dmNorm=dmNorm;
 if(typeof window!=="undefined"&&!window.gsLevel)window.gsLevel="mixed";
+/* Levenshtein (tiny, for fallback suggestions only) */
+function dmLev(a,b){
+  a=String(a||"");b=String(b||"");
+  if(a===b)return 0;
+  if(!a.length)return b.length;if(!b.length)return a.length;
+  if(Math.abs(a.length-b.length)>2)return 3;
+  let p=[],c=[];
+  for(let j=0;j<=b.length;j++)p[j]=j;
+  for(let i=1;i<=a.length;i++){
+    c[0]=i;
+    for(let j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));
+    const t=p;p=c;c=t;
+  }
+  return p[b.length];
+}
+if(typeof window!=="undefined")window.dmLev=dmLev;
+/* Instant prefix search with strict deterministic ranking:
+   0 exact > 10 prefix (shorter first) > 20 word-boundary > 30 substring >
+   40 translation > 50 fuzzy-fallback (only when tiers 0-30 are empty).
+   Auto-cached normalized index, invalidated when vocabulary grows. */
 function dmWordHits(qn,level){
   const out=[];
   let words=[];
   try{words=allWords();}catch(e){return out;}
-  for(let i=0;i<words.length;i++){
-    const w=words[i];
-    const wl=w.level||"A1";
-    if(level&&level!=="mixed"&&wl!==level)continue;
-    const full=(w.art&&w.art!=="-"?w.art+" ":"")+w.de;
-    const F=[
-      {t:"de",v:w.de},{t:"full",v:full},{t:"plural",v:w.plural||""},
-      {t:"ar",v:w.ar||""},{t:"en",v:w.en||""},{t:"pron",v:w.pron||""},{t:"ex",v:w.ex||""}
-    ];
-    let best=-1,via="";
-    for(let f=0;f<F.length;f++){
-      const n=dmNorm(F[f].v);
-      if(!n)continue;
-      if(n===qn){best=0;via=F[f].t;break;}
-      if(best!==0&&n.indexOf(qn)===0){best=1;via=F[f].t;}
-      else if(best<0&&n.indexOf(qn)>=0){best=2;via=F[f].t;}
+  if(!qn)qn="";
+  /* ---- cached index (auto-rebuilds on vocabulary change, never stale) ---- */
+  let idx=dmWordHits._idx;
+  if(!idx||idx.n!==words.length){
+    idx={n:words.length,rows:words.map(w=>{
+      const full=(w.art&&w.art!=="-"?w.art+" ":"")+w.de;
+      const nde=dmNorm(w.de),nfull=dmNorm(full),npl=dmNorm(w.plural||"");
+      return {w:w,wl:w.level||"A1",nde:nde,nfull:nfull,npl:npl,
+        toks:(nde+" "+nfull+" "+npl).split(/[\s\-/]+/).filter(Boolean),
+        nar:dmNorm(w.ar||""),nen:dmNorm(w.en||""),npr:dmNorm(w.pron||""),nex:dmNorm(w.ex||"")};
+    })};
+    dmWordHits._idx=idx;
+  }
+  let hasDirect=false;
+  for(let i=0;i<idx.rows.length;i++){
+    const r=idx.rows[i];
+    if(level&&level!=="mixed"&&r.wl!==level)continue;
+    let score=-1,via="";
+    /* tier 0: exact German */
+    if(r.nde===qn||r.nfull===qn){score=0;via=(r.nfull===qn?"full":"de");}
+    /* tier 1: prefix on de/full/plural (shorter word wins ties) */
+    if(score<0){
+      let bl=-1,bt="";
+      if(r.nde.indexOf(qn)===0){bl=r.nde.length;bt="de";}
+      if(r.nfull.indexOf(qn)===0&&(bl<0||r.nfull.length<bl)){bl=r.nfull.length;bt="full";}
+      if(r.npl&&r.npl.indexOf(qn)===0&&(bl<0||r.npl.length<bl)){bl=r.npl.length;bt="plural";}
+      if(bl>=0){score=10+bl/100;via=bt;}
     }
-    if(best>=0)out.push({w:w,score:best+(wl==="A1"?0:0.1),via:via});
+    /* tier 2: word-boundary (token start, not first token) */
+    if(score<0){
+      for(let t=1;t<r.toks.length;t++){
+        if(r.toks[t].indexOf(qn)===0){score=20+r.toks[t].length/100;via="de";break;}
+      }
+    }
+    /* tier 3: substring in German fields (earlier position wins) */
+    if(score<0){
+      let bp=-1;
+      [r.nde,r.nfull,r.npl].forEach(n=>{
+        if(!n)return;const p=n.indexOf(qn);
+        if(p>0&&(bp<0||p<bp))bp=p;
+      });
+      if(bp>=0){score=30+bp;via="de";}
+    }
+    if(score>=0){hasDirect=true;out.push({w:r.w,score:score,via:via});continue;}
+    /* tier 4: translation / pronunciation / example (after ALL German) */
+    if(r.nar===qn||r.nen===qn){out.push({w:r.w,score:40,via:(r.nar===qn?"ar":"en")});}
+    else if(r.nar.indexOf(qn)>=0){out.push({w:r.w,score:41,via:"ar"});}
+    else if(r.nen.indexOf(qn)>=0){out.push({w:r.w,score:42,via:"en"});}
+    else if(r.npr.indexOf(qn)>=0){out.push({w:r.w,score:43,via:"pron"});}
+    else if(r.nex.indexOf(qn)>=0){out.push({w:r.w,score:44,via:"ex"});}
+  }
+  /* tier 5: fuzzy fallback ONLY when no German direct hit exists */
+  if(!hasDirect&&qn.length>=2){
+    const fz=[];
+    for(let i=0;i<idx.rows.length;i++){
+      const r=idx.rows[i];
+      if(level&&level!=="mixed"&&r.wl!==level)continue;
+      if(!r.nde||Math.abs(r.nde.length-qn.length)>2)continue;
+      const d=dmLev(r.nde,qn);
+      if(d>0&&d<=2)fz.push({w:r.w,score:50+d,via:"fuzzy"});
+    }
+    fz.sort((a,b)=>a.score-b.score);
+    for(let k=0;k<Math.min(3,fz.length);k++)out.push(fz[k]);
   }
   out.sort((a,b)=>a.score-b.score);
   return out;
 }
 if(typeof window!=="undefined")window.dmWordHits=dmWordHits;
-const VIA_AR={de:"الكلمة",full:"الكلمة مع الأداة",plural:"الجمع",ar:"المعنى العربي",en:"المعنى الإنجليزي",pron:"النطق",ex:"المثال"};
+const VIA_AR={de:"بداية الكلمة",full:"الكلمة مع الأداة",plural:"الجمع",ar:"المعنى العربي",en:"المعنى الإنجليزي",pron:"النطق",ex:"المثال",fuzzy:"اقتراح قريب"};
 let gsTimer=null;
 function gsClose(box){
   box.classList.remove("show");
@@ -2451,7 +2516,7 @@ function runGlobalSearch(){
   if(!inp||!box)return;
   const raw=inp.value,level=window.gsLevel||"mixed";
   const qn=dmNorm(raw);
-  if(qn.length<2){box.classList.remove("show");box.innerHTML="";return;}
+  if(!qn.length){box.classList.remove("show");box.innerHTML="";return;}
   /* pull lazy levels in background so later keystrokes include them, then refresh */
   try{
     if(window.Curriculum&&window.Curriculum.ensure){

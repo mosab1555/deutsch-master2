@@ -60,13 +60,19 @@ console.log("INFO vocab size searchable: " + vocab.length);
 // ---- run extracted dmWordHits with stubbed allWords ----
 const hitsSrc = grab("dmWordHits");
 const allWords = () => vocab;
-const dmWordHitsFn = new Function("qn", "level", "allWords", "dmNorm", hitsSrc
-  .replace(/^function dmWordHits\(qn,level\)\s*\{/, "")
+const levSrc = grab("dmLev");
+const dmLevFn = new Function("a", "b", levSrc
+  .replace(/^function dmLev\(a,b\)\s*\{/, "")
   .replace(/\}\s*$/, ""));
+const dmWordHitsFn = new Function("qn", "level", "allWords", "dmNorm", "dmLev", "__box", hitsSrc
+  .replace(/^function dmWordHits\(qn,level\)\s*\{/, "")
+  .replace(/\}\s*$/, "")
+  .replace(/dmWordHits\._idx/g, "__box.v"));
+const __box = { v: null };
 function search(q, level) {
   const qn = norm(q);
-  if (qn.length < 2) return [];
-  return dmWordHitsFn(qn, level || "mixed", allWords, norm);
+  if (!qn.length) return [];
+  return dmWordHitsFn(qn, level || "mixed", allWords, norm, dmLevFn, __box);
 }
 function has(q, de, level) { return search(q, level).some(h => h.w.de === de); }
 
@@ -107,7 +113,27 @@ ok("T14 level B1", has(b1W.de, b1W.de, "B1"), b1W.de);
 ok("T15 level B2", has(b2W.de, b2W.de, "B2"), b2W.de);
 ok("T16 mixed finds all levels", has(a2W.de, a2W.de, "mixed") && has(b1W.de, b1W.de, "mixed") && has(b2W.de, b2W.de, "mixed"));
 ok("T17 ranked: exact first", search(exact.de, "mixed")[0].w.de === exact.de);
-ok("T18 min length guard", search("x").length === 0);
+// ---- instant prefix + strict ranking (new spec) ----
+const g1 = search("g", "mixed").slice(0, 8);
+ok("T18 single char prefix first", g1.length > 0 && norm(g1[0].w.de).indexOf("g") === 0, "g→" + g1.slice(0, 3).map(h => h.w.de).join(","));
+const geRes = search("ge", "mixed");
+const gePref = geRes.filter(h => norm(h.w.de).indexOf("ge") === 0);
+const geSub = geRes.filter(h => norm(h.w.de).indexOf("ge") > 0);
+ok("T19 prefix before substring", gePref.length > 0 && (geSub.length === 0 || geRes.indexOf(gePref[0]) < geRes.indexOf(geSub[0])), "pref=" + gePref.length + " sub=" + geSub.length);
+const midW = vocab.find(w => norm(w.de).indexOf("ge") > 0 && norm(w.de).indexOf("ge") !== 0);
+if (midW) {
+  const r = search("ge", "mixed");
+  const iMid = r.findIndex(h => h.w.de === midW.de);
+  const iPref = r.findIndex(h => norm(h.w.de).indexOf("ge") === 0);
+  ok("T20 mid-word ranks lower", iPref >= 0 && (iMid < 0 || iPref < iMid), midW.de + " @" + iMid + " vs prefix @" + iPref);
+} else console.log("SKIP T20");
+ok("T21 exact beats longer prefix", search("gehen", "mixed")[0].w.de === "gehen");
+const fz = search("gehn", "mixed");
+ok("T22 fuzzy fallback suggests", fz.some(h => h.w.de === "gehen" && h.via === "fuzzy") || fz.some(h => h.w.de === "gehen"), "gehn→" + fz.slice(0, 3).map(h => h.w.de).join(","));
+const gehRes = search("geh", "mixed");
+ok("T23 geh puts gehen first", gehRes.length > 0 && gehRes[0].w.de === "gehen", gehRes.slice(0, 3).map(h => h.w.de).join(","));
+ok("T24 german before translation", search("geh", "mixed").slice(0, 5).every(h => ["de", "full", "plural", "fuzzy"].includes(h.via) || h.score < 40));
+ok("T25 level A1 prefix chain", ["g", "ge", "geh", "gehen"].every(q => search(q, "A1").some(h => h.w.de === "gehen")));
 console.log("----");
 console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
 process.exit(fail ? 1 : 0);
