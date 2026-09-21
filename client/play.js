@@ -548,7 +548,12 @@ function renderChallenge(){
     const list=pool.length?pool:shuffle(kapWords()).slice(0,10);
     void seed;
     const qs=buildQuestions("mixed",10,list);
+    /* The quiz engine renders into #quizPlay inside page-quiz: without
+       navigating there the user stays on the challenge page and sees
+       nothing (this was the empty-challenge bug). */
+    if(!qs.length){toast("لا توجد كلمات مناسبة لتحدي اليوم ⚠️","err");return;}
     startQuizRun("mixed",qs);
+    showPage("quiz");
     const _fin=finishQuiz,_orig=finishQuiz;
     finishQuiz=function(){
       _fin();
@@ -592,7 +597,9 @@ function renderPractice(){
   const st=$("prStart");
   if(st)st.addEventListener("click",()=>{
     const qs=buildQuestions("mixed",Math.min(10,list.length),list);
+    if(!qs.length){toast("لا توجد كلمات مناسبة للتدريب ⚠️","err");return;}
     startQuizRun("mixed",qs);
+    showPage("quiz");
   });
 }
 /* wiring */
