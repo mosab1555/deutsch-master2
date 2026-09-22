@@ -482,7 +482,18 @@ img,table{max-width:100%}
 /* Order-answer/chips are German LTR content: visual order must equal click
    order on both desktop and mobile (page is RTL). dir="ltr" is set in JS;
    this CSS guard covers every order container even if markup is older. */
-.order-answer,.quiz-order,#sxAns,#pxAns,#glAns,#gAns,#orderAns{direction:ltr;text-align:left}
+.order-answer,.quiz-order,#sxAns,#pxAns,#glAns,#gAns,#orderAns,#erAns{direction:ltr;text-align:left}
+
+/* ---------- New Training Labs (labsx.js): same theme, fluid layout ---------- */
+#shadowBox,#writeBox,#dictBox,#gsitBox,#erBox,#dashLabsx{min-width:0;max-width:100%}
+#wrIn{width:100%;max-width:100%;min-width:0;box-sizing:border-box;background:rgba(0,0,0,.25);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-size:16px;line-height:1.8;resize:vertical}
+html[data-theme="light"] #wrIn{background:#fff}
+#dcIn{min-width:0;max-width:100%}
+.lx-marks{display:flex;gap:8px;flex-wrap:wrap;max-width:100%;min-width:0}
+@media(max-width:560px){
+  #wrIn{font-size:16px}
+  .talk-bot{max-width:100%;overflow-wrap:anywhere}
+}
 .order-answer{flex-wrap:wrap}
 .quiz-order{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;min-width:0;max-width:100%}
 #sxChips,#pxChips,#glChips,#gQ{direction:ltr}
