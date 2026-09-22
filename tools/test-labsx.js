@@ -245,7 +245,8 @@ eval(extractFn("wrAnalyze"));
   check("css labsx block has no fixed widths >340px", big.length === 0, big.slice(0, 3).join(","));
   const sw = fs.readFileSync(path.join(root, "client", "sw.js"), "utf8");
   check("sw precaches labsx.js", sw.indexOf('"./labsx.js"') >= 0, "");
-  check("sw cache bumped v17", sw.indexOf("german-academy-v17") >= 0, "");
+  check("sw precaches smart.js", sw.indexOf('"./smart.js"') >= 0, "");
+  check("sw cache bumped v18", sw.indexOf("german-academy-v18") >= 0, "");
   ["play.js", "script.js", "study.js"].forEach(f => {
     const other = fs.readFileSync(path.join(root, "client", f), "utf8");
     check("no labsx id collision in " + f, ["shadowBox", "writeBox", "dictBox", "gsitBox", "erBox", "dashLabsx"].every(id => other.indexOf('id="' + id + '"') < 0 && other.indexOf("$(\"" + id + "\")") < 0), "");

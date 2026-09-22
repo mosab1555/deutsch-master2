@@ -487,6 +487,16 @@ img,table{max-width:100%}
 /* ---------- New Training Labs (labsx.js): same theme, fluid layout ---------- */
 #shadowBox,#writeBox,#dictBox,#gsitBox,#erBox,#dashLabsx{min-width:0;max-width:100%}
 #wrIn{width:100%;max-width:100%;min-width:0;box-sizing:border-box;background:rgba(0,0,0,.25);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-size:16px;line-height:1.8;resize:vertical}
+/* ---------- Smart Training engine (smart.js): distinct UI per type ---------- */
+.sm-scene{background:linear-gradient(135deg,rgba(var(--v3),.18),rgba(var(--v1),.22));border:1px solid rgba(var(--v3),.45);border-radius:14px;padding:14px 16px;font-weight:800;font-size:17px;line-height:1.9;max-width:100%}
+.sm-img-big{display:flex;justify-content:center;align-items:center;min-height:120px;margin:6px 0}
+.sm-img-big img{max-height:150px;max-width:100%;border-radius:12px}
+.sm-chip-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;min-width:0;max-width:100%}
+.sm-answer{min-height:54px;border:2px dashed var(--border);border-radius:12px;padding:12px;font-weight:800;font-size:18px;margin:10px 0;min-width:0;max-width:100%;overflow-wrap:anywhere}
+.sm-match-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;min-width:0;max-width:100%}
+.sm-match-cols .quiz-opt{min-width:0;max-width:100%;overflow-wrap:anywhere;white-space:normal}
+#smIn{min-width:0;max-width:100%}
+@media(max-width:560px){.sm-scene{font-size:15px;padding:12px}.sm-img-big{min-height:100px}}
 html[data-theme="light"] #wrIn{background:#fff}
 #dcIn{min-width:0;max-width:100%}
 .lx-marks{display:flex;gap:8px;flex-wrap:wrap;max-width:100%;min-width:0}
