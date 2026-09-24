@@ -97,7 +97,8 @@ function startScenario(id){
         const gram=/^[A-ZÄÖÜ]/.test(v)&&/[.?!]$/.test(v)?100:60;
         vSum+=ev.vocab;gSum+=gram;n++;
         if(hit){
-          showFb(true,"✅ مقبول! Grammar: "+gram+"% • Vocabulary: "+ev.vocab+"%"+(ev.missing.length?" • ناقصك: "+ev.missing.join("، "):"")+"<br>الأفضل: "+escapeHtml(st.sample||""));
+          const missTxt=(ev.missing||[]).map(x=>escapeHtml(x)).join("، ");
+          showFb(true,"✅ مقبول! Grammar: "+gram+"% • Vocabulary: "+ev.vocab+"%"+(ev.missing.length?" • ناقصك: "+missTxt:"")+"<br>الأفضل: "+escapeHtml(st.sample||""));
           S.totalCorrect++;
         }else{
           showFb(false,"الأفضل: <b>"+escapeHtml(st.sample||"")+"</b> — "+escapeHtml(st.hint||"")+"<br>Grammar: "+gram+"% • حاول استخدام: "+(st.expect||[]).join("، "));

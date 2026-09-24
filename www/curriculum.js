@@ -451,7 +451,7 @@ listen:function(){
       return '<div class="panel glass" style="margin:8px 0"><b>'+esc(it.title)+'</b> <span class="tag">'+esc(it.level)+'</span> <span class="tag kap-tag">'+esc(it.kap||"")+'</span>'
       +'<div class="row-flex"><button class="btn btn-gold sm" data-li="'+i+'">🔊 استمع</button><button class="btn btn-ghost sm" data-lt="'+i+'">📄 النص</button></div>'
       +'<div class="hidden" data-lx="'+i+'">'+it.lines.map(function(l){return '<div class="sent-de" dir="ltr" style="text-align:left">'+esc(l[0])+'</div><div class="sent-ar">'+esc(l[1])+'</div>';}).join("")+'</div>'
-      +'<div data-lq="'+i+'">'+it.qs.map(function(q,qi){return '<div style="margin-top:6px"><b>'+esc(q.q)+'</b><div class="quiz-opts">'+q.opts.map(function(o,oi){return '<button class="quiz-opt" data-q="'+i+'" data-qi="'+qi+'" data-oi="'+oi+'">'+esc(o)+'</button>';}).join("")+'</div></div>';}).join("")+'</div></div>';
+      +'<div data-lq="'+i+'">'+it.qs.map(function(q,qi){var order=(typeof shuffle4==="function"?shuffle4:shuf)(q.opts.map(function(_,oi){return oi;}));return '<div style="margin-top:6px"><b>'+esc(q.q)+'</b><div class="quiz-opts">'+order.map(function(oi){return '<button class="quiz-opt" data-q="'+i+'" data-qi="'+qi+'" data-oi="'+oi+'">'+esc(q.opts[oi])+'</button>';}).join("")+'</div></div>';}).join("")+'</div></div>';
     }).join("");
   host.appendChild(d);
   d.querySelectorAll("[data-li]").forEach(function(b){b.addEventListener("click",function(){var it=items[+b.getAttribute("data-li")];currSpeak(it.lines.map(function(l){return l[0];}).join(" "));});});
@@ -461,7 +461,7 @@ listen:function(){
     var sib=d.querySelectorAll('.quiz-opt[data-q="'+b.getAttribute("data-q")+'"][data-qi="'+b.getAttribute("data-qi")+'"]');
     sib.forEach(function(x){x.disabled=true;});
     if(oi===q.correct){b.classList.add("correct");toast("صحيح ✅","ok");}
-    else{b.classList.add("wrong");sib[q.correct].classList.add("correct");toast("خطأ ❌","err");}
+    else{b.classList.add("wrong");var cb=d.querySelector('.quiz-opt[data-q="'+b.getAttribute("data-q")+'"][data-qi="'+b.getAttribute("data-qi")+'"][data-oi="'+q.correct+'"]');if(cb)cb.classList.add("correct");toast("خطأ ❌","err");}
     try{markStudyDay();}catch(e){}
   });});
 },
@@ -774,7 +774,7 @@ function currHookStories(){
           +'<div class="sent-de" dir="ltr" style="text-align:left;white-space:pre-line">'+esc(r.de)+'</div>'
           +'<div class="row-flex"><button class="btn btn-gold sm" data-rs="'+i+'">🔊 استمع</button><button class="btn btn-ghost sm" data-ra="'+i+'">🌐 الترجمة</button></div>'
           +'<div class="hidden" data-rx="'+i+'"><div class="sent-ar" style="white-space:pre-line">'+esc(r.ar)+'</div></div>'
-          +'<div>'+r.qs.map(function(q,qi){return '<div style="margin-top:6px"><b>'+esc(q.q)+'</b><div class="quiz-opts">'+q.opts.map(function(o,oi){return '<button class="quiz-opt" data-r="'+i+'" data-rq="'+qi+'" data-ro="'+oi+'">'+esc(o)+'</button>';}).join("")+'</div></div>';}).join("")+'</div></div>';
+          +'<div>'+r.qs.map(function(q,qi){var order=(typeof shuffle4==="function"?shuffle4:function(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;})(q.opts.map(function(_,oi){return oi;}));return '<div style="margin-top:6px"><b>'+esc(q.q)+'</b><div class="quiz-opts">'+order.map(function(oi){return '<button class="quiz-opt" data-r="'+i+'" data-rq="'+qi+'" data-ro="'+oi+'">'+esc(q.opts[oi])+'</button>';}).join("")+'</div></div>';}).join("")+'</div></div>';
         }).join("");
       d.querySelector("#currReadBar").appendChild(currLevelBar(L,function(NL){
         window.currStoryLevel=NL;
@@ -787,7 +787,7 @@ function currHookStories(){
         var sib=d.querySelectorAll('.quiz-opt[data-r="'+b.getAttribute("data-r")+'"][data-rq="'+b.getAttribute("data-rq")+'"]');
         sib.forEach(function(x){x.disabled=true;});
         if(oi===q.correct){b.classList.add("correct");toast("صحيح ✅","ok");}
-        else{b.classList.add("wrong");sib[q.correct].classList.add("correct");toast("خطأ ❌","err");}
+        else{b.classList.add("wrong");var cb=d.querySelector('.quiz-opt[data-r="'+b.getAttribute("data-r")+'"][data-rq="'+b.getAttribute("data-rq")+'"][data-ro="'+q.correct+'"]');if(cb)cb.classList.add("correct");toast("خطأ ❌","err");}
         try{markStudyDay();}catch(e){}
       });});
     }
@@ -879,7 +879,8 @@ function currRuleQs(rule,count){
   function Q(prompt,opts,correctText,explain){out.push({prompt:prompt,opts:opts,correctText:correctText,explain:explain||("القاعدة: "+rule.title),w:w});}
   try{
     if(rule.quiz){
-      Q("📐 ["+rule.title+"] "+rule.quiz.q,rule.quiz.opts.slice(),rule.quiz.opts[rule.quiz.correct],rule.quiz.explain);
+      var qo=shuf(rule.quiz.opts.map(function(_,ix){return ix;}));
+      Q("📐 ["+rule.title+"] "+rule.quiz.q,qo.map(function(ix){return rule.quiz.opts[ix];}),rule.quiz.opts[rule.quiz.correct],rule.quiz.explain);
     }
     (rule.ex||[]).forEach(function(e){
       if(out.length>=(count||4))return;
@@ -887,7 +888,8 @@ function currRuleQs(rule,count){
       var m=dex.match(/(der|die|das|den|dem) (\S+)/);
       if(m&&out.length<(count||4)){
         var art=m[1],rest=dex.replace(m[1]+" "+m[2],"___ "+m[2]);
-        Q("📐 أكمل ("+rule.title+"): "+rest+" — "+arx,["der","die","das"],art,"الصحيح: "+art+" "+m[2]+" — "+rule.title);
+        var ao=shuf(["der","die","das"]);
+        Q("📐 أكمل ("+rule.title+"): "+rest+" — "+arx,ao,art,"الصحيح: "+art+" "+m[2]+" — "+rule.title);
       }
     });
     (rule.ex||[]).forEach(function(e){

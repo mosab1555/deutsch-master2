@@ -12,9 +12,9 @@
 
 /* ---------- i18n (merged additively; page keys match data-page names) ---------- */
 try{
-  Object.assign(I18N.ar,{shadowing:"🎙️ تقليد النطق",writing:"✍️ مختبر الكتابة",dictation:"👂 الإملاء السمعي",situations:"🎬 مواقف ألمانية",erreplay:"🧠 أخطائي",labsx_new:"🚀 معامل التدريب الجديدة"});
-  Object.assign(I18N.en,{shadowing:"🎙️ Shadowing",writing:"✍️ Writing Lab",dictation:"👂 Dictation",situations:"🎬 Situations",erreplay:"🧠 Error Replay",labsx_new:"🚀 New Training Labs"});
-  Object.assign(I18N.de,{shadowing:"🎙️ Shadowing",writing:"✍️ Schreiblabor",dictation:"👂 Diktat",situations:"🎬 Situationen",erreplay:"🧠 Fehler-Replay",labsx_new:"🚀 Neue Trainingslabore"});
+  Object.assign(I18N.ar,{shadowing:"🎙️ تقليد النطق",writing:"✍️ مختبر الكتابة",dictation:"👂 الإملاء السمعي",situations:"🎬 مواقف ألمانية",erreplay:"🧠 أخطائي",labsx_new:"🚀 معامل التدريب الجديدة",title_shadowing:"🎙️ Shadowing Lab — تقليد النطق",title_writing:"✍️ Writing Lab — مختبر الكتابة",title_dictation:"👂 Dictation — الإملاء السمعي",title_situations:"🎬 German Situations — مواقف ألمانية",title_erreplay:"🧠 Error Replay — أخطائي"});
+  Object.assign(I18N.en,{shadowing:"🎙️ Shadowing",writing:"✍️ Writing Lab",dictation:"👂 Dictation",situations:"🎬 Situations",erreplay:"🧠 Error Replay",labsx_new:"🚀 New Training Labs",title_shadowing:"🎙️ Shadowing Lab",title_writing:"✍️ Writing Lab",title_dictation:"👂 Dictation",title_situations:"🎬 German Situations",title_erreplay:"🧠 Error Replay"});
+  Object.assign(I18N.de,{shadowing:"🎙️ Shadowing",writing:"✍️ Schreiblabor",dictation:"👂 Diktat",situations:"🎬 Situationen",erreplay:"🧠 Fehler-Replay",labsx_new:"🚀 Neue Trainingslabore",title_shadowing:"🎙️ Shadowing-Labor",title_writing:"✍️ Schreiblabor",title_dictation:"👂 Diktat",title_situations:"🎬 Deutsche Situationen",title_erreplay:"🧠 Fehler-Replay"});
 }catch(e){}
 
 /* ---------- storage (own namespace, safe migration, never wipes) ---------- */
@@ -678,6 +678,7 @@ prep:{t:"Präpositionen",ar:"حروف الجر"},
 wordorder:{t:"Word Order",ar:"ترتيب الجملة"}
 };
 /* deterministic-ish pick avoiding recent repeats */
+function erShuffle(a){const sh=a.slice();for(let i=sh.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=sh[i];sh[i]=sh[j];sh[j]=t;}return sh;}
 function erPick(arr,n,recent){
   const pool=arr.filter((_,i)=>recent.indexOf("g"+i)<0);
   const src=pool.length>=n?pool:arr.slice();
@@ -699,7 +700,7 @@ function erGen(skill,recent){
     const list=erNouns(4,recent);
     if(list.length<2)return null;
     const w=list[0];
-    const opts=["der","die","das"].sort(()=>Math.random()-0.5);
+    const opts=erShuffle(["der","die","das"]);
     return {skill:skill,q:"ما أداة «"+w.de+"»؟ ("+w.ar+")",opts:opts,correct:opts.indexOf(w.art),
       explain:w.art+" "+w.de+" = "+w.ar,word:w,rid:w.id};
   }
@@ -708,7 +709,7 @@ function erGen(skill,recent){
     if(!list.length)return null;
     const w=list[0];
     const need=w.art==="der"?"einen":(w.art==="die"?"eine":"ein");
-    const opts=["ein","eine","einen"].sort(()=>Math.random()-0.5);
+    const opts=erShuffle(["ein","eine","einen"]);
     return {skill:skill,q:"Ich habe ___ "+w.de+". ("+w.ar+")",opts:opts,correct:opts.indexOf(need),
       explain:"مفعول: der→einen / die→eine / das→ein. الصحيح: "+need+" "+w.de,word:w,rid:w.id};
   }
@@ -719,7 +720,7 @@ function erGen(skill,recent){
     if(list.length<2)return null;
     const w=list[0];
     const others=erPick(pool.filter(x=>x.id!==w.id&&x.plural!==w.plural),2,[]).map(x=>x.plural);
-    const opts=[w.plural].concat(others).sort(()=>Math.random()-0.5);
+    const opts=erShuffle([w.plural].concat(others));
     return {skill:skill,q:"ما جمع «"+w.de+"»؟",opts:opts,correct:opts.indexOf(w.plural),
       explain:"الجمع: "+w.plural+" ("+w.ar+")",word:w,rid:w.id};
   }
@@ -732,7 +733,7 @@ function erGen(skill,recent){
     const c=conjugateVerb(w.de);
     const forms=[["ich",c.ich],["du",c.du],["er",c.er]];
     const f=forms[Math.floor(Math.random()*forms.length)];
-    const opts=[c.ich,c.du,c.er].filter((v,i,a)=>a.indexOf(v)===i).sort(()=>Math.random()-0.5);
+    const opts=erShuffle([c.ich,c.du,c.er].filter((v,i,a)=>a.indexOf(v)===i));
     return {skill:skill,q:f[0]+" ___ ("+w.de+" = "+w.ar+")",opts:opts,correct:opts.indexOf(f[1]),
       explain:f[0]+" "+f[1]+" — "+w.ar,word:w,rid:w.id};
   }
@@ -746,7 +747,9 @@ function erGen(skill,recent){
     ];
     const it=R(bank);
     const c=(it.fix!==undefined)?it.fix:it.c;
-    return {skill:skill,q:it.s+" (اختر النفي)",opts:it.o.slice(),correct:c,explain:it.why,word:null,rid:it.de};
+    const correctText=it.o[c];
+    const opts=erShuffle(it.o.slice());
+    return {skill:skill,q:it.s+" (اختر النفي)",opts:opts,correct:opts.indexOf(correctText),explain:it.why,word:null,rid:it.de};
   }
   if(skill==="prep"){
     const bank=[
@@ -757,7 +760,9 @@ function erGen(skill,recent){
       {s:"Das Buch liegt ___ dem Tisch.",o:["auf","an","in"],c:0,why:"على سطح مع auf."}
     ];
     const it=R(bank);
-    return {skill:skill,q:it.s,opts:it.o.slice(),correct:it.c,explain:it.why,word:null,rid:it.s};
+    const correctText=it.o[it.c];
+    const opts=erShuffle(it.o.slice());
+    return {skill:skill,q:it.s,opts:opts,correct:opts.indexOf(correctText),explain:it.why,word:null,rid:it.s};
   }
   if(skill==="wordorder"){
     let pool=[];

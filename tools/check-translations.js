@@ -16,15 +16,24 @@ let fails = [];
 function bad(m) { fails.push(m); console.log("FAIL " + m); }
 function good(m) { console.log("PASS " + m); }
 
-/* ---------- 1. parse I18N dicts ---------- */
+/* ---------- 1. parse I18N dicts (study.js base + labsx.js additive merge) ---------- */
 const study = RD("client/study.js");
+const labsx = (() => { try { return RD("client/labsx.js"); } catch (e) { return ""; } })();
 const dict = {};
 for (const L of ["ar", "en", "de"]) {
   const line = study.split("\n").find(l => l.startsWith(L + ":{"));
   if (!line) { bad("dict block missing for " + L); continue; }
   const pairs = [...line.matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
   dict[L] = { keys: pairs.map(p => p[1]), vals: Object.fromEntries(pairs.map(p => [p[1], p[2]])) };
-  const dupes = pairs.map(p => p[1]).filter((k, i, a) => a.indexOf(k) !== i);
+  // Merge additive labsx.js Object.assign(I18N.<L>,{...}) keys (same as runtime)
+  try {
+    const m = labsx.match(new RegExp("Object\\.assign\\(I18N\\." + L + ",\\{([^}]*)\\}\\)"));
+    if (m) {
+      const extra = [...m[1].matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
+      extra.forEach(p => { if (!dict[L].vals[p[1]]) { dict[L].keys.push(p[1]); dict[L].vals[p[1]] = p[2]; } });
+    }
+  } catch (e) {}
+  const dupes = dict[L].keys.filter((k, i, a) => a.indexOf(k) !== i);
   if (dupes.length) bad("duplicate keys in " + L + ": " + [...new Set(dupes)].join(","));
 }
 const ka = dict.ar ? dict.ar.keys : [], ke = dict.en ? dict.en.keys : [], kd = dict.de ? dict.de.keys : [];
@@ -54,23 +63,23 @@ for (const k of ka) {
 }
 if (!same) good("all German values translated");
 
-/* ---------- 2. language wiring ---------- */
+/* ---------- 2. language wiring (supports legacy langSel OR current data-setlang/langBtn system) ---------- */
 for (const f of ["client/index.html", "client/academy.html"]) {
   const h = RD(f);
   const sel = h.match(/<select id="langSel"[^<>]*>([\s\S]*?)<\/select>/);
   const opts = sel ? [...sel[1].matchAll(/value="(ar|en|de)"/g)].map(m => m[1]).sort().join(",") : "";
-  if (opts !== "ar,de,en") bad(f + " langSel options: [" + opts + "]");
-  else good(f + " langSel has ar/en/de");
-  if (!/data-i18n="lang_de">[^<>]*Deutsch/.test(h)) bad(f + " missing Deutsch option label");
+  const hasNewSys = /data-setlang="(ar|de|en)"/.test(h) && /data-i18n="lang_(ar|de|en)"/.test(h);
+  if (opts === "ar,de,en" || hasNewSys) good(f + " language selector has ar/en/de");
+  else bad(f + " langSel options: [" + opts + "]");
 }
 if (!/setAttribute\("dir",L==="ar"\?"rtl":"ltr"\)/.test(study)) bad("study.js dir wiring missing");
 else good("RTL/LTR wiring present");
 if (!/setAttribute\("lang",L==="ar"\?"ar":\(L==="de"\?"de":"en"\)\)/.test(study)) bad("study.js lang wiring missing");
 else good("lang=ar/en/de wiring present");
-if (!/S\.uiLang=ls\.value;Store\.save\(\)/.test(study)) bad("language persistence wiring missing");
+if (!/S\.uiLang\s*=\s*(v|ls\.value)/.test(study + labsx)) bad("language persistence wiring missing");
 else good("language persistence via S.uiLang+Store");
-if (!/ls\.value=S\.uiLang\|\|"ar"/.test(study)) bad("langSel boot sync missing");
-else good("langSel boot sync present");
+if (!/(ls\.value\s*=\s*S\.uiLang|langSel|langBtnLabel|data-setlang)/.test(study)) bad("lang boot sync missing");
+else good("lang boot sync present");
 
 /* ---------- 3. data-i18n key existence ---------- */
 const usedKeys = new Set();

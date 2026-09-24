@@ -556,14 +556,17 @@ function openGLab(id){
         grade(ok,picked.map(function(k){return it.words[k];}).join(" "),it.words.join(" "));
       });
     }else{
-      qb.innerHTML=head+'<div class="quiz-opts">'+it.opts.map(function(o,j){return '<button class="quiz-opt" data-j="'+j+'" dir="auto">'+escapeHtml(o)+'</button>';}).join("")+'</div><div class="quiz-feedback hidden" id="glFb"></div>';
+      // Shuffle choice display per render so bank order never leaks the answer position
+      const order=glShuffle(it.opts.map(function(_,ix){return ix;}));
+      qb.innerHTML=head+'<div class="quiz-opts">'+order.map(function(oi){return '<button class="quiz-opt" data-j="'+oi+'" dir="auto">'+escapeHtml(it.opts[oi])+'</button>';}).join("")+'</div><div class="quiz-feedback hidden" id="glFb"></div>';
       qb.querySelectorAll(".quiz-opt").forEach(function(b){
         b.addEventListener("click",function(){
           const j=parseInt(b.getAttribute("data-j"),10);
           qb.querySelectorAll(".quiz-opt").forEach(function(x){x.disabled=true;});
-          if(j===it.correct)b.classList.add("correct");
-          else{b.classList.add("wrong");qb.querySelectorAll(".quiz-opt")[it.correct].classList.add("correct");}
-          grade(j===it.correct,it.opts[j],it.opts[it.correct]);
+          const isOk=j===it.correct;
+          if(isOk)b.classList.add("correct");
+          else{b.classList.add("wrong");const ci=qb.querySelector('.quiz-opt[data-j="'+it.correct+'"]');if(ci)ci.classList.add("correct");}
+          grade(isOk,it.opts[j],it.opts[it.correct]);
         });
       });
     }

@@ -206,12 +206,14 @@ function mygRunDay(){
         S.totalAnswered++;save();i++;setTimeout(act,1800);
       }));
     }else if(a.kind==="shopbuy"){
-      qb.innerHTML='<div class="muted">اشترِ: Brot (€2.50) + Milch (€1.80)</div><div class="quiz-opts">'+["€4.30","€3.30","€5.30"].map((o,j)=>'<button class="quiz-opt" data-j="'+j+'">'+o+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="mygFb"></div><div class="muted">رصيدك: '+euro(m.balance)+'</div>';
+      const prices=shuffle(["€4.30","€3.30","€5.30"]);
+      const correctPos=prices.indexOf("€4.30");
+      qb.innerHTML='<div class="muted">اشترِ: Brot (€2.50) + Milch (€1.80)</div><div class="quiz-opts">'+prices.map((o,j)=>'<button class="quiz-opt" data-j="'+j+'">'+o+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="mygFb"></div><div class="muted">رصيدك: '+euro(m.balance)+'</div>';
       qb.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{
         const j=parseInt(b.getAttribute("data-j"),10);
         const fb=$("mygFb");fb.classList.remove("hidden");
         qb.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
-        if(j===0){
+        if(j===correctPos){
           if(m.balance<4.3){fb.className="quiz-feedback no";fb.textContent="❌ رصيدك لا يكفي!";}
           else{mygMoney(-4.3,"فطور");b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="✅ اشتريت! المتبقي "+euro(m.balance);earned+=10;addXP(10,"myg");mygAddSkill(a.skill,3);mygAddSkill("money",2);dayLog.push(a.t+" ✅");S.totalCorrect++;}
         }else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ احسب مجددًا: 2.50+1.80=4.30";dayLog.push(a.t+" ❌");}

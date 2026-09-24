@@ -109,7 +109,7 @@ function buildPlacement(){
   const qs=words.map(w=>({t:"ما معنى: "+fullDe(w)+"؟",opts:shuffle([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar))),correct:0,fix:function(){this.opts=shuffle(this.opts);this.correct=this.opts.indexOf(w.ar);},w:w,why:fullDe(w)+" = "+w.ar}));
   qs.forEach(q=>q.fix());
   const g4=shuffle(GRAMMAR).slice(0,4);
-  g4.forEach(g=>qs.push({t:"قواعد: "+g.quiz.q,opts:g.quiz.opts.slice(),correct:g.quiz.correct,why:g.quiz.explain}));
+  g4.forEach(g=>{const so=shuffle(g.quiz.opts.map((o,ix)=>ix));qs.push({t:"قواعد: "+g.quiz.q,opts:so.map(ix=>g.quiz.opts[ix]),correct:so.indexOf(g.quiz.correct),why:g.quiz.explain});});
   const s4=shuffle(SENTENCES).slice(0,4);
   s4.forEach(s=>qs.push({t:"اقرأ واختر الترجمة: "+s.de,opts:shuffle([s.ar].concat(shuffle(SENTENCES.filter(x=>x.id!==s.id)).slice(0,3).map(x=>x.ar))),correct:0,fix2:s,why:s.de+" = "+s.ar}));
   qs.slice(8).forEach(q=>{if(q.fix2){q.opts=shuffle(q.opts);q.correct=q.opts.indexOf(q.fix2.ar);}});
@@ -143,8 +143,8 @@ function startFinal(boxId,quiet){
   const words=shuffle(allWords()).slice(0,10);
   const qs=words.map((w,i)=>{
     const kind=i%3;
-    if(kind===0&&w.art!=="-")return{t:"اختر الأداة: ___ "+w.de,opts:["der","die","das"],correct:w.art==="der"?0:w.art==="die"?1:2,w:w,why:w.art+" "+w.de+" = "+w.ar};
-    if(kind===1)return{t:"صح أم خطأ: "+fullDe(w)+" = "+(i%2?w.ar:"خطأ مقصود"),opts:["صح ✅","خطأ ❌"],correct:i%2?0:1,w:w,why:fullDe(w)+" = "+w.ar};
+    if(kind===0&&w.art!=="-"){const ao=shuffle(["der","die","das"]);return{t:"اختر الأداة: ___ "+w.de,opts:ao,correct:ao.indexOf(w.art),w:w,why:w.art+" "+w.de+" = "+w.ar};}
+    if(kind===1){const truth=Math.random()<0.5;const claim=truth?w.ar:"خطأ مقصود";const to=shuffle(["صح ✅","خطأ ❌"]);return{t:"صح أم خطأ: "+fullDe(w)+" = "+claim,opts:to,correct:to.indexOf(truth?"صح ✅":"خطأ ❌"),w:w,why:fullDe(w)+" = "+w.ar};}
     const others=shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar);
     const opts=shuffle([w.ar].concat(others));
     return{t:"ما معنى "+fullDe(w)+"؟",opts:opts,correct:opts.indexOf(w.ar),w:w,why:fullDe(w)+" = "+w.ar};

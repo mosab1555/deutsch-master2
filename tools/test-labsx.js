@@ -147,7 +147,7 @@ var SENTENCES = [
   { id: "s1", de: "Ich lerne jeden Tag Deutsch.", ar: "أتعلم الألمانية كل يوم." },
   { id: "s2", de: "Meine Mutter kocht heute.", ar: "أمي تطبخ اليوم." }
 ];
-eval(extractFn("erPick") + "\n" + extractFn("erNouns") + "\n" + extractFn("erGen"));
+eval(extractFn("erShuffle") + "\n" + extractFn("erPick") + "\n" + extractFn("erNouns") + "\n" + extractFn("erGen"));
 (function () {
   const skills = ["article", "ein", "plural", "verb", "nichtkein", "prep", "wordorder"];
   let bad = [], fresh = true;
@@ -246,7 +246,7 @@ eval(extractFn("wrAnalyze"));
   const sw = fs.readFileSync(path.join(root, "client", "sw.js"), "utf8");
   check("sw precaches labsx.js", sw.indexOf('"./labsx.js"') >= 0, "");
   check("sw precaches smart.js", sw.indexOf('"./smart.js"') >= 0, "");
-  check("sw cache bumped v18", sw.indexOf("german-academy-v18") >= 0, "");
+  check("sw cache bumped v18+", /german-academy-v(1[89]|[2-9][0-9])/.test(sw), "");
   ["play.js", "script.js", "study.js"].forEach(f => {
     const other = fs.readFileSync(path.join(root, "client", f), "utf8");
     check("no labsx id collision in " + f, ["shadowBox", "writeBox", "dictBox", "gsitBox", "erBox", "dashLabsx"].every(id => other.indexOf('id="' + id + '"') < 0 && other.indexOf("$(\"" + id + "\")") < 0), "");

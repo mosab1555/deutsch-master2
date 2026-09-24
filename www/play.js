@@ -282,9 +282,10 @@ function gRush(box){
     const w=pool[i];let left=T;
     box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+' • ⏱️ <b id="gT">'+left+'</b> • 🔥'+combo+'</div><h3 style="direction:ltr;text-align:center;font-size:30px">'+escapeHtml(w.de)+'</h3><div class="muted" style="text-align:center">'+escapeHtml(w.ar)+'</div><div id="gQ"></div>';
     const timer=setInterval(()=>{left--;const e=$("gT");if(e)e.textContent=left;if(!box.isConnected){clearInterval(timer);return;}if(left<=0){clearInterval(timer);answer(-1);}},1000);
-    gameOpts($("gQ"),["der","die","das"],j=>{clearInterval(timer);answer(j);});
-    function answer(j){
-      const ok=j===(w.art==="der"?0:w.art==="die"?1:2);
+    const artSh=shuffleOptions(["der","die","das"],w.art==="der"?0:w.art==="die"?1:2);
+    gameOpts($("gQ"),artSh.opts,j=>{clearInterval(timer);answer(j,artSh.correct);});
+    function answer(j,correct){
+      const ok=j===correct;
       if(ok){score++;combo++;const mult=combo>=10?3:combo>=5?2:1;xp+=5*mult;if(combo===5||combo===10)toast("🔥 Combo x"+mult+"!","ok");S.totalCorrect++;}
       else{combo=0;recordMistake(w,"article","rush");toast("❌ "+w.art+" "+w.de+" — احفظ الأداة مع الكلمة","err");}
       S.totalAnswered++;sessTick(ok,w.id,!ok&&false);save();i++;setTimeout(q,900);
@@ -526,6 +527,8 @@ const SENT_FILL=
 
 /* ---------- challenge / me / practice pages ---------- */
 function dailySeed(str){let h=0;for(let i=0;i<str.length;i++){h=((h*31)+str.charCodeAt(i))|0;}return h<0?-h:h;}
+function seededRng(seed){let s=seed>>>0||1;return function(){s^=s<<13;s>>>=0;s^=s>>>17;s^=s>>>0;s^=s<<5;s>>>=0;return(s>>>0)/4294967296;};}
+function seededShuffle(arr,seed){const r=seededRng(seed);const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function renderChallenge(){
   ensurePlay();
   const box=$("chBox");if(!box)return;
@@ -545,25 +548,32 @@ function renderChallenge(){
     try{due=srsDue().filter(w=>weak.indexOf(w)<0);}catch(e){}
     const fresh=kapWords().filter(w=>getStatus(w.id)==="new"&&weak.indexOf(w)<0);
     const pool=weak.concat(due.filter(w=>weak.indexOf(w)<0)).concat(fresh).slice(0,10);
-    const list=pool.length?pool:shuffle(kapWords()).slice(0,10);
-    void seed;
-    const qs=buildQuestions("mixed",10,list);
+    const list=pool.length?pool:seededShuffle(kapWords(),seed).slice(0,10);
+    // Deterministic daily order: same date => same questions (seeded shuffle),
+    // while option positions inside each question stay freshly shuffled by the quiz engine.
+    const ordered=seededShuffle(list,seed);
+    const qs=buildQuestions("mixed",10,ordered);
     /* The quiz engine renders into #quizPlay inside page-quiz: without
        navigating there the user stays on the challenge page and sees
        nothing (this was the empty-challenge bug). */
     if(!qs.length){toast("لا توجد كلمات مناسبة لتحدي اليوم ⚠️","err");return;}
     startQuizRun("mixed",qs);
     showPage("quiz");
-    const _fin=finishQuiz,_orig=finishQuiz;
-    finishQuiz=function(){
-      _fin();
-      finishQuiz=_orig;
+    // Avoid stacking wrappers when the user starts the challenge twice:
+    // restore any previous wrapper before installing a fresh one.
+    try{if(finishQuiz._isDailyWrap&&finishQuiz._orig)finishQuiz=finishQuiz._orig;}catch(e){}
+    const _orig=finishQuiz;
+    const _wrap=function(){
+      _orig();
       try{
         const last=(S.quizHistory&&S.quizHistory[0])||{score:0,total:10};
         S.daily[t]={score:last.score,total:last.total,xp:last.xp||0};
         save();renderChallenge();toast("🏆 تحدي اليوم مكتمل!","ok");
       }catch(e){}
+      try{if(finishQuiz===_wrap)finishQuiz=_orig;}catch(e){}
     };
+    _wrap._isDailyWrap=true;_wrap._orig=_orig;
+    finishQuiz=_wrap;
   });
 }
 const AV_FACES=["🦊","🐼","🦁","🐸","🐵","🦄","🐝","🦉","🐢","🐙","🤖","👽"];
@@ -625,9 +635,10 @@ function gMissing(box){
 }
 function gTF(box){
   const pool=shuffle(kapWords()).slice(0,8);
-  const items=pool.map(function(w,ix){
-    const truth=ix%2===0;
-    const other=kapWords()[Math.floor(Math.random()*kapWords().length)];
+  const allK=kapWords();
+  const items=pool.map(function(w){
+    const truth=Math.random()<0.5;
+    const other=allK[Math.floor(Math.random()*allK.length)];
     const claim=truth?w.ar:(other&&other.id!==w.id?other.ar:w.ar+"؟");
     return {w:w,claim:claim,truth:truth};
   });
@@ -637,9 +648,11 @@ function gTF(box){
     if(i>=pool.length){gameEnd("gameBox","✅❌ True or False",score,pool.length,score*5+10,"tf");return;}
     const it=items[i];
     box.innerHTML='<div class="muted">سؤال '+(i+1)+'/'+pool.length+'</div><h3 style="direction:ltr;text-align:center;font-size:26px">'+escapeHtml(fullDe(it.w))+" = "+escapeHtml(it.claim)+'</h3><div id="gQ"></div><div class="quiz-feedback hidden" id="gFb"></div>';
-    gameOpts($("gQ"),["✅ صح","❌ خطأ"],function(j,b){
+    const tfSh=shuffleOptions(["✅ صح","❌ خطأ"],0);
+    gameOpts($("gQ"),tfSh.opts,function(j,b){
       const fb=$("gFb");fb.classList.remove("hidden");
-      const ok=(j===0)===it.truth;
+      const pickedIsTrue=j===tfSh.correct;
+      const ok=pickedIsTrue===it.truth;
       if(ok){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+fullDe(it.w)+" = "+it.w.ar;score++;S.totalCorrect++;}
       else{b.classList.add("wrong");fb.className="quiz-feedback no";fb.textContent="❌ الحقيقة: "+fullDe(it.w)+" = "+it.w.ar+ " — السبب: احفظ المعنى مع الكلمة!";}
       S.totalAnswered++;sessTick(ok);save();i++;setTimeout(q,1800);
@@ -1073,7 +1086,7 @@ function gConv(box){
   turn();
 }
 function gSpell(box){
-  const pool=shuffle(kapWords()).sort((a,b)=>a.de.length-b.de.length);
+  const pool=shuffle(kapWords());
   const qs=pool.slice(0,10);
   let i=0,score=0,streak=0;
   function q(){

@@ -1456,6 +1456,8 @@ const DM_LAZY={vocab:renderVocab,sentences:renderSentences,verbs:renderVerbs,gra
 const dmRendered={};
 function ensureSection(n){if(DM_LAZY[n]&&!dmRendered[n]){dmRendered[n]=1;try{DM_LAZY[n]();}catch(e){console.error(e);}}}
 function showPage(name){
+  try{if(typeof stopQTimer==="function")stopQTimer();}catch(e){}
+  try{window.DM_PAGE_TOKEN=(window.DM_PAGE_TOKEN||0)+1;}catch(e){}
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
@@ -1574,7 +1576,7 @@ function wordCard(w){
   }));
   return d;
 }
-function escapeHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function escapeHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 function toggleFav(id){
   const i=S.favs.indexOf(id);
   if(i>=0)S.favs.splice(i,1);else S.favs.push(id);
@@ -1814,9 +1816,21 @@ document.querySelectorAll("[data-flash-rate]").forEach(b=>b.addEventListener("cl
 
 /* ============ SENTENCES ============ */
 function renderSentences(){
-  const q=($("sentenceSearch").value||"").toLowerCase();
+  const raw=($("sentenceSearch").value||"");
+  const q=typeof dmNorm==="function"?dmNorm(raw):raw.toLowerCase();
   const k=$("sentenceKapitel")?$("sentenceKapitel").value:"";
-  const list=SENTENCES.filter(s=>(!k||s.kap===k)&&(!q||(s.de+s.ar).toLowerCase().indexOf(q)>=0));
+  const scored=SENTENCES.filter(s=>(!k||s.kap===k)).map(s=>{
+    if(!q)return{score:0,s:s};
+    const de=typeof dmNorm==="function"?dmNorm(s.de):s.de.toLowerCase();
+    const ar=(s.ar||"").toLowerCase();
+    let score=-1;
+    if(de===q)score=0;
+    else if(de.indexOf(q)===0)score=10+q.length/100;
+    else{const bi=de.indexOf(" "+q);if(bi>=0)score=20+bi;else{const si=de.indexOf(q);if(si>=0)score=30+si;}}
+    if(score<0&&ar.indexOf(raw.trim().toLowerCase())>=0)score=40;
+    return{score:score,s:s};
+  }).filter(x=>!q||x.score>=0).sort((a,b)=>a.score-b.score).map(x=>x.s);
+  const list=scored;
   const box=$("sentList");box.innerHTML="";
   if(!list.length){box.innerHTML='<div class="panel glass">لا توجد جمل هنا بعد.</div>';return;}
   list.forEach((s,i)=>{
@@ -1832,10 +1846,22 @@ $("sentenceKapitel").addEventListener("change",renderSentences);
 
 /* ============ VERBS ============ */
 function renderVerbs(){
-  const q=($("verbSearch").value||"").toLowerCase();
+  const raw=($("verbSearch").value||"");
+  const q=typeof dmNorm==="function"?dmNorm(raw):raw.toLowerCase();
   const k=$("verbKapitel")?$("verbKapitel").value:"";
   const box=$("verbGrid");box.innerHTML="";
-  const list=allVerbs().filter(v=>(!k||v.kap===k)&&(!q||(v.inf+v.ar).toLowerCase().indexOf(q)>=0));
+  const scored=allVerbs().filter(v=>(!k||v.kap===k)).map(v=>{
+    if(!q)return{score:0,v:v};
+    const inf=typeof dmNorm==="function"?dmNorm(v.inf):v.inf.toLowerCase();
+    const ar=(v.ar||"").toLowerCase();
+    let score=-1;
+    if(inf===q)score=0;
+    else if(inf.indexOf(q)===0)score=10;
+    else if(inf.indexOf(q)>0)score=30+inf.indexOf(q);
+    else if(ar.indexOf(raw.trim().toLowerCase())>=0)score=40;
+    return{score:score,v:v};
+  }).filter(x=>!q||x.score>=0).sort((a,b)=>a.score-b.score).map(x=>x.v);
+  const list=scored;
   if(!list.length){box.innerHTML='<div class="panel glass">لا توجد أفعال هنا بعد.</div>';return;}
   list.slice(0,120).forEach(v=>{
     const d=document.createElement("div");d.className="word-card glass";
@@ -1869,12 +1895,19 @@ function renderGrammar(){
     '<div class="row-flex" style="margin:10px 0"><button class="btn btn-primary sm" data-explain="'+g.id+'">📖 شرح القاعدة</button></div>'+
     '<div class="grammar-quiz"><b>❓ اختبار سريع:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" style="margin:8px 0">'+g.quiz.opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
     d.querySelector("[data-explain]").addEventListener("click",()=>openExplain(g.id));
-    d.querySelectorAll(".quiz-opt").forEach(btn=>btn.addEventListener("click",()=>{
-      const i=parseInt(btn.getAttribute("data-i"),10);
+    // Shuffle display order per render (Fisher-Yates over indices) so correct position is not fixed
+    const gOrder=shuffle(g.quiz.opts.map((_,ix)=>ix));
+    const gBtns=Array.from(d.querySelectorAll(".quiz-opt"));
+    const gReordered=gOrder.map(ix=>({el:gBtns[ix],origIx:ix}));
+    // Re-append in shuffled order without mutating bank
+    const gWrap=d.querySelector(".grammar-quiz .quiz-opts");
+    gReordered.forEach(r=>gWrap.appendChild(r.el));
+    gReordered.forEach(r=>r.el.addEventListener("click",()=>{
       const fb=d.querySelector(".quiz-feedback");fb.classList.remove("hidden");
       d.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
-      if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;S.totalCorrect++;markStudyDay();}
-      else{btn.classList.add("wrong");d.querySelectorAll(".quiz-opt")[g.quiz.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;}
+      const isCorrect=r.origIx===g.quiz.correct;
+      if(isCorrect){r.el.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;S.totalCorrect++;markStudyDay();}
+      else{r.el.classList.add("wrong");d.querySelectorAll(".quiz-opt")[gOrder.indexOf(g.quiz.correct)].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;}
       S.totalAnswered++;save();renderDashboard();renderStats();
     }));
     box.appendChild(d);
@@ -2071,8 +2104,11 @@ function pickWeighted(words,n){
   }
   return out;
 }
-/* مولدات بنك الأسئلة — كل نوع دالة مستقلة */
-function genArticle(w,words){return{kind:"article",w:w,prompt:"ما الأداة الصحيحة؟  —  "+w.de,opts:["der","die","das"],correct:w.art==="der"?0:w.art==="die"?1:2,explain:w.art+" "+w.de+" = "+w.ar+". احفظ الأداة مع الكلمة!"};}
+/* مولدات بنك الأسئلة — كل نوع دالة مستقلة.
+   ملاحظة fairness: أسئلة article تُخلط خياراتها (Fisher-Yates) عند التوليد
+   حتى لا يكون موضع الإجابة الصحيحة ثابتًا (der=0/die=1/das=2). */
+function shuffledArticleOpts(correctArt){const base=shuffle(["der","die","das"]);return{opts:base,correct:base.indexOf(correctArt)};}
+function genArticle(w,words){const s=shuffledArticleOpts(w.art);return{kind:"article",w:w,prompt:"ما الأداة الصحيحة؟  —  "+w.de,opts:s.opts,correct:s.correct,explain:w.art+" "+w.de+" = "+w.ar+". احفظ الأداة مع الكلمة!"};}
 function genMeaning(w,words){return{kind:"de-ar",w:w,prompt:"اختر المعنى الصحيح:  "+fullDe(w),opts:randOpts(words,w,x=>x.ar),correctText:w.ar,explain:fullDe(w)+" = "+w.ar+" — النطق: "+w.pron};}
 function genTranslate(w,words){return{kind:"ar-de",w:w,prompt:"اختر الكلمة الألمانية الصحيحة:  "+w.ar,opts:randOpts(words,w,x=>fullDe(x)),correctText:fullDe(w),explain:fullDe(w)+" = "+w.ar+" — "+w.ex};}
 function genPlural(w,words){const c=pluralFull(w);return{kind:"plural",w:w,prompt:"ما جمع الكلمة؟  —  "+fullDe(w),opts:pluralDistractors(w),correctText:c,explain:"الجمع: "+c+" ("+w.ar+")"};}
@@ -2109,7 +2145,7 @@ function buildQuestions(type,count,forcedWords){
       const f=fullDe(w);
       qs.push({kind:"listening",w:w,step:"word",prompt:"🎧 استمع للكلمة (١) — ما الكلمة التي سمعتها؟",opts:randOpts(words,w,x=>fullDe(x)),correctText:f,listen:f,explain:"سمعت: "+f+" = "+w.ar});
       if(qs.length>=count)break;
-      if(w.art!=="-")qs.push({kind:"article",w:w,step:"article",replay:f,prompt:"🎧 (٢) ما أداة الكلمة التي سمعتها؟",opts:["der","die","das"],correct:w.art==="der"?0:w.art==="die"?1:2,explain:w.art+" "+w.de+" = "+w.ar});
+      if(w.art!=="-"){const sa=shuffledArticleOpts(w.art);qs.push({kind:"article",w:w,step:"article",replay:f,prompt:"🎧 (٢) ما أداة الكلمة التي سمعتها؟",opts:sa.opts,correct:sa.correct,explain:w.art+" "+w.de+" = "+w.ar});}
       else qs.push(makeQ("de-ar",w,words));
     }
     return qs.slice(0,count);
@@ -2631,6 +2667,10 @@ $("wordModal").addEventListener("click",e=>{if(e.target===$("wordModal"))$("word
 $("addWordBtn").addEventListener("click",()=>{
   const de=$("nwDe").value.trim(),ar=$("nwAr").value.trim();
   if(!de||!ar){toast("أدخل الكلمة الألمانية والترجمة على الأقل ⚠️","err");return;}
+  try{
+    const dup=allWords().find(w=>dmNorm(w.de)===dmNorm(de));
+    if(dup){toast("الكلمة موجودة بالفعل: "+dup.de+" ⚠️","err");return;}
+  }catch(e){}
   const w={id:"c"+Date.now(),de:de,art:$("nwArt").value,ar:ar,pron:$("nwPron").value||de,ex:$("nwEx").value||de+".",exAr:$("nwExAr").value||ar,cat:$("nwCat").value||"Food",type:$("nwType").value||"اسم",level:$("nwLevel").value||"A1"};
   w.kap="KX";S.customWords.push(w);save();
   $("wordModal").classList.add("hidden");
@@ -2648,7 +2688,17 @@ $("importDataBtn").addEventListener("click",()=>$("importFile").click());
 $("importFile").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result);S=Object.assign(defaultState(),d);save();applyAll();toast("تم الاستيراد ✅","ok");}catch(err){toast("ملف غير صالح ❌","err");}};
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);
+    if(!d||typeof d!=="object"||Array.isArray(d))throw new Error("bad");
+    const base=defaultState();
+    const clean={};
+    Object.keys(base).forEach(k=>{clean[k]=(d[k]!==undefined)?d[k]:base[k];});
+    // Preserve array/object shapes to avoid corrupting nested state
+    ["customWords","favs","quizHistory"].forEach(k=>{if(!Array.isArray(clean[k]))clean[k]=base[k];});
+    ["review","mistakes","daily","srs","gstats"].forEach(k=>{if(!clean[k]||typeof clean[k]!=="object"||Array.isArray(clean[k]))clean[k]=base[k];});
+    S=Object.assign(base,clean);save();applyAll();toast("تم الاستيراد ✅","ok");
+  }catch(err){toast("ملف غير صالح ❌","err");}};
   r.readAsText(f);
 });
 $("wipeData").addEventListener("click",()=>{
