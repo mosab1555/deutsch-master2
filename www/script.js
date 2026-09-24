@@ -1429,14 +1429,23 @@ function speakGerman(text){
   toast("تعذر تشغيل النطق على هذا الجهاز 😢","err");
 }
 function speak(text){speakGerman(text);}
-function markStudyDay(){
+/* real=true (default): genuine learning activity → streak + study day.
+   real=false ("light"): trivial UI actions (audio preview, saving settings) →
+   no streak, no study day. Prevents streak inflation without real study. */
+function markStudyDay(real){
+  if(real===false)return;
   const t=todayStr();
   S.studyDays[t]=true;
   if(S.streak.last!==t){
     const y=new Date();y.setDate(y.getDate()-1);
     if(S.streak.last===todayStr(y)){S.streak.count+=1;}
     else if(!S.streak.last){S.streak.count=1;}
-    else{const diff=Math.round((new Date(t)-new Date(S.streak.last))/86400000);S.streak.count=(diff===1)?S.streak.count+1:1;}
+    else{
+      // UTC-midnight diff: immune to DST/local-time edge cases.
+      const a=Date.UTC(+t.slice(0,4),+t.slice(5,7)-1,+t.slice(8,10));
+      const b=Date.UTC(+S.streak.last.slice(0,4),+S.streak.last.slice(5,7)-1,+S.streak.last.slice(8,10));
+      const diff=Math.round((a-b)/86400000);S.streak.count=(diff===1)?S.streak.count+1:1;
+    }
     S.streak.last=t;
     if(S.streak.count>S.streak.longest)S.streak.longest=S.streak.count;
   }
@@ -1837,7 +1846,7 @@ function renderSentences(){
     const d=document.createElement("div");d.className="sent-card glass";
     const pron=s.pron?'<div class="sent-pron">🔊 '+escapeHtml(s.pron)+'</div>':'';
     d.innerHTML='<div class="sent-num">'+(i+1)+'</div><div style="flex:1"><div class="sent-de">'+escapeHtml(s.de)+'</div><div class="sent-ar">'+escapeHtml(s.ar)+'</div>'+pron+'<div><span class="tag kap-tag">'+kapName(s.kap)+'</span></div></div><button class="icon-btn" title="استماع">🔊</button>';
-    d.querySelector("button").addEventListener("click",()=>{speak(s.de);markStudyDay();});
+    d.querySelector("button").addEventListener("click",()=>{speak(s.de);});
     box.appendChild(d);
   });
 }
@@ -2072,9 +2081,20 @@ function addXP(n){S.xp=(S.xp||0)+n;save();return n;}
 function recordMistake(w,picked,kind,extra){
   if(!w||!w.id)return;
   if(!S.mistakes)S.mistakes={};
-  const m=S.mistakes[w.id]||{n:0};
-  m.n++;m.last=picked||"";m.kind=kind||"";m.date=todayStr();
+  const m=S.mistakes[w.id]||{n:0,okn:0,done:false};
+  m.n++;m.okn=0;m.done=false;
+  m.last=picked||"";m.kind=kind||"";m.date=todayStr();
   m.de=fullDe(w);m.ar=w.ar;
+  // Enriched (v2): question text, correct answer, denormalized kapitel — used by My Mistakes page.
+  // Backward compatible: old entries simply lack these fields and render with fallbacks.
+  try{
+    if(extra&&extra.q) m.q=String(extra.q).slice(0,220);
+    else if(!m.q&&kind) m.q="";
+    if(extra&&extra.ok!==undefined) m.ok=String(extra.ok).slice(0,220);
+    if(extra&&extra.chapterId) m.kap=extra.chapterId;
+    if(!m.kap){try{const ww=wordById(w.id);if(ww&&ww.kap)m.kap=ww.kap;}catch(e){}}
+    if(extra&&extra.rule) m.rule=String(extra.rule).slice(0,120);
+  }catch(e){}
   if(extra&&extra.qid)m.qid=extra.qid;
   if(extra&&extra.chapterId)m.chapterId=extra.chapterId;
   if(extra&&extra.lessonId!==undefined)m.lessonId=extra.lessonId;
@@ -2083,12 +2103,39 @@ function recordMistake(w,picked,kind,extra){
   if(keys.length>200){keys.sort((a,b)=>S.mistakes[a].n-S.mistakes[b].n);for(let i=0;i<keys.length-200;i++)delete S.mistakes[keys[i]];}
   save();
 }
+/* Mastery lifecycle: called on correct answers. After 3 consecutive corrects the
+   mistake graduates to "mastered" (done=true) instead of being deleted silently,
+   and feeds the Mistake Hunter achievement via S.fixedTotal. */
+function noteMastered(id){
+  try{
+    const m=S.mistakes&&S.mistakes[id];if(!m)return false;
+    m.okn=(m.okn||0)+1;
+    if(m.okn>=3&&!m.done){m.done=true;S.fixedTotal=(S.fixedTotal||0)+1;save();}
+    else save();
+    return !!m.done;
+  }catch(e){return false;}
+}
 function removeMistake(id){if(S.mistakes&&S.mistakes[id]){delete S.mistakes[id];save();}}
-/* المراجعة الذكية: وزن الكلمة حسب أخطائها وحالتها */
+/* المراجعة الذكية: وزن الكلمة حسب أخطائها وحالتها وحداثة الخطأ وصعوبتها.
+   - تكرار الخطأ (حتى 5) هو العامل الأقوى.
+   - خطأ حديث (<3 أيام) أولوية أعلى؛ خطأ قديم (>14 يوم) يعاد تنشيطه بلطف.
+   - عنصر مستحق في SRS يأخذ دفعة إضافية.
+   - الكلمات الطويلة أصعب قليلًا. */
 function wordWeight(w){
   let s=1;
   const m=S.mistakes&&S.mistakes[w.id];
-  if(m)s+=3*Math.min(m.n,5);
+  if(m&&!m.done)s+=3*Math.min(m.n,5);
+  if(m&&!m.done&&m.date){
+    try{
+      const days=Math.max(0,Math.round((Date.now()-new Date(m.date+"T12:00:00").getTime())/86400000));
+      if(days<=3)s+=2;else if(days>14)s+=1;
+    }catch(e){}
+  }
+  try{
+    const sr=S.srs&&S.srs[w.id];
+    if(sr&&sr.due&&sr.due<=todayStr())s+=2;
+  }catch(e){}
+  try{if(w.de&&w.de.length>10)s+=0.5;}catch(e){}
   const st=getStatus(w.id);
   if(st==="hard")s+=2;else if(st==="review")s+=1;else if(st==="known")s-=0.6;
   return Math.max(0.2,s);
@@ -2160,9 +2207,21 @@ function buildQuestions(type,count,forcedWords){
   else kinds=[type];
   const picks=forcedWords&&forcedWords.length?forcedWords:pickWeighted(words,count);
   if(!picks.length)return[];
+  // Question-variant rotation: pick a random fitting kind per word (not a fixed
+  // deterministic cycle) and avoid 3 identical kinds in a row, so the
+  // same word is tested with different question types across sessions.
+  let prevKind="",kindRun=0;
   for(let i=0;i<count;i++){
     const w=picks[i%picks.length];
-    const t=(type==="mixed"||type==="quick")?kinds[i%kinds.length]:kinds[0];
+    let t=kinds[0];
+    if(type==="mixed"||type==="quick"){
+      const fitting=kinds.filter(k=>kindFits(k,w));
+      const pool=fitting.length?fitting:[(w.art!=="-"?"article":"de-ar")];
+      let cand=pool[Math.floor(Math.random()*pool.length)],guard=0;
+      while(cand===prevKind&&kindRun>=2&&pool.length>1&&guard<8){cand=pool[Math.floor(Math.random()*pool.length)];guard++;}
+      if(cand===prevKind)kindRun++;else{prevKind=cand;kindRun=1;}
+      t=cand;
+    }
     qs.push(makeQ(t,w,words));
   }
   return qs;
@@ -2279,15 +2338,32 @@ function showFeedback(ok,q,pickedText){
   if(ok){
     quizScore++;quizCombo++;
     if(quizCombo>(S.maxCombo||0))S.maxCombo=quizCombo;
+    if(quizCombo>(S.bestCombo||0))S.bestCombo=quizCombo;
     S.totalCorrect++;
     if(quizType==="quick"){gained=10+Math.max(0,Math.ceil(qTimeLeft))+(quizCombo-1)*5;}
     else gained=10;
     addXP(gained);quizXpEarned+=gained;
     if(q.w)bumpSilent(q.w.id,true);
-    if(q.w&&S.mistakes&&S.mistakes[q.w.id]){S.mistakes[q.w.id].n--;if(S.mistakes[q.w.id].n<=0)delete S.mistakes[q.w.id];}
+    // Mastery lifecycle: 3 consecutive corrects graduate the mistake to "done"
+    // instead of deleting it silently after one lucky answer.
+    if(q.w&&S.mistakes&&S.mistakes[q.w.id]){
+      const m=S.mistakes[q.w.id];
+      noteMastered(q.w.id);
+      m.n=Math.max(0,(m.n||1)-1);
+      if(m.n<=0&&m.done)delete S.mistakes[q.w.id];
+      else if(m.n<=0&&!m.done){m.n=1;}
+      save();
+    }
+    try{if(typeof advPlanTick==="function")advPlanTick(q);}catch(e){}
   }else{
     quizCombo=0;
-    if(q.w){bumpSilent(q.w.id,false);if(q.fillItem)recordMistake(q.w,pickedText||"",q.kind,{qid:q.fillItem.id,chapterId:q.fillItem.chapterId,lessonId:q.fillItem.lessonId});else recordMistake(q.w,pickedText||"",q.kind);}
+    if(q.w){
+      bumpSilent(q.w.id,false);
+      const right=q.kind==="article"?q.opts[q.correct]:(q.correctText||q.writeAnswer||"");
+      const kapId=(q.fillItem&&q.fillItem.chapterId)||(q.w.kap)||"";
+      if(q.fillItem)recordMistake(q.w,pickedText||"",q.kind,{qid:q.fillItem.id,chapterId:q.fillItem.chapterId,lessonId:q.fillItem.lessonId,q:q.prompt,ok:right,kap:kapId});
+      else recordMistake(q.w,pickedText||"",q.kind,{q:q.prompt,ok:right,kap:kapId});
+    }
   }
   fb.textContent=(ok?"صحيح ✅ +"+gained+" XP ⭐"+(quizCombo>=2?"  🔥x"+quizCombo:""):"خطأ ❌ ")+q.explain;
   $("quizNext").disabled=false;
@@ -2340,7 +2416,7 @@ function quickArticleQuiz(w){
   quizType="article";
   if(w.art==="-"){toast("هذه الكلمة بدون أداة، اخترنا لك اختبارًا شاملًا","ok");quizType="mixed";}
   const qs=buildQuestions(quizType,10);
-  if(w.art!=="-"&&qs.length){qs[0]={kind:"article",w:w,prompt:"ما الأداة الصحيحة؟  —  "+w.de,opts:["der","die","das"],correct:w.art==="der"?0:w.art==="die"?1:2,explain:w.art+" "+w.de+" = "+w.ar};}
+  if(w.art!=="-"&&qs.length){const sa=shuffledArticleOpts(w.art);qs[0]={kind:"article",w:w,prompt:"ما الأداة الصحيحة؟  —  "+w.de,opts:sa.opts,correct:sa.correct,explain:w.art+" "+w.de+" = "+w.ar};}
   showPage("quiz");
   startQuizRun(quizType,qs);
 }
@@ -2441,7 +2517,7 @@ $("savePlan").addEventListener("click",()=>{
   S.planner.words=Math.max(1,parseInt($("planWords").value,10)||20);
   S.planner.sentences=Math.max(1,parseInt($("planSentences").value,10)||10);
   S.planner.minutes=Math.max(5,parseInt($("planMinutes").value,10)||30);
-  save();renderAll();toast("تم حفظ الخطة 💾","ok");markStudyDay();
+  save();renderAll();toast("تم حفظ الخطة 💾","ok");
 });
 function planTouch(kind){
   const t=todayStr();

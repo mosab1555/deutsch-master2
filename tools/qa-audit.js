@@ -69,6 +69,36 @@ ok("nav:showPage-stops-timer", /stopQTimer/.test(script) && /DM_PAGE_TOKEN/.test
 ok("security:escape-single-quote", /&#39;/.test(script));
 ok("security:dlife-missing-escaped", /missTxt/.test(C("dlife.js")) || /escapeHtml\(x\)/.test(C("dlife.js")));
 ok("i18n:renderShadow-clash-fixed", /renderFeatShadow/.test(C("feats.js")) && !/function shRun\(/.test(C("feats.js")));
+// ---- 8. Phase-2: advanced systems (additive, no duplicates) ----
+ok("adv:module-exists", fs.existsSync(path.join(__dirname, "..", "client", "adv.js")));
+const adv = (() => { try { return C("adv.js"); } catch (e) { return ""; } })();
+ok("adv:no-duplicate-systems", !/function (renderChallenge|renderJourney|renderTutor|openGLab|startGame)\(/.test(adv));
+ok("adv:mistakes-v2-tabs", /mistTab/.test(adv) && /adv_mist_recent/.test(adv));
+ok("adv:mistakes-enriched-fields", /m\.q/.test(adv) && /m\.ok/.test(adv) && /advMistKap/.test(adv));
+ok("adv:mastery-lifecycle", /function noteMastered/.test(script) && /S\.fixedTotal/.test(script));
+ok("adv:quickArticle-shuffled", !/opts:\["der","die","das"\],correct:w\.art/.test(script));
+ok("adv:variant-rotation", /kindRun/.test(script) && !/kinds\[i%kinds\.length\]/.test(script));
+ok("adv:wordWeight-recency-srs", /sr\.due/.test(script) && /days<=3/.test(script));
+ok("adv:streak-gated", /real===false/.test(script) && /Date\.UTC/.test(script));
+ok("adv:recordMistake-forwards-extra", /recordMistake=function\(w,picked,kind,extra\)/.test(C("play.js")));
+ok("adv:weekly-real-data", /advWeeklyData/.test(adv) && /adv_empty_week/.test(adv) && !/Math\.random\(\)\*100/.test(adv));
+ok("adv:skills-6-real", ["vocab","grammar","reading","listening","speaking","sentence"].every(k => adv.indexOf('"' + k + '"') >= 0 || adv.indexOf(k + ":") >= 0));
+ok("adv:listening-5types-speeds", ["choose","type","complete","arrange","spot"].every(k => adv.indexOf('"' + k + '"') >= 0) && /0\.75/.test(adv) && /1\.25/.test(adv));
+ok("adv:fixsent-bank-10cats", (adv.match(/cat:"/g) || []).length >= 20);
+ok("adv:finderr-two-steps", /step2/.test(adv) && /data-k=/.test(adv));
+ok("adv:challenge-shuffled-order", /shuffle\(\["vocab","grammar","listening","sentence","speaking"\]\)/.test(adv));
+ok("adv:journey-gated-phases", /advJourneyPhases/.test(adv) && /Deutschland/.test(adv));
+ok("adv:tutor-coach-data", /advCoach/.test(adv) && /بتغلط/.test(adv));
+ok("adv:learning-path", /advSuggestions/.test(adv) && /ماذا تدرس الآن|adv_path/.test(adv));
+ok("adv:new-scenarios-6", (adv.match(/id:"(train|uni|jobiv|ausb|wohn|dir)"/g) || []).length === 6);
+ok("adv:dlife-second-chance", /tried=true/.test(C("dlife.js")));
+ok("adv:html-pages", ["lislab", "fixsent", "finderr", "chall"].every(p => {
+  try {
+    const h = fs.readFileSync(path.join(__dirname, "..", "client", "index.html"), "utf8");
+    return h.indexOf('page-' + p) >= 0 && h.indexOf('data-page="' + p + '"') >= 0 && h.indexOf('src="adv.js"') >= 0;
+  } catch (e) { return false; }
+}));
+ok("adv:sw-precaches-adv", /adv\.js/.test(C("sw.js")) && /german-academy-v(20|[2-9][0-9])/.test(C("sw.js")));
 
 console.log("\n==== QA RESULT: "+pass+" passed, "+fail+" failed ====");
 process.exit(fail ? 1 : 0);

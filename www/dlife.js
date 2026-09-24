@@ -81,7 +81,8 @@ function startScenario(id){
       setTimeout(play,300);
     }
     if(st.expect){
-      /* free response: type or speak */
+      /* free response: type or speak — with ONE second chance before advancing */
+      let tried=false;
       qb.innerHTML+='<div class="muted">🎯 الهدف: '+escapeHtml(st.hint||"رد بالألمانية.")+'</div><div class="quiz-write"><input type="text" id="dIn2" placeholder="Antwort auf Deutsch..."><button class="btn btn-primary sm" id="dMic">🎤</button><button class="btn btn-gold sm" id="dOk">تحقق ✅</button></div>';
       $("dMic").addEventListener("click",()=>{
         const Ctor=(typeof window!=="undefined")&&(window.SpeechRecognition||window.webkitSpeechRecognition);
@@ -100,6 +101,11 @@ function startScenario(id){
           const missTxt=(ev.missing||[]).map(x=>escapeHtml(x)).join("، ");
           showFb(true,"✅ مقبول! Grammar: "+gram+"% • Vocabulary: "+ev.vocab+"%"+(ev.missing.length?" • ناقصك: "+missTxt:"")+"<br>الأفضل: "+escapeHtml(st.sample||""));
           S.totalCorrect++;
+        }else if(!tried){
+          tried=true;
+          showFb(false,"🤔 ليس تمامًا — حاول مرة أخرى! تلميح: استخدم "+escapeHtml((st.expect||[]).slice(0,2).join(" / "))+"<br>مثال: "+escapeHtml(st.hint||""));
+          try{recordMistake({id:"dl:"+s.id+":"+i,de:st.sample||st.say||s.t,ar:st.hint||"",art:"-",type:"مفردات",cat:"General",kap:"KX"},v,"dlife",{q:st.say||s.t,ok:st.sample||"",kap:"KX"});}catch(e){}
+          S.totalAnswered++;save();return;
         }else{
           showFb(false,"الأفضل: <b>"+escapeHtml(st.sample||"")+"</b> — "+escapeHtml(st.hint||"")+"<br>Grammar: "+gram+"% • حاول استخدام: "+(st.expect||[]).join("، "));
           try{recordMistake({id:"dl:"+s.id+":"+i,de:st.sample||st.say||s.t,ar:st.hint||"",art:"-",type:"مفردات",cat:"General"},v,"dlife");}catch(e){}

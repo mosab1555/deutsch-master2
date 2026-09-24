@@ -80,7 +80,7 @@ function srsBump(id,ok){
 }
 if(typeof recordMistake==="function"&&!recordMistake._wrapped){
   const _rm=recordMistake;
-  recordMistake=function(w,picked,kind){const r=_rm(w,picked,kind);try{if(w&&w.id)srsBump(w.id,false);}catch(e){}return r;};
+  recordMistake=function(w,picked,kind,extra){const r=_rm(w,picked,kind,extra);try{if(w&&w.id)srsBump(w.id,false);}catch(e){}return r;};
   recordMistake._wrapped=true;
 }
 /* adaptive difficulty 0(easy)..2(hard) from rolling accuracy */

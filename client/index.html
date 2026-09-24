@@ -72,6 +72,10 @@
       <button class="nav-item" data-page="dictation"><span class="nav-ico">👂</span> الإملاء السمعي</button>
       <button class="nav-item" data-page="situations"><span class="nav-ico">🎬</span> مواقف ألمانية</button>
       <button class="nav-item" data-page="erreplay"><span class="nav-ico">🧠</span> أخطائي</button>
+      <button class="nav-item" data-page="lislab"><span class="nav-ico">🎧</span> <span data-i18n="nav_lislab">مختبر الاستماع</span></button>
+      <button class="nav-item" data-page="fixsent"><span class="nav-ico">🩺</span> <span data-i18n="nav_fixsent">صحح الجملة</span></button>
+      <button class="nav-item" data-page="finderr"><span class="nav-ico">🔍</span> <span data-i18n="nav_finderr">اكتشف الخطأ</span></button>
+      <button class="nav-item" data-page="chall"><span class="nav-ico">🎯</span> <span data-i18n="nav_chall">تحدي جديد</span></button>
       <button class="nav-item" data-page="profile"><span class="nav-ico">👤</span> حسابي</button>
       <button class="nav-item" data-page="analytics"><span class="nav-ico">📈</span> تقدمي</button>
       <button class="nav-item" data-page="review"><span class="nav-ico">🧠</span> المراجعة <span class="badge" id="navReviewBadge">0</span></button>
@@ -417,6 +421,30 @@
         <div id="erBox"></div>
       </section>
 
+      <!-- LISTENING LAB -->
+      <section class="page" id="page-lislab">
+        <div class="page-head"><h2 data-i18n="title_lislab">🎧 مختبر الاستماع</h2></div>
+        <div id="lislabBox"></div>
+      </section>
+
+      <!-- SENTENCE FIX -->
+      <section class="page" id="page-fixsent">
+        <div class="page-head"><h2 data-i18n="title_fixsent">🩺 صحح الجملة</h2></div>
+        <div id="fixsentBox"></div>
+      </section>
+
+      <!-- ERROR SPOT -->
+      <section class="page" id="page-finderr">
+        <div class="page-head"><h2 data-i18n="title_finderr">🔍 اكتشف الخطأ</h2></div>
+        <div id="finderrBox"></div>
+      </section>
+
+      <!-- CHALLENGE GENERATOR -->
+      <section class="page" id="page-chall">
+        <div class="page-head"><h2 data-i18n="title_chall">🎯 تحدي جديد</h2></div>
+        <div id="challBox"></div>
+      </section>
+
       <!-- PROFILE -->
       <section class="page" id="page-profile">
         <div class="page-head"><h2 data-i18n="title_profile">👤 حسابي</h2></div>
@@ -593,7 +621,8 @@
 <script src="glab.js"></script>
 <script src="curr-a2.js"></script>
 <script src="curriculum.js"></script>
-<script src="smart.js"></script>
-<script src="labsx.js"></script>
+    <script src="smart.js"></script>
+    <script src="labsx.js"></script>
+    <script src="adv.js"></script>
 </body>
 </html>

@@ -19,19 +19,22 @@ function good(m) { console.log("PASS " + m); }
 /* ---------- 1. parse I18N dicts (study.js base + labsx.js additive merge) ---------- */
 const study = RD("client/study.js");
 const labsx = (() => { try { return RD("client/labsx.js"); } catch (e) { return ""; } })();
+const advjs = (() => { try { return RD("client/adv.js"); } catch (e) { return ""; } })();
 const dict = {};
 for (const L of ["ar", "en", "de"]) {
   const line = study.split("\n").find(l => l.startsWith(L + ":{"));
   if (!line) { bad("dict block missing for " + L); continue; }
   const pairs = [...line.matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
   dict[L] = { keys: pairs.map(p => p[1]), vals: Object.fromEntries(pairs.map(p => [p[1], p[2]])) };
-  // Merge additive labsx.js Object.assign(I18N.<L>,{...}) keys (same as runtime)
+  // Merge additive labsx.js + adv.js Object.assign(I18N.<L>,{...}) keys (same as runtime)
   try {
-    const m = labsx.match(new RegExp("Object\\.assign\\(I18N\\." + L + ",\\{([^}]*)\\}\\)"));
-    if (m) {
-      const extra = [...m[1].matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
-      extra.forEach(p => { if (!dict[L].vals[p[1]]) { dict[L].keys.push(p[1]); dict[L].vals[p[1]] = p[2]; } });
-    }
+    [labsx, advjs].forEach(src => {
+      const m = src.match(new RegExp("Object\\.assign\\(I18N\\." + L + ",\\{([^}]*)\\}\\)"));
+      if (m) {
+        const extra = [...m[1].matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
+        extra.forEach(p => { if (!dict[L].vals[p[1]]) { dict[L].keys.push(p[1]); dict[L].vals[p[1]] = p[2]; } });
+      }
+    });
   } catch (e) {}
   const dupes = dict[L].keys.filter((k, i, a) => a.indexOf(k) !== i);
   if (dupes.length) bad("duplicate keys in " + L + ": " + [...new Set(dupes)].join(","));

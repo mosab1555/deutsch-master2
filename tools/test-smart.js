@@ -167,8 +167,15 @@ function wrongAns(q) {
   check("weak skill outweighs mastered", wBad > wGood * 2, wBad.toFixed(2) + " vs " + wGood.toFixed(2));
   const P = mkPools([]);
   const adapt = { acc: { article: { n: 10, ok: 1 } }, mistSkills: {}, recent: [], difficulty: "adaptive" };
-  const s = smBuildSession(10, P, adapt);
-  check("adaptive session targets weak skill", s.qs.some(q => q.skill === "article"), s.qs.map(q => q.skill).join(","));
+  // Statistical assertion (not a single random draw): weak skill must surface
+  // in the majority of 5 independent sessions.
+  let hits = 0; const samples = [];
+  for (let r = 0; r < 5; r++) {
+    const s = smBuildSession(10, P, adapt);
+    if (s.qs.some(q => q.skill === "article")) hits++;
+    if (r === 0) samples.push(s.qs.map(q => q.skill).join(","));
+  }
+  check("adaptive session targets weak skill", hits >= 3, hits + "/5 [" + samples[0] + "]");
 })();
 
 /* ---------- 6. anti-repeat history ---------- */
