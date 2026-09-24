@@ -99,6 +99,16 @@ ok("adv:html-pages", ["lislab", "fixsent", "finderr", "chall"].every(p => {
   } catch (e) { return false; }
 }));
 ok("adv:sw-precaches-adv", /adv\.js/.test(C("sw.js")) && /german-academy-v(20|[2-9][0-9])/.test(C("sw.js")));
+// ---- 9. Games Hub Home/Session (no-scroll entry) ----
+const play = C("play.js");
+ok("games:no-scroll-to-game", !/scrollIntoView/.test(play));
+ok("games:home-session-views", /id="gamesHome"/.test(play) && /id="gamesSession"/.test(play));
+ok("games:back-button", /id="gamesBack"/.test(play) && /function gamesBack\(\)/.test(play));
+ok("games:curGame-state", /let curGame=null/.test(play) && /curGame=id/.test(play) && /curGame=null/.test(play));
+ok("games:session-header", /gameKapLabel\(\)/.test(play) && /gameTitle\(id\)/.test(play));
+ok("games:stray-end-guarded", /boxId==="gameBox"&&!curGame/.test(play));
+ok("games:result-correct-wrong", /✅ صحيحة/.test(play) && /❌ خاطئة/.test(play));
+ok("games:all-24-dispatched", ["rush","battle","builder","memory","missing","tf","speed","catch","detective","boss","pic","music","gbattle","gbomb","gdetect","gshop","grunner","tower","escape","random","conv","spell","traffic","adventure"].every(g => play.indexOf(g + ":") >= 0 || play.indexOf(g + ":g") >= 0));
 
 console.log("\n==== QA RESULT: "+pass+" passed, "+fail+" failed ====");
 process.exit(fail ? 1 : 0);

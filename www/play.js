@@ -231,6 +231,8 @@ function gameOpts(box,opts,cb){
   box.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{box.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);cb(parseInt(b.getAttribute("data-j"),10),b);}));
 }
 function gameEnd(boxId,title,score,total,xp,key,extra){
+  // Stray completions from an abandoned session must grant nothing.
+  if(boxId==="gameBox"&&!curGame)return;
   ensurePlay();const win=score/total>=0.6;gRecord(key,win,score);
   trackWin(win);
   const coins=win?Math.round(10+score*2):Math.round(score);
@@ -239,22 +241,37 @@ function gameEnd(boxId,title,score,total,xp,key,extra){
   const acc=total?Math.round(score/total*100):0;
   const medal=gMedal(acc),st=gStat(key);
   if(gMedalRank(medal.k)>gMedalRank(st.medal||"none")){st.medal=medal.k;save();}
-  $(boxId).innerHTML='<div class="panel glass" style="text-align:center">🎉<h3>'+title+'</h3><div>النتيجة: '+score+'/'+total+' ('+acc+'%)</div><div style="font-size:34px">'+medal.e+'</div><div class="muted">'+t("g_acc")+': '+acc+'% • '+t("g_best")+': '+(st.best||0)+'</div><div>⭐+'+xp+' XP • '+coinStr()+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 العب مجددًا</button><button class="btn btn-ghost sm" data-go2="games">🎮 الألعاب</button></div></div>';
+  $(boxId).innerHTML='<div class="panel glass" style="text-align:center">🎉<h3>'+title+'</h3><div>النتيجة: '+score+'/'+total+' ('+acc+'%)</div><div>✅ صحيحة: '+score+' • ❌ خاطئة: '+Math.max(0,total-score)+'</div><div style="font-size:34px">'+medal.e+'</div><div class="muted">'+t("g_acc")+': '+acc+'% • '+t("g_best")+': '+(st.best||0)+'</div><div>⭐+'+xp+' XP • '+coinStr()+'</div><div class="row-flex"><button class="btn btn-primary sm" id="gAgain">🔄 العب مجددًا</button><button class="btn btn-ghost sm" data-go2="games">🎮 الألعاب</button></div></div>';
   $("gAgain").addEventListener("click",()=>startGame(key));
   $(boxId).querySelectorAll("[data-go2]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-go2"))));
 }
 const GSKILL={rush:"⚡ سرعة",battle:"📚 مفردات",builder:"🧩 جمل",memory:"🧠 ذاكرة",missing:"📝 مفردات",tf:"📚 مفردات",speed:"⚡ سرعة",catch:"🎧 استماع",detective:"📐 قواعد",boss:"👹 مختلط",pic:"📚 مفردات",music:"🎧 استماع",gbattle:"📚 مفردات",gbomb:"📚 مفردات",gdetect:"📖 قراءة",gshop:"💬 محادثة",grunner:"📚 مفردات",tower:"📐 قواعد",escape:"🗝️ مختلط",random:"🎲 مختلط",conv:"💬 محادثة",spell:"🔤 كتابة",traffic:"🚦 مواقف",adventure:"🗺️ مغامرة"};
 function gMedalEmoji(k){return {perfect:"💎",gold:"🥇",silver:"🥈",bronze:"🥉"}[k]||"—";}
+/* ---------- Games views: Home (selector) <-> Session (active game) ----------
+   No scroll tricks: selecting a game swaps the view in place (home hidden,
+   session shown). State: curGame=null means home; otherwise the running id.
+   Back/exit rebuilds the hub, which detaches the old gameBox node so pending
+   intervals self-clear via their box.isConnected guards; gameEnd ignores
+   stray completions while curGame is null. */
+let curGame=null;
+function gameTitle(id){try{const g=GAMES.find(x=>x.id===id);return g?((g.tk?t(g.tk):g.t)):"🎮";}catch(e){return "🎮";}}
+function gameKapLabel(){const k=GKap();if(!k){try{return t("g_mixed");}catch(e){return "Mixed";}}try{return kapName(k);}catch(e){return k;}}
+function gamesBack(){
+  curGame=null;
+  try{renderGames();}catch(e){}
+  try{window.scrollTo(0,0);}catch(e){}
+}
 function renderGames(){
   ensurePlay();
+  curGame=null; // entering the hub always lands on a fresh home view
   const mood=S.daily.mood||"🙂";
   const gk=GKap();
   const kapBtns=['<button class="btn btn-ghost sm" data-gkap="" style="'+(!gk?"border-color:var(--cyan)":"")+'">🔀 '+t("g_mixed")+'</button>'].concat(KAPITEL.map(k=>'<button class="btn btn-ghost sm" data-gkap="'+k.id+'" style="'+(gk===k.id?"border-color:var(--cyan)":"")+'">'+k.icon+" "+k.id+'</button>')).join("");
-  $("gamesBox").innerHTML='<div class="panel glass"><h3>🎮 Game Center</h3><div class="muted">مزاج اليوم: '+mood+' • '+coinStr()+' • العب وتعلّم واكسب XP وCoins حقيقية.</div><div class="muted" style="font-weight:800;margin-top:8px">'+t("g_kap")+'</div><div class="row-flex" style="flex-wrap:wrap">'+kapBtns+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="moodBtn">😴🙂🔥 مزاجي</button><button class="btn btn-gold sm" data-go2="challenge">⚡ التحدي اليومي</button><button class="btn btn-ghost sm" data-go2="me">📊 إحصائياتي</button></div></div><div class="grid-2">'+GAMES.map(g=>{
+  $("gamesBox").innerHTML='<div id="gamesHome"><div class="panel glass"><h3>🎮 Game Center</h3><div class="muted">مزاج اليوم: '+mood+' • '+coinStr()+' • العب وتعلّم واكسب XP وCoins حقيقية.</div><div class="muted" style="font-weight:800;margin-top:8px">'+t("g_kap")+'</div><div class="row-flex" style="flex-wrap:wrap">'+kapBtns+'</div><div class="row-flex"><button class="btn btn-ghost sm" id="moodBtn">😴🙂🔥 مزاجي</button><button class="btn btn-gold sm" data-go2="challenge">⚡ التحدي اليومي</button><button class="btn btn-ghost sm" data-go2="me">📊 إحصائياتي</button></div></div><div class="grid-2">'+GAMES.map(g=>{
     const s=gStat(g.id),lv=gLevel(g.id);
     const locked=levelLocked(3)&&g.expert;
     return '<div class="panel glass game-card"><h4>'+(g.tk?t(g.tk):g.t)+'</h4><div class="muted">'+(g.tdk?t(g.tdk):g.d)+'</div><div class="muted">'+(GSKILL[g.id]||"🎮")+' • '+t("g_dlevel")+': '+GLEVELS[lv]+' • XP ~'+g.xp+'</div><div class="muted">'+t("g_best")+': '+(s.best||0)+' • '+(gMedalEmoji(s.medal)||"—")+' • '+t("g_played")+': '+s.n+'</div>'+(locked?'<div class="muted">🔒 Expert يُفتح عند Level 10</div><button class="btn btn-ghost sm" disabled>مغلق 🔒</button>':'<div class="row-flex"><select data-lv="'+g.id+'" title="الصعوبة">'+GLEVELS.map((l,i)=>'<option value="'+i+'"'+(i===lv?" selected":"")+'>'+l+'</option>').join("")+'</select><button class="btn btn-primary sm" data-g="'+g.id+'">▶ '+t("g_start")+'</button></div>')+'</div>';
-  }).join("")+'</div><div id="gameBox"></div>';
+  }).join("")+'</div></div><div id="gamesSession" class="hidden"></div>';
   $("gamesBox").querySelectorAll("[data-gkap]").forEach(b=>b.addEventListener("click",()=>{setGKap(b.getAttribute("data-gkap"));renderGames();}));
   $("gamesBox").querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",()=>startGame(b.getAttribute("data-g"))));
   $("gamesBox").querySelectorAll("[data-lv]").forEach(s=>s.addEventListener("change",()=>{setGLevel(s.getAttribute("data-lv"),parseInt(s.value,10));toast("الصعوبة: "+GLEVELS[parseInt(s.value,10)],"ok");}));
@@ -264,10 +281,28 @@ function renderGames(){
     toast(S.daily.mood==="😴"?"وضع خفيف: 5 دقائق ولعبة واحدة":S.daily.mood==="🔥"?"وضع التحدي: جلسة كاملة!":"وضع عادي متوازن","ok");
   });
 }
+/* Game session entry: swaps Home -> Session view in place (no scrolling).
+   1) select game 2) read Kapitel/Mixed 3) fresh session 4) hide home
+   5) show session 6) game on screen 7) first question.
+   Every game fn builds a fresh pool (shuffle) on each start, so replay and
+   game-switching always get new orders with no state leaking across games. */
 function startGame(id){
-  const box=$("gameBox");if(!box){showPage("games");return;}
-  box.scrollIntoView({behavior:"smooth"});
+  let shell=$("gamesSession"),home=$("gamesHome");
+  if(!shell||!home){
+    try{renderGames();}catch(e){}
+    shell=$("gamesSession");home=$("gamesHome");
+    if(!shell||!home){try{showPage("games");}catch(e){}return;}
+  }
+  curGame=id;
+  home.classList.add("hidden");
+  shell.classList.remove("hidden");
+  shell.innerHTML='<div class="row-flex"><button class="btn btn-ghost sm" id="gamesBack">← العودة للألعاب</button></div>'
+    +'<div class="panel glass" style="text-align:center"><h3 style="margin:0">'+escapeHtml(gameTitle(id))+'</h3><div class="muted">'+escapeHtml(t("g_kap")+": "+gameKapLabel())+'</div></div>'
+    +'<div id="gameBox"></div>';
+  $("gamesBack").addEventListener("click",gamesBack);
+  const box=$("gameBox");
   ({rush:gRush,battle:gBattle,builder:gBuilder,memory:gMemory,missing:gMissing,tf:gTF,speed:gSpeed,catch:gCatch,detective:gDetective,boss:gBoss,pic:gPic,music:gMusic,gbattle:gbattle,gbomb:gbomb,gdetect:gdetect,gshop:gshop,grunner:grunner,tower:gTower,escape:gEscape,random:gRandom,conv:gConv,spell:gSpell,traffic:gTraffic,adventure:gAdventure}[id]||gRush)(box);
+  try{window.scrollTo(0,0);}catch(e){}
 }
 /* Game 1: Article Rush */
 function gRush(box){
