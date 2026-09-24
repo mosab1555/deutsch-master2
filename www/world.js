@@ -31,7 +31,7 @@ function renderWorld(){
     const st=pr.p>=1?"✓":pr.p>0?"🟡":(prevOk?"🔓":"🔒");
     h+='<div class="panel glass"><h4>'+a.t+' '+st+'</h4><div class="muted">📚 '+(pr.lesson?"درس ✓":"درس")+ ' • 📖 '+pr.known+'/'+pr.total+' • 🎮 '+(pr.played?"✓":"—")+'</div><div class="progress sm"><div class="progress-fill" style="width:'+Math.round(pr.p*100)+'%"></div></div><div class="row-flex"><button class="btn btn-ghost sm" data-wl="'+a.gid+'">📚 الدرس</button><button class="btn btn-ghost sm" data-wg="'+a.game+'">🎮 اللعبة</button><button class="btn btn-gold sm" data-wb="'+i+'">👹 الزعيم</button></div></div>';
   });
-  h+='</div><div id="worldBox"></div>';
+  h+='</div><div id="worldBody"></div>';
   $("worldBox").innerHTML=h;
   $("worldBox").querySelectorAll("[data-wl]").forEach(b=>b.addEventListener("click",()=>openExplain(b.getAttribute("data-wl"))));
   $("worldBox").querySelectorAll("[data-wg]").forEach(b=>b.addEventListener("click",()=>{showPage("games");setTimeout(()=>startGame(b.getAttribute("data-wg")),200);}));

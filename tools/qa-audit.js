@@ -123,6 +123,30 @@ ok("games:all-24-dispatched", ["rush","battle","builder","memory","missing","tf"
   const unresolvable = [...new Set(lookups)].filter(id => !staticIds.has(id) && !madeIds.has(id) && !dynPrefixes.test(id));
   ok("ids:adv-lookups-resolvable", unresolvable.length === 0, unresolvable.slice(0, 5).join(","));
 })();
+// ---- 12. No nested same-id renders + idempotent appends + finderr colors ----
+(function () {
+  const files = ["dlife.js", "life.js", "learn.js", "world.js", "study.js", "script.js", "play.js", "adv.js", "curriculum.js"];
+  let nestedDup = [];
+  files.forEach(f => {
+    const src = C(f);
+    // pattern: $("X") ... innerHTML = ... id="X" in same function scope (approx: same 30-line window)
+    const lines = src.split("\n");
+    lines.forEach((l, i) => {
+      const m = l.match(/\$\("([A-Za-z0-9_]+)"\)\.innerHTML\s*=/);
+      if (m) {
+        const win = lines.slice(i, Math.min(lines.length, i + 30)).join("\n");
+        const re = new RegExp('id="' + m[1] + '"');
+        if (re.test(win)) nestedDup.push(f + ":" + (i + 1) + "#" + m[1]);
+      }
+    });
+  });
+  ok("render:no-nested-same-id", nestedDup.length === 0, nestedDup.slice(0, 4).join(","));
+  const dlife = C("dlife.js"), study = C("study.js"), adv = C("adv.js");
+  ok("render:expWidgets-idempotent", /\$\("expWidgets"\)/.test(dlife));
+  ok("render:istoryGrid-idempotent", /\$\("istoryGrid"\)/.test(study));
+  ok("finderr:spotted-correct-is-green", /b\.classList\.add\("correct"\)[\s\S]{0,200}step2\(\)/.test(adv));
+  ok("i18n:nav-loop-dedupes", /icons\[0\]\|\|null/.test(study) || /for\(let k=1;k<icons\.length/.test(study));
+})();
 // ---- 11. Sidebar test-cluster icons are unique (no repeated icon) ----
 (function () {
   const htmlSrc = fs.readFileSync(path.join(__dirname, "..", "client", "index.html"), "utf8");

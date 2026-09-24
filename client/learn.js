@@ -441,7 +441,7 @@ const TALK_SITS=[
  ["Bis später!","أراك لاحقًا!",["Bis später, mach's gut!","Guten Appetit!","Prost Mahlzeit!"],0]]}];
 function renderTalk(){
   ensureLearn();
-  let h='<div class="panel glass"><h3>💬 المحادثة — تدريب تفاعلي</h3><div class="muted">اختر موقفًا ورد على الأسئلة (تدريب بقواعد ثابتة تناسب A1).</div></div><div class="grid-2" id="talkSits"></div><div id="talkBox"></div>';
+  let h='<div class="panel glass"><h3>💬 المحادثة — تدريب تفاعلي</h3><div class="muted">اختر موقفًا ورد على الأسئلة (تدريب بقواعد ثابتة تناسب A1).</div></div><div class="grid-2" id="talkSits"></div><div id="talkBody"></div>';
   $("talkBox").innerHTML=h;
   $("talkSits").innerHTML=TALK_SITS.map(s=>{
     const done=S.journey.talk[s.id];
@@ -490,7 +490,7 @@ const REAL_SITS=[
 {id:"ausb",t:"🇩🇪 Ausbildung",voc:[["der Ausbilder","المدرب"],["der Betrieb","الشركة"],["die Berufsschule","مدرسة المهنة"],["der Vertrag","العقد"]],phr:[["Ich mache eine Ausbildung.","أتدرب مهنيًا."],["Wo ist die Berufsschule?","أين مدرسة المهنة؟"],["Wer ist mein Ausbilder?","من مدربي؟"]],dlg:[["Was lernst du?","ماذا تتعلم؟"],["Ich mache eine Ausbildung als Koch.","أتدرب كطباخ."],["Viel Erfolg!","بالتوفيق!"],["Danke!","شكرًا!"]]},
 {id:"daily",t:"☀️ الحياة اليومية",voc:[["der Alltag","اليوم العادي"],["der Haushalt","المنزل/التدبير"],["der Spaziergang","التمشية"],["die Freizeit","وقت الفراغ"]],phr:[["Was machst du heute?","ماذا تفعل اليوم؟"],["Ich gehe spazieren.","أتمشى."],["Bis später!","أراك لاحقًا!"]],dlg:[["Was machst du am Wochenende?","ماذا تفعل نهاية الأسبوع؟"],["Ich besuche meine Familie.","أزور عائلتي."],["Schön! Viel Spaß!","جميل! استمتع!"],["Danke!","شكرًا!"]]}];
 function renderReal(){
-  let h='<div class="panel glass"><h3>🌍 Real Life German — مواقف عملية</h3><div class="muted">مفردات + عبارات + حوار لكل موقف.</div></div><div id="realList"></div><div id="realBox"></div>';
+  let h='<div class="panel glass"><h3>🌍 Real Life German — مواقف عملية</h3><div class="muted">مفردات + عبارات + حوار لكل موقف.</div></div><div id="realList"></div><div id="realBody"></div>';
   $("realBox").innerHTML=h;
   $("realList").innerHTML='<div class="grid-2">'+REAL_SITS.map(s=>'<button class="quick-btn" data-r="'+s.id+'">'+s.t+'</button>').join("")+'</div>';
   $("realList").querySelectorAll("[data-r]").forEach(b=>b.addEventListener("click",()=>openReal(b.getAttribute("data-r"))));

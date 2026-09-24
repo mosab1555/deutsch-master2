@@ -165,7 +165,7 @@ function renderDlife(){
     const d=S.dlife.done[s.id];
     h+='<div class="panel glass"><h4>'+s.icon+" "+s.t+'</h4><div class="muted">'+s.ar+' • '+s.steps.length+' خطوات'+(d?" • ✅ "+(d.n||1)+'x':"")+'</div><button class="btn btn-primary sm" data-dl="'+s.id+'">ابدأ 🚀</button></div>';
   });
-  h+='</div><div id="dlifeBox"></div>';
+  h+='</div><div id="dlifeBody"></div>';
   $("dlifeBox").innerHTML=h;
   $("dlifeBox").querySelectorAll("[data-dl]").forEach(b=>b.addEventListener("click",()=>startScenario(b.getAttribute("data-dl"))));
 }
@@ -189,14 +189,15 @@ function renderExpWidgets(){
     const el=$("dashLearn");
     if(el){
       ensureMyg();ensureDl();
+      // Idempotent: reuse one persistent panel (old code appended a fresh
+      // panel on EVERY renderDashboard, duplicating it after every action).
+      let d=$("expWidgets");
+      if(!d){d=document.createElement("div");d.id="expWidgets";d.className="panel glass reveal";el.appendChild(d);}
       const m=S.myg, p=dlProgress();
-      const d=document.createElement("div");
-      d.className="panel glass reveal";
       d.innerHTML='<h3>🇩🇪 تجارب ألمانية</h3>'
       +'<div class="muted">🌍 حياتي: يوم '+m.day+' • '+euro(m.balance)+' • مهارات '+mygSkillAvg()+'%</div>'
       +'<div class="muted">🎭 مواقف: '+p.dn+'/'+p.total+' ('+p.pct+'%)</div>'
       +'<div class="row-flex"><button class="btn btn-primary sm" data-exp="mygermany">🌍 حياتي</button><button class="btn btn-gold sm" data-exp="dlife">🎭 موقف</button><button class="btn btn-ghost sm" data-exp="exp">🌍 التجارب</button></div>';
-      el.appendChild(d);
       d.querySelectorAll("[data-exp]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-exp"))));
     }
   }catch(e){}

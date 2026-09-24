@@ -642,7 +642,13 @@ function advFerrRun(i,score,pool){
   body.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{
     if(step!==1)return;
     const k=parseInt(b.getAttribute("data-k"),10);
-    if(k===errTok){step=2;b.classList.add("wrong");step2();}
+    if(k===errTok){
+      // Correctly spotted the error: GREEN (correct), never red. Freeze the
+      // token row so the state can't leak, then move to the correction step.
+      step=2;b.classList.add("correct");
+      body.querySelectorAll(".quiz-opt").forEach(x=>{x.disabled=true;});
+      step2();
+    }
     else{b.classList.add("wrong");const f=$("ferrFb");f.classList.remove("hidden");f.className="quiz-feedback no";f.textContent="ليس هذا الجزء — حاول مرة أخرى 🤔";setTimeout(()=>b.classList.remove("wrong"),700);}
   }));
   function step2(){

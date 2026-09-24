@@ -232,7 +232,7 @@ function renderLife(){
   }).join("")+'</div><div class="muted">A1 مفتوح • A2 بعد 4 مهام A1 • B1 بعد 4 مهام A2 (الدخول مسموح دائمًا للمراجعة)</div><div id="locList" class="grid-2">'+LIFE_LOCS.map(L=>{
     const st=lifeLocState(L);
     return '<div class="panel glass"><h4>'+L.icon+" "+L.t+' <span class="tag">'+L.tier+'</span> '+(st.stamped?"🏅":st.locked?"🔒":"")+'</h4><div class="muted">'+L.ar+' • '+st.dn+'/'+st.total+' مهام</div><div class="progress sm"><div class="progress-fill" style="width:'+Math.round(st.dn/Math.max(1,st.total)*100)+'%"></div></div><button class="btn btn-primary sm" data-loc="'+L.id+'">ادخل ←</button></div>';
-  }).join("")+'</div><div id="lifeBox"></div></div>';
+  }).join("")+'</div><div id="lifeBody"></div></div>';
   $("lifeBox").innerHTML=h;
   const box=$("lifeBox");
   box.querySelectorAll("[data-loc]").forEach(b=>b.addEventListener("click",()=>openLoc(b.getAttribute("data-loc"))));

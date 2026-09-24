@@ -339,6 +339,131 @@ const txt = e => (e ? e.textContent.replace(/\s+/g, " ").trim() : "");
   fireErr("search", () => { byId("globalSearch").value = "haus"; js("runGlobalSearch()"); });
   await sleep(300);
   ok("search: hits render", document.querySelectorAll("#searchResults .search-hit").length > 0);
+
+  /* F. navigation marathon: icons stable, no dup items/listeners/content */
+  const marathon = ["quiz", "games", "practice", "speak", "shadowing", "finderr", "challenge", "chall", "mistakes", "review", "dashboard", "quiz", "games", "shadowing", "finderr"];
+  let navOk = true, navInfo = "";
+  const navCountBefore = document.querySelectorAll(".nav-item").length;
+  for (const pg of marathon) {
+    clickNav(pg);
+    await sleep(60);
+    const items = document.querySelectorAll(".nav-item");
+    const badIco = items.filter(b => b.querySelectorAll(".nav-ico").length !== 1);
+    const pages = items.map(b => b.dataset.page);
+    const dupPages = pages.filter((p, i) => pages.indexOf(p) !== i);
+    if (badIco.length || dupPages.length || items.length !== navCountBefore) {
+      navOk = false;
+      navInfo = pg + ":ico" + badIco.length + "/dup" + dupPages.join(",") + "/n" + items.length;
+      break;
+    }
+  }
+  ok("marathon: sidebar stable across 15 navigations", navOk, navInfo);
+  ok("marathon: dashboard widgets single", [ "advWeek", "advSkills", "advPath", "expWidgets", "dashLife" ].every(id => document.querySelectorAll("#" + id).length <= 1),
+    ["advWeek", "advSkills", "advPath", "expWidgets", "dashLife"].map(id => id + "=" + document.querySelectorAll("#" + id).length).join(" "));
+  // language + kapitel switches keep icons single
+  fireErr("marathon-lang", () => js("setHeaderLang('de')")); await sleep(30);
+  fireErr("marathon-lang2", () => js("setHeaderLang('ar')")); await sleep(30);
+  ok("marathon: icons single after lang switches",
+    document.querySelectorAll(".nav-item").every(b => b.querySelectorAll(".nav-ico").length === 1));
+  // stories re-render idempotent (was unguarded append)
+  clickNav("stories"); await sleep(80);
+  clickNav("dashboard"); await sleep(60);
+  clickNav("stories"); await sleep(80);
+  ok("marathon: stories grid single", document.querySelectorAll("#istoryGrid").length <= 1,
+    "grids=" + document.querySelectorAll("#istoryGrid").length);
+
+  /* G. shadowing full flow */
+  ok("shadow: page renders content", clickNav("shadowing") && !!byId("shLvl") && !!byId("shBody") && /عنصر 1/.test(txt(byId("shadowBox"))));
+  fireErr("shadow-hear", () => byId("shHear").click());
+  // typed fallback path (works with or without SpeechRecognition)
+  const shTyped = byId("shTyped");
+  if (shTyped) {
+    shTyped.value = " "; fireErr("shadow-typed-empty", () => byId("shTypedGo").click());
+    const curDe = js("SH.cur ? SH.cur.de : ''");
+    shTyped.value = curDe || "Haus";
+    fireErr("shadow-typed", () => byId("shTypedGo").click());
+    await sleep(200);
+    ok("shadow: typed grading shows feedback", /%/.test(txt(byId("shFb"))), txt(byId("shFb")).slice(0, 60));
+  } else {
+    ok("shadow: SR branch present (no fallback needed)", !!byId("shGo"));
+  }
+  const idxBefore = js("SH.idx");
+  fireErr("shadow-next", () => byId("shNext").click());
+  await sleep(100);
+  ok("shadow: next advances + progress", js("SH.idx") === idxBefore + 1 && /عنصر 2/.test(txt(byId("shadowBox"))));
+  // retry resets current item view
+  fireErr("shadow-retry", () => byId("shRetry").click());
+  await sleep(100);
+  ok("shadow: retry re-renders item", /عنصر 2/.test(txt(byId("shadowBox"))));
+  // level switch re-renders without duplication
+  fireErr("shadow-lvl", () => { byId("shLvl").value = "medium"; byId("shLvl").click(); });
+  await sleep(60);
+  ok("shadow: no console errors so far", errors.length === 0, errors.slice(0, 3).join(" || "));
+
+  /* H. finderr green/red by identity (not position) */
+  ok("finderr: page renders tokens", clickNav("finderr") && document.querySelectorAll("#ferrBody .quiz-opt").length >= 3);
+  // click a WRONG token first -> red, stays on step 1
+  const toks = document.querySelectorAll("#ferrBody .quiz-opt");
+  const stepInfo = js("(()=>{try{return document.querySelectorAll('#ferrBody .quiz-opt').length;}catch(e){return -1;}})()");
+  ok("finderr: tokens clickable", toks.length >= 3 && stepInfo >= 3);
+  // wrong token: pick index 0 unless it is the error token (detect via no advancement)
+  fireErr("finderr-wrong", () => toks[0].click());
+  await sleep(150);
+  // correct token: find it by trying each until step-2 UI (correction buttons) appears
+  let spotted = false;
+  for (const b of document.querySelectorAll("#ferrBody .quiz-opt")) {
+    if (document.querySelectorAll("#ferrBody .quiz-opt").some(x => x.classList.contains("correct"))) { spotted = true; break; }
+    fireErr("finderr-try", () => b.click());
+    await sleep(80);
+  }
+  const greenBtn = document.querySelectorAll("#ferrBody .quiz-opt").find(x => x.classList.contains("correct"));
+  ok("finderr: correct token turns GREEN", !!greenBtn && spotted !== false);
+  // step 2: click the right correction -> advances to next question
+  const qBefore = txt(byId("ferrBody")).slice(0, 40);
+  const corrBtns = document.querySelectorAll("#ferrBody .quiz-opt").filter(x => !x.disabled);
+  let advanced = false;
+  for (const b of corrBtns) {
+    fireErr("finderr-corr", () => b.click());
+    await sleep(2600);
+    if (txt(byId("ferrBody")).slice(0, 40) !== qBefore || /النتيجة/.test(txt(byId("ferrBody")))) { advanced = true; break; }
+    // wrong correction ends run only after timeout; re-query fresh buttons each round is complex - stop after first advance/finish
+    break;
+  }
+  ok("finderr: correction resolves (advance or finish)", advanced || /النتيجة/.test(txt(byId("ferrBody"))));
+
+  /* I. daily challenge flow */
+  ok("daily: page renders", clickNav("challenge") && !!byId("chBox"));
+  const chStart = byId("chStart");
+  if (chStart) {
+    fireErr("daily-start", () => chStart.click());
+    await sleep(150);
+    ok("daily: opens quiz content", activePage() === "page-quiz" && !!byId("quizPlay") && !byId("quizPlay").classList.contains("hidden"));
+    // answer first question (choice or write), then quit to finish quickly
+    const qOpts = document.querySelectorAll("#quizOpts .quiz-opt");
+    if (qOpts.length) { fireErr("daily-answer", () => qOpts[0].click()); await sleep(300); }
+    else if (!byId("quizWrite").classList.contains("hidden")) { byId("quizWriteInput").value = "der"; fireErr("daily-write", () => byId("quizWriteCheck").click()); await sleep(300); }
+    fireErr("daily-quit", () => byId("quizQuit").click());
+    await sleep(200);
+    ok("daily: finish screen renders", !byId("quizResult").classList.contains("hidden"));
+    const dKey = js("Object.keys(S.daily||{}).filter(k=>/^\\d{4}-\\d{2}-\\d{2}$/.test(k)).length");
+    ok("daily: recorded for today", dKey >= 1, "days=" + dKey);
+  } else {
+    ok("daily: already completed today (empty-state honest)", /مكتمل/.test(txt(byId("chBox"))));
+  }
+
+  /* J. search ranking: prefix-first */
+  fireErr("search-hau", () => { byId("globalSearch").value = "hau"; js("runGlobalSearch()"); });
+  await sleep(300);
+  const hits = document.querySelectorAll("#searchResults .search-hit").map(h => txt(h).slice(0, 24)).filter(t => /📚|⚡|📐|📖/.test(t));
+  ok("search: 'hau' ranks Haus-word first", hits.length > 0 && /Haus/i.test(hits[0]), hits.slice(0, 3).join(" | "));
+
+  /* K. lislab + fixsent smoke (no blank views) */
+  ok("lislab: page renders", clickNav("lislab") && !!byId("lisStart"));
+  fireErr("lislab-start", () => byId("lisStart").click());
+  await sleep(500);
+  ok("lislab: question renders", /سؤال 1/.test(txt(byId("lislabBox"))));
+  ok("fixsent: page renders", clickNav("fixsent") && !!byId("fixBody") && /جملة 1/.test(txt(byId("fixsentBox"))));
+
   ok("console: clean", errors.length === 0, errors.slice(0, 5).join(" || "));
 
   console.log("\n==== E2E: " + pass + " passed, " + fail + " failed ====");

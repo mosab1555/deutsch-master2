@@ -474,10 +474,13 @@ const ISTORIES=[
  {id:"x2",de:"Ok. Tschüs!",ar:"حسنًا. سلام!",end:"انتهت المحادثة. حاول مجددًا!",xp:2}]}];
 function renderIStories(){
   ensureStudy();
-  let h='<div class="panel glass"><h3>🎭 قصص تفاعلية — قراراتك تغيّر الأحداث</h3></div><div class="grid-2">'+ISTORIES.map(s=>'<div class="panel glass"><h4>'+s.t+'</h4><div class="muted">'+s.lvl+'</div><button class="btn btn-primary sm" data-ist="'+s.id+'">ابدأ ▶️</button></div>').join("")+'</div><div id="istBox"></div>';
   const host=$("istoriesBox")||$("storiesBox");
-  const wrap=document.createElement("div");wrap.innerHTML=h;
-  ($("storiesBox")||$("istoriesBox")).appendChild(wrap);
+  if(!host)return;
+  // Idempotent: one persistent grid (old code appended a fresh grid on EVERY
+  // stories visit, duplicating it; previously masked only by world.js wipe).
+  let wrap=$("istoryGrid");
+  if(!wrap){wrap=document.createElement("div");wrap.id="istoryGrid";host.appendChild(wrap);}
+  wrap.innerHTML='<div class="panel glass"><h3>🎭 قصص تفاعلية — قراراتك تغيّر الأحداث</h3></div><div class="grid-2">'+ISTORIES.map(s=>'<div class="panel glass"><h4>'+s.t+'</h4><div class="muted">'+s.lvl+'</div><button class="btn btn-primary sm" data-ist="'+s.id+'">ابدأ ▶️</button></div>').join("")+'</div><div id="istBox"></div>';
   wrap.querySelectorAll("[data-ist]").forEach(b=>b.addEventListener("click",()=>playIstory(b.getAttribute("data-ist"))));
 }
 function playIstory(id){
