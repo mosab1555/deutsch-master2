@@ -1471,7 +1471,7 @@ function showPage(name){
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
   $("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");
-  window.scrollTo({top:0,behavior:"smooth"});
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){try{window.scrollTo(0,0);}catch(_){}}
   requestAnimationFrame(observeReveals);
 }
 document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));

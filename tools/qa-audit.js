@@ -109,6 +109,31 @@ ok("games:session-header", /gameKapLabel\(\)/.test(play) && /gameTitle\(id\)/.te
 ok("games:stray-end-guarded", /boxId==="gameBox"&&!curGame/.test(play));
 ok("games:result-correct-wrong", /✅ صحيحة/.test(play) && /❌ خاطئة/.test(play));
 ok("games:all-24-dispatched", ["rush","battle","builder","memory","missing","tf","speed","catch","detective","boss","pic","music","gbattle","gbomb","gdetect","gshop","grunner","tower","escape","random","conv","spell","traffic","adventure"].every(g => play.indexOf(g + ":") >= 0 || play.indexOf(g + ":g") >= 0));
+// ---- 10. ID-consistency: no single/double-l mixups (the challBody outage class) ----
+(function () {
+  const advSrc = C("adv.js");
+  const badDouble = (advSrc.match(/chall(Start|Again|Body|Q|In|Ok|Fb|Hear)/g) || []);
+  ok("ids:no-chall-double-l-lookups", badDouble.length === 0, badDouble.slice(0, 4).join(","));
+  // every $("...") lookup in adv.js must resolve to an id created in adv templates or static HTML
+  const htmlSrc = fs.readFileSync(path.join(__dirname, "..", "client", "index.html"), "utf8");
+  const staticIds = new Set([...htmlSrc.matchAll(/id="([^"]*)"/g)].map(m => m[1]));
+  const madeIds = new Set([...advSrc.matchAll(/id="([^"]*)"/g)].map(m => m[1]).concat([...advSrc.matchAll(/id='([^']*)'/g)].map(m => m[1])));
+  const dynPrefixes = /^(ch|lis|fix|ferr|g|mist|adv|rd|gl|sh|d|myg)/;
+  const lookups = [...advSrc.matchAll(/\$\("([^"]*)"\)/g)].map(m => m[1]);
+  const unresolvable = [...new Set(lookups)].filter(id => !staticIds.has(id) && !madeIds.has(id) && !dynPrefixes.test(id));
+  ok("ids:adv-lookups-resolvable", unresolvable.length === 0, unresolvable.slice(0, 5).join(","));
+})();
+// ---- 11. Sidebar test-cluster icons are unique (no repeated icon) ----
+(function () {
+  const htmlSrc = fs.readFileSync(path.join(__dirname, "..", "client", "index.html"), "utf8");
+  const cluster = ["quiz", "challenge", "practice", "chall", "lislab"];
+  const icons = cluster.map(p => {
+    const m = htmlSrc.match(new RegExp('data-page="' + p + '"><span class="nav-ico">([^<]*)<'));
+    return p + "=" + (m ? m[1] : "?");
+  });
+  const vals = icons.map(s => s.split("=")[1]);
+  ok("sidebar:test-cluster-icons-unique", new Set(vals).size === vals.length && !vals.includes("?"), icons.join(" "));
+})();
 
 console.log("\n==== QA RESULT: "+pass+" passed, "+fail+" failed ====");
 process.exit(fail ? 1 : 0);

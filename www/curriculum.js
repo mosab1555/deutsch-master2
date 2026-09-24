@@ -727,6 +727,8 @@ function currHookReview(){
 }
 function currHookMistakes(){
   try{
+    // Fresh render on every visit so filters/tabs always reflect current data.
+    try{if(typeof renderMistakes==="function")renderMistakes();}catch(e){}
     var row=document.querySelector("#page-mistakes .row-flex");
     if(row&&!$("mistLevel")){
       var sel=document.createElement("select");sel.id="mistLevel";

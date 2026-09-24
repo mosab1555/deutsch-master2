@@ -128,7 +128,6 @@ function renderMistakes(){
     else shown=active.slice().sort((a,b)=>(b.m.n||0)-(a.m.n||0));
     const cnt=$("mistCount");if(cnt)cnt.textContent=list.length+" • نشطة: "+active.length+" • متقنة: "+done.length;
     const badge=$("navMistBadge");if(badge)badge.textContent=active.length;
-    const box=$("mistakesBox")||$("mistGrid")||$("mistGrid").parentNode;
     // Tabs bar (insert once above grid)
     let tabs=$("mistTabs");
     if(!tabs){
@@ -242,7 +241,7 @@ function advDelta(c,p,suf){
 function advDash(){
   try{
     ensureAdv();
-    const dash=$("dashBox")||$("dashboardBox");if(!dash)return;
+    const dash=$("dashLearn");if(!dash)return;
     if($("advWeek"))$("advWeek").remove();
     if($("advSkills"))$("advSkills").remove();
     if($("advPath"))$("advPath").remove();
@@ -676,6 +675,7 @@ function advChalBuild(){
   let lvl="";try{lvl=$("quizLevel")?$("quizLevel").value:"";}catch(e){}
   const pool=lvl?words.filter(w=>(w.level||"A1")===lvl):words;
   const src=pool.length>=5?pool:words;
+  if(!src.length)return [];
   const picks=shuffle(src).slice(0,10);
   const items=[];
   order.forEach(sk=>{
@@ -701,7 +701,8 @@ function renderChall(){
 function advChalRun(){
   const items=advChalBuild();
   if(!items.length){toast("لا توجد أسئلة","err");return;}
-  let i=0,score=0;const body=$("challBody");
+  let i=0,score=0;const body=$("chalBody");
+  if(!body){toast("تعذر فتح التحدي","err");return;}
   markStudyDay();
   const skAr={vocab:"📚 مفردات",grammar:"📐 قواعد",listening:"🎧 استماع",sentence:"🧩 جملة",speaking:"🎤 تحدث"};
   function next(){if(i>=items.length)return fin();render();}

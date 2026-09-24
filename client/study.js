@@ -34,8 +34,14 @@ function applyLang(){
   try{
     document.querySelectorAll(".nav-item").forEach(b=>{
       const p=b.dataset.page;if(!p||!I18N[S.uiLang||"ar"][p])return;
-      const ic=b.querySelector(".nav-ico");
-      b.childNodes.forEach(n=>{if(n.nodeType===3)n.remove();});
+      // Root-cause hardening: snapshot children first (live NodeList mutates
+      // during removal), and enforce exactly ONE .nav-ico so the icon can
+      // never render twice no matter how often applyLang runs.
+      const kids=Array.prototype.slice.call(b.childNodes);
+      kids.forEach(n=>{if(n.nodeType===3)n.remove();});
+      const icons=b.querySelectorAll(".nav-ico");
+      const ic=icons[0]||null;
+      for(let k=1;k<icons.length;k++){try{icons[k].remove();}catch(e){}}
       b.appendChild(document.createTextNode(" "+t(p)));
       if(ic)b.insertBefore(ic,b.firstChild);
     });
