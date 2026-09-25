@@ -12,9 +12,9 @@
 
 /* ---------- i18n (merged additively; page keys match data-page names) ---------- */
 try{
-  Object.assign(I18N.ar,{shadowing:"🎙️ تقليد النطق",writing:"✍️ مختبر الكتابة",dictation:"👂 الإملاء السمعي",situations:"🎬 مواقف ألمانية",erreplay:"🧠 أخطائي",labsx_new:"🚀 معامل التدريب الجديدة",title_shadowing:"🎙️ Shadowing Lab — تقليد النطق",title_writing:"✍️ Writing Lab — مختبر الكتابة",title_dictation:"👂 Dictation — الإملاء السمعي",title_situations:"🎬 German Situations — مواقف ألمانية",title_erreplay:"🧠 Error Replay — أخطائي"});
-  Object.assign(I18N.en,{shadowing:"🎙️ Shadowing",writing:"✍️ Writing Lab",dictation:"👂 Dictation",situations:"🎬 Situations",erreplay:"🧠 Error Replay",labsx_new:"🚀 New Training Labs",title_shadowing:"🎙️ Shadowing Lab",title_writing:"✍️ Writing Lab",title_dictation:"👂 Dictation",title_situations:"🎬 German Situations",title_erreplay:"🧠 Error Replay"});
-  Object.assign(I18N.de,{shadowing:"🎙️ Shadowing",writing:"✍️ Schreiblabor",dictation:"👂 Diktat",situations:"🎬 Situationen",erreplay:"🧠 Fehler-Replay",labsx_new:"🚀 Neue Trainingslabore",title_shadowing:"🎙️ Shadowing-Labor",title_writing:"✍️ Schreiblabor",title_dictation:"👂 Diktat",title_situations:"🎬 Deutsche Situationen",title_erreplay:"🧠 Fehler-Replay"});
+  Object.assign(I18N.ar,{shadowing:"تقليد النطق",writing:"مختبر الكتابة",dictation:"الإملاء السمعي",situations:"مواقف ألمانية",erreplay:"أخطائي",labsx_new:"معامل التدريب الجديدة",title_shadowing:"🎙️ Shadowing Lab — تقليد النطق",title_writing:"✍️ Writing Lab — مختبر الكتابة",title_dictation:"👂 Dictation — الإملاء السمعي",title_situations:"🎬 German Situations — مواقف ألمانية",title_erreplay:"🧠 Error Replay — أخطائي"});
+  Object.assign(I18N.en,{shadowing:"Shadowing",writing:"Writing Lab",dictation:"Dictation",situations:"Situations",erreplay:"Error Replay",labsx_new:"New Training Labs",title_shadowing:"🎙️ Shadowing Lab",title_writing:"✍️ Writing Lab",title_dictation:"👂 Dictation",title_situations:"🎬 German Situations",title_erreplay:"🧠 Error Replay"});
+  Object.assign(I18N.de,{shadowing:"Shadowing",writing:"Schreiblabor",dictation:"Diktat",situations:"Situationen",erreplay:"Fehler-Replay",labsx_new:"Neue Trainingslabore",title_shadowing:"🎙️ Shadowing-Labor",title_writing:"✍️ Schreiblabor",title_dictation:"👂 Diktat",title_situations:"🎬 Deutsche Situationen",title_erreplay:"🧠 Fehler-Replay"});
 }catch(e){}
 
 /* ---------- storage (own namespace, safe migration, never wipes) ---------- */

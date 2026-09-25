@@ -135,6 +135,18 @@ ok("games:all-24-dispatched", ["rush","battle","builder","memory","missing","tf"
   ok("css:mobile-scoped", /#page-sentences \.row-flex>select\{min-width:0/.test(css) && /\.full-input\{width:100%/.test(css));
   ok("css:no-global-fixed-widths", !/\.sent-card\{[^}]*width:\d+px/.test(css) && !/\.grammar-card\{[^}]*width:\d+px/.test(css));
 })();
+// ---- 14. Nav labels must not embed icons (static .nav-ico owns the icon) ----
+(function () {
+  const src = C("study.js") + C("labsx.js") + C("adv.js");
+  const keys = ["shadowing","writing","dictation","situations","erreplay","labsx_new","nav_lislab","nav_fixsent","nav_finderr","nav_chall"];
+  const bad = [];
+  const re = new RegExp("\\b(" + keys.join("|") + ")\\s*:\\s*\"([^\"]*)\"", "g");
+  let m;
+  while ((m = re.exec(src))) {
+    if (!/^[\p{L}\p{N}]/u.test(m[2])) bad.push(m[1] + "=" + m[2].slice(0, 20));
+  }
+  ok("i18n:nav-labels-no-emoji", bad.length === 0, bad.slice(0, 4).join(","));
+})();
 (function () {
   const files = ["dlife.js", "life.js", "learn.js", "world.js", "study.js", "script.js", "play.js", "adv.js", "curriculum.js"];
   let nestedDup = [];
