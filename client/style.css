@@ -128,7 +128,7 @@ label{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;font-size:14
 .filters{display:flex;gap:10px;flex-wrap:wrap;padding:14px;border-radius:16px;margin-bottom:14px}
 .filters input,.filters select{flex:1;min-width:150px}
 /* Word cards */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px}
 .word-card{padding:18px;border-radius:var(--radius);transition:.3s;position:relative;overflow:hidden;animation:pageIn .4s ease}
 .word-img{width:100%;max-height:170px;object-fit:cover;border-radius:12px;margin:8px 0 2px;display:block}
 .word-card:hover{transform:translateY(-4px);box-shadow:0 0 25px rgba(var(--v1),.35)}
@@ -141,8 +141,8 @@ label{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;font-size:14
 .word-de{font-size:22px;font-weight:900;color:#fff}
 html[data-theme="light"] .word-de{color:#0f172a}
 .word-de-ltr{direction:ltr;unicode-bidi:embed}
-.word-ar{font-size:18px;color:var(--gold);font-weight:700;margin:6px 0}
-.word-pron{color:var(--cyan);font-size:14px}
+.word-ar{font-size:18px;color:var(--gold);font-weight:700;margin:6px 0;overflow-wrap:anywhere}
+.word-pron{color:var(--cyan);font-size:14px;overflow-wrap:anywhere}
 .word-ex{background:rgba(0,0,0,.25);border-radius:10px;padding:10px;margin:10px 0;font-size:14px}
 html[data-theme="light"] .word-ex{background:rgba(0,0,0,.05)}
 .word-ex .ex-de{direction:ltr;text-align:left;font-weight:700}
@@ -177,26 +177,28 @@ html[data-theme="light"] .word-ex{background:rgba(0,0,0,.05)}
 .flash-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 /* Sentences */
 .sent-list{display:flex;flex-direction:column;gap:10px}
-.sent-card{padding:16px;border-radius:16px;display:flex;gap:12px;align-items:flex-start;animation:pageIn .4s}
+.sent-card{padding:16px;border-radius:16px;display:flex;gap:12px;align-items:flex-start;animation:pageIn .4s;overflow-wrap:anywhere}
+.sent-card>div{min-width:0}
+.sent-card>button{flex-shrink:0}
 .sent-num{background:var(--grad);width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:900;flex-shrink:0;color:#fff}
-.sent-de{font-weight:800;font-size:17px;direction:ltr;text-align:left}
-.sent-ar{color:var(--gold);margin:4px 0}.sent-pron{color:var(--cyan);font-size:13px}
+.sent-de{font-weight:800;font-size:17px;direction:ltr;text-align:left;overflow-wrap:anywhere;word-break:break-word}
+.sent-ar{color:var(--gold);margin:4px 0;overflow-wrap:anywhere}.sent-pron{color:var(--cyan);font-size:13px;overflow-wrap:anywhere}
 .level-tabs{display:flex;gap:8px}
 .level-tab{padding:8px 18px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-weight:800}
 .level-tab.active{background:var(--grad);color:#fff}
 .level-tab:disabled{opacity:.5;cursor:not-allowed}
 /* Verbs */
-.verb-de{font-size:24px;font-weight:900;direction:ltr;color:var(--neon)}
-.conj-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-.conj-table td{padding:7px 8px;border-bottom:1px solid var(--border)}
+.verb-de{font-size:24px;font-weight:900;direction:ltr;color:var(--neon);max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+.conj-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;table-layout:fixed}
+.conj-table td{padding:7px 8px;border-bottom:1px solid var(--border);overflow-wrap:anywhere;word-break:break-word}
 .conj-table td:first-child{color:var(--muted);width:90px}
 .conj-table td:last-child{direction:ltr;text-align:left;font-weight:700}
 /* Grammar */
 .grammar-list{display:flex;flex-direction:column;gap:12px}
 .grammar-card{padding:20px;border-radius:var(--radius)}
 .grammar-card h3{color:var(--cyan)}
-.grammar-body{margin:10px 0;line-height:1.9}
-.grammar-ex{background:rgba(0,0,0,.25);padding:10px 14px;border-radius:10px;margin:8px 0}
+.grammar-body{margin:10px 0;line-height:1.9;overflow-wrap:anywhere}
+.grammar-ex{background:rgba(0,0,0,.25);padding:10px 14px;border-radius:10px;margin:8px 0;overflow-wrap:anywhere}
 html[data-theme="light"] .grammar-ex{background:rgba(0,0,0,.05)}
 .grammar-quiz{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px}
 /* Quiz */
@@ -470,6 +472,61 @@ img,table{max-width:100%}
   .order-chip{max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
   #page-sentex .fill-sent,#page-practice .fill-sent{font-size:18px;line-height:2;overflow-wrap:anywhere}
   .fill-blank{min-width:72px;max-width:100%;overflow-wrap:anywhere}
+  /* Sentences / Verbs / Grammar: scoped phone fixes (desktop untouched) */
+  .level-tabs{flex-wrap:wrap}
+  .level-tabs{gap:6px}
+  .level-tab{padding:6px 12px;font-size:13px}
+  .sent-card{padding:12px;gap:8px}
+  .sent-card>div{min-width:0}
+  .sent-card>.sent-num{flex:0 0 auto}
+  .sent-card>button{flex-shrink:0;min-width:0}
+  .sent-de{font-size:15px}
+  .sent-ar{font-size:16px}
+  .sent-pron{font-size:12px}
+  .sent-num{width:28px;height:28px;font-size:14px}
+  #page-sentences .row-flex>select{min-width:0;max-width:100%}
+  #sentenceSearch{min-width:0;max-width:100%}
+  #sentenceKapitel{min-width:0;max-width:100%}
+  .full-input{width:100%;max-width:100%;box-sizing:border-box}
+  .kap-head{flex-wrap:wrap}
+  /* Verbs */
+  .verb-de{font-size:20px}
+  .word-card{padding:14px;min-width:0;max-width:100%}
+  .conj-table{font-size:13px}
+  .conj-table td{padding:5px 6px}
+  .conj-table td:first-child{width:70px}
+  .word-ex{font-size:13px;padding:8px;margin:8px 0}
+  .word-pron{font-size:13px}
+  .word-meta{flex-wrap:wrap;gap:4px}
+  #verbSearch{min-width:0;max-width:100%}
+  #verbKapitel{min-width:0;max-width:100%}
+  .word-top{flex-wrap:wrap;gap:6px}
+  .word-top .verb-de{flex:1 1 140px;min-width:0;font-size:18px}
+  .word-top button{flex-shrink:0}
+  /* Grammar */
+  .grammar-card{padding:14px;min-width:0;max-width:100%}
+  .grammar-body{font-size:14px;line-height:1.8}
+  .grammar-ex{padding:8px 10px;margin:6px 0;font-size:13px;min-width:0;max-width:100%}
+  .grammar-ex>div{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+  .grammar-card h3{font-size:18px;overflow-wrap:anywhere}
+  #grammarKapitel{min-width:0;max-width:100%}
+  .grammar-list{gap:10px}
+  /* Sentence exercises run: options stack via grid, buttons share the row */
+  #sentexBox .quiz-opts,#practiceBox .quiz-opts{max-width:100%}
+  #sentexBox .quiz-opt,#practiceBox .quiz-opt{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+  #sxAns,#pxAns,#glAns,#gAns,#orderAns,#erAns{max-width:100%}
+  #page-sentex .fill-sent,#page-practice .fill-sent{font-size:18px;line-height:2;overflow-wrap:anywhere;word-break:break-word}
+  #sentexBox .panel,#practiceBox .panel{padding:14px}
+  #sentexBox .row-flex,#practiceBox .row-flex{flex-wrap:wrap}
+  #sentexBox .row-flex>button,#practiceBox .row-flex>button{flex:1 1 140px;min-width:0;max-width:100%}
+  .mist-err{overflow-wrap:anywhere}
+  .mist-err b{overflow-wrap:anywhere;word-break:break-word}
+  /* Explain book (شرح القاعدة destination): long German lines must wrap */
+  .ex-t{min-width:0;overflow-wrap:anywhere}
+  .ex-toc-item{min-width:0}
+  .ex-de-l{overflow-wrap:anywhere;word-break:break-word}
+  .ex-de{min-width:0;max-width:100%}
+  .ex-block p,.ex-block li{overflow-wrap:anywhere}
 }
 @media(max-width:380px){
   .flashcard{height:280px}
@@ -477,6 +534,19 @@ img,table{max-width:100%}
   .flash-ar{font-size:24px}
   .flash-face{padding:14px}
   .hero-btns .btn,.flash-controls .btn{font-size:13px}
+  .content{padding:10px 8px 60px}
+  .page-head h2{font-size:18px}
+  .sent-card{padding:10px;gap:6px}
+  .sent-de{font-size:14px}
+  .level-tab{padding:5px 10px;font-size:12px}
+  #page-sentex .fill-sent,#page-practice .fill-sent{font-size:16px}
+  .verb-de{font-size:17px}
+  .word-card{padding:10px}
+  .conj-table{font-size:12px}
+  .grammar-card{padding:10px}
+  .grammar-body{font-size:13px}
+  .grammar-ex{font-size:12px;padding:6px 8px}
+  .grammar-card h3{font-size:16px}
 }
 
 /* Order-answer/chips are German LTR content: visual order must equal click

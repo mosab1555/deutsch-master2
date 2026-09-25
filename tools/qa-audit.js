@@ -123,7 +123,18 @@ ok("games:all-24-dispatched", ["rush","battle","builder","memory","missing","tf"
   const unresolvable = [...new Set(lookups)].filter(id => !staticIds.has(id) && !madeIds.has(id) && !dynPrefixes.test(id));
   ok("ids:adv-lookups-resolvable", unresolvable.length === 0, unresolvable.slice(0, 5).join(","));
 })();
-// ---- 12. No nested same-id renders + idempotent appends + finderr colors ----
+// ---- 13. Mobile responsive guards (sentences/verbs/grammar) ----
+(function () {
+  const css = C("style.css");
+  ok("css:cards-grid-fluid", /minmax\(min\(300px,100%\),1fr\)/.test(css));
+  ok("css:sent-wrap", /\.sent-de\{[^}]*overflow-wrap:anywhere/.test(css) && /\.sent-card>div\{min-width:0\}/.test(css));
+  ok("css:level-tabs-wrap", /\.level-tabs\{flex-wrap:wrap\}/.test(css));
+  ok("css:verb-wrap", /\.verb-de\{[^}]*overflow-wrap:anywhere/.test(css));
+  ok("css:conj-fixed", /\.conj-table\{[^}]*table-layout:fixed/.test(css));
+  ok("css:grammar-wrap", /\.grammar-body\{[^}]*overflow-wrap:anywhere/.test(css) && /\.grammar-ex\{[^}]*overflow-wrap:anywhere/.test(css));
+  ok("css:mobile-scoped", /#page-sentences \.row-flex>select\{min-width:0/.test(css) && /\.full-input\{width:100%/.test(css));
+  ok("css:no-global-fixed-widths", !/\.sent-card\{[^}]*width:\d+px/.test(css) && !/\.grammar-card\{[^}]*width:\d+px/.test(css));
+})();
 (function () {
   const files = ["dlife.js", "life.js", "learn.js", "world.js", "study.js", "script.js", "play.js", "adv.js", "curriculum.js"];
   let nestedDup = [];
