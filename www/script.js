@@ -917,11 +917,12 @@ const KAPITEL = [
 function kapName(k){const f=KAPITEL.find(x=>x.id===k);return f?f.icon+" "+f.id+" • "+f.name:k||"";}
 /* الصيغ الكاملة: der Tisch / die Tische */
 function fullDe(w){return (w.art!=="-"?w.art+" ":"")+w.de;}
-function pluralFull(w){return w.plural?((w.art&&w.art!=="-"?w.art+" ":"")+w.plural):"";}
+function pluralFull(w){if(!w.plural)return "";var p=String(w.plural);if(/^(der|die|das)\s/.test(p))return p;return ((w.art&&w.art!=="-"?w.art+" ":"")+p);}
 function wordById(id){return allWords().find(w=>w.id===id);}
 function pluralDistractors(w){
   const correct=pluralFull(w);
-  const set=[correct,"die "+w.de,((w.art==="der"?"die":"der")+" "+w.plural),("das "+w.plural)];
+  const bare=String(w.plural||"").replace(/^(der|die|das)\s+/,"");
+  const set=[correct,"die "+w.de,((w.art==="der"?"die":"der")+" "+bare),("das "+bare)];
   const uniq=[];set.forEach(s=>{if(uniq.indexOf(s)<0)uniq.push(s);});
   let i=0;while(uniq.length<4){i++;const cand=("die "+w.de+(i===1?"en":(i===2?"e":"er")));if(uniq.indexOf(cand)<0)uniq.push(cand);}
   return shuffle(uniq.slice(0,4));
@@ -1789,18 +1790,48 @@ function refreshFlashList(){
     renderFlash();
   }catch(e){}
 }
+/* Flashcard direction: 'de-ar' (German front, default) or 'ar-de' (Arabic front).
+   Persisted in S.flashDir (see ensureStudy). Swaps ONLY which fields render
+   on front/back — same deck, no copies, no progress loss. */
+function flashDir(){try{if(S&&S.flashDir==="ar-de")return "ar-de";}catch(e){}return "de-ar";}
+function updateFlashDirBtn(){try{var b=$("flashDir");if(!b)return;var d=flashDir();var k=d==="ar-de"?"flash_dir_ar_de":"flash_dir_de_ar";var label=(typeof t==="function")?t(k):null;b.textContent=label||(d==="ar-de"?"🔄 عربي → ألماني":"🔄 ألماني → عربي");}catch(e){}}
+function toggleFlashDir(){try{if(typeof ensureStudy==="function")ensureStudy();S.flashDir=flashDir()==="ar-de"?"de-ar":"ar-de";try{save();}catch(e){}}catch(e){}updateFlashDirBtn();renderFlash();}
 function renderFlash(){
   if(!flashList.length)return;
   const w=flashList[flashIdx%flashList.length];
   $("flashcard").classList.remove("flipped");
+  updateFlashDirBtn();
   setTimeout(()=>{
-    $("flashArticle").textContent=w.art==="-"?"A1":w.art;
-    $("flashArticle").className="flash-article article "+(w.art==="-"?"none":w.art);
-    $("flashWord").textContent=(w.art!=="-"?w.art+" ":"")+w.de;
-    $("flashPlural").textContent=pluralFull(w);
-    $("flashAr").textContent=w.ar;
-    $("flashPron").textContent="النطق: "+w.pron;
-    $("flashEx").innerHTML=escapeHtml(w.ex)+" <br><span style='color:var(--muted)'>"+escapeHtml(w.exAr)+"</span>";
+    const dir=flashDir();
+    const deWord=(w.art!=="-"?w.art+" ":"")+w.de;
+    const frontSpeak=document.querySelector("[data-speak-flash]");
+    if(dir==="ar-de"){
+      /* FRONT = Arabic only (no German spoilers: hide article/plural/front audio) */
+      $("flashArticle").style.display="none";
+      $("flashWord").textContent=w.ar;
+      $("flashWord").setAttribute("dir","auto");
+      $("flashPlural").textContent="";
+      $("flashPlural").style.display="none";
+      if(frontSpeak)frontSpeak.style.display="none";
+      /* BACK = German */
+      $("flashAr").textContent=deWord;
+      $("flashAr").setAttribute("dir","auto");
+      $("flashPron").textContent="النطق: "+w.pron;
+      $("flashEx").innerHTML=escapeHtml(w.ex)+" <br><span style='color:var(--muted)'>"+escapeHtml(w.exAr)+"</span>";
+    }else{
+      $("flashArticle").style.display="";
+      $("flashArticle").textContent=w.art==="-"?"A1":w.art;
+      $("flashArticle").className="flash-article article "+(w.art==="-"?"none":w.art);
+      $("flashWord").textContent=deWord;
+      $("flashWord").setAttribute("dir","ltr");
+      $("flashPlural").textContent=pluralFull(w);
+      $("flashPlural").style.display="";
+      if(frontSpeak)frontSpeak.style.display="";
+      $("flashAr").textContent=w.ar;
+      $("flashAr").setAttribute("dir","auto");
+      $("flashPron").textContent="النطق: "+w.pron;
+      $("flashEx").innerHTML=escapeHtml(w.ex)+" <br><span style='color:var(--muted)'>"+escapeHtml(w.exAr)+"</span>";
+    }
     $("flashcard").dataset.wid=w.id;
     $("flashCounter").textContent=(flashIdx%flashList.length+1)+" / "+flashList.length;
     $("flashBar").style.width=((flashIdx%flashList.length+1)/flashList.length*100)+"%";
@@ -1814,6 +1845,7 @@ $("flashPlural").style.cursor="pointer";$("flashPlural").title="اضغط لسم�
 $("flashNext").addEventListener("click",()=>{flashIdx++;renderFlash();});
 $("flashPrev").addEventListener("click",()=>{flashIdx=(flashIdx-1+flashList.length)%flashList.length;renderFlash();});
 $("flashShuffle").addEventListener("click",()=>{buildFlash();toast("تم الخلط 🔀","ok");});
+$("flashDir").addEventListener("click",e=>{e.stopPropagation();toggleFlashDir();});
 $("flashCategory").addEventListener("change",buildFlash);
 $("flashKapitel").addEventListener("change",buildFlash);
 document.querySelectorAll("[data-flash-rate]").forEach(b=>b.addEventListener("click",()=>{
