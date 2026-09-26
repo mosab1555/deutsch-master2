@@ -599,27 +599,30 @@ function sentA1TopicLabel(t) {
 function sentA1InjectUI() {
   try {
     var search = document.getElementById("sentenceSearch");
-    if (!search || document.getElementById("sentenceTopic")) return;
-    var sel = document.createElement("select");
-    sel.id = "sentenceTopic";
-    var topics = {};
-    try {
-      SENTENCES.forEach(function (s) { if (s.topic) topics[s.topic] = 1; });
-      (typeof CATEGORIES !== "undefined" ? CATEGORIES : []).forEach(function (c) { topics[c] = topics[c] || 0; });
-    } catch (e) {}
-    var names = Object.keys(topics).sort();
-    sel.innerHTML = '<option value="">كل الموضوعات</option>' + names.map(function (t) {
-      return '<option value="' + t + '">' + sentA1TopicLabel(t) + '</option>';
-    }).join("");
-    sel.addEventListener("change", function () { sentA1Limit = SENT_A1_PAGE; sentA1Render(); });
-    search.parentNode.insertBefore(sel, search);
-    var pill = document.createElement("span");
-    pill.id = "sentCount";
-    pill.className = "count-pill";
-    pill.style.cssText = "white-space:nowrap";
-    var head = document.querySelector("#page-sentences .page-head h2");
-    if (head) head.appendChild(document.createTextNode(" "));
-    if (head) head.appendChild(pill);
+    if (!search) return;
+    if (!document.getElementById("sentenceTopic")) {
+      var sel = document.createElement("select");
+      sel.id = "sentenceTopic";
+      var topics = {};
+      try {
+        SENTENCES.forEach(function (s) { if (s.topic) topics[s.topic] = 1; });
+        (typeof CATEGORIES !== "undefined" ? CATEGORIES : []).forEach(function (c) { topics[c] = topics[c] || 0; });
+      } catch (e) {}
+      var names = Object.keys(topics).sort();
+      sel.innerHTML = '<option value="">كل الموضوعات</option>' + names.map(function (t) {
+        return '<option value="' + t + '">' + sentA1TopicLabel(t) + '</option>';
+      }).join("");
+      sel.addEventListener("change", function () { sentA1Limit = SENT_A1_PAGE; sentA1Render(); });
+      search.parentNode.insertBefore(sel, search);
+    }
+    if (!document.getElementById("sentCount")) {
+      var pill = document.createElement("span");
+      pill.id = "sentCount";
+      pill.className = "count-pill";
+      pill.style.cssText = "white-space:nowrap";
+      var head = document.querySelector("#page-sentences .page-head h2");
+      if (head) head.appendChild(pill);
+    }
   } catch (e) { if (window.console) console.error("sent-a1 ui", e); }
 }
 
