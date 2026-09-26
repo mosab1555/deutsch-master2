@@ -1,5 +1,5 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v25";
+var DM_CACHE = "german-academy-v26";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
@@ -7,6 +7,7 @@ var DM_FILES = [
   "./curr-a2.js", "./curr-a1x.js", "./curr-a2b.js",
   "./curr-b1.js", "./curr-b1b.js", "./curr-b2.js", "./curr-b2b.js",
   "./curriculum.js",
+  "./push.js",
   "./launch.css", "./launch.js",
   "./manifest.json",
   "./img/words/6.jpeg", "./img/words/7.jpeg", "./img/words/9.jpeg", "./img/words/10.jpeg",
@@ -28,5 +29,29 @@ self.addEventListener("fetch", function (e) {
     return fetch(e.request).then(function (res) { return res; }).catch(function () {
       if (e.request.mode === "navigate") return caches.match("./index.html");
     });
+  }));
+});
+/* ---------- Web Push (study reminders) ---------- */
+self.addEventListener("push", function (e) {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; }
+  catch (err) { try { d = { body: e.data.text() }; } catch (e2) {} }
+  const title = d.title || "Deutsch Master";
+  const body = d.body || "🇩🇪 وقت المذاكرة!";
+  const url = d.url || "./index.html?utm=push";
+  e.waitUntil(self.registration.showNotification(title, {
+    body: body,
+    icon: "icons/icon-192.png",
+    badge: "icons/icon-192.png",
+    tag: d.tag || "dm-study",
+    data: { url: url }
+  }));
+});
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "./index.html?utm=push";
+  e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
+    for (const c of list) { if ("focus" in c) return c.focus(); }
+    if (clients.openWindow) return clients.openWindow(url);
   }));
 });

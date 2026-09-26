@@ -569,6 +569,14 @@
               <button type="button" class="btn btn-ghost sm" data-setlang="en" data-i18n="lang_en">🇬🇧 EN</button>
             </div>
           </div>
+          <div class="panel glass"><h3 data-i18n="push_head">🔔 إشعارات المذاكرة</h3>
+            <div class="muted" data-i18n="push_sub">تذكير يومي ومراجعة — يعمل حتى عندما يكون التطبيق مغلقًا (بعد منح الإذن).</div>
+            <div class="row-flex"><button type="button" class="btn btn-primary sm" id="pushToggle" data-i18n="push_enable">🔔 تفعيل تذكيرات المذاكرة</button><span class="muted" id="pushStatus" data-i18n="push_off">غير مفعلة</span></div>
+            <label><span data-i18n="push_time">وقت التذكير اليومي</span><input type="time" id="pushTime" value="20:00"></label>
+            <label class="push-check"><input type="checkbox" id="pushIdle" checked><span data-i18n="push_idle">تذكير عدم النشاط</span></label>
+            <label class="push-check"><input type="checkbox" id="pushReview" checked><span data-i18n="push_review">تذكير المراجعة</span></label>
+            <div><span data-i18n="push_days">أيام التذكير</span><div class="row-flex" id="pushDays"></div></div>
+          </div>
           <div class="panel glass"><h3 data-i18n="set_data">البيانات</h3>
             <div class="row-flex"><button class="btn btn-ghost sm" id="exportData" data-i18n="set_export">📤 تصدير نسخة</button><button class="btn btn-ghost sm" id="importDataBtn" data-i18n="set_import">📥 استيراد</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
             <button class="btn btn-red sm" id="wipeData" data-i18n="set_wipe">🗑️ مسح كل البيانات</button>
@@ -617,6 +625,7 @@
 <script src="world.js"></script>
 <script src="life.js"></script>
 <script src="study.js"></script>
+<script src="push.js"></script>
 <script src="mygermany.js"></script>
 <script src="dlife.js"></script>
 <script src="glab.js"></script>
