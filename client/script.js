@@ -1804,7 +1804,6 @@ function renderFlash(){
   setTimeout(()=>{
     const dir=flashDir();
     const deWord=(w.art!=="-"?w.art+" ":"")+w.de;
-    const frontSpeak=document.querySelector("[data-speak-flash]");
     if(dir==="ar-de"){
       /* FRONT = Arabic only (no German spoilers: hide article/plural/front audio) */
       $("flashArticle").style.display="none";
@@ -1812,7 +1811,6 @@ function renderFlash(){
       $("flashWord").setAttribute("dir","auto");
       $("flashPlural").textContent="";
       $("flashPlural").style.display="none";
-      if(frontSpeak)frontSpeak.style.display="none";
       /* BACK = German */
       $("flashAr").textContent=deWord;
       $("flashAr").setAttribute("dir","auto");
@@ -1826,7 +1824,6 @@ function renderFlash(){
       $("flashWord").setAttribute("dir","ltr");
       $("flashPlural").textContent=pluralFull(w);
       $("flashPlural").style.display="";
-      if(frontSpeak)frontSpeak.style.display="";
       $("flashAr").textContent=w.ar;
       $("flashAr").setAttribute("dir","auto");
       $("flashPron").textContent="النطق: "+w.pron;
@@ -1838,8 +1835,13 @@ function renderFlash(){
   },150);
 }
 $("flashcard").addEventListener("click",e=>{if(e.target.closest("button"))return;$("flashcard").classList.toggle("flipped");});
-document.querySelector("[data-speak-flash]").addEventListener("click",e=>{e.stopPropagation();const w=flashList[flashIdx%flashList.length];if(w)speak((w.art!=="-"?w.art+" ":"")+w.de);});
-document.querySelector("[data-speak-flash-ex]").addEventListener("click",e=>{e.stopPropagation();const w=flashList[flashIdx%flashList.length];if(w)speak(w.ex);});
+/* Flashcard audio: two independent buttons per card face (bound once).
+   Word audio speaks the ORIGINAL German word (+article); sentence audio speaks
+   the ORIGINAL German example. Never the visible face text, never Arabic. */
+function flashSayWord(){try{const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(!w)return false;speak((w.art&&w.art!=="-"?w.art+" ":"")+w.de);return true;}catch(e){return false;}}
+function flashSaySent(){try{const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(!w||!w.ex)return false;speak(w.ex);return true;}catch(e){return false;}}
+document.querySelectorAll("[data-say-word]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();flashSayWord();}));
+document.querySelectorAll("[data-say-sent]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();flashSaySent();}));
 $("flashPlural").addEventListener("click",e=>{e.stopPropagation();const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(w&&w.plural)speak(pluralFull(w));});
 $("flashPlural").style.cursor="pointer";$("flashPlural").title="اضغط لسماع الجمع 🔊";
 $("flashNext").addEventListener("click",()=>{flashIdx++;renderFlash();});

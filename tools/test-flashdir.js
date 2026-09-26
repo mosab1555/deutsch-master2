@@ -159,7 +159,58 @@ try {
   check("D6 label via t() (de-ar active)", lb2 === "L-DE-AR", lb2);
 } catch (e) { check("behavioral run", false, (e && e.message) + " @ " + (e && e.stack || "").split("\n")[1]); }
 
-/* ---------- E. CSS safety ---------- */
+/* ---------- G. separate word/sentence audio (both directions) ---------- */
+try {
+  // structural: exactly one word+sentence pair per face, both pages
+  for (const pg of ["client/index.html", "client/academy.html"]) {
+    const h = RD(pg).split('id="page-flashcards"')[1].split("</section>")[0];
+    check(pg + " 2x data-say-word (one per face)", (h.match(/data-say-word/g) || []).length === 2, String((h.match(/data-say-word/g) || []).length));
+    check(pg + " 2x data-say-sent (one per face)", (h.match(/data-say-sent/g) || []).length === 2, String((h.match(/data-say-sent/g) || []).length));
+  }
+  check("script binds all say buttons", /querySelectorAll\("\[data-say-word\]"\)/.test(script) && /querySelectorAll\("\[data-say-sent\]"\)/.test(script));
+  check("renderFlash never rebuilds say buttons", (script.match(/sayrow/g) || []).length === 0);
+  for (const L of ["ar", "en", "de"]) {
+    const dm = study.match(new RegExp(L + ":\\{((?:[^{}]|\\{[^{}]*\\})*)\\}"));
+    const body = dm ? dm[1] : "";
+    check("i18n." + L + " has flash_say_word", body.indexOf("flash_say_word") >= 0);
+    check("i18n." + L + " has flash_say_sent", body.indexOf("flash_say_sent") >= 0);
+  }
+  // behavioral: wohnen card (mirrors the requirement example)
+  act(`VOCAB.push({id:"w3",de:"wohnen",art:"-",ar:"يسكن",pron:"فونِن",type:"فعل",cat:"Common Verbs",ex:"Sie wohnt in Tanta.",exAr:"هي تسكن في طنطا.",kap:"K1",level:"A1",plural:"",img:""}); flashList=[VOCAB[2]]; flashIdx=0; renderFlash();`);
+  act(`globalThis.__spoken=[]; speak=function(t){ globalThis.__spoken.push(String(t)); };`);
+  const said = () => vm.runInContext(`globalThis.__spoken.slice()`, ctx);
+  const frontTxt = () => vm.runInContext(`document.getElementById("flashWord").textContent`, ctx);
+  act(`if(flashDir()!=="de-ar")toggleFlashDir(); renderFlash();`);
+  check("G de-ar front shows German word", frontTxt() === "wohnen", frontTxt());
+  act(`flashSayWord();`);
+  check("G de-ar word button speaks German word", JSON.stringify(said()) === JSON.stringify(["wohnen"]), JSON.stringify(said()));
+  act(`flashSaySent();`);
+  check("G de-ar sentence button speaks example only", JSON.stringify(said()) === JSON.stringify(["wohnen", "Sie wohnt in Tanta."]), JSON.stringify(said()));
+  act(`toggleFlashDir();`);
+  check("G ar-de front shows Arabic", frontTxt() === "يسكن", frontTxt());
+  act(`globalThis.__spoken=[]; flashSayWord();`);
+  check("G ar-de word button speaks German (not face text)", JSON.stringify(said()) === JSON.stringify(["wohnen"]), JSON.stringify(said()));
+  act(`flashSaySent();`);
+  check("G ar-de sentence button speaks example", JSON.stringify(said()) === JSON.stringify(["wohnen", "Sie wohnt in Tanta."]), JSON.stringify(said()));
+  act(`flashList=[VOCAB[0],VOCAB[1]]; flashIdx=1; renderFlash(); document.getElementById("flashcard").classList.toggle("flipped");`);
+  act(`flashSayWord();`);
+  const said2 = said();
+  check("G after flip+next, word audio follows card", said2[said2.length - 1] === "gehen", JSON.stringify(said2));
+  // click path: stub buttons + real binding lines (stopPropagation, independence)
+  act(`(function(){
+    globalThis.__bw=[{h:[],addEventListener:function(t,f){this.h.push(f);},click:function(e){e=e||{stopPropagation:function(){}};this.h.forEach(function(f){f(e);});}}];
+    globalThis.__bs=[{h:[],addEventListener:function(t,f){this.h.push(f);},click:function(e){e=e||{stopPropagation:function(){}};this.h.forEach(function(f){f(e);});}}];
+    globalThis.__realQSA=document.querySelectorAll;
+    document.querySelectorAll=function(s){ if(s==="[data-say-word]")return globalThis.__bw; if(s==="[data-say-sent]")return globalThis.__bs; return globalThis.__realQSA(s); };
+  })();`);
+  act(`document.querySelectorAll("[data-say-word]").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();flashSayWord();});});
+       document.querySelectorAll("[data-say-sent]").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();flashSaySent();});});`);
+  act(`globalThis.__spoken=[]; globalThis.__bw[0].click();`);
+  check("G click word speaks only word", JSON.stringify(said()) === JSON.stringify(["gehen"]), JSON.stringify(said()));
+  act(`globalThis.__bs[0].click();`);
+  check("G click sentence speaks only example", JSON.stringify(said()) === JSON.stringify(["gehen", "Wir gehen."]), JSON.stringify(said()));
+  act(`document.querySelectorAll=globalThis.__realQSA;`);
+} catch (e) { check("audio setup", false, e.message); }
 const css = RD("client/style.css");
 check("row-flex wraps (no h-scroll)", /\.row-flex\{[^}]*flex-wrap:\s*wrap/.test(css));
 check("flash-controls wraps", /\.flash-controls\{[^}]*flex-wrap:\s*wrap/.test(css));

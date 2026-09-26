@@ -175,6 +175,7 @@ html[data-theme="light"] .word-ex{background:rgba(0,0,0,.05)}
 .flash-pron{color:var(--cyan);font-size:18px}.flash-ex{font-size:14px;text-align:center;color:var(--muted)}
 .speak-float{position:absolute;top:14px;left:14px}
 .flash-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.flash-sayrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:100%}
 /* Sentences */
 .sent-list{display:flex;flex-direction:column;gap:10px}
 .sent-card{padding:16px;border-radius:16px;display:flex;gap:12px;align-items:flex-start;animation:pageIn .4s;overflow-wrap:anywhere}
