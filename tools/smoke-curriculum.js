@@ -59,7 +59,7 @@ const C = vm.runInContext(`(function(){
   };
 })()`, ctx);
 
-ok("S1 vocab = 1 + 957", C.vocab === 958, "got " + C.vocab);
+ok("S1 vocab = 1 + 1883 (957 + 926 A1 PDF import)", C.vocab === 1884, "got " + C.vocab);
 ok("S2 grammar = 58", C.gram === 58, "got " + C.gram);
 ok("S3 grammar ids unique", C.dupG.length === 0, JSON.stringify(C.dupG));
 ok("S4 explain entries = 58", C.exKeys === 58 && C.eoLen === 58, C.exKeys + "/" + C.eoLen);
