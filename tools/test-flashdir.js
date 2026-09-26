@@ -45,18 +45,19 @@ const script = RD("client/script.js");
 check("flashDir() defined", /function flashDir\(\)/.test(script));
 check("toggleFlashDir() defined", /function toggleFlashDir\(\)/.test(script));
 check("updateFlashDirBtn() defined", /function updateFlashDirBtn\(\)/.test(script));
-check("renderFlash branches on direction", /flashDir\(\)==="ar-de"/.test(script));
+check("renderFlash branches on direction", /flashDir\(\)!=="ar-de"/.test(script));
 check("flashDir listener wired", /\$\("flashDir"\)\.addEventListener/.test(script));
 check("deck builders untouched by direction", !/flashDir/.test((script.match(/function buildFlash\(\)\{[\s\S]*?\n\}/) || [""])[0]) && !/flashDir/.test((script.match(/function refreshFlashList\(\)\{[\s\S]*?\n\} catch/) || [""])[0]));
 check("rating path untouched", /data-flash-rate/.test(script) && /bumpReview\(w\.id/.test(script));
 
 /* ---------- D. behavioral test with stub DOM ---------- */
 function mkNode(tag, attrs) {
-  return {
+  const n = {
     tag, attrs: attrs || {}, children: [], _listeners: {},
-    textContent: "", innerHTML: "", value: "", className: "",
+    textContent: "", _html: "", value: "", className: "",
     style: {}, dataset: {}, hidden: false, disabled: false,
-    classList: { add() {}, remove() {}, toggle() {} },
+    _cls: {},
+    classList: { add(c) { this._s = this._s || {}; this._s[c] = 1; }, remove(c) { if (this._s) delete this._s[c]; }, toggle(c) { this._s = this._s || {}; if (this._s[c]) delete this._s[c]; else this._s[c] = 1; return !!this._s[c]; }, contains(c) { return !!(this._s && this._s[c]); } },
     setAttribute(k, v) { this.attrs[k] = v; },
     getAttribute(k) { return this.attrs[k] !== undefined ? this.attrs[k] : null; },
     addEventListener(t, f) { (this._listeners[t] = this._listeners[t] || []).push(f); },
@@ -67,6 +68,11 @@ function mkNode(tag, attrs) {
     remove() {}, click() {}, focus() {},
     contains() { return false; }
   };
+  Object.defineProperty(n, "innerHTML", {
+    get() { return this._html; },
+    set(v) { this._html = String(v); this.textContent = String(v).replace(/<[^>]*>/g, ""); }
+  });
+  return n;
 }
 const ids = {};
 function $(id) { if (!ids[id]) ids[id] = mkNode("div", { id }); return ids[id]; }
@@ -166,50 +172,95 @@ try {
     const h = RD(pg).split('id="page-flashcards"')[1].split("</section>")[0];
     check(pg + " 2x data-say-word (one per face)", (h.match(/data-say-word/g) || []).length === 2, String((h.match(/data-say-word/g) || []).length));
     check(pg + " 2x data-say-sent (one per face)", (h.match(/data-say-sent/g) || []).length === 2, String((h.match(/data-say-sent/g) || []).length));
+    check(pg + " front example element", h.indexOf('id="flashExFront"') >= 0);
+    for (const bid of ["flashSayWFront", "flashSaySFront", "flashSayWBack", "flashSaySBack"]) {
+      check(pg + " button #" + bid, h.indexOf('id="' + bid + '"') >= 0);
+    }
   }
-  check("script binds all say buttons", /querySelectorAll\("\[data-say-word\]"\)/.test(script) && /querySelectorAll\("\[data-say-sent\]"\)/.test(script));
-  check("renderFlash never rebuilds say buttons", (script.match(/sayrow/g) || []).length === 0);
+  check("unified flashcard click handles audio", /flashSayFace\(.*sw\?"word":"sent"\)/.test(script));
+  check("flashFaceLang/flashSayFace/speakAr defined", /function flashFaceLang\(/.test(script) && /function flashSayFace\(/.test(script) && /function speakAr\(/.test(script));
+  check("no per-button audio bindings", !/querySelectorAll\("\[data-say-/.test(script));
+  check("no stale say helpers", !/flashSayWord|flashSaySent/.test(script));
   for (const L of ["ar", "en", "de"]) {
     const dm = study.match(new RegExp(L + ":\\{((?:[^{}]|\\{[^{}]*\\})*)\\}"));
     const body = dm ? dm[1] : "";
     check("i18n." + L + " has flash_say_word", body.indexOf("flash_say_word") >= 0);
     check("i18n." + L + " has flash_say_sent", body.indexOf("flash_say_sent") >= 0);
   }
-  // behavioral: wohnen card (mirrors the requirement example)
-  act(`VOCAB.push({id:"w3",de:"wohnen",art:"-",ar:"يسكن",pron:"فونِن",type:"فعل",cat:"Common Verbs",ex:"Sie wohnt in Tanta.",exAr:"هي تسكن في طنطا.",kap:"K1",level:"A1",plural:"",img:""}); flashList=[VOCAB[2]]; flashIdx=0; renderFlash();`);
-  act(`globalThis.__spoken=[]; speak=function(t){ globalThis.__spoken.push(String(t)); };`);
-  const said = () => vm.runInContext(`globalThis.__spoken.slice()`, ctx);
+  // behavioral with REAL TTS path: capture utterances incl. voice language
+  act(`globalThis.__utt=[];
+    function SpeechSynthesisUtterance(t){ this.text=t; this.lang=""; this.rate=1; this.voice=null; }
+    window.speechSynthesis={ cancel:function(){}, getVoices:function(){return [];}, speak:function(u){ globalThis.__utt.push({text:u.text,lang:u.lang}); } };`);
+  act(`VOCAB.push({id:"w3",de:"wohnen",art:"-",ar:"يسكن",pron:"فونِن",type:"فعل",cat:"Common Verbs",ex:"Sie wohnt in Tanta.",exAr:"هي تسكن في طنطا.",kap:"K1",level:"A1",plural:"",img:""});`);
+  act(`VOCAB.push({id:"w4",de:"Licht",art:"das",ar:"ضوء",pron:"لِشت",type:"اسم",cat:"Home",ex:"Das Licht ist an.",exAr:"",kap:"K4",level:"A1",plural:"die Lichter",img:""});`);
+  act(`flashList=[VOCAB[2]]; flashIdx=0; renderFlash();`);
+  const utt = () => vm.runInContext(`globalThis.__utt.slice()`, ctx);
   const frontTxt = () => vm.runInContext(`document.getElementById("flashWord").textContent`, ctx);
+  const say = (face, kind) => act(`globalThis.__utt=[]; flashSayFace(${JSON.stringify(face)},${JSON.stringify(kind)});`);
+  // de-ar: front=German, back=Arabic
   act(`if(flashDir()!=="de-ar")toggleFlashDir(); renderFlash();`);
-  check("G de-ar front shows German word", frontTxt() === "wohnen", frontTxt());
-  act(`flashSayWord();`);
-  check("G de-ar word button speaks German word", JSON.stringify(said()) === JSON.stringify(["wohnen"]), JSON.stringify(said()));
-  act(`flashSaySent();`);
-  check("G de-ar sentence button speaks example only", JSON.stringify(said()) === JSON.stringify(["wohnen", "Sie wohnt in Tanta."]), JSON.stringify(said()));
+  check("G de front shows German word", frontTxt() === "wohnen", frontTxt());
+  check("G de front shows German example", vm.runInContext(`document.getElementById("flashExFront").textContent`, ctx) === "Sie wohnt in Tanta.");
+  say("front", "word");
+  check("G de-front word: de-DE + word only", JSON.stringify(utt()) === JSON.stringify([{ text: "wohnen", lang: "de-DE" }]), JSON.stringify(utt()));
+  say("front", "sent");
+  check("G de-front sent: de-DE + example only", JSON.stringify(utt()) === JSON.stringify([{ text: "Sie wohnt in Tanta.", lang: "de-DE" }]), JSON.stringify(utt()));
+  say("back", "word");
+  check("G de-back word: ar voice + Arabic word", JSON.stringify(utt()) === JSON.stringify([{ text: "يسكن", lang: "ar" }]), JSON.stringify(utt()));
+  say("back", "sent");
+  check("G de-back sent: ar voice + Arabic example", JSON.stringify(utt()) === JSON.stringify([{ text: "هي تسكن في طنطا.", lang: "ar" }]), JSON.stringify(utt()));
+  // ar-de: front=Arabic, back=German
   act(`toggleFlashDir();`);
-  check("G ar-de front shows Arabic", frontTxt() === "يسكن", frontTxt());
-  act(`globalThis.__spoken=[]; flashSayWord();`);
-  check("G ar-de word button speaks German (not face text)", JSON.stringify(said()) === JSON.stringify(["wohnen"]), JSON.stringify(said()));
-  act(`flashSaySent();`);
-  check("G ar-de sentence button speaks example", JSON.stringify(said()) === JSON.stringify(["wohnen", "Sie wohnt in Tanta."]), JSON.stringify(said()));
-  act(`flashList=[VOCAB[0],VOCAB[1]]; flashIdx=1; renderFlash(); document.getElementById("flashcard").classList.toggle("flipped");`);
-  act(`flashSayWord();`);
-  const said2 = said();
-  check("G after flip+next, word audio follows card", said2[said2.length - 1] === "gehen", JSON.stringify(said2));
-  // click path: stub buttons + real binding lines (stopPropagation, independence)
-  act(`(function(){
-    globalThis.__bw=[{h:[],addEventListener:function(t,f){this.h.push(f);},click:function(e){e=e||{stopPropagation:function(){}};this.h.forEach(function(f){f(e);});}}];
-    globalThis.__bs=[{h:[],addEventListener:function(t,f){this.h.push(f);},click:function(e){e=e||{stopPropagation:function(){}};this.h.forEach(function(f){f(e);});}}];
-    globalThis.__realQSA=document.querySelectorAll;
-    document.querySelectorAll=function(s){ if(s==="[data-say-word]")return globalThis.__bw; if(s==="[data-say-sent]")return globalThis.__bs; return globalThis.__realQSA(s); };
-  })();`);
-  act(`document.querySelectorAll("[data-say-word]").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();flashSayWord();});});
-       document.querySelectorAll("[data-say-sent]").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();flashSaySent();});});`);
-  act(`globalThis.__spoken=[]; globalThis.__bw[0].click();`);
-  check("G click word speaks only word", JSON.stringify(said()) === JSON.stringify(["gehen"]), JSON.stringify(said()));
-  act(`globalThis.__bs[0].click();`);
-  check("G click sentence speaks only example", JSON.stringify(said()) === JSON.stringify(["gehen", "Wir gehen."]), JSON.stringify(said()));
-  act(`document.querySelectorAll=globalThis.__realQSA;`);
+  check("G ar front shows Arabic word", frontTxt() === "يسكن", frontTxt());
+  check("G ar front shows Arabic example", vm.runInContext(`document.getElementById("flashExFront").textContent`, ctx) === "هي تسكن في طنطا.");
+  check("G ar back shows German word", vm.runInContext(`document.getElementById("flashAr").textContent`, ctx) === "wohnen");
+  check("G ar back shows German example", vm.runInContext(`document.getElementById("flashEx").textContent`, ctx) === "Sie wohnt in Tanta.");
+  say("front", "word");
+  check("G ar-front word: ar voice", JSON.stringify(utt()) === JSON.stringify([{ text: "يسكن", lang: "ar" }]), JSON.stringify(utt()));
+  say("front", "sent");
+  check("G ar-front sent: ar voice", JSON.stringify(utt()) === JSON.stringify([{ text: "هي تسكن في طنطا.", lang: "ar" }]), JSON.stringify(utt()));
+  say("back", "word");
+  check("G ar-back word: de-DE voice", JSON.stringify(utt()) === JSON.stringify([{ text: "wohnen", lang: "de-DE" }]), JSON.stringify(utt()));
+  say("back", "sent");
+  check("G ar-back sent: de-DE voice", JSON.stringify(utt()) === JSON.stringify([{ text: "Sie wohnt in Tanta.", lang: "de-DE" }]), JSON.stringify(utt()));
+  // flip x3 across directions: mapping stays fresh
+  for (let r = 0; r < 3; r++) {
+    act(`toggleFlashDir(); document.getElementById("flashcard").classList.toggle("flipped"); renderFlash();`);
+    const d = act(`flashDir();`);
+    say("front", "word");
+    const u = utt()[0];
+    const expectLang = d === "de-ar" ? "de-DE" : "ar";
+    const expectTxt = d === "de-ar" ? "wohnen" : "يسكن";
+    check("G flip round " + (r + 1) + " (" + d + ")", u && u.lang === expectLang && u.text === expectTxt, JSON.stringify(u));
+  }
+  // missing Arabic example: safe (hidden button, no speech)
+  act(`if(flashDir()!=="ar-de")toggleFlashDir(); flashList=[VOCAB[3]]; flashIdx=0; renderFlash();`);
+  check("G missing exAr hides ar sent button", vm.runInContext(`document.getElementById("flashSaySFront").style.display||""`, ctx) === "none");
+  const nUtt = utt().length;
+  const okMiss = act(`flashSayFace("front","sent");`);
+  check("G missing exAr speaks nothing", okMiss === false && utt().length === nUtt, String(okMiss));
+  // delegation: audio clicks stop + never flip; plain clicks flip; one listener
+  const nLis = act(`document.getElementById("flashcard")._listeners.click.length`);
+  check("G single card click listener", nLis === 1, String(nLis));
+  const simRes = act(`(function(){
+    var out={stopped:0,flipped0:document.getElementById("flashcard").classList.contains("flipped")};
+    function fakeBtn(face,kind){return {closest:function(s){ if(s==="[data-say-word]"&&kind==="word")return {}; if(s==="[data-say-sent]"&&kind==="sent")return {}; if(s===".flash-back")return face==="back"?{}:null; return null; }};}
+    function fire(target){var e={target:target,stopPropagation:function(){out.stopped++;}};var l=document.getElementById("flashcard")._listeners.click;for(var i=0;i<l.length;i++)l[i](e);}
+    globalThis.__utt=[];
+    fire(fakeBtn("front","word"));
+    out.wordUtt=globalThis.__utt.slice();
+    fire(fakeBtn("front","sent"));
+    out.sentUtt=globalThis.__utt.slice();
+    out.flippedAfterAudio=document.getElementById("flashcard").classList.contains("flipped")!==out.flipped0?"CHANGED":"same";
+    fire({closest:function(){return null;}});
+    out.flippedAfterPlain=document.getElementById("flashcard").classList.contains("flipped")!==out.flipped0?"CHANGED":"same";
+    return JSON.stringify(out);
+  })()`);
+  const sim = JSON.parse(simRes);
+  check("G audio clicks stopPropagation", sim.stopped === 2, JSON.stringify(sim));
+  check("G audio clicks never flip", sim.flippedAfterAudio === "same", JSON.stringify(sim));
+  check("G plain click flips", sim.flippedAfterPlain === "CHANGED", JSON.stringify(sim));
+  check("G delegated word speaks face word (ar-de front)", JSON.stringify(sim.wordUtt) === JSON.stringify([{ text: "ضوء", lang: "ar" }]), JSON.stringify(sim.wordUtt));
 } catch (e) { check("audio setup", false, e.message); }
 const css = RD("client/style.css");
 check("row-flex wraps (no h-scroll)", /\.row-flex\{[^}]*flex-wrap:\s*wrap/.test(css));

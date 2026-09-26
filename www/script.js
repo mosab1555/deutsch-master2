@@ -1399,12 +1399,12 @@ function speakWithWeb(text,rate){
   window.speechSynthesis.speak(u);
   return true;
 }
-function speakWithAudioUrl(text,rate){
+function speakWithAudioUrl(text,rate,tl){
   try{
     if(!_fallbackAudio)_fallbackAudio=new Audio();
     stopFallbackAudio();
     _fallbackAudio.playbackRate=rate;
-    _fallbackAudio.src="https://translate.google.com/translate_tts?ie=UTF-8&tl=de-DE&client=tw-ob&q="+encodeURIComponent(text);
+    _fallbackAudio.src="https://translate.google.com/translate_tts?ie=UTF-8&tl="+(tl||"de-DE")+"&client=tw-ob&q="+encodeURIComponent(text);
     const p=_fallbackAudio.play();
     if(p&&typeof p.catch==="function")p.catch(()=>{});
     return true;
@@ -1430,6 +1430,34 @@ function speakGerman(text){
   toast("تعذر تشغيل النطق على هذا الجهاز 😢","err");
 }
 function speak(text){speakGerman(text);}
+/* Arabic TTS mirror of speakGerman: ar voice + ar fallback, same no-overlap rules. */
+function speakAr(text){
+  const t=String(text==null?"":text).trim();
+  if(!t)return;
+  const rate=currentRate();
+  try{stopAllSpeech();}catch(e){}
+  try{
+    if(typeof window.AndroidTTS!=="undefined"&&window.AndroidTTS&&typeof window.AndroidTTS.speak==="function"){
+      try{if(typeof window.AndroidTTS.setRate==="function"){try{window.AndroidTTS.setRate(rate);}catch(e){}}}catch(e){}
+      window.AndroidTTS.speak(t);return;
+    }
+  }catch(e){}
+  if(hasWebSpeech()){
+    try{
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(t);
+      u.lang="ar";u.rate=rate;
+      try{
+        const vs=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
+        const f=vs.find(v=>v.lang&&v.lang.toLowerCase().indexOf("ar")===0);
+        if(f)u.voice=f;
+      }catch(e){}
+      window.speechSynthesis.speak(u);return;
+    }catch(e){}
+  }
+  try{if(speakWithAudioUrl(t,rate,"ar"))return;}catch(e){}
+  try{toast("تعذر تشغيل النطق على هذا الجهاز 😢","err");}catch(e){}
+}
 /* real=true (default): genuine learning activity → streak + study day.
    real=false ("light"): trivial UI actions (audio preview, saving settings) →
    no streak, no study day. Prevents streak inflation without real study. */
@@ -1802,21 +1830,10 @@ function renderFlash(){
   $("flashcard").classList.remove("flipped");
   updateFlashDirBtn();
   setTimeout(()=>{
-    const dir=flashDir();
+    const frontDe=(flashDir()!=="ar-de");
     const deWord=(w.art!=="-"?w.art+" ":"")+w.de;
-    if(dir==="ar-de"){
-      /* FRONT = Arabic only (no German spoilers: hide article/plural/front audio) */
-      $("flashArticle").style.display="none";
-      $("flashWord").textContent=w.ar;
-      $("flashWord").setAttribute("dir","auto");
-      $("flashPlural").textContent="";
-      $("flashPlural").style.display="none";
-      /* BACK = German */
-      $("flashAr").textContent=deWord;
-      $("flashAr").setAttribute("dir","auto");
-      $("flashPron").textContent="النطق: "+w.pron;
-      $("flashEx").innerHTML=escapeHtml(w.ex)+" <br><span style='color:var(--muted)'>"+escapeHtml(w.exAr)+"</span>";
-    }else{
+    /* --- front face: German block or Arabic block --- */
+    if(frontDe){
       $("flashArticle").style.display="";
       $("flashArticle").textContent=w.art==="-"?"A1":w.art;
       $("flashArticle").className="flash-article article "+(w.art==="-"?"none":w.art);
@@ -1824,24 +1841,73 @@ function renderFlash(){
       $("flashWord").setAttribute("dir","ltr");
       $("flashPlural").textContent=pluralFull(w);
       $("flashPlural").style.display="";
+      $("flashExFront").textContent=w.ex||"";
+      $("flashExFront").setAttribute("dir","ltr");
+      $("flashExFront").style.display=w.ex?"":"none";
+      $("flashSaySFront").style.display=w.ex?"":"none";
+    }else{
+      $("flashArticle").style.display="none";
+      $("flashWord").textContent=w.ar;
+      $("flashWord").setAttribute("dir","auto");
+      $("flashPlural").textContent="";
+      $("flashPlural").style.display="none";
+      $("flashExFront").textContent=w.exAr||"";
+      $("flashExFront").setAttribute("dir","auto");
+      $("flashExFront").style.display=w.exAr?"":"none";
+      $("flashSaySFront").style.display=w.exAr?"":"none";
+    }
+    /* --- back face: always the other language --- */
+    if(frontDe){
       $("flashAr").textContent=w.ar;
       $("flashAr").setAttribute("dir","auto");
       $("flashPron").textContent="النطق: "+w.pron;
-      $("flashEx").innerHTML=escapeHtml(w.ex)+" <br><span style='color:var(--muted)'>"+escapeHtml(w.exAr)+"</span>";
+      $("flashEx").innerHTML=escapeHtml(w.exAr||"");
+      $("flashEx").setAttribute("dir","auto");
+      $("flashEx").style.display=w.exAr?"":"none";
+      $("flashSaySBack").style.display=w.exAr?"":"none";
+    }else{
+      $("flashAr").textContent=deWord;
+      $("flashAr").setAttribute("dir","ltr");
+      $("flashPron").textContent="النطق: "+w.pron;
+      $("flashEx").innerHTML=escapeHtml(w.ex||"");
+      $("flashEx").setAttribute("dir","ltr");
+      $("flashEx").style.display=w.ex?"":"none";
+      $("flashSaySBack").style.display=w.ex?"":"none";
     }
     $("flashcard").dataset.wid=w.id;
     $("flashCounter").textContent=(flashIdx%flashList.length+1)+" / "+flashList.length;
     $("flashBar").style.width=((flashIdx%flashList.length+1)/flashList.length*100)+"%";
   },150);
 }
-$("flashcard").addEventListener("click",e=>{if(e.target.closest("button"))return;$("flashcard").classList.toggle("flipped");});
-/* Flashcard audio: two independent buttons per card face (bound once).
-   Word audio speaks the ORIGINAL German word (+article); sentence audio speaks
-   the ORIGINAL German example. Never the visible face text, never Arabic. */
-function flashSayWord(){try{const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(!w)return false;speak((w.art&&w.art!=="-"?w.art+" ":"")+w.de);return true;}catch(e){return false;}}
-function flashSaySent(){try{const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(!w||!w.ex)return false;speak(w.ex);return true;}catch(e){return false;}}
-document.querySelectorAll("[data-say-word]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();flashSayWord();}));
-document.querySelectorAll("[data-say-sent]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();flashSaySent();}));
+/* Face language: front shows German unless direction is ar-de (and vice versa). */
+function flashFaceLang(face){try{const frontDe=(flashDir()!=="ar-de");return ((face==="front")===frontDe)?"de":"ar";}catch(e){return "de";}}
+/* Face-aware audio from ORIGINAL word data (never face text):
+   German face -> de-DE voice (word / example), Arabic face -> ar voice. */
+function flashSayFace(face,kind){
+  try{
+    const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(!w)return false;
+    const lang=flashFaceLang(face);
+    let text="";
+    if(lang==="de")text=(kind==="word")?((w.art&&w.art!=="-"?w.art+" ":"")+w.de):(w.ex||"");
+    else text=(kind==="word")?(w.ar||""):(w.exAr||"");
+    if(!text)return false;
+    if(lang==="de")speak(text);else speakAr(text);
+    return true;
+  }catch(e){return false;}
+}
+$("flashcard").addEventListener("click",e=>{
+  try{
+    const t=e.target&&e.target.closest?e.target:null;
+    const sw=t?t.closest("[data-say-word]"):null;
+    const ss=!sw&&t?t.closest("[data-say-sent]"):null;
+    if(sw||ss){
+      e.stopPropagation();
+      flashSayFace(t.closest(".flash-back")?"back":"front",sw?"word":"sent");
+      return;
+    }
+  }catch(err){}
+  $("flashcard").classList.toggle("flipped");
+});
 $("flashPlural").addEventListener("click",e=>{e.stopPropagation();const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(w&&w.plural)speak(pluralFull(w));});
 $("flashPlural").style.cursor="pointer";$("flashPlural").title="اضغط لسماع الجمع 🔊";
 $("flashNext").addEventListener("click",()=>{flashIdx++;renderFlash();});
