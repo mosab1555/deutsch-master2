@@ -37,6 +37,7 @@ const REF_PATHS=[
 function refT(k){try{if(typeof t==="function"){const v=t(k);if(v&&v!==k)return v;}}catch(e){}return k;}
 function refEsc(s){try{if(typeof escapeHtml==="function")return escapeHtml(s);}catch(e){}return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function refNorm(s){let x=String(s==null?"":s).toLowerCase();x=x.replace(/ß/g,"ss").replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u");return x.trim();}
+function refStripAl(w){return String(w||"").replace(/^(ال|لل|بال|كال|فال|وال)/,"");}
 function refLang(){try{return (typeof S!=="undefined"&&S.uiLang)||"ar";}catch(e){return "ar";}}
 function refPathTitle(p){const L=refLang();if(L==="de")return p.de;if(L==="en")return p.en;return p.ar;}
 function refTopicTitle(tp){const L=refLang();if(L==="de")return tp.de||tp.ar;if(L==="en")return tp.en||tp.ar;return tp.ar;}
@@ -233,7 +234,7 @@ function runRefSearch(){
     let s=0;
     const ti=refNorm(e.kind==="path"?refPathTitle(e.path)+" "+e.path.de+" "+e.path.en:refTopicTitle(e.topic)+" "+(e.topic.de||"")+" "+(e.topic.en||""));
     if(ti===q)s=9;
-    else if(ti.split(" ").some(w=>w===q))s=8;
+    else if(ti.split(" ").some(w=>refStripAl(w)===refStripAl(q)))s=8;
     else if(ti.indexOf(q)===0)s=7;
     else if(ti.indexOf(q)>=0)s=6;
     else{
