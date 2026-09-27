@@ -50,6 +50,7 @@ function fakeCache(name) {
 global.self = {
   addEventListener(t, fn) { (listeners[t] = listeners[t] || []).push(fn); },
   skipWaiting() { skipped = true; return Promise.resolve(); },
+  location: { href: "https://app/sw.js" },
   clients: { claim() { claimed = true; return Promise.resolve(); } }
 };
 global.caches = {
@@ -138,6 +139,9 @@ function fire(type, ev) {
   const offJs = await load("no-cors", "script", "https://app/script.js");
   if (offJs) good("offline script falls back to cache");
   else bad("offline script broken");
+  const offVer = await load("no-cors", "script", "https://app/script.js?v=abc1234");
+  if (offVer === offJs && offVer) good("offline versioned URL falls back to precached copy");
+  else bad("offline versioned fallback broken: " + offVer);
   offline = false;
 
   console.log("----");

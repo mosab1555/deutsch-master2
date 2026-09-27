@@ -27,6 +27,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Version static assets (cache busting)
+        run: node tools/inject-version.js "${{ github.sha }}"
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 

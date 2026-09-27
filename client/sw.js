@@ -1,5 +1,5 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v30";
+var DM_CACHE = "german-academy-v31";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./reference.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
@@ -43,7 +43,7 @@ self.addEventListener("fetch", function (e) {
       } catch (err) {}
       return res;
     }).catch(function () {
-      return caches.match(e.request).then(function (hit) {
+      return swMatchStrip(e.request).then(function (hit) {
         if (hit) return hit;
         return caches.match("./index.html");
       });
@@ -57,6 +57,19 @@ self.addEventListener("fetch", function (e) {
     });
   }));
 });
+/* Offline fallback that also matches query-stripped asset URLs:
+   deployments use `file.js?v=SHA`, while the precache holds plain `file.js`.
+   Offline, `script.js?v=abc` falls back to the cached `script.js`. */
+function swMatchStrip(req) {
+  return caches.match(req).then(function (hit) {
+    if (hit) return hit;
+    try {
+      var u = new URL(req.url, self.location.href);
+      if (u.search) { u.search = ""; return caches.match(u.toString()); }
+    } catch (err) {}
+    return undefined;
+  });
+}
 /* ---------- Web Push (study reminders) ---------- */
 self.addEventListener("push", function (e) {
   let d = {};
