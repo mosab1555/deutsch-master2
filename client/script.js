@@ -1900,6 +1900,20 @@ function flashSayFace(face,kind){
     return true;
   }catch(e){return false;}
 }
+/* Sound-button-only visual feedback: animates the clicked 🔊 button itself.
+   Never touches .flashcard / .flash-inner / .flash-face or any parent, and
+   never touches the audio system (speak/speakAr unchanged). Timer is stored
+   per-button so repeated clicks restart (no stacking, no duplicate classes). */
+function pulseFlashSayButton(btn){
+  try{
+    if(!btn||!btn.classList)return;
+    if(btn._flashSayTimer){try{clearTimeout(btn._flashSayTimer);}catch(e){}btn._flashSayTimer=null;}
+    btn.classList.remove("is-speaking");
+    try{void btn.offsetWidth;}catch(e){}
+    btn.classList.add("is-speaking");
+    btn._flashSayTimer=setTimeout(function(){try{btn.classList.remove("is-speaking");}catch(e){}btn._flashSayTimer=null;},450);
+  }catch(e){}
+}
 $("flashcard").addEventListener("click",e=>{
   try{
     const t=e.target&&e.target.closest?e.target:null;
@@ -1907,13 +1921,14 @@ $("flashcard").addEventListener("click",e=>{
     const ss=!sw&&t?t.closest("[data-say-sent]"):null;
     if(sw||ss){
       e.stopPropagation();
+      pulseFlashSayButton(sw||ss);
       flashSayFace(t.closest(".flash-back")?"back":"front",sw?"word":"sent");
       return;
     }
   }catch(err){}
   $("flashcard").classList.toggle("flipped");
 });
-$("flashPlural").addEventListener("click",e=>{e.stopPropagation();const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(w&&w.plural)speak(pluralFull(w));});
+$("flashPlural").addEventListener("click",e=>{e.stopPropagation();pulseFlashSayButton(e.currentTarget||$("flashPlural"));const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(w&&w.plural)speak(pluralFull(w));});
 $("flashPlural").style.cursor="pointer";$("flashPlural").title="اضغط لسماع الجمع 🔊";
 $("flashNext").addEventListener("click",()=>{flashIdx++;renderFlash();});
 $("flashPrev").addEventListener("click",()=>{flashIdx=(flashIdx-1+flashList.length)%flashList.length;renderFlash();});
