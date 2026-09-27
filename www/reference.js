@@ -231,21 +231,20 @@ function runRefSearch(){
   if(!refIndex)refBuildIndex();
   const scored=[];
   refIndex.forEach(e=>{
-    let s=0;
+    let s=0,kb=0;
     const ti=refNorm(e.kind==="path"?refPathTitle(e.path)+" "+e.path.de+" "+e.path.en:refTopicTitle(e.topic)+" "+(e.topic.de||"")+" "+(e.topic.en||""));
-    if(ti===q)s=9;
-    else if(ti.split(" ").some(w=>refStripAl(w)===refStripAl(q)))s=8;
-    else if(ti.indexOf(q)===0)s=7;
+    const kws=e.kind==="topic"?((e.topic.keywords||[]).map(refNorm)):[""];
+    if(kws.some(k=>k===q))kb=1;
+var REF_STOP=new Set(["der","die","das","den","dem","des","ein","eine","einen","einem","einer","mit","von","zu","bei","nach","aus","vor","für","um","ohne","gegen","durch","seit","und","oder","aber","als","in","an","auf","the","and","with","with","of","to","on","for","a","an"]);
+    if(ti===q)s=10;
+    else if(ti.split(" ").some(w=>refStripAl(w)===refStripAl(q)))s=REF_STOP.has(q)?6:8;
+    else if(kb)s=7;
     else if(ti.indexOf(q)>=0)s=6;
-    else{
-      const kws=e.kind==="topic"?((e.topic.keywords||[]).map(refNorm)):[""];
-      if(kws.some(k=>k===q))s=5;
-      else if(kws.some(k=>k&&k.indexOf(q)===0))s=4;
-      else if(e.hay.indexOf(q)>=0)s=3;
-    }
-    if(s>0)scored.push({e:e,s:s});
+    else if(kws.some(k=>k&&k.indexOf(q)===0))s=5;
+    else if(e.hay.indexOf(q)>=0)s=4;
+    if(s>0)scored.push({e:e,s:s,kb:kb});
   });
-  scored.sort((a,b)=>b.s-a.s);
+  scored.sort((a,b)=>(b.s-a.s)||(b.kb-a.kb));
   const top=scored.slice(0,12);
   if(!top.length){out.innerHTML='<div class="search-hit">'+refEsc(refT("ref_no_results"))+'</div>';out.classList.add("show");return;}
   out.innerHTML=top.map((r,i)=>{

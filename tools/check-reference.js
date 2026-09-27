@@ -107,39 +107,38 @@ console.log("Pending (" + pending.length + "): " + pending.slice(0, 12).join(", 
 /* ---------- search expectations (only for loaded topics) ---------- */
 function refNorm(s) { let x = String(s == null ? "" : s).toLowerCase(); x = x.replace(/ß/g, "ss").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u"); return x.trim(); }
 function stripAl(w) { return String(w || "").replace(/^(ال|لل|بال|كال|فال|وال)/, ""); }
+const REF_STOP = new Set(["der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer", "mit", "von", "zu", "bei", "nach", "aus", "vor", "für", "um", "ohne", "gegen", "durch", "seit", "und", "oder", "aber", "als", "in", "an", "auf", "the", "and", "with", "of", "to", "on", "for", "a", "an"]);
 function searchTop3(q) {
   q = refNorm(q);
   const scored = [];
   topics.forEach(tp => {
     const title = refNorm(tp.de + " " + tp.ar + " " + tp.en);
-    let s = 0;
-    if (title === q) s = 9;
-    else if (title.split(" ").some(w => stripAl(w) === stripAl(q))) s = 8;
-    else if (title.indexOf(q) === 0) s = 7;
+    const kws = (tp.keywords || []).map(refNorm);
+    let s = 0; const kb = kws.some(k => k === q) ? 1 : 0;
+    if (title === q) s = 10;
+    else if (title.split(" ").some(w => stripAl(w) === stripAl(q))) s = REF_STOP.has(q) ? 6 : 8;
+    else if (kb) s = 7;
     else if (title.indexOf(q) >= 0) s = 6;
+    else if (kws.some(k => k && k.indexOf(q) === 0)) s = 5;
     else {
-      const kws = (tp.keywords || []).map(refNorm);
-      if (kws.some(k => k === q)) s = 5;
-      else if (kws.some(k => k && k.indexOf(q) === 0)) s = 4;
-      else {
-        const hay = refNorm([tp.what, tp.rule, JSON.stringify(tp.tables), JSON.stringify(tp.examples)].join(" "));
-        if (hay.indexOf(q) >= 0) s = 3;
-      }
+      const hay = refNorm([tp.what, tp.rule, JSON.stringify(tp.tables), JSON.stringify(tp.examples)].join(" "));
+      if (hay.indexOf(q) >= 0) s = 4;
     }
-    if (s > 0) scored.push({ id: tp.id, s });
+    if (s > 0) scored.push({ id: tp.id, s, kb });
   });
-  scored.sort((a, b) => b.s - a.s);
+  scored.sort((a, b) => (b.s - a.s) || (b.kb - a.kb));
   return scored.slice(0, 3).map(r => r.id);
 }
 const SEARCH_TESTS = [
   ["ضمائر", ["c-personal"]],
   ["nicht", ["b-artikel-negativ"]],
-  ["Dativ", ["c-personal", "b-artikel-bestimmt"]],
+  ["Dativ", ["d-dativ"]],
   ["der", ["b-nomen-genus", "b-artikel-bestimmt"]],
   ["mein", ["b-artikel-possessiv", "c-possessiv"]],
   ["Perfekt", ["g-perfekt"]],
   ["gestern", ["j-zeitwoerter", "g-praeteritum"]],
-  ["ماضي", ["g-perfekt", "j-zeitwoerter", "g-praeteritum"]]
+  ["ماضي", ["g-perfekt", "j-zeitwoerter", "g-praeteritum"]],
+  ["mit", ["h-dativ"]]
 ];
 let searchFails = 0;
 SEARCH_TESTS.forEach(([q, expectAny]) => {
