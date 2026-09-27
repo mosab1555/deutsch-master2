@@ -1,211 +1,201 @@
-/* Deutsch Master — 📚 المرجع الألماني الشامل (ADDITIVE ONLY).
-   Independent reference section. Never touches existing grammar/vocab/quiz data.
-   Reuses: showPage-wrap, escapeHtml, speakGerman, t(), glass/cards theme.
-   Scope Phase 1: structure + 16 categories + navigation + search UI + responsive.
-   Scope Phase 2: fills cat_pronouns + cat_articles with full tables (see REF_DATA). */
+/* Deutsch Master — 📚 المرجع الألماني الشامل v2 (ADDITIVE ONLY).
+   Knowledge-base architecture: 16 paths (A..P) -> topics -> unified template.
+   Data lives in client/reference-data-*.js (pure data, no DOM).
+   This file = engine only. Reuses: showPage-wrap, escapeHtml, speakGerman,
+   t()/applyLang, .quiz-opt, .ex-table, openExplain, markStudyDay.
+   Quiz gate: a question renders ONLY if refValidQuiz() passes. */
 "use strict";
 
-/* ---------- i18n (one Object.assign per lang; merged by tools/check-translations.js) ---------- */
+/* ---------- i18n chrome (one Object.assign per lang; merged by check-translations.js) ---------- */
 try{
-  Object.assign(I18N.ar,{reference:"المرجع الألماني الشامل",title_reference:"📚 المرجع الألماني الشامل",ref_search_ph:"ابحث: mit / Dativ / ضمائر / ماضي / gestern...",ref_categories:"التصنيفات",ref_back:"← كل التصنيفات",ref_examples:"أمثلة",ref_quiz:"📝 اختبر نفسك",ref_no_results:"لا توجد نتائج مطابقة — جرّب كلمة أخرى",ref_coming:"محتوى هذا القسم يصل في المرحلة القادمة — الهيكل جاهز الآن ✅",ref_topics:"المواضيع",ref_search_label:"🔍 بحث المرجع",ref_level:"المستوى",ref_show_answer:"عرض الإجابة",ref_correct:"صحيح ✅",ref_wrong:"خطأ ❌"});
-  Object.assign(I18N.en,{reference:"Complete German Reference",title_reference:"📚 Complete German Reference",ref_search_ph:"Search: mit / Dativ / pronouns / past / gestern...",ref_categories:"Categories",ref_back:"← All categories",ref_examples:"Examples",ref_quiz:"📝 Test yourself",ref_no_results:"No matches — try another word",ref_coming:"This section's content arrives in the next stage — structure ready ✅",ref_topics:"Topics",ref_search_label:"🔍 Reference search",ref_level:"Level",ref_show_answer:"Show answer",ref_correct:"Correct ✅",ref_wrong:"Wrong ❌"});
-  Object.assign(I18N.de,{reference:"Deutsche Komplettreferenz",title_reference:"📚 Deutsche Komplettreferenz",ref_search_ph:"Suchen: mit / Dativ / Pronomen / Vergangenheit / gestern...",ref_categories:"Kategorien",ref_back:"← Alle Kategorien",ref_examples:"Beispiele",ref_quiz:"📝 Teste dich",ref_no_results:"Keine Treffer — versuch ein anderes Wort",ref_coming:"Inhalt folgt in der nächsten Stufe — Struktur bereit ✅",ref_topics:"Themen",ref_search_label:"🔍 Referenzsuche",ref_level:"Niveau",ref_show_answer:"Antwort zeigen",ref_correct:"Richtig ✅",ref_wrong:"Falsch ❌"});
+  Object.assign(I18N.ar,{reference:"المرجع الألماني الشامل",title_reference:"📚 المرجع الألماني الشامل",ref_search_ph:"ابحث في المرجع: mit / Dativ / ماضي / gestern / ضمائر...",ref_search_label:"🔍 بحث المرجع",ref_paths:"المسارات المعرفية",ref_topics:"مواضيع المسار",ref_back_paths:"← كل المسارات",ref_back_path:"← مواضيع المسار",ref_what:"ما هو؟",ref_rule:"القاعدة",ref_examples:"أمثلة",ref_notes:"ملاحظات مهمة",ref_mistakes:"أخطاء شائعة",ref_related:"🔗 موضوعات مرتبطة",ref_quiz:"📝 تدريب سريع",ref_no_results:"لا توجد نتائج مطابقة — جرّب كلمة أخرى",ref_coming:"محتوى هذا المسار يُبنى في المراحل التالية ⏳",ref_grammar_hub:"📐 فتح القواعد المرتبطة",ref_open_lesson:"📖 فتح الشرح المفصل",ref_prev:"→ السابق",ref_next:"التالي ←",ref_topic_of:"الموضوع",ref_of:"من",ref_level_a1:"🟢 A1 أساسي",ref_level_a2:"🟡 A2 بعده",ref_level_b1:"🔵 B1 متقدم",ref_b1_closed:"🔵 محتوى متقدم — اضغط للفتح",ref_correct:"صحيح ✅",ref_wrong:"خطأ ❌",ref_home:"المرجع"});
+  Object.assign(I18N.en,{reference:"Complete German Reference",title_reference:"📚 Complete German Reference",ref_search_ph:"Search the reference: mit / Dativ / past / gestern / pronouns...",ref_search_label:"🔍 Reference search",ref_paths:"Knowledge paths",ref_topics:"Path topics",ref_back_paths:"← All paths",ref_back_path:"← Path topics",ref_what:"What is it?",ref_rule:"The rule",ref_examples:"Examples",ref_notes:"Important notes",ref_mistakes:"Common mistakes",ref_related:"🔗 Related topics",ref_quiz:"📝 Quick practice",ref_no_results:"No matches — try another word",ref_coming:"This path is under construction ⏳",ref_grammar_hub:"📐 Open related grammar",ref_open_lesson:"📖 Open full lesson",ref_prev:"→ Previous",ref_next:"Next ←",ref_topic_of:"Topic",ref_of:"of",ref_level_a1:"🟢 A1 basic",ref_level_a2:"🟡 A2 next",ref_level_b1:"🔵 B1 advanced",ref_b1_closed:"🔵 Advanced — tap to open",ref_correct:"Correct ✅",ref_wrong:"Wrong ❌",ref_home:"Reference"});
+  Object.assign(I18N.de,{reference:"Deutsche Komplettreferenz",title_reference:"📚 Deutsche Komplettreferenz",ref_search_ph:"Referenz durchsuchen: mit / Dativ / Vergangenheit / gestern / Pronomen...",ref_search_label:"🔍 Referenzsuche",ref_paths:"Wissenspfade",ref_topics:"Pfadthemen",ref_back_paths:"← Alle Pfade",ref_back_path:"← Pfadthemen",ref_what:"Was ist das?",ref_rule:"Die Regel",ref_examples:"Beispiele",ref_notes:"Wichtige Hinweise",ref_mistakes:"Häufige Fehler",ref_related:"🔗 Verwandte Themen",ref_quiz:"📝 Kurztraining",ref_no_results:"Keine Treffer — versuch ein anderes Wort",ref_coming:"Dieser Pfad folgt in den nächsten Stufen ⏳",ref_grammar_hub:"📐 Verwandte Grammatik öffnen",ref_open_lesson:"📖 Lektion öffnen",ref_prev:"→ Zurück",ref_next:"Weiter ←",ref_topic_of:"Thema",ref_of:"von",ref_level_a1:"🟢 A1 Basis",ref_level_a2:"🟡 A2 danach",ref_level_b1:"🔵 B1 fortgeschritten",ref_b1_closed:"🔵 Fortgeschritten — tippen zum Öffnen",ref_correct:"Richtig ✅",ref_wrong:"Falsch ❌",ref_home:"Referenz"});
 }catch(e){}
 
-/* ---------- 16 categories (titles trilingual inline = educational data, not UI chrome) ---------- */
-const REF_CATS=[
- {id:"pronouns",icon:"👤",ar:"الضمائر",de:"Pronomen",en:"Pronouns"},
- {id:"articles",icon:"🧩",ar:"الأدوات",de:"Artikel",en:"Articles"},
- {id:"connect",icon:"🔗",ar:"حروف العطف والربط",de:"Konjunktionen & Konnektoren",en:"Conjunctions"},
- {id:"questions",icon:"❓",ar:"أدوات السؤال",de:"Fragewörter",en:"Question words"},
- {id:"preps",icon:"📍",ar:"حروف الجر",de:"Präpositionen",en:"Prepositions"},
- {id:"time",icon:"⏰",ar:"الزمن والماضي",de:"Zeit & Vergangenheit",en:"Time & past"},
- {id:"verbs",icon:"🕐",ar:"الأفعال والأزمنة",de:"Verben & Zeiten",en:"Verbs & tenses"},
- {id:"cases",icon:"📊",ar:"الحالات الإعرابية",de:"Kasus",en:"Cases"},
- {id:"sentence",icon:"📝",ar:"بناء الجملة",de:"Satzbau",en:"Sentence structure"},
- {id:"punct",icon:"📌",ar:"علامات الترقيم",de:"Zeichensetzung",en:"Punctuation"},
- {id:"numbers",icon:"🔢",ar:"الأرقام والوقت",de:"Zahlen & Uhrzeit",en:"Numbers & time"},
- {id:"place",icon:"🗺️",ar:"المكان والاتجاهات",de:"Ort & Richtung",en:"Place & directions"},
- {id:"quantity",icon:"⚖️",ar:"الكمية والمقدار",de:"Menge",en:"Quantity"},
- {id:"daily",icon:"🗣️",ar:"التعبيرات اليومية",de:"Alltagssprache",en:"Daily phrases"},
- {id:"compare",icon:"⚡",ar:"المقارنات السريعة",de:"Schnellvergleiche",en:"Quick comparisons"},
- {id:"mistakes",icon:"⚠️",ar:"أخطاء شائعة",de:"Häufige Fehler",en:"Common mistakes"}
+/* ---------- 16 knowledge paths ---------- */
+const REF_PATHS=[
+ {id:"A",icon:"📖",ar:"أساسيات اللغة",de:"Grundlagen",en:"Basics",color:"#38bdf8"},
+ {id:"B",icon:"📦",ar:"الأسماء والأدوات",de:"Nomen & Artikel",en:"Nouns & articles",color:"#22c55e"},
+ {id:"C",icon:"👤",ar:"الضمائر",de:"Pronomen",en:"Pronouns",color:"#eab308"},
+ {id:"D",icon:"📊",ar:"الحالات الأربع",de:"Die vier Kasus",en:"The four cases",color:"#ef4444"},
+ {id:"E",icon:"🎨",ar:"الصفات",de:"Adjektive",en:"Adjectives",color:"#a78bfa"},
+ {id:"F",icon:"⚡",ar:"الأفعال",de:"Verben",en:"Verbs",color:"#38bdf8"},
+ {id:"G",icon:"⏳",ar:"الأزمنة",de:"Zeiten",en:"Tenses",color:"#fb923c"},
+ {id:"H",icon:"📍",ar:"حروف الجر",de:"Präpositionen",en:"Prepositions",color:"#eab308"},
+ {id:"I",icon:"❓",ar:"السؤال والنفي والربط",de:"Fragen, Negation & Konjunktionen",en:"Questions, negation & conjunctions",color:"#22c55e"},
+ {id:"J",icon:"🕐",ar:"الوقت والتاريخ",de:"Zeit & Datum",en:"Time & date",color:"#38bdf8"},
+ {id:"K",icon:"🔢",ar:"الأرقام والكمية",de:"Zahlen & Menge",en:"Numbers & quantity",color:"#a78bfa"},
+ {id:"L",icon:"🗺️",ar:"المكان والاتجاه",de:"Ort & Richtung",en:"Place & direction",color:"#ef4444"},
+ {id:"M",icon:"🧩",ar:"بناء الجملة",de:"Satzbau",en:"Sentence structure",color:"#fb923c"},
+ {id:"N",icon:"✒️",ar:"الترقيم والكتابة",de:"Zeichensetzung",en:"Punctuation",color:"#eab308"},
+ {id:"O",icon:"💬",ar:"التعبيرات العملية",de:"Alltagssprache",en:"Everyday phrases",color:"#22c55e"},
+ {id:"P",icon:"⚖️",ar:"المقارنات والأخطاء",de:"Vergleiche & Fehler",en:"Comparisons & errors",color:"#38bdf8"}
 ];
-/* Topic titles per category (detail content arrives per-stage; Phase 2 fills pronouns+articles) */
-const REF_TOPICS={
- pronouns:["Personalpronomen","Possessivpronomen","Demonstrativpronomen","Interrogativpronomen","Relativpronomen","Indefinitpronomen","Reflexivpronomen"],
- articles:["Bestimmte Artikel","Unbestimmte Artikel","Negation (kein/nicht)","Possessivartikel","Demonstrativartikel"],
- connect:["Konjunktionen","Konnektoren","Ereignisfolge"],
- questions:["W-Fragen","Ja/Nein-Fragen","Fragetypen"],
- preps:["Akkusativ","Dativ","Genitiv","Wechselpräpositionen","Zeit","Ort","Verkehrsmittel","Verben mit Präpositionen"],
- time:["Zeitwörter","Vergangenheit","Perfekt","Präteritum","Partizip II","haben/sein"],
- verbs:["sein","haben","werden","Modalverben","Trennbare Verben","Untrennbare Verben","Reflexive Verben","Imperativ","Futur I"],
- cases:["Nominativ","Akkusativ","Dativ","Genitiv"],
- sentence:["Hauptsatz","Fragesatz","Satzstellung","Modalverb-Satz","Perfekt-Satz","Zeit & Ort"],
- punct:["Punkt","Komma","Fragezeichen","Ausrufezeichen","Doppelpunkt","Semikolon","Anführungszeichen","Bindestrich","Klammern"],
- numbers:["Zahlen","Ordinalzahlen","Uhrzeit","Wochentage","Monate","Jahreszeiten","Datum","Tageszeiten","Dauer","Häufigkeit"],
- place:["Orte","Richtungen","Positionen","Wohin/Wo","Wegbeschreibung"],
- quantity:["viel/viele","wenig/wenige","mehr/weniger","genug","einige","mehrere","alle","jeder","kein"],
- daily:["Begrüßung","Vorstellung","Dank","Entschuldigung","Bitte","Zustimmung","Ablehnung","Nichtverstehen"],
- compare:["kein/nicht","der/die/das","wer/wen/wem","wo/wohin/woher","seit/vor/für","in/an/auf","haben/sein","Perfekt/Präteritum"],
- mistakes:["nicht vs kein","wo vs wohin","seit vs vor","zu vs nach","kennen vs wissen"]
-};
-/* Full detail data filled per stage. Keys: <catId>_<topicIndex> (see REF_TOPICS). */
-var REF_DATA={
-"pronouns_0":{level:"🟢 A1",use:"الضمائر الشخصية تحل محل الاسم: من يقوم بالفعل (Nominativ) ومن يقع عليه الفعل (Akkusativ/Dativ).",
- tables:[{cap:"Personalpronomen — Nominativ / Akkusativ / Dativ",head:["","ich","du","er","sie","es","wir","ihr","sie","Sie"],
-  rows:[["Nominativ (wer?)","ich","du","er","sie","es","wir","ihr","sie","Sie"],
-  ["Akkusativ (wen?)","mich","dich","ihn","sie","es","uns","euch","sie","Sie"],
-  ["Dativ (wem?)","mir","dir","ihm","ihr","ihm","uns","euch","ihnen","Ihnen"]]}],
- examples:[["Ich sehe dich.","أنا أراك."],["Er hilft mir.","هو يساعدني."],["Wir sprechen mit Ihnen.","نحن نتحدث مع حضرتك."],["Sie wohnt in Berlin.","هي تسكن في برلين."]],
- quiz:[{q:"أكمل: ___ helfe dir. (أنا)",opts:["Ich","Mich","Mir"],correct:0,why:"الفاعل في Nominativ هو ich."},{q:"أكمل: Ich sehe ___. (هو)",opts:["er","ihn","ihm"],correct:1,why:"sehen يأخذ Akkusativ: wen? → ihn."},{q:"أكمل: Er spricht mit ___. (أنا)",opts:["mich","mir","ich"],correct:1,why:"mit تأخذ Dativ دائمًا: mit mir."}]},
-"pronouns_1":{level:"🟡 A2",use:"ضمير الملكية المستقل يقف وحده بدون اسم بعده (Das Buch ist meines = الكتاب ملكي). أما mein/meine + اسم فهو Possessivartikel (مستوى A1 — انظر قسم الأدوات).",
- tables:[{cap:"Possessivpronomen selbstständig — Nominativ (Stamm mein-)",head:["maskulin","feminin","neutral","Plural"],
-  rows:[["meiner","meine","meines","meine"],["deiner","deine","deines","deine"],["seiner","seine","seines","seine"]]}],
- examples:[["Das Buch ist meines.","هذا الكتاب ملكي."],["Die Tasche ist deine.","الحقيبة حقيبتك."],["Ist das dein Auto? — Ja, es ist meines.","هل هذه سيارتك؟ — نعم، إنها ملكي."]],
- quiz:[{q:"أكمل: Das Fahrrad ist ___. (ملكي)",opts:["mein","meines","meiner"],correct:1,why:"neutral مستقل في Nominativ: meines."},{q:"أي جملة فيها Possessivpronomen مستقل؟",opts:["Mein Vater arbeitet.","Das Auto ist meines.","Ich sehe mein Buch."],correct:1,why:"meines وحده بدون اسم بعده = ضمير مستقل."}]},
-"pronouns_2":{level:"🟢 A1",use:"ضمائر الإشارة تشير لشيء محدد قريب أو بعيد: dieser (هذا) — der/die/das كإشارة — das (هذا/ذلك).",
- tables:[{cap:"dieser-Wörter — Nominativ",head:["maskulin","feminin","neutral","Plural"],rows:[["dieser","diese","dieses","diese"]]},
-  {cap:"dieser-Wörter — Akkusativ",head:["maskulin","feminin","neutral","Plural"],rows:[["diesen","diese","dieses","diese"]]}],
- examples:[["Dieser Mann ist nett.","هذا الرجل لطيف."],["Ich kenne diese Frau.","أنا أعرف هذه المرأة."],["Dieses Haus ist groß.","هذا البيت كبير."],["Das ist mein Lehrer.","هذا معلمي."]],
- quiz:[{q:"أكمل: ___ Frau ist nett. (هذه)",opts:["Dieser","Diese","Dieses"],correct:1,why:"Frau مؤنثة: diese Frau."},{q:"أكمل: Ich nehme ___ Kuchen. (هذا — Kuchen مذكر)",opts:["dieser","diesen","dieses"],correct:1,why:"Akkusativ مذكر: diesen Kuchen."}]},
-"pronouns_3":{level:"🟢 A1",use:"ضمائر الاستفهام تسأل عن الأشخاص والأشياء: wer (من) — was (ماذا). لا تخلط بينها وبين Fragewörter العامة مثل wo/wann (انظر قسم أدوات السؤال).",
- tables:[{cap:"Interrogativpronomen — wer / was",head:["Nominativ (wer?)","Akkusativ (wen?)","Dativ (wem?)"],
-  rows:[["wer","wen","wem"],["was","was","—"]]}],
- examples:[["Wer ist das?","من هذا؟"],["Wen siehst du?","من ترى؟"],["Mit wem sprichst du?","مع من تتحدث؟"],["Was ist das?","ما هذا؟"],["Welcher Bus fährt ins Zentrum?","أي أتوبيس يذهب إلى المركز؟"]],
- quiz:[{q:"___ kommt heute? (من)",opts:["Wer","Wen","Wem"],correct:0,why:"السؤال عن الفاعل: wer."},{q:"___ siehst du? (من — مفعول)",opts:["Wer","Wen","Wem"],correct:1,why:"sehen + Akkusativ: wen?"}]},
-"pronouns_4":{level:"🟡 A2",use:"الضمير النسبي يربط جملتين ويصف الاسم: Der Mann, der hier wohnt (= الرجل الذي يسكن هنا). يطابق جنس الاسم وعدده، وحالته حسب دوره في الجملة النسبية.",
- tables:[{cap:"Relativpronomen — der/die/das",head:["","maskulin","feminin","neutral","Plural"],
-  rows:[["Nominativ","der","die","das","die"],["Akkusativ","den","die","das","die"],["Dativ","dem","der","dem","denen"]]}],
- examples:[["Der Mann, der hier wohnt, ist mein Lehrer.","الرجل الذي يسكن هنا هو معلمي."],["Das Buch, das ich lese, ist interessant.","الكتاب الذي أقرؤه شيّق."]],
- quiz:[{q:"Der Film, ___ ich sehe, ist gut.",opts:["der","den","dem"],correct:1,why:"Film مذكر ومفعول (أشاهده): Akkusativ → den."}]},
-"pronouns_5":{level:"🟢 A1 + 🟡 A2",use:"الضمائر غير المحددة تتحدث عن شخص/شيء غير معيّن: man (المرء/الناس عمومًا) — etwas/nichts — jemand/niemand — jeder/alle.",
- tables:[{cap:"Indefinitpronomen — الاستخدام",head:["الضمير","العربي","الاستخدام","مثال"],
-  rows:[["man","المرء / الناس","فاعل عام (الفعل مفرد دائمًا)","Man spricht hier Deutsch."],["etwas / nichts","شيء / لا شيء","للأشياء غير المحددة","Ich habe etwas gekauft."],["jemand / niemand","شخص ما / لا أحد","للأشخاص غير المحددين","Niemand ist hier."],["jeder / alle","كل واحد / الجميع","jeder + مفرد، alle + جمع","Jeder muss lernen."]]}],
- examples:[["Man spricht hier Deutsch.","الناس هنا يتحدثون الألمانية."],["Ich habe etwas gekauft.","اشتريت شيئًا ما."],["Jeder muss jeden Tag lernen.","على كل شخص أن يتعلم كل يوم."]],
- quiz:[{q:"___ ist hier. (لا أحد)",opts:["Jemand","Niemand","Man"],correct:1,why:"لا أحد = niemand."},{q:"___ spricht hier Deutsch. (الناس عمومًا)",opts:["Man","Etwas","Jeder"],correct:0,why:"الفاعل العام = man + فعل مفرد."}]},
-"pronouns_6":{level:"🟢 A1",use:"الضمير الانعكاسي يعود على الفاعل نفسه مع أفعال مثل sich waschen / sich setzen / sich treffen: الفاعل والمفعول نفس الشخص.",
- tables:[{cap:"Reflexivpronomen — Akkusativ",head:["ich","du","er/sie/es","wir","ihr","sie/Sie"],
-  rows:[["mich","dich","sich","uns","euch","sich"]]},
-  {cap:"Reflexivpronomen — Dativ",head:["ich","du","er/sie/es","wir","ihr","sie/Sie"],
-  rows:[["mir","dir","sich","uns","euch","sich"]]}],
- examples:[["Ich wasche mich.","أنا أغسل (نفسي)."],["Du setzt dich hier.","أنت تجلس هنا."],["Wir treffen uns morgen.","سنلتقي غدًا."]],
- quiz:[{q:"Ich wasche ___.",opts:["mich","dich","sich"],correct:0,why:"الفاعل ich → mich."},{q:"Wir treffen ___ morgen.",opts:["uns","euch","sich"],correct:0,why:"الفاعل wir → uns."}]},
-"articles_0":{level:"🟢 A1",use:"أداة التعريف للشيء المعروف: der (مذكر) — die (مؤنث) — das (محايد) — die (جمع). تتغير حسب الحالة الإعرابية.",
- tables:[{cap:"Bestimmte Artikel — الحالات الأربع",head:["","maskulin","feminin","neutral","Plural"],
-  rows:[["Nominativ","der","die","das","die"],["Akkusativ","den","die","das","die"],["Dativ","dem","der","dem","den"],["Genitiv 🔵 B1","des","der","des","der"]]}],
- examples:[["Der Mann kauft das Brot.","الرجل يشتري الخبز."],["Ich sehe den Hund.","أنا أرى الكلب."],["Sie hilft dem Kind.","هي تساعد الطفل."],["Die Kinder spielen im Garten.","الأطفال يلعبون في الحديقة."]],
- quiz:[{q:"___ Mann ist nett. (مذكر، فاعل)",opts:["Der","Den","Dem"],correct:0,why:"Nominativ مذكر = der."},{q:"Ich sehe ___ Hund. (مفعول)",opts:["der","den","dem"],correct:1,why:"Akkusativ مذكر = den."},{q:"Sie hilft ___ Kind. (محايد + helfen)",opts:["das","dem","den"],correct:1,why:"helfen + Dativ: dem Kind."}]},
-"articles_1":{level:"🟢 A1",use:"أداة النكرة لشيء غير محدد: ein (مذكر/محايد) — eine (مؤنث). لا توجد صيغة جمع للنكرة (نستخدم الجمع بدون أداة أو some: Bücher).",
- tables:[{cap:"Unbestimmte Artikel",head:["","maskulin","feminin","neutral"],
-  rows:[["Nominativ","ein","eine","ein"],["Akkusativ","einen","eine","ein"],["Dativ","einem","einer","einem"]]}],
- examples:[["Ein Mann wartet hier.","رجل ما ينتظر هنا."],["Ich habe eine Frage.","لديّ سؤال."],["Er hilft einem Freund.","هو يساعد صديقًا."],["Ich lese Bücher.","أنا أقرأ كتبًا. (جمع النكرة بدون أداة)"]],
- quiz:[{q:"Ich habe ___ Frage.",opts:["ein","eine","einen"],correct:1,why:"Frage مؤنثة: eine (تبقى eine في Akkusativ)."},{q:"Das ist ___ Buch. (محايد، فاعل)",opts:["ein","eine","einen"],correct:0,why:"Nominativ محايد = ein."}]},
-"articles_2":{level:"🟢 A1",use:"kein تنفي اسمًا له أداة (kein + اسم)، وnicht تنفي الفعل أو الصفة أو الجملة كلها. أشهر خطأ في A1 هو الخلط بينهما.",
- tables:[{cap:"kein vs nicht",head:["","kein 🧩","nicht 🔗"],
-  rows:[["ينفي","اسمًا (بدل أداته)","فعلًا / صفة / جملة"],["مثال 1","Ich habe kein Auto. (ليس لدي سيارة)","Ich lerne heute nicht. (لن أتعلم اليوم)"],["مثال 2","Sie hat keine Zeit. (ليس لديها وقت)","Das ist nicht gut. (هذا ليس جيدًا)"],["تصريف kein","مثل ein: kein/keine/keinen…","— لا يُصرَّف"]]}],
- examples:[["Ich habe kein Buch.","ليس لديّ كتاب."],["Sie hat keine Freunde in Berlin.","ليس لديها أصدقاء في برلين."],["Ich komme heute nicht.","لن آتي اليوم."],["Das Wetter ist nicht schön.","الطقس ليس جميلًا."]],
- quiz:[{q:"Ich habe ___ Auto.",opts:["nicht","kein","keine"],correct:1,why:"نفي اسم مذكر محايد بعد haben: kein Auto."},{q:"Ich lerne heute ___.",opts:["kein","nicht","keine"],correct:1,why:"نفي الفعل/الجملة = nicht."},{q:"Sie hat ___ Zeit.",opts:["kein","keine","nicht"],correct:1,why:"Zeit مؤنثة: keine Zeit."}]},
-"articles_3":{level:"🟢 A1",use:"أداة الملكية = ضمير الملكية + نهاية الإعراب: mein/dein/sein/ihr/sein/unser/euer/ihr/Ihr + نفس نهايات ein تمامًا.",
- tables:[{cap:"Possessivartikel — الأساس",head:["ich","du","er","sie","es","wir","ihr","sie","Sie"],
-  rows:[["mein-","dein-","sein-","ihr-","sein-","unser-","euer-","ihr-","Ihr-"]]},
-  {cap:"النهايات (مثل ein تمامًا)",head:["","maskulin","feminin","neutral","Plural"],
-  rows:[["Nominativ","mein","meine","mein","meine"],["Akkusativ","meinen","meine","mein","meine"],["Dativ","meinem","meiner","meinem","meinen"]]}],
- examples:[["Mein Vater arbeitet viel.","والدي يعمل كثيرًا."],["Ich liebe meine Mutter.","أنا أحب والدتي."],["Wir fahren mit unserem Auto.","نحن نذهب بسيارتنا."]],
- quiz:[{q:"___ Vater arbeitet. (والدي)",opts:["Mein","Meine","Meinen"],correct:0,why:"Nominativ مذكر: mein Vater."},{q:"Ich liebe ___ Mutter. (والدتي — مفعول)",opts:["mein","meine","meiner"],correct:1,why:"Akkusativ مؤنث: meine Mutter."}]},
-"articles_4":{level:"🟢 A1",use:"أداة الإشارة المحددة: dieser/diese/dieses + اسم (هذا المحدد القريب). تُصرَّف مثل der/die/das مع إضافة -es/-er في النهايات.",
- tables:[{cap:"Demonstrativartikel — Nominativ / Akkusativ",head:["","maskulin","feminin","neutral","Plural"],
-  rows:[["Nominativ","dieser","diese","dieses","diese"],["Akkusativ","diesen","diese","dieses","diese"],["Dativ 🟡 A2","diesem","dieser","diesem","diesen"]]}],
- examples:[["Dieses Haus ist groß.","هذا البيت كبير."],["Ich nehme diesen Kuchen.","سآخذ هذه الكعكة."],["Diese Kinder sind nett.","هؤلاء الأطفال لطفاء."]],
- quiz:[{q:"___ Haus ist groß. (محايد)",opts:["Dieser","Diese","Dieses"],correct:2,why:"Haus محايد: dieses Haus."},{q:"Ich nehme ___ Kuchen. (مذكر، مفعول)",opts:["dieser","diesen","dieses"],correct:1,why:"Akkusativ مذكر: diesen."}]}
-};
 
-function refT(k){try{if(typeof t==="function"){const v=t(k);if(v&&v!==k)return v;}}catch(e){}const f={ref_search_ph:"ابحث: mit / Dativ / ضمائر / ماضي / gestern...",ref_categories:"التصنيفات",ref_back:"← كل التصنيفات",ref_examples:"أمثلة",ref_quiz:"📝 اختبر نفسك",ref_no_results:"لا توجد نتائج مطابقة — جرّب كلمة أخرى",ref_coming:"محتوى هذا القسم يصل في المرحلة القادمة — الهيكل جاهز الآن ✅",ref_topics:"المواضيع",ref_search_label:"🔍 بحث المرجع"};return f[k]||k;}
+/* ---------- helpers ---------- */
+function refT(k){try{if(typeof t==="function"){const v=t(k);if(v&&v!==k)return v;}}catch(e){}return k;}
 function refEsc(s){try{if(typeof escapeHtml==="function")return escapeHtml(s);}catch(e){}return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function refSpeakBtn(de){return ' <button class="mini-btn ref-say" data-spk="'+refEsc(de)+'" title="🔊">🔊</button>';}
 function refNorm(s){let x=String(s==null?"":s).toLowerCase();x=x.replace(/ß/g,"ss").replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u");return x.trim();}
+function refLang(){try{return (typeof S!=="undefined"&&S.uiLang)||"ar";}catch(e){return "ar";}}
+function refPathTitle(p){const L=refLang();if(L==="de")return p.de;if(L==="en")return p.en;return p.ar;}
+function refTopicTitle(tp){const L=refLang();if(L==="de")return tp.de||tp.ar;if(L==="en")return tp.en||tp.ar;return tp.ar;}
+function refLvlClass(l){return l==="A2"?"lvl-a2":(l==="B1"?"lvl-b1":"lvl-a1");}
+function refLvlLabel(l){return refT(l==="A2"?"ref_level_a2":(l==="B1"?"ref_level_b1":"ref_level_a1"));}
 
-function refCatTitle(c){try{const L=(typeof S!=="undefined"&&S.uiLang)||"ar";if(L==="de")return c.de;if(L==="en")return c.en;}catch(e){}return c.ar;}
+/* ---------- data access (data files define window.REF_A .. window.REF_P arrays) ---------- */
+function refPathTopics(pid){
+  try{const g=(typeof window!=="undefined"&&window["REF_"+pid])||[];return Array.isArray(g)?g:[];}catch(e){return [];}
+}
+function refTopicById(id){
+  for(const p of REF_PATHS){const arr=refPathTopics(p.id);for(const tp of arr){if(tp&&tp.id===id)return {path:p,topic:tp};}
+  }return null;
+}
+function refPathById(pid){return REF_PATHS.find(p=>p.id===pid)||null;}
+
+/* ---------- STRICT quiz gate: invalid questions never render ---------- */
+function refValidQuiz(q){
+  if(!q||typeof q.q!=="string"||!q.q.trim())return false;
+  if(!Array.isArray(q.opts)||q.opts.length<2)return false;
+  if(q.opts.some(o=>typeof o!=="string"||!o.trim()))return false;
+  if(typeof q.correct!=="number"||q.correct<0||q.correct>=q.opts.length)return false;
+  const norm=q.opts.map(o=>o.trim());
+  if(new Set(norm).size!==norm.length)return false; /* duplicate options = ambiguous */
+  return true;
+}
+
+/* ---------- state + views ---------- */
+var refState={path:null,topic:null};
 
 function renderReference(){
   const box=document.getElementById("refBox");if(!box)return;
+  refState={path:null,topic:null};
   let h='<div class="panel glass ref-search-panel"><label class="ref-search-label">'+refEsc(refT("ref_search_label"))+'</label>';
   h+='<input type="text" id="refSearch" class="full-input" data-i18n-ph="ref_search_ph" placeholder="'+refEsc(refT("ref_search_ph"))+'">';
   h+='<div id="refResults" class="ref-results"></div></div>';
-  h+='<h3 class="ref-sec-title">'+refEsc(refT("ref_categories"))+' (16)</h3><div class="ref-grid">';
-  REF_CATS.forEach(c=>{
-    const n=(REF_TOPICS[c.id]||[]).length;
-    const ready=Object.keys(REF_DATA).some(k=>k.indexOf(c.id+"_")===0||k.indexOf(c.id)===0);
-    h+='<button class="ref-card glass" data-cat="'+c.id+'"><span class="ref-ico">'+c.icon+'</span><span class="ref-name">'+refEsc(refCatTitle(c))+'</span><span class="ref-de">'+refEsc(c.de)+'</span><span class="ref-count">'+n+' • '+(ready?"✅":"🕐")+'</span></button>';
+  h+='<h3 class="ref-sec-title">'+refEsc(refT("ref_paths"))+'</h3><div class="ref-grid">';
+  REF_PATHS.forEach(p=>{
+    const n=refPathTopics(p.id).length;
+    h+='<button class="ref-card glass" data-path="'+p.id+'" style="border-top:4px solid '+p.color+'"><span class="ref-ico">'+p.icon+'</span><span class="ref-name">'+refEsc(refPathTitle(p))+'</span><span class="ref-de">'+refEsc(p.de)+'</span><span class="ref-count">'+n+' • '+(n?"✅":"⏳")+'</span></button>';
   });
   h+='</div><div id="refDetail"></div>';
   box.innerHTML=h;
-  box.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",()=>openRefCat(b.getAttribute("data-cat"))));
+  box.querySelectorAll("[data-path]").forEach(b=>b.addEventListener("click",()=>openRefPath(b.getAttribute("data-path"))));
   const si=document.getElementById("refSearch");
   let tm=null;
   si.addEventListener("input",()=>{try{clearTimeout(tm);}catch(e){}tm=setTimeout(runRefSearch,120);});
   try{if(typeof applyLang==="function")applyLang();}catch(e){}
 }
 
-function openRefCat(id){
+function refCrumb(items){
+  return '<div class="ref-crumb"><button class="mini-btn" data-crumb="home">'+refEsc(refT("ref_home"))+'</button>'+items.map(it=>' <span>‹</span> '+(it.id?'<button class="mini-btn" data-crumb="'+it.id+'">'+refEsc(it.label)+'</button>':'<b>'+refEsc(it.label)+'</b>')).join("")+'</div>';
+}
+function wireCrumb(root){
+  root.querySelectorAll("[data-crumb]").forEach(b=>b.addEventListener("click",()=>{
+    const v=b.getAttribute("data-crumb");
+    if(v==="home")renderReference();
+    else openRefPath(v);
+  }));
+}
+
+function openRefPath(pid){
+  const p=refPathById(pid);if(!p)return;
+  refState={path:pid,topic:null};
   const box=document.getElementById("refBox");if(!box)return;
-  const c=REF_CATS.find(x=>x.id===id);if(!c)return;
+  const topics=refPathTopics(pid);
+  let h=refCrumb([{label:refPathTitle(p)}]);
+  h+='<div class="ref-path-head" style="border-top:4px solid '+p.color+'"><span class="ref-ico">'+p.icon+'</span><h3>'+refEsc(refPathTitle(p))+' <span class="muted">'+refEsc(p.de)+'</span></h3>';
+  h+='<div class="row-flex"><button class="btn btn-ghost sm" id="refBackPaths">'+refEsc(refT("ref_back_paths"))+'</button><button class="btn btn-ghost sm" id="refGrammarHub">'+refEsc(refT("ref_grammar_hub"))+'</button></div></div>';
+  h+='<div class="ref-chips">'+REF_PATHS.map(x=>'<button class="mini-btn'+(x.id===pid?" on":"")+'" data-jump="'+x.id+'">'+x.icon+' '+x.id+'</button>').join("")+'</div>';
+  if(!topics.length){
+    h+='<div class="panel glass">'+refEsc(refT("ref_coming"))+'</div>';
+  }else{
+    h+='<h4>'+refEsc(refT("ref_topics"))+' ('+topics.length+')</h4><div class="ref-topic-list">';
+    topics.forEach(tp=>{
+      const body=refTopicPreview(tp);
+      if(tp.level==="B1"){
+        h+='<details class="ref-topic glass"><summary><span class="'+refLvlClass("B1")+'">'+refEsc(refLvlLabel("B1"))+'</span> '+refEsc(refTopicTitle(tp))+' <span class="muted">'+refEsc(tp.de||"")+'</span></summary><div class="ref-topic-body">'+body+'</div></details>';
+      }else{
+        h+='<div class="ref-topic glass"><button class="ref-topic-open" data-topic="'+refEsc(tp.id)+'"><span class="'+refLvlClass(tp.level||"A1")+'">'+refEsc(refLvlLabel(tp.level||"A1"))+'</span> <b>'+refEsc(refTopicTitle(tp))+'</b> <span class="muted">'+refEsc(tp.de||"")+'</span><span>←</span></button></div>';
+      }
+    });
+    h+='</div>';
+  }
+  h+='<div id="refTopicView"></div>';
+  box.innerHTML=h;
+  wireCrumb(box);
+  document.getElementById("refBackPaths").addEventListener("click",renderReference);
+  document.getElementById("refGrammarHub").addEventListener("click",()=>{try{showPage("grammar");}catch(e){}});
+  box.querySelectorAll("[data-jump]").forEach(b=>b.addEventListener("click",()=>openRefPath(b.getAttribute("data-jump"))));
+  box.querySelectorAll("[data-topic]").forEach(b=>b.addEventListener("click",()=>openRefTopic(b.getAttribute("data-topic"))));
+  box.querySelectorAll("[data-topic-open]").forEach(b=>b.addEventListener("click",()=>openRefTopic(b.getAttribute("data-topic-open"))));
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){}
+}
+
+function refTopicPreview(tp){
+  return '<button class="btn btn-primary sm" data-topic-open="'+refEsc(tp.id)+'">'+refEsc(refT("ref_topic_of"))+' ←</button>';
+}
+
+function openRefTopic(tid){
+  const found=refTopicById(tid);if(!found)return;
+  const {path:p,topic:tp}=found;
+  refState={path:p.id,topic:tid};
+  const topics=refPathTopics(p.id);
+  const idx=topics.findIndex(x=>x.id===tid);
+  const prev=idx>0?topics[idx-1]:null, next=(idx>=0&&idx<topics.length-1)?topics[idx+1]:null;
+  let h=refCrumb([{id:p.id,label:p.id+" • "+refPathTitle(p)},{label:refTopicTitle(tp)}]);
+  h+='<div class="panel glass ref-hero"><span class="'+refLvlClass(tp.level||"A1")+'">'+refEsc(refLvlLabel(tp.level||"A1"))+'</span>';
+  h+='<h2>'+refEsc(tp.de||"")+'</h2><div class="ref-hero-ar">'+refEsc(tp.ar||"")+(tp.en?' <span class="muted">• '+refEsc(tp.en)+'</span>':"")+'</div>';
+  h+='<div class="muted">'+refEsc(refT("ref_topic_of"))+' '+(idx+1)+' '+refEsc(refT("ref_of"))+' '+topics.length+' • '+p.id+'</div></div>';
+  if(tp.what)h+='<div class="panel glass"><h4>1️⃣ '+refEsc(refT("ref_what"))+'</h4><p>'+refEsc(tp.what)+'</p></div>';
+  if(tp.rule)h+='<div class="panel glass"><h4>2️⃣ '+refEsc(refT("ref_rule"))+'</h4><p>'+refEsc(tp.rule)+'</p></div>';
+  (tp.tables||[]).forEach(tb=>{
+    h+='<div class="panel glass"><h4>📊 '+refEsc(tb.cap)+'</h4><div class="tbl-wrap"><table class="ex-table"><tr>'+tb.head.map(x=>'<th>'+refEsc(x)+'</th>').join("")+'</tr>';
+    tb.rows.forEach(r=>{h+='<tr>'+r.map(c=>'<td>'+refEsc(c)+'</td>').join("")+'</tr>';});
+    h+='</table></div></div>';
+  });
+  if(tp.examples&&tp.examples.length){
+    h+='<div class="panel glass"><h4>🇩🇪 '+refEsc(refT("ref_examples"))+'</h4>';
+    tp.examples.forEach(e=>{
+      h+='<div class="ref-ex"><div class="ref-ex-de" dir="ltr">'+refEsc(e[0])+' <button class="mini-btn ref-say" data-spk="'+refEsc(e[0])+'" title="🔊">🔊</button></div><div class="ref-ex-ar">'+refEsc(e[1]||"")+'</div></div>';
+    });
+    h+='</div>';
+  }
+  if(tp.notes&&tp.notes.length)h+='<div class="panel glass"><h4>⭐ '+refEsc(refT("ref_notes"))+'</h4><ul class="ex-ul">'+tp.notes.map(n=>'<li>'+refEsc(n)+'</li>').join("")+'</ul></div>';
+  if(tp.mistakes&&tp.mistakes.length){
+    h+='<div class="panel glass"><h4>⚠️ '+refEsc(refT("ref_mistakes"))+'</h4>'+tp.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ '+refEsc(m.w)+'</div><div class="ex-right">✅ '+refEsc(m.r)+'</div><div class="muted">💡 '+refEsc(m.why)+'</div></div>').join("")+'</div>';
+  }
+  if(tp.related&&tp.related.length){
+    const links=tp.related.map(rid=>{const f=refTopicById(rid);if(!f)return null;return '<button class="mini-btn" data-rel="'+refEsc(rid)+'">'+f.path.id+' • '+refEsc(refTopicTitle(f.topic))+'</button>';}).filter(Boolean);
+    if(links.length)h+='<div class="panel glass"><h4>'+refEsc(refT("ref_related"))+'</h4><div class="row-flex">'+links.join("")+'</div></div>';
+  }
+  if(tp.explain){
+    h+='<div class="row-flex"><button class="btn btn-ghost sm" id="refExplainBtn">'+refEsc(refT("ref_open_lesson"))+' ('+refEsc(tp.explain)+')</button></div>';
+  }
+  const validQ=(tp.quiz||[]).filter(refValidQuiz);
+  if(validQ.length){
+    h+='<details class="panel glass" open><summary><b>'+refEsc(refT("ref_quiz"))+' ('+validQ.length+')</b></summary><div class="ref-quiz-body">';
+    validQ.forEach((q,qi)=>{
+      h+='<div class="ref-q"><b>'+refEsc(q.q)+'</b><div class="quiz-opts">'+q.opts.map((o,oi)=>'<button class="quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'">'+refEsc(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
+    });
+    h+='</div></details>';
+  }
+  h+='<div class="ex-nav bottom"><button class="btn btn-ghost sm" id="refPrevBtn" '+(prev?"":"disabled")+'>'+refEsc(refT("ref_prev"))+(prev?' '+refEsc(refTopicTitle(prev)):"")+'</button><button class="btn btn-gold sm" id="refIdxBtn">'+refEsc(refT("ref_back_path"))+'</button><button class="btn btn-ghost sm" id="refNextBtn" '+(next?"":"disabled")+'>'+(next?refEsc(refTopicTitle(next))+" ":"")+refEsc(refT("ref_next"))+'</button></div>';
+  const box=document.getElementById("refBox");if(!box)return;
+  /* keep search+paths grid on top: render topic into detail area if present, else full */
   let det=document.getElementById("refDetail");
-  const topics=REF_TOPICS[id]||[];
-  let h='<div class="panel glass ref-detail-head"><button class="btn btn-ghost sm" id="refBackBtn">'+refEsc(refT("ref_back"))+'</button>';
-  h+='<h3>'+c.icon+' '+refEsc(refCatTitle(c))+' <span class="muted">'+refEsc(c.de)+'</span></h3></div>';
-  h+='<div class="ref-topic-list">';
-  topics.forEach((tp,i)=>{
-    const key=id+"_"+i;
-    const d=REF_DATA[key];
-    h+='<details class="ref-topic glass"'+(d?"":"")+'>';
-    h+='<summary>'+refEsc(tp)+'</summary>';
-    h+='<div class="ref-topic-body" data-topic-body="'+refEsc(key)+'" data-topic-name="'+refEsc(tp)+'">';
-    if(d){h+=renderRefTopic(d);}else{h+='<div class="muted">'+refEsc(refT("ref_coming"))+'</div>';}
-    h+='</div></details>';
-  });
-  h+='</div>';
+  if(!det){renderReference();det=document.getElementById("refDetail");}
   det.innerHTML=h;
-  document.getElementById("refBackBtn").addEventListener("click",()=>{det.innerHTML="";try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){}});
-  wireRefTopics(det);
-  det.scrollIntoView({behavior:"smooth",block:"start"});
-}
-
-function renderRefTopic(d){
-  let h="";
-  if(d.level)h+='<div><span class="ref-lvl">'+refEsc(d.level)+'</span> <span class="muted">'+refEsc(d.use||"")+'</span></div>';
-  else if(d.use)h+='<div class="muted">'+refEsc(d.use)+'</div>';
-  (d.tables||[]).forEach(tb=>{
-    h+='<div class="ref-tbl-title">📊 '+refEsc(tb.cap)+'</div><div class="ref-tbl-wrap"><table class="ref-tbl"><tr>'+tb.head.map(x=>'<th>'+refEsc(x)+'</th>').join("")+'</tr>';
-    tb.rows.forEach(r=>{h+='<tr>'+r.map(cell=>'<td>'+refEsc(cell)+'</td>').join("")+'</tr>';});
-    h+='</table></div>';
-  });
-  if(d.examples&&d.examples.length){
-    h+='<div class="ref-tbl-title">'+refEsc(refT("ref_examples"))+'</div>';
-    d.examples.forEach(e=>{
-      h+='<div class="ref-ex"><div class="ref-ex-de" dir="ltr">'+refEsc(e[0])+refSpeakBtn(e[0])+'</div><div class="ref-ex-ar">'+refEsc(e[1])+'</div></div>';
-    });
-  }
-  if(d.quiz&&d.quiz.length){
-    h+='<details class="ref-quiz"><summary>'+refEsc(refT("ref_quiz"))+' ('+d.quiz.length+')</summary><div class="ref-quiz-body">';
-    d.quiz.forEach((q,qi)=>{
-      h+='<div class="ref-q" data-q="'+qi+'"><b>'+refEsc(q.q)+'</b><div class="quiz-opts">'+q.opts.map((o,oi)=>'<button class="quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'">'+refEsc(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
-    });
-    h+='</div></details>';
-  }
-  return h;
-}
-
-function wireRefTopics(root){
-  root.querySelectorAll("[data-spk]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();ev.preventDefault();try{if(typeof speakGerman==="function")speakGerman(b.getAttribute("data-spk"));}catch(e){}}));
-  root.querySelectorAll(".ref-quiz-body").forEach(qb=>{
-    const topicKey=qb.closest("[data-topic-body]")?qb.closest("[data-topic-body]").getAttribute("data-topic-body"):null;
-    const d=topicKey?REF_DATA[topicKey]:null;
-    qb.querySelectorAll(".quiz-opt").forEach(btn=>btn.addEventListener("click",()=>{
-      const qi=parseInt(btn.getAttribute("data-qi"),10);
+  wireCrumb(det);
+  det.querySelectorAll("[data-spk]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();try{if(typeof speakGerman==="function")speakGerman(b.getAttribute("data-spk"));}catch(e){}}));
+  det.querySelectorAll("[data-rel]").forEach(b=>b.addEventListener("click",()=>openRefTopic(b.getAttribute("data-rel"))));
+  const exB=document.getElementById("refExplainBtn");
+  if(exB&&tp.explain)exB.addEventListener("click",()=>{try{if(typeof openExplain==="function")openExplain(tp.explain);}catch(e){}});
+  det.querySelectorAll(".ref-q").forEach(wrap=>{
+    const qi=parseInt(wrap.querySelector(".quiz-opt").getAttribute("data-qi"),10);
+    const q=validQ[qi];
+    wrap.querySelectorAll(".quiz-opt").forEach(btn=>btn.addEventListener("click",()=>{
       const oi=parseInt(btn.getAttribute("data-oi"),10);
-      const q=d&&d.quiz?d.quiz[qi]:null;if(!q)return;
-      const wrap=btn.closest(".ref-q");
       wrap.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
       const fb=wrap.querySelector(".quiz-feedback");fb.classList.remove("hidden");
       if(oi===q.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent=refT("ref_correct")+" "+(q.why||"");}
@@ -213,55 +203,64 @@ function wireRefTopics(root){
       try{if(typeof markStudyDay==="function")markStudyDay(false);}catch(e){}
     }));
   });
+  document.getElementById("refIdxBtn").addEventListener("click",()=>openRefPath(p.id));
+  if(prev)document.getElementById("refPrevBtn").addEventListener("click",()=>openRefTopic(prev.id));
+  if(next)document.getElementById("refNextBtn").addEventListener("click",()=>openRefTopic(next.id));
+  det.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
+/* ---------- professional search: de/ar/en/title/examples/keywords/related ---------- */
+var refIndex=null;
+function refBuildIndex(){
+  const entries=[];
+  REF_PATHS.forEach(p=>{
+    entries.push({kind:"path",path:p,topic:null,title:refPathTitle(p)+" "+p.de+" "+p.en,hay:refNorm(p.ar+" "+p.de+" "+p.en)});
+    refPathTopics(p.id).forEach(tp=>{
+      const hay=refNorm([tp.de,tp.ar,tp.en,tp.what,tp.rule,(tp.keywords||[]).join(" "),(tp.tables||[]).map(x=>x.cap+" "+x.head.join(" ")+x.rows.map(r=>r.join(" ")).join(" ")).join(" "),(tp.examples||[]).map(e=>e.join(" ")).join(" "),(tp.notes||[]).join(" ")].join(" "));
+      entries.push({kind:"topic",path:p,topic:tp,title:refTopicTitle(tp)+" — "+(tp.de||""),hay:hay});
+    });
+  });
+  refIndex=entries;return entries;
+}
 function runRefSearch(){
   const inp=document.getElementById("refSearch"),out=document.getElementById("refResults");
   if(!inp||!out)return;
   const q=refNorm(inp.value);
   if(!q||q.length<2){out.innerHTML="";out.classList.remove("show");return;}
-  const hits=[];
-  REF_CATS.forEach(c=>{
-    const hay=refNorm(c.ar+" "+c.de+" "+c.en);
-    if(hay.indexOf(q)>=0)hits.push({score:3,html:"cat",cat:c,text:c.icon+" "+refCatTitle(c)+" — "+c.de});
+  if(!refIndex)refBuildIndex();
+  const scored=[];
+  refIndex.forEach(e=>{
+    let s=0;
+    const ti=refNorm(e.kind==="path"?refPathTitle(e.path)+" "+e.path.de+" "+e.path.en:refTopicTitle(e.topic)+" "+(e.topic.de||"")+" "+(e.topic.en||""));
+    if(ti===q)s=9;
+    else if(ti.split(" ").some(w=>w===q))s=8;
+    else if(ti.indexOf(q)===0)s=7;
+    else if(ti.indexOf(q)>=0)s=6;
+    else{
+      const kws=e.kind==="topic"?((e.topic.keywords||[]).map(refNorm)):[""];
+      if(kws.some(k=>k===q))s=5;
+      else if(kws.some(k=>k&&k.indexOf(q)===0))s=4;
+      else if(e.hay.indexOf(q)>=0)s=3;
+    }
+    if(s>0)scored.push({e:e,s:s});
   });
-  Object.keys(REF_TOPICS).forEach(cid=>{
-    (REF_TOPICS[cid]||[]).forEach((tp,i)=>{
-      const key=cid+"_"+i,d=REF_DATA[key];
-      let hay=refNorm(tp);
-      if(d){hay+=" "+refNorm([d.use||"",JSON.stringify(d.tables||[]),JSON.stringify(d.examples||[])].join(" "));}
-      if(hay.indexOf(q)>=0){
-        const c=REF_CATS.find(x=>x.id===cid);
-        hits.push({score:d?5:2,html:"topic",cat:c,topic:tp,key:key,text:"📄 "+tp+" <span class='muted'>("+(c?refCatTitle(c):cid)+")</span>"});
-      }
-    });
-  });
-  hits.sort((a,b)=>b.score-a.score);
-  const top=hits.slice(0,12);
+  scored.sort((a,b)=>b.s-a.s);
+  const top=scored.slice(0,12);
   if(!top.length){out.innerHTML='<div class="search-hit">'+refEsc(refT("ref_no_results"))+'</div>';out.classList.add("show");return;}
-  out.innerHTML=top.map((h,i)=>'<div class="search-hit" data-h="'+i+'">'+h.text+'</div>').join("");
+  out.innerHTML=top.map((r,i)=>{
+    const label=r.e.kind==="path"?("🗂️ "+refEsc(refPathTitle(r.e.path))):("📄 "+refEsc(refTopicTitle(r.e.topic))+" <span class='muted'>("+r.e.path.id+" • "+refEsc(refPathTitle(r.e.path))+")</span>");
+    return '<div class="search-hit" data-h="'+i+'">'+label+'</div>';
+  }).join("");
   out.classList.add("show");
   out.querySelectorAll("[data-h]").forEach(el=>el.addEventListener("click",()=>{
-    const h=top[parseInt(el.getAttribute("data-h"),10)];
-    if(!h)return;
-    openRefCat(h.cat.id);
-    out.classList.remove("show");
-    if(h.html==="topic"){
-      setTimeout(()=>{
-        const det=document.getElementById("refDetail");if(!det)return;
-        const bodies=det.querySelectorAll("[data-topic-name]");
-        bodies.forEach(b=>{
-          if(b.getAttribute("data-topic-name")===h.topic){
-            const d=b.closest("details");if(d)d.open=true;
-            b.scrollIntoView({behavior:"smooth",block:"center"});
-          }
-        });
-      },80);
-    }
+    const r=top[parseInt(el.getAttribute("data-h"),10)];if(!r)return;
+    out.classList.remove("show");try{inp.value="";}catch(e){}
+    if(r.e.kind==="path")openRefPath(r.e.path.id);
+    else{openRefPath(r.e.path.id);setTimeout(()=>openRefTopic(r.e.topic.id),60);}
   }));
 }
 
-/* ---------- showPage wrap + lazy registration (same pattern as labsx/learn/play) ---------- */
+/* ---------- showPage wrap + lazy registration ---------- */
 (function(){
   try{if(typeof DM_LAZY!=="undefined"&&DM_LAZY)DM_LAZY.reference=renderReference;}catch(e){}
   try{
