@@ -164,7 +164,11 @@ function openRefTopic(tid){
   }
   if(tp.notes&&tp.notes.length)h+='<div class="panel glass"><h4>⭐ '+refEsc(refT("ref_notes"))+'</h4><ul class="ex-ul">'+tp.notes.map(n=>'<li>'+refEsc(n)+'</li>').join("")+'</ul></div>';
   if(tp.mistakes&&tp.mistakes.length){
-    h+='<div class="panel glass"><h4>⚠️ '+refEsc(refT("ref_mistakes"))+'</h4>'+tp.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ '+refEsc(m.w)+'</div><div class="ex-right">✅ '+refEsc(m.r)+'</div><div class="muted">💡 '+refEsc(m.why)+'</div></div>').join("")+'</div>';
+    h+='<div class="panel glass"><h4>⚠️ '+refEsc(refT("ref_mistakes"))+'</h4>'+tp.mistakes.map(m=>{
+      let relBtn="";
+      try{const f=m.rel?refTopicById(m.rel):null;if(f)relBtn='<div><button class="mini-btn" data-rel="'+refEsc(m.rel)+'">🧠 '+refEsc(refTopicTitle(f.topic))+'</button></div>';}catch(e){}
+      return '<div class="ex-mist"><div class="ex-wrong">❌ '+refEsc(m.w)+'</div><div class="ex-right">✅ '+refEsc(m.r)+'</div><div class="muted">💡 '+refEsc(m.why)+'</div>'+relBtn+'</div>';
+    }).join("")+'</div>';
   }
   if(tp.related&&tp.related.length){
     const links=tp.related.map(rid=>{const f=refTopicById(rid);if(!f)return null;return '<button class="mini-btn" data-rel="'+refEsc(rid)+'">'+f.path.id+' • '+refEsc(refTopicTitle(f.topic))+'</button>';}).filter(Boolean);
@@ -235,16 +239,22 @@ function runRefSearch(){
     const ti=refNorm(e.kind==="path"?refPathTitle(e.path)+" "+e.path.de+" "+e.path.en:refTopicTitle(e.topic)+" "+(e.topic.de||"")+" "+(e.topic.en||""));
     const kws=e.kind==="topic"?((e.topic.keywords||[]).map(refNorm)):[""];
     if(kws.some(k=>k===q))kb=1;
-var REF_STOP=new Set(["der","die","das","den","dem","des","ein","eine","einen","einem","einer","mit","von","zu","bei","nach","aus","vor","für","um","ohne","gegen","durch","seit","und","oder","aber","als","in","an","auf","the","and","with","with","of","to","on","for","a","an"]);
+    var REF_STOP=new Set(["der","die","das","den","dem","des","ein","eine","einen","einem","einer","mit","von","zu","bei","nach","aus","vor","für","um","ohne","gegen","durch","seit","und","oder","aber","als","in","an","auf","the","and","with","with","of","to","on","for","a","an"]);
     if(ti===q)s=10;
-    else if(ti.split(" ").some(w=>refStripAl(w)===refStripAl(q)))s=REF_STOP.has(q)?6:8;
-    else if(kb)s=7;
-    else if(ti.indexOf(q)>=0)s=6;
-    else if(kws.some(k=>k&&k.indexOf(q)===0))s=5;
-    else if(e.hay.indexOf(q)>=0)s=4;
-    if(s>0)scored.push({e:e,s:s,kb:kb});
+    else{
+      const wordMatch=ti.split(" ").some(w=>refStripAl(w)===refStripAl(q));
+      let st=0;
+      if(wordMatch)st=REF_STOP.has(q)?6:8;
+      else if(ti.indexOf(q)>=0)st=6;
+      let sk=0;
+      if(kb)sk=7;
+      else if(kws.some(k=>k&&k.indexOf(q)===0))sk=5;
+      s=Math.max(st,sk);
+      if(s===0&&e.hay.indexOf(q)>=0)s=4;
+    }
+    if(s>0)scored.push({e:e,s:s,kb:kb,tb:ti.indexOf(q)===0?1:0});
   });
-  scored.sort((a,b)=>(b.s-a.s)||(b.kb-a.kb));
+  scored.sort((a,b)=>(b.s-a.s)||(b.kb-a.kb)||(b.tb-a.tb));
   const top=scored.slice(0,12);
   if(!top.length){out.innerHTML='<div class="search-hit">'+refEsc(refT("ref_no_results"))+'</div>';out.classList.add("show");return;}
   out.innerHTML=top.map((r,i)=>{

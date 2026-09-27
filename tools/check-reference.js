@@ -13,15 +13,15 @@ const CDIR = path.join(ROOT, "client");
 /* ---------- full planned registry (all paths A..P) ---------- */
 const REF_PLAN = {
  A: ["a-alphabet", "a-wortarten", "a-satz-basis", "a-wortstellung"],
- B: ["b-nomen-genus", "b-nomen-plural", "b-nomen-gross", "b-artikel-bestimmt", "b-artikel-unbestimmt", "b-artikel-negativ", "b-artikel-possessiv", "b-artikel-demonstrativ"],
- C: ["c-personal", "c-possessiv", "c-reflexiv", "c-demonstrativ", "c-interrogativ", "c-relativ", "c-indefinit"],
+ B: ["b-nomen-genus", "b-nomen-plural", "b-nomen-gross", "b-artikel-bestimmt", "b-artikel-unbestimmt", "b-artikel-negativ", "b-artikel-possessiv", "b-artikel-demonstrativ", "b-w-der"],
+ C: ["c-personal", "c-possessiv", "c-reflexiv", "c-demonstrativ", "c-interrogativ", "c-relativ", "c-indefinit", "c-w-ich"],
  D: ["d-nominativ", "d-akkusativ", "d-dativ", "d-genitiv", "d-vergleich"],
  E: ["e-grundlagen", "e-steigerung", "e-deklination"],
- F: ["f-grundlagen", "f-arten", "f-modal", "f-trennbar", "f-untrennbar", "f-shw", "f-dativ-verben", "f-akkusativ-verben"],
+ F: ["f-grundlagen", "f-arten", "f-modal", "f-trennbar", "f-untrennbar", "f-shw", "f-dativ-verben", "f-akkusativ-verben", "f-machen", "f-w-koennen", "f-w-muessen", "f-w-wollen", "f-w-sollen", "f-w-duerfen", "f-w-moegen", "f-w-moechten"],
  G: ["g-praesens", "g-perfekt", "g-partizip2", "g-praeteritum", "g-futur1"],
- H: ["h-akkusativ", "h-dativ", "h-genitiv", "h-wechsel"],
- I: ["i-fragewoerter", "i-fragen", "i-negation", "i-konjunktionen"],
- J: ["j-uhrzeit", "j-tage", "j-monate", "j-jahreszeiten", "j-tageszeiten", "j-zeitwoerter"],
+ H: ["h-akkusativ", "h-dativ", "h-genitiv", "h-wechsel", "h-w-durch", "h-w-fuer", "h-w-gegen", "h-w-ohne", "h-w-um", "h-w-aus", "h-w-bei", "h-w-mit", "h-w-nach", "h-w-seit", "h-w-von", "h-w-zu", "h-w-gegenueber", "h-w-waehrend", "h-w-wegen", "h-w-trotz", "h-w-statt", "h-w-an", "h-w-auf", "h-w-hinter", "h-w-in", "h-w-neben", "h-w-ueber", "h-w-unter", "h-w-vor", "h-w-zwischen"],
+ I: ["i-fragewoerter", "i-fragen", "i-negation", "i-konjunktionen", "i-w-weil", "i-w-wer", "i-w-was", "i-w-wann", "i-w-wo", "i-w-wohin", "i-w-woher", "i-w-warum", "i-w-wie", "i-w-wieviel", "i-w-welcher"],
+ J: ["j-uhrzeit", "j-tage", "j-monate", "j-jahreszeiten", "j-tageszeiten", "j-zeitwoerter", "j-w-gestern"],
  K: ["k-zahlen", "k-ordinal", "k-quantitaet"],
  L: ["l-wo", "l-wohin", "l-woher", "l-richtungen"],
  M: ["m-haupt-neben", "m-verbstellung", "m-tmp"],
@@ -80,7 +80,7 @@ topics.forEach(tp => {
     if (isEmpty(e[1])) bad("MissingArabic", tp.id + " ex" + i + " translation");
   });
   if ((!tp.notes || !tp.notes.length) && (!tp.mistakes || !tp.mistakes.length)) bad("Missing", tp.id + " notes+mistakes");
-  (tp.mistakes || []).forEach((m, i) => { if (isEmpty(m.w) || isEmpty(m.r) || isEmpty(m.why)) bad("Empty", tp.id + " mistake" + i); });
+  (tp.mistakes || []).forEach((m, i) => { if (isEmpty(m.w) || isEmpty(m.r) || isEmpty(m.why)) bad("Empty", tp.id + " mistake" + i); if (m.rel && !ALL_PLANNED.has(m.rel)) bad("BrokenLinks", tp.id + " mistake rel -> " + m.rel); });
   (tp.related || []).forEach(rid => { if (!ALL_PLANNED.has(rid)) bad("BrokenLinks", tp.id + " -> " + rid); });
   if (!Array.isArray(tp.quiz) || !tp.quiz.length) bad("Missing", tp.id + " quiz");
   (tp.quiz || []).forEach((q, i) => {
@@ -116,24 +116,33 @@ function searchTop3(q) {
     const kws = (tp.keywords || []).map(refNorm);
     let s = 0; const kb = kws.some(k => k === q) ? 1 : 0;
     if (title === q) s = 10;
-    else if (title.split(" ").some(w => stripAl(w) === stripAl(q))) s = REF_STOP.has(q) ? 6 : 8;
-    else if (kb) s = 7;
-    else if (title.indexOf(q) >= 0) s = 6;
-    else if (kws.some(k => k && k.indexOf(q) === 0)) s = 5;
     else {
-      const hay = refNorm([tp.what, tp.rule, JSON.stringify(tp.tables), JSON.stringify(tp.examples)].join(" "));
-      if (hay.indexOf(q) >= 0) s = 4;
+      const wordMatch = title.split(" ").some(w => stripAl(w) === stripAl(q));
+      let st = 0;
+      if (wordMatch) st = REF_STOP.has(q) ? 6 : 8;
+      else if (title.indexOf(q) >= 0) st = 6;
+      let sk = 0;
+      if (kb) sk = 7;
+      else if (kws.some(k => k && k.indexOf(q) === 0)) sk = 5;
+      s = Math.max(st, sk);
+      if (s === 0) {
+        const hay = refNorm([tp.what, tp.rule, JSON.stringify(tp.tables), JSON.stringify(tp.examples)].join(" "));
+        if (hay.indexOf(q) >= 0) s = 4;
+      }
     }
-    if (s > 0) scored.push({ id: tp.id, s, kb });
+    if (s > 0) scored.push({ id: tp.id, s, kb, tb: title.indexOf(q) === 0 ? 1 : 0 });
   });
-  scored.sort((a, b) => (b.s - a.s) || (b.kb - a.kb));
+  scored.sort((a, b) => (b.s - a.s) || (b.kb - a.kb) || (b.tb - a.tb));
   return scored.slice(0, 3).map(r => r.id);
 }
 const SEARCH_TESTS = [
   ["ضمائر", ["c-personal"]],
   ["nicht", ["b-artikel-negativ"]],
   ["Dativ", ["d-dativ"]],
-  ["der", ["b-nomen-genus", "b-artikel-bestimmt"]],
+  ["der", ["b-w-der"]],
+  ["ich", ["c-w-ich"]],
+  ["weil", ["i-w-weil"]],
+  ["können", ["f-modal"]],
   ["mein", ["b-artikel-possessiv", "c-possessiv"]],
   ["Perfekt", ["g-perfekt"]],
   ["gestern", ["j-zeitwoerter", "g-praeteritum"]],
@@ -150,6 +159,9 @@ SEARCH_TESTS.forEach(([q, expectAny]) => {
 
 console.log("----");
 Object.keys(C).forEach(k => console.log(k + ": " + C[k]));
+let nTables = 0, nExamples = 0, nQuestions = 0;
+topics.forEach(tp => { nTables += (tp.tables || []).length; nExamples += (tp.examples || []).length; nQuestions += (tp.quiz || []).length; });
+console.log("Totals: Topics=" + topics.length + " Tables=" + nTables + " Examples=" + nExamples + " Questions=" + nQuestions);
 const fails = Object.values(C).reduce((a, b) => a + b, 0) + searchFails;
 if (fails) { console.log("RESULT: FAIL (" + fails + ")"); process.exit(1); }
 console.log("RESULT: PASS (pending content: " + pending.length + ")");
