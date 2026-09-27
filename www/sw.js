@@ -1,5 +1,5 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v28";
+var DM_CACHE = "german-academy-v29";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./reference.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
@@ -29,6 +29,20 @@ self.addEventListener("activate", function (e) {
 });
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
+  /* Navigations (HTML pages): network-first so users always get the latest
+     release; fall back to cache when offline (PWA still works offline). */
+  if (e.request.mode === "navigate") {
+    e.respondWith(fetch(e.request).then(function (res) {
+      try {
+        var copy = res.clone();
+        caches.open(DM_CACHE).then(function (c) { try { c.put(e.request, copy); } catch (err) {} });
+      } catch (err) {}
+      return res;
+    }).catch(function () {
+      return caches.match("./index.html");
+    }));
+    return;
+  }
   e.respondWith(caches.match(e.request).then(function (hit) {
     if (hit) return hit;
     return fetch(e.request).then(function (res) { return res; }).catch(function () {
