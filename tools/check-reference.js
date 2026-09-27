@@ -16,8 +16,8 @@ const REF_PLAN = {
  B: ["b-nomen-genus", "b-nomen-plural", "b-nomen-gross", "b-artikel-bestimmt", "b-artikel-unbestimmt", "b-artikel-negativ", "b-artikel-possessiv", "b-artikel-demonstrativ", "b-w-der"],
  C: ["c-personal", "c-possessiv", "c-reflexiv", "c-demonstrativ", "c-interrogativ", "c-relativ", "c-indefinit", "c-w-ich"],
  D: ["d-nominativ", "d-akkusativ", "d-dativ", "d-genitiv", "d-vergleich"],
- E: ["e-grundlagen", "e-steigerung", "e-deklination"],
- F: ["f-grundlagen", "f-arten", "f-modal", "f-trennbar", "f-untrennbar", "f-shw", "f-dativ-verben", "f-akkusativ-verben", "f-machen", "f-w-koennen", "f-w-muessen", "f-w-wollen", "f-w-sollen", "f-w-duerfen", "f-w-moegen", "f-w-moechten"],
+ E: ["e-grundlagen", "e-gegenteile", "e-steigerung", "e-deklination"],
+ F: ["f-grundlagen", "f-arten", "f-modal", "f-trennbar", "f-untrennbar", "f-shw", "f-dativ-verben", "f-akkusativ-verben", "f-machen", "f-w-koennen", "f-w-muessen", "f-w-wollen", "f-w-sollen", "f-w-duerfen", "f-w-moegen", "f-w-moechten", "f-lage-verben"],
  G: ["g-praesens", "g-perfekt", "g-partizip2", "g-praeteritum", "g-futur1"],
  H: ["h-akkusativ", "h-dativ", "h-genitiv", "h-wechsel", "h-w-durch", "h-w-fuer", "h-w-gegen", "h-w-ohne", "h-w-um", "h-w-aus", "h-w-bei", "h-w-mit", "h-w-nach", "h-w-seit", "h-w-von", "h-w-zu", "h-w-gegenueber", "h-w-waehrend", "h-w-wegen", "h-w-trotz", "h-w-statt", "h-w-an", "h-w-auf", "h-w-hinter", "h-w-in", "h-w-neben", "h-w-ueber", "h-w-unter", "h-w-vor", "h-w-zwischen"],
  I: ["i-fragewoerter", "i-fragen", "i-negation", "i-konjunktionen", "i-w-weil", "i-w-wer", "i-w-was", "i-w-wann", "i-w-wo", "i-w-wohin", "i-w-woher", "i-w-warum", "i-w-wie", "i-w-wieviel", "i-w-welcher"],
@@ -149,12 +149,13 @@ const SEARCH_TESTS = [
   ["der", ["b-w-der"]],
   ["ich", ["c-w-ich"]],
   ["weil", ["i-w-weil"]],
-  ["können", ["f-modal"]],
+  ["können", ["f-w-koennen"]],
   ["mein", ["b-artikel-possessiv", "c-possessiv"]],
   ["Perfekt", ["g-perfekt"]],
-  ["gestern", ["j-zeitwoerter", "g-praeteritum"]],
+  ["gestern", ["j-w-gestern"]],
   ["ماضي", ["g-perfekt", "j-zeitwoerter", "g-praeteritum"]],
-  ["mit", ["h-dativ"]]
+  ["mit", ["h-w-mit"]],
+  ["liegen", ["f-lage-verben"]]
 ];
 let searchFails = 0;
 SEARCH_TESTS.forEach(([q, expectAny]) => {
