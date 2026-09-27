@@ -594,3 +594,35 @@ html[data-theme="light"] #wrIn{background:#fff}
   .flash-face .btn[data-say-word],.flash-face .btn[data-say-sent],#flashPlural{transition:none}
   .flash-face .btn[data-say-word].is-speaking,.flash-face .btn[data-say-sent].is-speaking,#flashPlural.is-speaking{transform:none;box-shadow:none;opacity:1}
 }
+
+/* ---------- Sentence Training internal views (sentex.js, additive only) ----------
+   Selectors stay at the top; a single .sx-active-view container below them is
+   replaced in place. No page-level scrolling is used for switching. */
+#sentexBox,#practiceBox{min-width:0;max-width:100%}
+.sx-types{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:10px 4px;margin:4px 0 12px;
+  max-width:100%;min-width:0;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.sx-type{flex:0 0 auto;min-height:44px;display:inline-flex;align-items:center;gap:6px;
+  padding:10px 14px;border-radius:12px;border:1px solid var(--border);
+  background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;
+  font-weight:800;font-size:14px;white-space:nowrap;max-width:100%}
+.sx-type:hover{background:rgba(var(--v2),.15)}
+.sx-type.active{background:var(--grad);color:#fff;border-color:transparent;
+  box-shadow:0 0 15px rgba(var(--v1),.5)}
+.sx-type-ico{font-size:16px}
+.sx-type-n{font-size:12px;opacity:.85;background:rgba(0,0,0,.25);
+  border-radius:10px;padding:1px 8px}
+.sx-active-view{min-width:0;max-width:100%;margin-top:4px}
+.sx-active-view:empty{display:none}
+.sx-active-hint{text-align:center}
+.sx-chapter-grid{min-width:0;max-width:100%}
+@media(max-width:560px){
+  .sx-types{gap:6px;padding:8px 2px;margin:2px 0 10px}
+  .sx-type{min-height:44px;padding:10px 12px;font-size:13px}
+  #sentexBox .sx-chapter-grid,#practiceBox .sx-chapter-grid{grid-template-columns:1fr 1fr;gap:8px}
+  #sentexBox .sx-chapter-grid .panel,#practiceBox .sx-chapter-grid .panel{padding:12px}
+  #sentexBox .sx-chapter-grid h4,#practiceBox .sx-chapter-grid h4{font-size:14px}
+}
+@media(max-width:380px){
+  #sentexBox .sx-chapter-grid,#practiceBox .sx-chapter-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .sx-type{font-size:12px;padding:9px 10px}
+}
