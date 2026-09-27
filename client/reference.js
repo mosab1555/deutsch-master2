@@ -116,7 +116,6 @@ function renderReference(){
   const si=document.getElementById("refSearch");
   let tm=null;
   si.addEventListener("input",()=>{try{clearTimeout(tm);}catch(e){}tm=setTimeout(runRefSearch,120);});
-  try{if(typeof applyLang==="function")applyLang();}catch(e){}
 }
 
 function refCrumb(items){
@@ -375,14 +374,14 @@ function runRefSearch(){
   }));
 }
 
-/* ---------- showPage wrap + lazy registration ---------- */
+/* ---------- showPage wrap (single render per visit, no DM_LAZY double-call) ---------- */
 (function(){
-  try{if(typeof DM_LAZY!=="undefined"&&DM_LAZY)DM_LAZY.reference=renderReference;}catch(e){}
   try{
-    if(typeof showPage==="function"){
+    if(typeof showPage==="function"&&!showPage._refWrapped){
       const _sp=showPage;
       const REF_PAGES={reference:renderReference};
       showPage=function(n){_sp(n);try{if(REF_PAGES[n])REF_PAGES[n]();}catch(e){if(window.console)console.error(e);}};
+      try{showPage._refWrapped=true;}catch(e){}
     }
   }catch(e){}
 })();

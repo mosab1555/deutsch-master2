@@ -38,12 +38,17 @@ function applyLang(){
       // Root-cause hardening: snapshot children first (live NodeList mutates
       // during removal), and enforce exactly ONE .nav-ico so the icon can
       // never render twice no matter how often applyLang runs.
+      // If the button already carries its label in an inner [data-i18n] span
+      // (reference entry), update that span in place instead of appending a
+      // second text node, otherwise the label renders twice next to the icon.
       const kids=Array.prototype.slice.call(b.childNodes);
       kids.forEach(n=>{if(n.nodeType===3)n.remove();});
       const icons=b.querySelectorAll(".nav-ico");
       const ic=icons[0]||null;
       for(let k=1;k<icons.length;k++){try{icons[k].remove();}catch(e){}}
-      b.appendChild(document.createTextNode(" "+t(p)));
+      const labs=b.querySelectorAll("[data-i18n]");
+      if(labs.length){labs.forEach(function(el){try{el.textContent=t(el.getAttribute("data-i18n"));}catch(e){}});}
+      else{b.appendChild(document.createTextNode(" "+t(p)));}
       if(ic)b.insertBefore(ic,b.firstChild);
     });
   }catch(e){}
