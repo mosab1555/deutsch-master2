@@ -26,7 +26,7 @@ var REF_H=[
  rule:"während (أثناء)، wegen (بسبب)، trotz (رغم)، statt (بدلًا من). المستوى B1 — للتعرف والقراءة.",
  keywords:["Genitiv","während","wegen","trotz","statt","von","رغم","بسبب"],
  tables:[{cap:"Genitivpräpositionen",head:["الحرف","المعنى","مثال"],rows:[["während","أثناء","Während des Films."],["wegen","بسبب","Wegen des Wetters."],["trotz","رغم","Trotz des Regens."],["statt","بدلًا من","Statt des Busses."]]}],
- examples:[["Während des Unterrichts sind Handys aus.","أثناء الدرس الهواتف مغلقة."],["Wegen des Staus komme ich später.","بسبب الزحام سآتي متأخرًا."],["Trotz des Wetters gehen wir spazieren.","رغم الطقس نخرج للنزهة."]],
+ examples:[["Während des Unterrichts sind Handys aus.","أثناء الدرس الهواتف مغلقة."],["Wegen des Lärms schlafe ich nicht.","بسبب الضجيج لا أنام."],["Trotz des Regens bleiben wir zu Hause.","رغم المطر نبقى في البيت."]],
  notes:["يوميًا: wegen + Dativ شائع (wegen dem Wetter) لكن الرسمي Genitiv.","trotz/wegen/statt قد تأتي مع von + Dativ في الكلام."],
  mistakes:[{w:"wegen dem Wetter (رسميًا)",r:"wegen des Wetters",why:"الرسمي Genitiv."}],
  related:["d-genitiv","h-dativ"],
@@ -40,5 +40,5 @@ var REF_H=[
  notes:["in للمباني المغلقة، auf للأسطح والمناسبات (auf dem Markt/auf der Party)، an للجدران والمياه (am Meer).","استخدامات زمنية ثابتة: im Sommer (in+Dativ)، am Montag (an+Dativ).","الفرق بين الحركة والموقع هو أشهر قاعدة في A1 — راجع أمثلة in der/in die."],
  mistakes:[{w:"Ich gehe in der Schule. (بمعنى ذاهب)",r:"Ich gehe in die Schule.",why:"الحركة نحو المكان = Akkusativ."},{w:"Ich bin in die Schule. (بمعنى موجود)",r:"Ich bin in der Schule.",why:"الموقع الثابت = Dativ."}],
  related:["d-dativ","d-akkusativ","h-dativ","l-wo","l-wohin","j-tageszeiten"],
- quiz:[{q:"Ich bin ___ der Schule. (موجود)",opts:["in","nach","zu"],correct:0,why:"موقع ثابت + in + Dativ."},{q:"Ich gehe ___ die Schule. (ذاهب)",opts:["in","mit","bei"],correct:0,why:"حركة + in + Akkusativ."},{q:"Das Bild hängt an ___. (الحائط، ثابت)",opts:["die Wand","der Wand","den Wand"],correct:1,why:"ثابت + an + Dativ مؤنث: der Wand."},{q:"Wo؟ تجيب عنها حالة…",opts:["Akkusativ","Dativ","Nominativ"],correct:1,why:"الموقع الثابت = Dativ."}]}
+ quiz:[{q:"Ich bin ___ der Schule. (موجود)",opts:["in","nach","zu"],correct:0,why:"موقع ثابت + in + Dativ."},{q:"Ich gehe ___ die Schule. (ذاهب)",opts:["in","mit","bei"],correct:0,why:"حركة + in + Akkusativ."},{q:"Das Bild hängt an ___. (الحائط، ثابت)",opts:["die Wand","der Wand","den Wand"],correct:1,why:"ثابت + an + Dativ مؤنث: der Wand."},{q:"Wo؟ تجيب عنها حالة…",opts:["Akkusativ","Dativ","Nominativ"],correct:1,why:"الموقع الثابت = Dativ."},{q:"In die Schule تعني أنا موجود في المدرسة.",opts:["صحيح","خطأ"],correct:1,why:"in + Akk = حركة (ذاهب)، والوجود = in der."}]}
 ];

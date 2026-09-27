@@ -16,8 +16,8 @@ var REF_D=[
  rule:"أفعال كثيرة تأخذ Akkusativ: sehen, haben, brauchen, kaufen, lesen, trinken. يتغير المذكر فقط: der → den.",
  keywords:["Akkusativ","مفعول","Wen","Was","den","Kasus","حالات"],
  tables:[{cap:"Akkusativ — الأدوات",head:["maskulin","feminin","neutral","Plural"],rows:[["den","die","das","die"]]},{cap:"Akkusativ — الضمائر",head:["ich","du","er","sie","es","wir","ihr","sie","Sie"],rows:[["mich","dich","ihn","sie","es","uns","euch","sie","Sie"]]}],
- examples:[["Ich sehe den Hund.","أنا أرى الكلب."],["Er trinkt einen Kaffee.","هو يشرب قهوة."],["Ich besuche dich morgen.","سأزورك غدًا."]],
- notes:["المؤنث والمحايد والجمع لا تتغير أداتها في Akkusativ.","jeden Tag / jede Woche تعبيرات زمنية في Akkusativ بدون حرف جر."],
+ examples:[["Ich kaufe den Tee.","أشتري الشاي."],["Er trinkt einen Kaffee.","هو يشرب قهوة."],["Ich besuche dich morgen.","سأزورك غدًا."]],
+ notes:["المؤنث والمحايد والجمع لا تتغير أداتها في Akkusativ.","jeden Tag / jede Woche تعبيرات زمنية في Akkusativ بدون حرف جر.","حروف الجر المرتبطة: durch/für/gegen/ohne/um (h-akkusativ) + المتغيرة في الحركة (h-wechsel).","الأفعال المرتبطة: sehen, haben, brauchen, kaufen, lesen (f-akkusativ-verben)."],
  mistakes:[{w:"Ich sehe der Film.",r:"Ich sehe den Film.",why:"المفعول المذكر: den."}],
  related:["d-nominativ","c-personal","h-akkusativ","d-vergleich","f-akkusativ-verben"],
  quiz:[{q:"Ich kaufe ___ Tisch. (مذكر، مفعول)",opts:["der","den","dem"],correct:1,why:"Akkusativ مذكر = den."},{q:"Wen siehst du؟ تسأل عن…",opts:["الفاعل","المفعول (Akkusativ)","الملكية"],correct:1,why:"wen = سؤال Akkusativ."}]},
@@ -26,8 +26,8 @@ var REF_D=[
  rule:"الأدوات: dem/der/dem/den+n. الضمائر: mir/dir/ihm/ihr. في الجملة: الضمير Dativ قبل اسم Akkusativ (Ich gebe dir das Buch).",
  keywords:["Dativ","Wem","dem","mir","helfen","لمن","Kasus","حالات"],
  tables:[{cap:"Dativ — الأدوات",head:["maskulin","feminin","neutral","Plural"],rows:[["dem","der","dem","den + n"]]},{cap:"Dativ — الضمائر",head:["ich","du","er","sie","es","wir","ihr","sie","Sie"],rows:[["mir","dir","ihm","ihr","ihm","uns","euch","ihnen","Ihnen"]]}],
- examples:[["Er hilft mir.","هو يساعدني."],["Ich danke dir.","أشكرك."],["Ich fahre mit dem Bus.","أنا أذهب بالحافلة."],["Sie spricht mit meinem Freund.","هي تتحدث مع صديقي."]],
- notes:["أفعال Dativ شائعة: helfen, danken, gehören, gefallen, antworten.","حروف جر Dativ في h-dativ."],
+ examples:[["Sie dankt mir.","هي تشكرني."],["Ich danke dir.","أشكرك."],["Ich fahre mit dem Bus.","أنا أذهب بالحافلة."],["Sie spricht mit meinem Freund.","هي تتحدث مع صديقي."],["Ich helfe meinem Bruder.","أساعد أخي."],["Das Buch gehört dem Schüler.","الكتاب ملك التلميذ."]],
+ notes:["أفعال Dativ شائعة: helfen, danken, gehören, gefallen, antworten.","حروف جر Dativ في h-dativ.","حروف الجر المرتبطة: aus/bei/mit/nach/seit/von/zu (h-dativ) + المتغيرة في الثبات (h-wechsel).","الأفعال المرتبطة: helfen, danken, gehören, gefallen (f-dativ-verben)."],
  mistakes:[{w:"Er hilft mich.",r:"Er hilft mir.",why:"helfen تأخذ Dativ: mir."},{w:"mit den Bus",r:"mit dem Bus",why:"mit + Dativ محايد: dem."}],
  related:["d-nominativ","c-personal","h-dativ","f-dativ-verben","d-vergleich"],
  quiz:[{q:"Er hilft ___. (أنا)",opts:["mich","mir","ich"],correct:1,why:"helfen + Dativ: mir."},{q:"Ich fahre mit ___ Bus.",opts:["den","dem","der"],correct:1,why:"mit + Dativ: dem Bus."},{q:"Wem؟ تسأل عن…",opts:["Nominativ","Akkusativ","Dativ"],correct:2,why:"wem = سؤال Dativ."}]},
@@ -50,5 +50,5 @@ var REF_D=[
  notes:["نفس الاسم يتغير دوره بتغير الحالة — قارن الأمثلة الثلاثة.","ابدأ المراجعة من هنا ثم ادخل تفاصيل كل حالة."],
  mistakes:[{w:"الخلط بين den و dem للمذكر",r:"den = مفعول، dem = مستفيد",why:"den للـ Akkusativ و dem للـ Dativ."}],
  related:["d-nominativ","d-akkusativ","d-dativ","d-genitiv"],
- quiz:[{q:"Ich helfe dem Mann — dem Mann في حالة…",opts:["Nominativ","Akkusativ","Dativ"],correct:2,why:"helfen + المستفيد = Dativ."},{q:"Ich sehe den Mann — den Mann في حالة…",opts:["Nominativ","Akkusativ","Dativ"],correct:1,why:"المفعول المباشر = Akkusativ."}]}
+ quiz:[{q:"Ich helfe dem Mann — dem Mann في حالة…",opts:["Nominativ","Akkusativ","Dativ"],correct:2,why:"helfen + المستفيد = Dativ."},{q:"Ich sehe den Mann — den Mann في حالة…",opts:["Nominativ","Akkusativ","Dativ"],correct:1,why:"المفعول المباشر = Akkusativ."},{q:"الجمع في الألمانية يأخذ die دائمًا.",opts:["صحيح","خطأ"],correct:0,why:"قاعدة ثابتة مهما كانت أداة المفرد."}]}
 ];

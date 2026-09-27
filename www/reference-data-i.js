@@ -16,7 +16,7 @@ var REF_I=[
  rule:"W-Frage: أداة + فعل (2) + باقي. Ja/Nein: فعل (1) + فاعل. مع الناقص: الناقص (2) + المصدر (نهاية). في Perfekt: المساعد (2) + Partizip (نهاية).",
  keywords:["W-Frage","Ja-Nein","Fragen","Modalverb","Perfekt","سؤال","Verbposition"],
  tables:[{cap:"بناء الأسئلة",head:["النوع","الترتيب","مثال"],rows:[["W-Frage","W-Wort + Verb(2) + …","Wo wohnst du?"],["Ja/Nein-Frage","Verb(1) + Subjekt + …","Wohnst du hier?"],["mit Modalverb","W + Modal(2) + … + Infinitiv","Wo kannst du lernen?"],["im Perfekt","W + haben/sein(2) + … + Partizip","Wo hast du gelernt?"]]}],
- examples:[["Woher kommst du?","من أين أنت؟"],["Sprichst du Deutsch?","هل تتحدث الألمانية؟"],["Kannst du mir helfen?","هل يمكنك مساعدتي؟"],["Was hast du gestern gemacht?","ماذا فعلت أمس؟"]],
+ examples:[["Wohin gehst du?","إلى أين تذهب؟"],["Sprichst du oft Deutsch?","هل تتحدث الألمانية غالبًا؟"],["Kann ich dir helfen?","هل أساعدك؟"],["Was hast du gestern gemacht?","ماذا فعلت أمس؟"]],
  notes:["الإجابة عن Ja/Nein: Ja/Nein + جملة كاملة مهذبة.","نبرة الصوت تصعد في نهاية سؤال نعم/لا."],
  mistakes:[{w:"Du wohnst wo?",r:"Wo wohnst du?",why:"أداة السؤال أولًا + الفعل ثانيًا."}],
  related:["i-fragewoerter","m-verbstellung","g-perfekt","f-modal"],
@@ -25,7 +25,7 @@ var REF_I=[
  what:"أدوات النفي: nicht (الفعل/الصفة)، kein (الاسم)، niemand (لا أحد)، nichts (لا شيء)، nie/niemals (أبدًا).",
  rule:"kein يحل محل أداة الاسم ويُصرَّف. nicht يأتي قبل الصفة/الظرف وبعد الفعل المُصرَّف غالبا. nie أقوى من nicht.",
  keywords:["nicht","kein","keine","niemand","nichts","nie","niemals","نفي","Negation","ضمائر"],
- tables:[{cap:"أدوات النفي",head:["الأداة","تنفي","مثال"],rows:[["nicht","فعلًا / صفة","Ich komme heute nicht."],["kein/keine","اسمًا","Ich habe kein Auto."],["niemand","شخصًا","Niemand ist hier."],["nichts","شيئًا","Ich sehe nichts."],["nie","زمنًا (أبدًا)","Er kommt nie."]]},{cap:"أين توضع nicht؟",head:["الموضع","مثال"],rows:[["قبل الصفة/الظرف","Das ist nicht gut."],["بعد الفعل المُصرَّف","Er kommt heute nicht."],["قبل المفعول المحدد","Ich kaufe das Auto nicht."]]},{cap:"nicht مقابل kein",head:["nicht + فعل/صفة","kein + اسم"],rows:[["Ich lerne heute nicht.","Ich habe kein Auto."],["Das ist nicht gut.","Das ist kein Auto."]]}],
+ tables:[{cap:"أدوات النفي",head:["الأداة","تنفي","مثال"],rows:[["nicht","فعلًا / صفة","Ich komme heute nicht."],["kein/keine","اسمًا","Ich habe kein Auto."],["niemand","شخصًا","Niemand ist hier."],["nichts","شيئًا","Ich sehe nichts."],["nie / niemals","زمنًا (أبدًا)","Er kommt nie. / Kommt er niemals?"]]},{cap:"أين توضع nicht؟",head:["الموضع","مثال"],rows:[["قبل الصفة/الظرف","Das ist nicht gut."],["بعد الفعل المُصرَّف","Er kommt heute nicht."],["قبل المفعول المحدد","Ich kaufe das Auto nicht."]]},{cap:"nicht مقابل kein",head:["nicht + فعل/صفة","kein + اسم"],rows:[["Ich lerne heute nicht.","Ich habe kein Auto."],["Das ist nicht gut.","Das ist kein Auto."]]}],
  examples:[["Das ist nicht gut.","هذا ليس جيدًا."],["Sie hat keine Zeit.","ليس لديها وقت."],["Niemand versteht mich.","لا أحد يفهمني."],["Ich habe das Auto nicht gekauft.","لم أشترِ السيارة. (معرفة → nicht)"]],
  notes:["التفصيل الأساسي kein/nicht في b-artikel-negativ.","nie = أبدًا (نفي زمني كامل)."],
  mistakes:[{w:"Ich sehe nicht." ,r:"Ich sehe nichts.",why:"نفي الشيء = nichts."},{w:"Kein ist hier.",r:"Niemand ist hier.",why:"نفي الشخص = niemand."}],
@@ -40,5 +40,5 @@ var REF_I=[
  notes:["denn مقابل weil: denn + جملة عادية، weil + فعل في النهاية.","sondern بعد النفي فقط، aber للتباين العام.","deshalb/trotzdem في المرتبة الأولى والفعل ثانيًا (عكس weil!)."],
  mistakes:[{w:"Ich bleibe, weil ich bin krank.",r:"Ich bleibe, weil ich krank bin.",why:"weil ترسل الفعل للنهاية."}],
  related:["m-haupt-neben","m-verbstellung","c-relativ","h-w-trotz"],
- quiz:[{q:"Ich bleibe, ___ ich krank bin.",opts:["denn","weil","aber"],correct:1,why:"weil + فعل في النهاية."},{q:"Nicht Tee, ___ Kaffee.",opts:["aber","sondern","denn"],correct:1,why:"بعد النفي: sondern."},{q:"بعد weil الفعل…",opts:["ثانيًا","أولًا","في النهاية"],correct:2,why:"روابط Nebensatz ترسله للنهاية."},{q:"Es regnet. ___ gehen wir spazieren. (ومع ذلك)",opts:["Trotzdem","Deshalb","Weil"],correct:0,why:"تنازل = trotzdem."},{q:"Er ist krank. ___ bleibt er zu Hause.",opts:["Deshalb","Trotzdem","Weil"],correct:0,why:"نتيجة = deshalb."}]}
+ quiz:[{q:"Ich bleibe, ___ ich krank bin.",opts:["denn","weil","aber"],correct:1,why:"weil + فعل في النهاية."},{q:"Nicht Tee, ___ Kaffee.",opts:["aber","sondern","denn"],correct:1,why:"بعد النفي: sondern."},{q:"بعد weil الفعل…",opts:["ثانيًا","أولًا","في النهاية"],correct:2,why:"روابط Nebensatz ترسله للنهاية."},{q:"Es regnet. ___ gehen wir spazieren. (ومع ذلك)",opts:["Trotzdem","Deshalb","Weil"],correct:0,why:"تنازل = trotzdem."},{q:"Er ist krank. ___ bleibt er zu Hause.",opts:["Deshalb","Trotzdem","Weil"],correct:0,why:"نتيجة = deshalb."},{q:"بعد weil يأتي الفعل في المرتبة الثانية.",opts:["صحيح","خطأ"],correct:1,why:"بل في النهاية."}]}
 ];

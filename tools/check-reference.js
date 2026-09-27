@@ -105,8 +105,14 @@ topics.forEach(tp => {
   });
 });
 
-/* ---------- pending content ---------- */
+/* ---------- pending content + path coverage (no user-visible placeholders) ---------- */
 const pending = [...ALL_PLANNED].filter(id => !byId[id]);
+Object.keys(REF_PLAN).forEach(pid => {
+  const pre = pid.toLowerCase() + "-";
+  const n = topics.filter(tp => tp && typeof tp.id === "string" && tp.id.indexOf(pre) === 0).length;
+  if (n === 0) bad("Missing", "path " + pid + " has zero topics (would show placeholder)");
+  else console.log("PASS path " + pid + ": " + n + " topics");
+});
 console.log("----");
 console.log("Topics loaded: " + topics.length + " / planned " + ALL_PLANNED.size);
 console.log("Pending (" + pending.length + "): " + pending.slice(0, 12).join(", ") + (pending.length > 12 ? " ..." : ""));

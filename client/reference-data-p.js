@@ -33,7 +33,8 @@ var REF_P=[
   {w:"Ich besuche dir.",r:"Ich besuche dich.",why:"besuchen + Akkusativ.",rel:"f-akkusativ-verben"},
   {w:"halb acht = 8:30",r:"halb acht = 7:30",why:"نصف نحو الثامنة.",rel:"j-uhrzeit"},
   {w:"Sie hilft den Kind.",r:"Sie hilft dem Kind.",why:"helfen + Dativ محايد: dem.",rel:"d-dativ"},
-  {w:"Ich muss lerne.",r:"Ich muss lernen.",why:"المصدر الكامل بعد الناقص.",rel:"f-modal"}],
+  {w:"Ich muss lerne.",r:"Ich muss lernen.",why:"المصدر الكامل بعد الناقص.",rel:"f-modal"},
+  {w:"Ich habe gegangen.",r:"Ich bin gegangen.",why:"gehen حركة في Perfekt = sein.",rel:"g-perfekt"}],
  related:["b-artikel-negativ","l-wo","h-dativ","d-vergleich","f-dativ-verben","j-uhrzeit","f-modal","k-quantitaet"],
  quiz:[{q:"Ich ___ den Mann. (أعرفه شخصيًا)",opts:["weiß","kenne","lerne"],correct:1,why:"الأشخاص = kennen."},{q:"Das Buch ___ auf dem Tisch. (مستلقٍ)",opts:["liegt","legt","läge"],correct:0,why:"الاستلقاء = liegen."},{q:"Ich ___ einen Kaffee. (أود — بتهذيب)",opts:["will","hätte gern","willst"],correct:1,why:"الطلب المهذب: hätte gern."},{q:"Ich ___ den Unterschied. (أعرف — معلومة)",opts:["weiß","kenne","lerne"],correct:0,why:"المعلومات = wissen."},{q:"___ acht ist 7:30.",opts:["Halb","Hälfte","Viertel"],correct:0,why:"halb acht = 7:30."}]}
 ];
