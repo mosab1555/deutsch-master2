@@ -39,6 +39,7 @@
 #page-reference .ref-order-line{min-height:52px;border:1px dashed var(--border);border-radius:12px;padding:8px 10px;margin:8px 0;display:flex;gap:6px;flex-wrap:wrap;direction:ltr;text-align:left}
 #page-reference .ref-order-pick{background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.4);border-radius:9px;padding:6px 10px;font-weight:800}
 #page-reference .ref-order-bank .quiz-opt{text-align:center}
+#page-reference .ref-cell-link{margin:1px 2px;padding:2px 9px;font-size:inherit;line-height:1.6;white-space:nowrap}
 #page-reference .ref-quiz-body .quiz-opt{text-align:right}
 #page-reference .muted{color:var(--muted)}
 @media (max-width:480px){

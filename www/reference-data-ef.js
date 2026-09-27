@@ -25,7 +25,7 @@ var REF_E=[
  what:"للمقارنة بين شيئين نستخدم Komparativ (أفعل من)، وللتفضيل المطلق Superlativ (الأفعل).",
  rule:"Komparativ = الصفة + er (غالبا مع Umlaut للقصيرة). Superlativ = am + الصفة + sten. كلمات شاذة تُحفظ: gut/besser/am besten.",
  keywords:["Komparativ","Superlativ","Steigerung","besser","größer","مقارنة","als","am besten"],
- tables:[{cap:"Steigerung",head:["Positiv","Komparativ (-er)","Superlativ (am -sten)"],rows:[["schnell","schneller","am schnellsten"],["groß","größer","am größten"],["gut","besser","am besten"],["viel","mehr","am meisten"],["gern","lieber","am liebsten"]]}],
+ tables:[{cap:"Steigerung — الجدول الشامل",head:["Positiv","Komparativ","Superlativ","العربية"],rows:[["groß","größer","am größten","كبير"],["klein","kleiner","am kleinsten","صغير"],["schnell","schneller","am schnellsten","سريع"],["gut","besser","am besten","جيد"],["viel","mehr","am meisten","كثير"],["gern","lieber","am liebsten","بسرور"]]}],
  examples:[["Mein Auto ist schneller als deins.","سيارتي أسرع من سيارتك."],["Er ist der beste Schüler.","هو أفضل تلميذ."],["Ich trinke gern Tee, lieber Kaffee.","أحب الشاي، وأفضل القهوة."]],
  notes:["المقارنة بـ als (وليس wie): größer als.","gern/lieber/am liebsten أفعال تفضيل شائعة جدا."],
  mistakes:[{w:"größer wie",r:"größer als",why:"المقارنة بـ als."}],

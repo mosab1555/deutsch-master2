@@ -178,7 +178,7 @@ function openRefTopic(tid){
   if(tp.rule)h+='<div class="panel glass"><h4>2️⃣ '+refEsc(refT("ref_rule"))+'</h4><p>'+refEsc(tp.rule)+'</p></div>';
   (tp.tables||[]).forEach(tb=>{
     h+='<div class="panel glass"><h4>📊 '+refEsc(tb.cap)+'</h4><div class="tbl-wrap"><table class="ex-table"><tr>'+tb.head.map(x=>'<th>'+refEsc(x)+'</th>').join("")+'</tr>';
-    tb.rows.forEach(r=>{h+='<tr>'+r.map(c=>'<td>'+refEsc(c)+'</td>').join("")+'</tr>';});
+    tb.rows.forEach(r=>{h+='<tr>'+r.map(c=>'<td>'+refLinkCell(c,tp.id)+'</td>').join("")+'</tr>';});
     h+='</table></div></div>';
   });
   if(tp.examples&&tp.examples.length){
@@ -276,6 +276,44 @@ function wireRefOrder(wrap,q){
     else{fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" ✅ "+q.answer+" — "+(q.why||"");}
     try{if(typeof markStudyDay==="function")markStudyDay(false);}catch(e){}
   });
+}
+
+/* ---------- interactive cells: German headwords open their word card ---------- */
+var REF_LINK_INDEX=null;
+const REF_LINK_SPECIAL={wer:["wer","wen","wem"],welcher:["welcher","welche","welches","welchen"],der:["der","den","dem","des"],ich:["ich","mich","mir"],wieviel:["wie viel","wie viele"]};
+function refLinkWords(tp){
+  const parts=String(tp.id||"").split("-w-");
+  const suf=parts.length>1?parts[1]:"";
+  if(!suf)return [];
+  if(REF_LINK_SPECIAL[suf])return REF_LINK_SPECIAL[suf];
+  return [suf.replace(/ae/g,"ä").replace(/oe/g,"ö").replace(/ue/g,"ü")];
+}
+function refBuildLinkIndex(){
+  const idx=[];
+  refAllTopicsFlat().forEach(tp=>{
+    if(!tp||typeof tp.id!=="string"||tp.id.indexOf("-w-")<0)return;
+    refLinkWords(tp).forEach(w=>{if(w&&w.length>=2)idx.push({w:w,id:tp.id});});
+  });
+  idx.sort((a,b)=>b.w.length-a.w.length);
+  REF_LINK_INDEX=idx;
+}
+function refEscRe(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+function refLinkCell(raw,curId){
+  const txt=String(raw==null?"":raw);
+  try{
+    if(!REF_LINK_INDEX)refBuildLinkIndex();
+    for(const e of REF_LINK_INDEX){
+      if(e.id===curId)continue;
+      const re=new RegExp("(^|[^\\p{L}])("+refEscRe(e.w)+")(?![\\p{L}])","iu");
+      const m=txt.match(re);
+      if(m){
+        const start=m.index+(m[1]?m[1].length:0);
+        const before=txt.slice(0,start),after=txt.slice(start+m[2].length);
+        return refEsc(before)+'<button class="mini-btn ref-cell-link" data-rel="'+e.id+'">'+refEsc(m[2])+'</button>'+refEsc(after);
+      }
+    }
+  }catch(err){}
+  return refEsc(txt);
 }
 
 /* ---------- professional search: de/ar/en/title/examples/keywords/related ---------- */

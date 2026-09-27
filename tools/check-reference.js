@@ -13,7 +13,7 @@ const CDIR = path.join(ROOT, "client");
 /* ---------- full planned registry (all paths A..P) ---------- */
 const REF_PLAN = {
  A: ["a-alphabet", "a-wortarten", "a-satz-basis", "a-wortstellung"],
- B: ["b-nomen-genus", "b-nomen-plural", "b-nomen-gross", "b-artikel-bestimmt", "b-artikel-unbestimmt", "b-artikel-negativ", "b-artikel-possessiv", "b-artikel-demonstrativ", "b-w-der"],
+ B: ["b-nomen-genus", "b-nomen-plural", "b-nomen-gross", "b-artikel-bestimmt", "b-artikel-unbestimmt", "b-artikel-negativ", "b-artikel-possessiv", "b-artikel-demonstrativ", "b-w-der", "b-w-die", "b-w-das"],
  C: ["c-personal", "c-possessiv", "c-reflexiv", "c-demonstrativ", "c-interrogativ", "c-relativ", "c-indefinit", "c-w-ich"],
  D: ["d-nominativ", "d-akkusativ", "d-dativ", "d-genitiv", "d-vergleich"],
  E: ["e-grundlagen", "e-gegenteile", "e-steigerung", "e-deklination"],
@@ -164,6 +164,8 @@ const SEARCH_TESTS = [
   ["nicht", ["b-artikel-negativ"]],
   ["Dativ", ["d-dativ"]],
   ["der", ["b-w-der"]],
+  ["die", ["b-w-die"]],
+  ["das", ["b-w-das"]],
   ["ich", ["c-w-ich"]],
   ["weil", ["i-w-weil"]],
   ["können", ["f-w-koennen"]],

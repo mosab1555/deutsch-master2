@@ -89,6 +89,10 @@ good("opened " + nTopics + " topics with examples(" + nEx + ") + quiz(" + nQuiz 
 T.openRefTopic("m-verbstellung");
 if (els["refDetail"].innerHTML.includes("ref-order-bank")) good("order-type quiz renders");
 else bad("order-type quiz missing");
+/* table cells link to word cards */
+T.openRefTopic("h-akkusativ");
+if (els["refDetail"].innerHTML.includes('data-rel="h-w-durch"')) good("table cell links to word card");
+else bad("table cell links missing");
 
 /* ---------- 3. real search ranking ---------- */
 global.S.uiLang = "de";

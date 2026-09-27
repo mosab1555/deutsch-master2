@@ -57,7 +57,7 @@ var REF_M=[
  what:"للفعل ثلاثة مواضع فقط: ثانيًا (خبر/W)، أولًا (نعم-لا/أمر)، أخيرًا (فرعية/مصدر/partizip).",
  rule:"Aussage/W-Frage: V2. Ja/Nein + Imperativ: V1. Nebensatz: V-Ende. Modal/Perfekt: المساعد V2 + الرئيسي في النهاية.",
  keywords:["Verbposition","Position 2","Verben","فعل","ثاني","أول","نهاية","V2"],
- tables:[{cap:"مواضع الفعل",head:["الموضع","متى","مثال"],rows:[["الثاني (V2)","خبرية + W","Ich lerne heute."],["الأول (V1)","نعم/لا + أمر","Lernst du? / Lern!"],["النهاية","فرعية + مصدر + Partizip","…, weil ich lerne. / Ich muss lernen. / Ich habe gelernt."]]}],
+ tables:[{cap:"مواضع الفعل",head:["الموضع","متى","مثال"],rows:[["الثاني (V2)","خبرية + W","Ich lerne heute."],["الأول (V1)","نعم/لا + أمر","Lernst du? / Lern!"],["المساعد ثانٍ + الرئيسي نهاية","Modalverb + Perfekt","Ich muss lernen. / Ich habe gelernt."],["النهاية","Nebensatz","…, weil ich lerne."]]}],
  examples:[["Heute lerne ich Deutsch.","اليوم أتعلم الألمانية."],["Mach bitte das Licht an!","أشعل النور من فضلك!"]],
  notes:["أي عنصر في البداية (ظرف/مفعول) لا يغيّر قاعدة V2.","هذه القاعدة تحكم 90% من أخطاء الترتيب."],
  mistakes:[{w:"Heute ich lerne.",r:"Heute lerne ich.",why:"بعد الظرف يأتي الفعل مباشرة."}],
