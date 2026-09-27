@@ -6,6 +6,7 @@
 <title>Deutsch Master | أتقن الألمانية</title>
 <meta name="description" content="Deutsch Master - تطبيق تعليمي متكامل لتعلم الألمانية مستوى A1">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="reference.css">
 <link rel="stylesheet" href="launch.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070b18">
@@ -44,6 +45,7 @@
       <button class="nav-item" data-page="sentex"><span class="nav-ico">✏️</span> تدريبات الجمل</button>
       <button class="nav-item" data-page="verbs"><span class="nav-ico">⚡</span> الأفعال</button>
       <button class="nav-item" data-page="grammar"><span class="nav-ico">📐</span> القواعد</button>
+      <button class="nav-item" data-page="reference"><span class="nav-ico">📚</span> <span data-i18n="reference">المرجع الألماني الشامل</span></button>
       <button class="nav-item" data-page="explain"><span class="nav-ico">📚</span> الشرح</button>
       <button class="nav-item" data-page="quiz"><span class="nav-ico">📝</span> الاختبارات</button>
       <button class="nav-item" data-page="journey"><span class="nav-ico">🗺️</span> الرحلة</button>
@@ -255,6 +257,12 @@
       <section class="page" id="page-grammar">
         <div class="page-head"><h2 data-i18n="title_grammar">📐 القواعد (مقسمة لكل Kapitel)</h2><select id="grammarKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select></div>
         <div class="grammar-list" id="grammarList"></div>
+      </section>
+
+      <!-- REFERENCE (independent section) -->
+      <section class="page" id="page-reference">
+        <div class="page-head"><h2 data-i18n="title_reference">📚 المرجع الألماني الشامل</h2></div>
+        <div id="refBox"></div>
       </section>
 
       <!-- EXPLAIN -->
@@ -634,5 +642,21 @@
     <script src="smart.js"></script>
     <script src="labsx.js"></script>
     <script src="adv.js"></script>
+    <script src="reference-data-bc.js"></script>
+    <script src="reference-data-d.js"></script>
+    <script src="reference-data-ef.js"></script>
+    <script src="reference-data-fw.js"></script>
+    <script src="reference-data-fx.js"></script>
+    <script src="reference-data-gj.js"></script>
+    <script src="reference-data-h.js"></script>
+    <script src="reference-data-hw.js"></script>
+    <script src="reference-data-i.js"></script>
+    <script src="reference-data-iw.js"></script>
+    <script src="reference-data-am.js"></script>
+    <script src="reference-data-kl.js"></script>
+    <script src="reference-data-no.js"></script>
+    <script src="reference-data-p.js"></script>
+    <script src="reference-data-misc.js"></script>
+    <script src="reference.js"></script>
 </body>
 </html>
