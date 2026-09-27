@@ -1,5 +1,5 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v29";
+var DM_CACHE = "german-academy-v30";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./reference.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
@@ -29,9 +29,13 @@ self.addEventListener("activate", function (e) {
 });
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
-  /* Navigations (HTML pages): network-first so users always get the latest
-     release; fall back to cache when offline (PWA still works offline). */
-  if (e.request.mode === "navigate") {
+  /* Freshness rule: HTML pages, JS and CSS are network-first so a normal
+     reload always picks up the latest release (no hard refresh needed);
+     the cache is only a fallback for offline use (PWA stays offline-ready).
+     Images/fonts (rarely change, versioned by cache bump) stay cache-first. */
+  var dest = e.request.destination || "";
+  var fresh = (e.request.mode === "navigate") || (dest === "script") || (dest === "style");
+  if (fresh) {
     e.respondWith(fetch(e.request).then(function (res) {
       try {
         var copy = res.clone();
@@ -39,7 +43,10 @@ self.addEventListener("fetch", function (e) {
       } catch (err) {}
       return res;
     }).catch(function () {
-      return caches.match("./index.html");
+      return caches.match(e.request).then(function (hit) {
+        if (hit) return hit;
+        return caches.match("./index.html");
+      });
     }));
     return;
   }
