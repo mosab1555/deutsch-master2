@@ -179,6 +179,23 @@ function sentexTypeCounts(){
   }catch(e){}
   return counts;
 }
+/* Dedicated Sentence Training UI state (per page; never touches other sections).
+   activeSentenceTraining / activePracticeTraining hold the selected TYPE id.
+   SXUI / PXUI hold the chapter scope: {chapters:null|[...], mode:"single"|"multi"|"mixed"}.
+   chapters===null means "all chapters". */
+var SXUI={chapters:null,mode:"mixed"};
+var PXUI={chapters:null,mode:"mixed"};
+function sxUI(H){
+  try{if(H.name==="practice")return PXUI;}catch(e){}
+  return SXUI;
+}
+function sxScopeChapters(H){
+  try{
+    var u=sxUI(H);
+    if(u.chapters&&u.chapters.length)return u.chapters.slice();
+  }catch(e){}
+  try{return sentexChapters().map(function(c){return c.id;});}catch(e){return [];}
+}
 /* Render the placeholder / hint inside the single active container. */
 function renderSxPlaceholder(H){
   var runId=(H.name==="practice")?"pxRun":"sxRun";
@@ -186,10 +203,62 @@ function renderSxPlaceholder(H){
   var type=sxActiveType(H);
   box.innerHTML='<div class="panel glass sx-active-hint"><h3>'+escapeHtml(sentexTypeLabel(type))
     +' — '+escapeHtml(t(H.titleKey))+'</h3>'
-    +'<div class="muted">اختر Kapitel من الأعلى لفتح التدريب هنا مباشرة (بدون تمرير).</div></div>';
+    +'<div class="muted">اختر نوع التدريب أو Kapitel من الأعلى — سيفتح هنا مباشرة.</div>'
+    +'<div class="row-flex" style="justify-content:center"><button class="btn btn-primary sm" id="'+(H.name==="practice"?"px":"sx")+'Begin">ابدأ ▶</button></div></div>';
+  var bg=$(H.name==="practice"?"pxBegin":"sxBegin");
+  if(bg)bg.addEventListener("click",function(){
+    startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"mixed",sxActiveType(H));
+  });
+}
+/* Sync tab/chip visual state without rebuilding the shell (no duplicate listeners). */
+function sxSyncSelector(H,box){
+  try{
+    var p=H.name, type=sxActiveType(H), u=sxUI(H);
+    var scope=sxScopeChapters(H);
+    box.querySelectorAll("[data-"+p+"-type]").forEach(function(x){
+      var on=x.getAttribute("data-"+p+"-type")===type;
+      x.classList.toggle("active",on);
+      x.setAttribute("aria-selected",on?"true":"false");
+    });
+    box.querySelectorAll("[data-"+p+"-chap]").forEach(function(x){
+      var id=x.getAttribute("data-"+p+"-chap");
+      var on=scope.indexOf(id)>=0&&(u.mode==="single"?scope.length===1:true);
+      x.classList.toggle("active",on);
+      x.setAttribute("aria-pressed",on?"true":"false");
+    });
+  }catch(e){}
+}
+/* Central switch: update state -> clear ONLY the active container -> render. */
+function handleSentenceTrainingTypeChange(H,type){
+  var box=$(H.boxId);if(!box)return;
+  sxSetActiveType(H,type||"all");
+  sxSyncSelector(H,box);
+  startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"mixed",sxActiveType(H));
+}
+function handleSentenceTrainingChapterChange(H,chapters,mode){
+  var box=$(H.boxId);if(!box)return;
+  try{sxUI(H).chapters=(chapters&&chapters.length)?chapters.slice():null;}catch(e){}
+  try{sxUI(H).mode=mode||"single";}catch(e){}
+  sxSyncSelector(H,box);
+  startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"single",sxActiveType(H));
+}
+/* One listen button per question render (fresh DOM each time -> no duplicates). */
+function sxHear(text){
+  try{
+    if(typeof speakGerman==="function"){speakGerman(text);return;}
+    if(typeof lxSay==="function"){lxSay(text);return;}
+  }catch(e){}
+  try{toast("🔊","ok");}catch(_){}
 }
 
-/* ---------- home (Kapitel cards + multi + mixed) ---------- */
+/* ---------- home: compact selector (top) + ONE active view (below) ----------
+   Layout order inside #sentexBox / #practiceBox:
+     1. header panel
+     2. .sx-types      (training-type tabs, horizontal scroll)
+     3. .sx-chapters   (Kapitel chips: click = open single-Kapitel training now)
+     4. .sx-modes      (multi select + mixed, compact)
+     5. #sxRun/.sx-active-view (the ONLY exercise container, directly below)
+   Clicking any tab/chip/button re-renders ONLY #sxRun in place. No scrolling. */
 function renderSxHome(H){
   sentexEnsure();
   const box=$(H.boxId);if(!box)return;
@@ -200,9 +269,11 @@ function renderSxHome(H){
   const runId=(H.name==="practice")?"pxRun":"sxRun"; /* single active-training container */
   const active=sxActiveType(H);
   const counts=sentexTypeCounts();
+  const scope=sxScopeChapters(H);
+  const uiMode=sxUI(H).mode||"mixed";
   let h='<div class="panel glass"><h3>'+t(H.titleKey)+'</h3>'
     +'<div class="muted">'+t("sx_sub")+" ("+bank.length+" "+t("sx_questions")+"))</div></div>";
-  /* 1) training-type selectors stay at the top (tab-like, horizontal scroll) */
+  /* 1) training-type selector */
   h+='<div class="sx-types" role="tablist" aria-label="'+escapeHtml(t(H.titleKey))+'">'
     +sentexTypeMeta().map(function(m){
       var on=(m.id===active);
@@ -212,59 +283,55 @@ function renderSxHome(H){
         +'<span>'+escapeHtml(sentexTypeLabel(m.id))+'</span> '
         +'<span class="sx-type-n">'+(counts[m.id]||0)+'</span></button>';
     }).join("")+'</div>';
-  h+='<div class="grid-2 sx-chapter-grid">';
-  chs.forEach(function(c){
-    let pct=null;
-    try{
-      const pr=S.sentex&&S.sentex[c.id];
-      if(pr&&pr.n)pct=Math.round(pr.ok/Math.max(1,pr.n)*100);
-    }catch(e){}
-    h+='<div class="panel glass"><h4>'+escapeHtml(sentexChapterName(c.id))+'</h4>'
-      +'<div class="muted">'+c.n+" "+t("sx_questions")+"</div>"
-      +(pct===null?'<div class="muted">'+t("sx_notyet")+'</div>'
-        :'<div class="stat-bar-row"><span class="lbl">'+t("sx_yourprog")+'</span><div class="bar"><div class="fill" style="width:'+pct+'%;background:linear-gradient(90deg,#7c3aed,#00d4ff)"></div></div><b>'+pct+'%</b></div>')
-      +'<div class="row-flex"><button class="btn btn-primary sm" data-'+p+'-single="'+c.id+'">'+t("sx_start")+'</button></div></div>';
-  });
-  h+='</div>';
-  /* multi */
-  h+='<div class="panel glass"><h3>'+t("sx_multi_h")+'</h3><div class="muted">'+t("sx_multi_sub")+'</div><div class="row-flex" style="flex-wrap:wrap">'
+  /* 2) Kapitel chips (compact; every chapter keeps count + progress, click opens now) */
+  h+='<div class="panel glass sx-sel"><div class="sx-sel-h">Kapitel</div><div class="sx-chapters" role="group" aria-label="Kapitel">'
+    +chs.map(function(c){
+      var pct=null;
+      try{
+        const pr=S.sentex&&S.sentex[c.id];
+        if(pr&&pr.n)pct=Math.round(pr.ok/Math.max(1,pr.n)*100);
+      }catch(e){}
+      var on=scope.indexOf(c.id)>=0&&(uiMode==="single"?scope.length===1:true);
+      return '<button type="button" class="sx-chip'+(on?" active":"")+'" aria-pressed="'+(on?"true":"false")+'"'
+        +' data-'+p+'-chap="'+c.id+'" title="'+escapeHtml(sentexChapterName(c.id))+' • '+c.n+" "+escapeHtml(t("sx_questions"))+(pct===null?"":' • '+pct+'%')+'">'
+        +'<b>'+escapeHtml(c.id)+'</b><span class="sx-chip-n">'+c.n+'</span>'
+        +(pct===null?"":'<span class="sx-chip-p">'+pct+'%</span>')+'</button>';
+    }).join("")+'</div>';
+  /* 3) modes: multi (checkboxes + start) + mixed (all), compact */
+  h+='<div class="row-flex sx-modes"><button class="btn btn-gold sm" id="'+p+'MixedStart">'+t("sx_mixed_btn")+'</button>'
+    +'<button class="btn btn-ghost sm" id="'+p+'MultiToggle">'+t("sx_multi_btn")+'</button></div>'
+    +'<div class="sx-multi hidden" id="'+p+'MultiWrap"><div class="row-flex" style="flex-wrap:wrap">'
     +chs.map(function(c){return '<label style="display:flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:8px 12px"><input type="checkbox" data-'+p+'-multi="'+c.id+'"> '+escapeHtml(c.id)+' ('+c.n+')</label>';}).join("")
-    +'</div><div class="row-flex"><button class="btn btn-gold sm" id="'+p+'MultiStart">'+t("sx_multi_btn")+'</button></div></div>';
-  /* mixed */
-  h+='<div class="panel glass"><h3>'+t("sx_mixed_h")+'</h3><div class="muted">'+t("sx_mixed_sub")+" ("+bank.length+" "+t("sx_questions")+'</div><div class="row-flex"><button class="btn btn-green sm" id="'+p+'MixedStart">'+t("sx_mixed_btn")+'</button></div></div>';
-  /* 2) single active-training container directly below the selectors.
-        Only this container is replaced when switching trainings. */
+    +'</div><div class="row-flex"><button class="btn btn-gold sm" id="'+p+'MultiStart">'+t("sx_multi_btn")+'</button></div></div></div>';
+  /* 4) ONE active-training container directly below the selectors */
   h+='<div id="'+runId+'" class="sx-active-view" aria-live="polite"></div>';
   box.innerHTML=h;
-  /* wire type tabs: switch active view/state, never scroll */
+  /* wire type tabs: state -> clear active container -> render selected training */
   box.querySelectorAll("[data-"+p+"-type]").forEach(function(b){
     b.addEventListener("click",function(){
-      var id=b.getAttribute("data-"+p+"-type")||"all";
-      sxSetActiveType(H,id);
-      box.querySelectorAll("[data-"+p+"-type]").forEach(function(x){
-        var on=x.getAttribute("data-"+p+"-type")===id;
-        x.classList.toggle("active",on);
-        x.setAttribute("aria-selected",on?"true":"false");
-      });
-      /* Open the selected training immediately in the same container,
-         using every chapter as the default scope (mixed, capped at 20). */
-      startSxRun(H,chs.map(function(c){return c.id;}),"mixed",id);
+      handleSentenceTrainingTypeChange(H,b.getAttribute("data-"+p+"-type")||"all");
     });
   });
-  box.querySelectorAll("[data-"+p+"-single]").forEach(function(b){
-    b.addEventListener("click",function(){startSxRun(H,[b.getAttribute("data-"+p+"-single")],"single");});
+  /* wire Kapitel chips: open that Kapitel immediately with the current type */
+  box.querySelectorAll("[data-"+p+"-chap]").forEach(function(b){
+    b.addEventListener("click",function(){
+      handleSentenceTrainingChapterChange(H,[b.getAttribute("data-"+p+"-chap")],"single");
+    });
+  });
+  const mt=$(p+"MultiToggle");
+  if(mt)mt.addEventListener("click",function(){
+    var w=$(p+"MultiWrap");if(w)w.classList.toggle("hidden");
   });
   const ms=$(p+"MultiStart");
   if(ms)ms.addEventListener("click",function(){
     const sel=Array.from(box.querySelectorAll("[data-"+p+"-multi]:checked")).map(function(x){return x.getAttribute("data-"+p+"-multi");});
     if(!sel.length){toast(t("sx_nochoice"),"err");return;}
-    startSxRun(H,sel,"multi");
+    handleSentenceTrainingChapterChange(H,sel,"multi");
   });
   const mx=$(p+"MixedStart");
   if(mx)mx.addEventListener("click",function(){
-    startSxRun(H,chs.map(function(c){return c.id;}),"mixed");
+    handleSentenceTrainingChapterChange(H,chs.map(function(c){return c.id;}),"mixed");
   });
-  /* initial placeholder keeps one single container with no duplicate DOM */
   renderSxPlaceholder(H);
 }
 /* backward-compatible wrappers for page-sentex */
@@ -316,7 +383,11 @@ function renderSxQ(H){
   const disp=f.disp?'<h3 class="fill-sent" dir="ltr" style="text-align:left">'+escapeHtml(f.disp)+'</h3>'
     :(hasBlank?'<h3 class="fill-sent" dir="ltr" style="text-align:left" id="'+p+'Sent">'+sentexBlankHtml(f,null,false)+'</h3>'
     :'<h3 class="fill-sent" dir="ltr" style="text-align:left">'+escapeHtml(f.s||"")+'</h3>');
-  box.innerHTML='<div class="panel glass"><div class="quiz-top"><span>'+(ST.idx+1)+' / '+ST.qs.length+'</span>'
+  var hearTxt=(f.disp||"")+" "+(String(f.s||"").replace("___",(f.o&&f.o[f.c])||""));
+  box.innerHTML='<div class="panel glass"><div class="row-flex sx-run-top"><button class="btn btn-ghost sm" id="'+p+'Back">←</button>'
+    +'<span class="muted">'+escapeHtml(sentexTypeLabel((ST.type||sxActiveType(H))))+'</span>'
+    +'<button class="btn btn-ghost sm" id="'+p+'Hear">🔊</button></div>'
+    +'<div class="quiz-top"><span>'+(ST.idx+1)+' / '+ST.qs.length+'</span>'
     +'<div class="progress"><div class="progress-fill" style="width:'+(ST.idx/ST.qs.length*100)+'%"></div></div>'
     +'<span>✅ '+ST.score+'</span></div>'
     +'<div class="muted">'+escapeHtml(t(H.titleKey))+' •📚 '+escapeHtml(f.chapterName||f.chapterId||"")+' • '+escapeHtml(f.lvl||"")+'</div>'
@@ -326,6 +397,8 @@ function renderSxQ(H){
     +'</div><div class="quiz-feedback hidden" id="'+p+'Fb"></div>'
     +'<div class="row-flex"><button class="btn btn-primary" id="'+p+'Next" disabled>التالي ⏭</button>'
     +'<button class="btn btn-ghost" id="'+p+'Quit">إنهاء ✖</button></div></div>';
+  $(p+"Back").addEventListener("click",function(){renderSxPlaceholder(H);});
+  $(p+"Hear").addEventListener("click",function(){sxHear(hearTxt);});
   $(p+"Quit").addEventListener("click",function(){finishSx(H);});
   box.querySelectorAll("#"+p+"Opts .quiz-opt").forEach(function(b){
     b.addEventListener("click",function(){answerSx(H,parseInt(b.getAttribute("data-j"),10),correctPos,opts,f);});
@@ -372,7 +445,10 @@ function renderSxOrder(H,f){
   const ST=H.st;
   const box=$(p+"Run");if(!box)return;
   const sh=sentexShuffle(f.words.map(function(_,k){return k;}));
-  box.innerHTML='<div class="panel glass"><div class="quiz-top"><span>'+(ST.idx+1)+' / '+ST.qs.length+'</span>'
+  box.innerHTML='<div class="panel glass"><div class="row-flex sx-run-top"><button class="btn btn-ghost sm" id="'+p+'Back">←</button>'
+    +'<span class="muted">'+escapeHtml(sentexTypeLabel("order"))+'</span>'
+    +'<button class="btn btn-ghost sm" id="'+p+'Hear">🔊</button></div>'
+    +'<div class="quiz-top"><span>'+(ST.idx+1)+' / '+ST.qs.length+'</span>'
     +'<div class="progress"><div class="progress-fill" style="width:'+(ST.idx/ST.qs.length*100)+'%"></div></div>'
     +'<span>✅ '+ST.score+'</span></div>'
     +'<div class="muted">'+escapeHtml(t(H.titleKey))+' •📚 '+escapeHtml(f.chapterName||f.chapterId||"")+' • '+escapeHtml(f.lvl||"")+'</div>'
@@ -387,6 +463,8 @@ function renderSxOrder(H,f){
     +'<button class="btn btn-ghost sm" id="'+p+'Clr">'+escapeHtml(t("gl_clear"))+'</button></div>'
     +'<div class="row-flex"><button class="btn btn-primary" id="'+p+'Next" disabled>التالي ⏭</button>'
     +'<button class="btn btn-ghost" id="'+p+'Quit">إنهاء ✖</button></div></div>';
+  $(p+"Back").addEventListener("click",function(){renderSxPlaceholder(H);});
+  $(p+"Hear").addEventListener("click",function(){sxHear((f.words||[]).join(" "));});
   $(p+"Quit").addEventListener("click",function(){finishSx(H);});
   const picked=[];
   box.querySelectorAll("#"+p+"Chips .quiz-opt").forEach(function(b){
@@ -475,8 +553,10 @@ function finishSx(H){
     +'<h4 style="margin-top:12px">'+t("sx_errors")+wrongs.length+')</h4>'+wrongRows
     +'<div class="row-flex" style="justify-content:center;margin-top:12px"><button class="btn btn-primary sm" id="'+p+'Again">'+t("sx_again")+'</button>'
     +'<button class="btn btn-gold sm" id="'+p+'GoMist">'+t("sx_gomist")+'</button>'
-    +'<button class="btn btn-ghost sm" id="'+p+'Home">'+t("sx_home")+'</button></div></div>';
+    +'<button class="btn btn-ghost sm" id="'+p+'Back">'+t("sx_home")+' ←</button>'
+    +'<button class="btn btn-ghost sm" id="'+p+'Home">🏠</button></div></div>';
   const HH=H;
+  $(p+"Back").addEventListener("click",function(){renderSxPlaceholder(HH);});
   $(p+"Again").addEventListener("click",function(){
     /* Restart the same training in the same container (no page scroll). */
     try{

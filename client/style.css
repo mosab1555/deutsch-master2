@@ -615,6 +615,22 @@ html[data-theme="light"] #wrIn{background:#fff}
 .sx-active-view:empty{display:none}
 .sx-active-hint{text-align:center}
 .sx-chapter-grid{min-width:0;max-width:100%}
+.sx-sel{padding:14px}
+.sx-sel-h{font-weight:900;margin-bottom:8px}
+.sx-chapters{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:4px 2px 10px;
+  max-width:100%;min-width:0;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.sx-chip{flex:0 0 auto;min-height:44px;display:inline-flex;align-items:center;gap:6px;
+  padding:9px 13px;border-radius:12px;border:1px solid var(--border);
+  background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;
+  font-weight:800;font-size:14px;white-space:nowrap}
+.sx-chip:hover{background:rgba(var(--v2),.15)}
+.sx-chip.active{background:var(--grad);color:#fff;border-color:transparent;
+  box-shadow:0 0 15px rgba(var(--v1),.5)}
+.sx-chip-n{font-size:12px;opacity:.85;background:rgba(0,0,0,.25);border-radius:10px;padding:1px 8px}
+.sx-chip-p{font-size:11px;opacity:.9}
+.sx-modes{margin:0 0 4px}
+.sx-multi{margin:0 0 10px}
+.sx-run-top{justify-content:space-between;margin-top:0}
 @media(max-width:560px){
   .sx-types{gap:6px;padding:8px 2px;margin:2px 0 10px}
   .sx-type{min-height:44px;padding:10px 12px;font-size:13px}
