@@ -24,7 +24,7 @@ var REF_D=[
 {id:"d-dativ",level:"A1",de:"Dativ",ar:"حالة المفعول غير المباشر (Dativ)",en:"Dative case",
  what:"حالة المستفيد أو المتأثر: أعطي لمن؟ أساعد من؟ تجيب عن: Wem؟ (لمن). تأتي مع أفعال مثل helfen/danken ومع حروف جر مثل mit/nach/bei.",
  rule:"الأدوات: dem/der/dem/den+n. الضمائر: mir/dir/ihm/ihr. في الجملة: الضمير Dativ قبل اسم Akkusativ (Ich gebe dir das Buch).",
- keywords:["Dativ","Wem","dem","mir","helfen","mit","لمن","Kasus","حالات","ماضي"],
+ keywords:["Dativ","Wem","dem","mir","helfen","mit","لمن","Kasus","حالات"],
  tables:[{cap:"Dativ — الأدوات",head:["maskulin","feminin","neutral","Plural"],rows:[["dem","der","dem","den + n"]]},{cap:"Dativ — الضمائر",head:["ich","du","er","sie","es","wir","ihr","sie","Sie"],rows:[["mir","dir","ihm","ihr","ihm","uns","euch","ihnen","Ihnen"]]}],
  examples:[["Er hilft mir.","هو يساعدني."],["Ich danke dir.","أشكرك."],["Ich fahre mit dem Bus.","أنا أذهب بالحافلة."],["Sie spricht mit meinem Freund.","هي تتحدث مع صديقي."]],
  notes:["أفعال Dativ شائعة: helfen, danken, gehören, gefallen, antworten.","حروف جر Dativ في h-dativ."],

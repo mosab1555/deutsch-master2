@@ -136,7 +136,10 @@ const SEARCH_TESTS = [
   ["nicht", ["b-artikel-negativ"]],
   ["Dativ", ["c-personal", "b-artikel-bestimmt"]],
   ["der", ["b-nomen-genus", "b-artikel-bestimmt"]],
-  ["mein", ["b-artikel-possessiv", "c-possessiv"]]
+  ["mein", ["b-artikel-possessiv", "c-possessiv"]],
+  ["Perfekt", ["g-perfekt"]],
+  ["gestern", ["j-zeitwoerter", "g-praeteritum"]],
+  ["ماضي", ["g-perfekt", "j-zeitwoerter", "g-praeteritum"]]
 ];
 let searchFails = 0;
 SEARCH_TESTS.forEach(([q, expectAny]) => {
