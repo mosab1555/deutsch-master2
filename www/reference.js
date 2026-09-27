@@ -65,6 +65,9 @@ function refTopicById(id){
 function refPathById(pid){return REF_PATHS.find(p=>p.id===pid)||null;}
 
 /* ---------- STRICT quiz gate: invalid questions never render ---------- */
+/* Self-contained Fisher-Yates index permutation (no shared deps, no position-0 assumption).
+   Render buttons in the returned order with data-oi = ORIGINAL index. */
+function refShuffleIdx(n){const idx=[];for(let i=0;i<n;i++)idx.push(i);for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=idx[i];idx[i]=idx[j];idx[j]=t;}return idx;}
 /* ---------- shared order-question check (words must rebuild the answer exactly) ---------- */
 function refOrderValid(words,answer){
   if(!Array.isArray(words)||words.length<2)return false;
@@ -208,9 +211,9 @@ function openRefTopic(tid){
     h+='<details class="panel glass" open><summary><b>'+refEsc(refT("ref_quiz"))+' ('+validQ.length+')</b></summary><div class="ref-quiz-body">';
     validQ.forEach((q,qi)=>{
       if(q.type==="order"){
-        h+='<div class="ref-q" data-qi="'+qi+'" data-qtype="order"><b>🔀 '+refEsc(q.q)+'</b><div class="ref-order-line" dir="ltr"></div><div class="quiz-opts ref-order-bank">'+q.words.map(w=>'<button class="quiz-opt ref-order-word">'+refEsc(w)+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm ref-order-reset">↺</button><button class="btn btn-primary sm ref-order-check">✓</button></div><div class="quiz-feedback hidden"></div></div>';
+        h+='<div class="ref-q" data-qi="'+qi+'" data-qtype="order"><b>🔀 '+refEsc(q.q)+'</b><div class="ref-order-line" dir="ltr"></div><div class="quiz-opts ref-order-bank">'+refShuffleIdx(q.words.length).map(wi=>'<button class="quiz-opt ref-order-word">'+refEsc(q.words[wi])+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm ref-order-reset">↺</button><button class="btn btn-primary sm ref-order-check">✓</button></div><div class="quiz-feedback hidden"></div></div>';
       }else{
-        h+='<div class="ref-q" data-qi="'+qi+'" data-qtype="choice"><b>'+refEsc(q.q)+'</b><div class="quiz-opts">'+q.opts.map((o,oi)=>'<button class="quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'">'+refEsc(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
+        h+='<div class="ref-q" data-qi="'+qi+'" data-qtype="choice"><b>'+refEsc(q.q)+'</b><div class="quiz-opts">'+refShuffleIdx(q.opts.length).map(oi=>'<button class="quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'">'+refEsc(q.opts[oi])+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
       }
     });
     h+='</div></details>';
@@ -239,7 +242,7 @@ function openRefTopic(tid){
       wrap.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
       const fb=wrap.querySelector(".quiz-feedback");fb.classList.remove("hidden");
       if(oi===q.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent=refT("ref_correct")+" "+(q.why||"");}
-      else{btn.classList.add("wrong");wrap.querySelectorAll(".quiz-opt")[q.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" ✅ "+q.opts[q.correct]+" — "+(q.why||"");}
+      else{btn.classList.add("wrong");const cb=Array.from(wrap.querySelectorAll(".quiz-opt")).find(x=>parseInt(x.getAttribute("data-oi"),10)===q.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" ✅ "+q.opts[q.correct]+" — "+(q.why||"");}
       try{if(typeof markStudyDay==="function")markStudyDay(false);}catch(e){}
     }));
   });

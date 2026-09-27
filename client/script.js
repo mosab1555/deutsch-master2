@@ -1350,6 +1350,11 @@ const STATUS_AR={new:"🆕 جديدة",review:"🔁 مراجعة",hard:"🔴 ص�
 function $(id){return document.getElementById(id);}
 function toast(msg,cls){const t=document.createElement("div");t.className="toast "+(cls||"");t.textContent=msg;$("toasts").appendChild(t);setTimeout(()=>t.remove(),2600);}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=a[i];a[i]=a[j];a[j]=tmp;}return a;}
+/* Fairness helper: shuffled DISPLAY order for option indices (Fisher-Yates).
+   Render buttons in the returned order with data-i = ORIGINAL index, then
+   compare the clicked original index to the stored correct index.
+   Never assume position 0 is correct. */
+function dmQuizOrder(n){return shuffle(Array.from({length:n},function(_,i){return i;}));}
 function currentRate(){try{const v=parseFloat((S&&S.settings&&S.settings.speed)||($("speedSelect")&&$("speedSelect").value)||1);return (v>0&&v<=2)?v:1;}catch(e){return 1;}}
 /* Unified German pronunciation engine: Native Android TTS -> Web Speech API -> Audio fallback */
 var _deVoice=null;
@@ -2082,12 +2087,12 @@ function openExplain(id){
     exBlock("8️⃣ الأخطاء الشائعة",E.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ خطأ: '+escapeHtml(m.w)+'</div><div class="ex-right">✅ الصحيح: '+escapeHtml(m.r)+'</div><div class="muted">لماذا؟ '+escapeHtml(m.why)+'</div></div>').join(""))+
     exBlock("🔟 خلاصة القاعدة",'<div class="ex-sum">'+escapeHtml(E.summary)+'</div>')+'</details>';
     if(E.drill&&E.drill.length){
-      h+='<div class="panel glass"><b>✍️ تدريب سريع:</b> '+escapeHtml(E.drill[0].t)+'<div class="quiz-opts" id="exDrillOpts" style="margin:8px 0">'+E.drill[0].opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exDrillFb"></div></div>';
+      h+='<div class="panel glass"><b>✍️ تدريب سريع:</b> '+escapeHtml(E.drill[0].t)+'<div class="quiz-opts" id="exDrillOpts" style="margin:8px 0">'+dmQuizOrder(E.drill[0].opts.length).map((o)=>'<button class="quiz-opt" data-i="'+o+'">'+escapeHtml(E.drill[0].opts[o])+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exDrillFb"></div></div>';
     }
   }else{
     h+=exBlock("الشرح المختصر",'<p>'+escapeHtml(g.body)+'</p>');
   }
-  const q=g.quiz?'<div class="panel glass"><b>❓ اختبار قصير:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" id="exQuizOpts" style="margin:8px 0">'+g.quiz.opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exQuizFb"></div></div>':'';
+  const q=g.quiz?'<div class="panel glass"><b>❓ اختبار قصير:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" id="exQuizOpts" style="margin:8px 0">'+dmQuizOrder(g.quiz.opts.length).map((o)=>'<button class="quiz-opt" data-i="'+o+'">'+escapeHtml(g.quiz.opts[o])+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exQuizFb"></div></div>':'';
   h+=q;
   if(E&&E.review){
     h+='<div class="panel glass"><b>📌 ماذا تعلمت؟ Was habe ich gelernt?</b><ul class="ex-ul"><li>القاعدة: '+escapeHtml(E.review.rule)+'</li><li>كلمات مهمة: '+escapeHtml(E.review.words)+'</li><li>أهم مثال: '+escapeHtml(E.review.example)+'</li><li>خطأ تجنبه: '+escapeHtml(E.review.mistake)+'</li><li>سؤال سريع: '+escapeHtml(E.review.q)+'</li></ul><div class="row-flex"><button class="btn btn-gold sm" id="exReviewLater">🔁 راجع الدرس لاحقًا</button></div></div>';
@@ -2124,7 +2129,7 @@ function openExplain(id){
       const fb=$("exDrillFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exDrillOpts .quiz-opt").forEach(x=>x.disabled=true);
       if(i===dr.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+dr.why;}
-      else{btn.classList.add("wrong");det.querySelectorAll("#exDrillOpts .quiz-opt")[dr.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ الصحيح: "+dr.opts[dr.correct]+" — لماذا؟ "+dr.why;}
+      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exDrillOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===dr.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ الصحيح: "+dr.opts[dr.correct]+" — لماذا؟ "+dr.why;}
     }));
   }
   if(g.quiz){
@@ -2133,7 +2138,7 @@ function openExplain(id){
       const fb=$("exQuizFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exQuizOpts .quiz-opt").forEach(x=>x.disabled=true);
       if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;try{if(typeof completeLesson==="function")completeLesson(g.id);}catch(e){}}
-      else{btn.classList.add("wrong");det.querySelectorAll("#exQuizOpts .quiz-opt")[g.quiz.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;try{if(S){S.gweak=S.gweak||{};S.gweak[g.id]=(S.gweak[g.id]||0)+1;save();}}catch(e){}}
+      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exQuizOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===g.quiz.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;try{if(S){S.gweak=S.gweak||{};S.gweak[g.id]=(S.gweak[g.id]||0)+1;save();}}catch(e){}}
     }));
   }
 }
