@@ -1,0 +1,43 @@
+/* Deutsch Master — Reference section styles (scoped, additive).
+   Distinct look, same theme vars. Mobile-first, zero page-level horizontal scroll. */
+#page-reference .ref-search-panel{margin-bottom:14px}
+#page-reference .ref-search-label{display:block;font-weight:800;margin-bottom:8px}
+#page-reference #refSearch{width:100%}
+#page-reference .ref-results{margin-top:8px}
+#page-reference .ref-results.show{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:12px;max-height:280px;overflow:auto}
+#page-reference .ref-sec-title{margin:14px 4px 10px}
+#page-reference .ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+#page-reference .ref-card{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:right;padding:14px;border-radius:16px;cursor:pointer;color:var(--text);transition:transform .2s,box-shadow .2s;border:1px solid var(--border)}
+#page-reference .ref-card:hover{transform:translateY(-2px);box-shadow:0 0 18px rgba(0,212,255,.25)}
+#page-reference .ref-ico{font-size:26px}
+#page-reference .ref-name{font-weight:800;font-size:15px}
+#page-reference .ref-de{font-size:12px;color:var(--muted);direction:ltr;align-self:flex-end}
+#page-reference .ref-count{font-size:12px;color:var(--muted)}
+#page-reference .ref-detail-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 10px}
+#page-reference .ref-detail-head h3{font-size:18px}
+#page-reference .ref-topic-list{display:flex;flex-direction:column;gap:10px}
+#page-reference .ref-topic{border-radius:14px;overflow:hidden}
+#page-reference .ref-topic>summary{padding:13px 14px;cursor:pointer;font-weight:800;font-size:15px;min-height:44px}
+#page-reference .ref-topic-body{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+#page-reference .ref-tbl-title{font-weight:800;margin-top:6px}
+#page-reference .ref-tbl-wrap{overflow-x:auto;max-width:100%;border:1px solid var(--border);border-radius:12px;-webkit-overflow-scrolling:touch}
+#page-reference .ref-tbl{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+#page-reference .ref-tbl th,#page-reference .ref-tbl td{border:1px solid var(--border);padding:8px 10px;text-align:center;white-space:nowrap}
+#page-reference .ref-tbl th{background:rgba(124,58,237,.22);font-weight:800}
+#page-reference .ref-tbl td:first-child,#page-reference .ref-tbl th:first-child{position:sticky;right:0;background:rgba(11,18,48,.92);z-index:1}
+html[data-theme="light"] #page-reference .ref-tbl td:first-child,html[data-theme="light"] #page-reference .ref-tbl th:first-child{background:#eef2ff}
+#page-reference .ref-ex{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:10px 12px}
+#page-reference .ref-ex-de{font-weight:800;direction:ltr;text-align:left}
+#page-reference .ref-ex-ar{color:var(--gold)}
+#page-reference .ref-say{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:2px 8px;cursor:pointer;color:var(--text)}
+#page-reference .ref-lvl{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:800;background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.5)}
+#page-reference .ref-quiz{border:1px dashed var(--border);border-radius:12px;padding:10px 12px}
+#page-reference .ref-quiz>summary{cursor:pointer;font-weight:800;min-height:44px}
+#page-reference .ref-q{margin-top:10px}
+#page-reference .muted{color:var(--muted)}
+@media (max-width:480px){
+  #page-reference .ref-grid{grid-template-columns:repeat(2,1fr)}
+  #page-reference .ref-card{padding:12px}
+  #page-reference .ref-name{font-size:14px}
+  #page-reference .ref-tbl{font-size:13px;min-width:480px}
+}

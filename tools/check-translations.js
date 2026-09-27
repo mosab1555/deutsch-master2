@@ -20,15 +20,16 @@ function good(m) { console.log("PASS " + m); }
 const study = RD("client/study.js");
 const labsx = (() => { try { return RD("client/labsx.js"); } catch (e) { return ""; } })();
 const advjs = (() => { try { return RD("client/adv.js"); } catch (e) { return ""; } })();
+const refjs = (() => { try { return RD("client/reference.js"); } catch (e) { return ""; } })();
 const dict = {};
 for (const L of ["ar", "en", "de"]) {
   const line = study.split("\n").find(l => l.startsWith(L + ":{"));
   if (!line) { bad("dict block missing for " + L); continue; }
   const pairs = [...line.matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
   dict[L] = { keys: pairs.map(p => p[1]), vals: Object.fromEntries(pairs.map(p => [p[1], p[2]])) };
-  // Merge additive labsx.js + adv.js Object.assign(I18N.<L>,{...}) keys (same as runtime)
+  // Merge additive labsx.js + adv.js + reference.js Object.assign(I18N.<L>,{...}) keys (same as runtime)
   try {
-    [labsx, advjs].forEach(src => {
+    [labsx, advjs, refjs].forEach(src => {
       const m = src.match(new RegExp("Object\\.assign\\(I18N\\." + L + ",\\{([^}]*)\\}\\)"));
       if (m) {
         const extra = [...m[1].matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
