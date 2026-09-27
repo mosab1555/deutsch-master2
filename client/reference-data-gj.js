@@ -20,7 +20,7 @@ var REF_G=[
  notes:["المحكي Perfekt، والكتابي/الرسمي Präteritum غالبا.","الاختيار الخاطئ بين haben/sein من أشهر أخطاء A1."],
  mistakes:[{w:"Ich bin gelernt.",r:"Ich habe gelernt.",why:"lernen بلا حركة: haben."},{w:"Er hat gekommen.",r:"Er ist gekommen.",why:"kommen حركة: sein."}],
  related:["g-praesens","g-partizip2","g-praeteritum","f-shw","f-trennbar","f-untrennbar","p-vergleiche"],
- quiz:[{q:"Ich ___ gelernt. (haben/sein)",opts:["habe","bin","bist"],correct:0,why:"lernen مع haben."},{q:"Er ___ gekommen.",opts:["hat","ist","haben"],correct:1,why:"kommen حركة مع sein."},{q:"أين Partizip II في الجملة؟",opts:["المرتبة 2","نهاية الجملة","البداية"],correct:1,why:"المساعد في 2 + Partizip في النهاية."},{q:"lernen في Perfekt يأخذ sein.",opts:["صحيح","خطأ"],correct:1,why:"بلا حركة = haben."}]},
+ quiz:[{q:"Ich ___ gelernt. (haben/sein)",opts:["habe","bin","bist"],correct:0,why:"lernen مع haben."},{q:"Er ___ gekommen.",opts:["hat","ist","haben"],correct:1,why:"kommen حركة مع sein."},{q:"أين Partizip II في الجملة؟",opts:["المرتبة 2","نهاية الجملة","البداية"],correct:1,why:"المساعد في 2 + Partizip في النهاية."},{q:"lernen في Perfekt يأخذ sein.",opts:["صحيح","خطأ"],correct:1,why:"بلا حركة = haben."},{type:"order",q:"رتب: تعلمت الألمانية",words:["Ich","habe","Deutsch","gelernt."],answer:"Ich habe Deutsch gelernt.",why:"فاعل + مساعد + مفعول + Partizip في النهاية."}]},
 {id:"g-partizip2",level:"A1",de:"Partizip II",ar:"اسم المفعول (التصريف الثالث)",en:"Past participle",
  what:"الجزء الثاني من Perfekt. قواعده تعتمد على نوع الفعل: منتظم، شاذ، منتهٍ بـ ieren، منفصل، غير منفصل.",
  rule:"منتظم: ge + الجذر + t. شاذ: يُحفظ (gesprochen). ieren: بدون ge (studiert). منفصل: ge في الوسط (aufgestanden). غير منفصل: بلا ge (verstanden).",

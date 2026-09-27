@@ -62,7 +62,7 @@ var REF_M=[
  notes:["أي عنصر في البداية (ظرف/مفعول) لا يغيّر قاعدة V2.","هذه القاعدة تحكم 90% من أخطاء الترتيب."],
  mistakes:[{w:"Heute ich lerne.",r:"Heute lerne ich.",why:"بعد الظرف يأتي الفعل مباشرة."}],
  related:["a-satz-basis","i-fragen","m-haupt-neben","f-modal","g-perfekt"],
- quiz:[{q:"Heute ___ ich Deutsch. (lernen)",opts:["lerne","lernst","lernt"],correct:0,why:"الفعل ثانيًا بعد الظرف."},{q:"___ du Deutsch؟ (سؤال نعم/لا)",opts:["Lernst","Du lernst","Lernen"],correct:0,why:"الفعل أولًا."}]},
+ quiz:[{q:"Heute ___ ich Deutsch. (lernen)",opts:["lerne","lernst","lernt"],correct:0,why:"الفعل ثانيًا بعد الظرف."},{q:"___ du Deutsch؟ (سؤال نعم/لا)",opts:["Lernst","Du lernst","Lernen"],correct:0,why:"الفعل أولًا."},{type:"order",q:"رتب: جملة خبرية سليمة",words:["nach Berlin","Ich","morgen","fahre"],answer:"Ich fahre morgen nach Berlin",why:"فاعل + فعل ثانٍ + زمان + مكان."}]},
 {id:"m-tmp",level:"A2",de:"TMP / TeKaMoLo",ar:"ترتيب عناصر الجملة (زمان-كيفية-مكان)",en:"Sentence element order",
  what:"الترتيب الكامل: فاعل + فعل + (مفعول Dativ غالبا قبل Akkusativ) + زمان + كيفية + مكان.",
  rule:"TeKaMoLo: Temporal (متى) ← Kausal/Modal (كيف/لماذا) ← Lokal (أين). الضمائر قبل الأسماء: Ich gebe es dir.",
@@ -72,5 +72,5 @@ var REF_M=[
  notes:["الضمير قبل الاسم: Ich gebe es dem Mann (وليس العكس غالبا).","Dativ قبل Akkusativ إذا كانا اسمين."],
  mistakes:[{w:"Ich gebe das Buch dir.",r:"Ich gebe dir das Buch.",why:"الضمير Dativ قبل الاسم."}],
  related:["a-wortstellung","d-dativ","d-akkusativ","h-wechsel"],
- quiz:[{q:"رتب: das Buch / dir / gebe / Ich",opts:["Ich gebe dir das Buch.","Ich gebe das Buch dir.","Ich dir gebe das Buch."],correct:0,why:"الضمير قبل الاسم."},{q:"بعد الفعل يأتي أولًا…",opts:["المكان","الزمان","الفاعل"],correct:1,why:"TeKaMoLo: الزمان أولًا."}]}
+ quiz:[{q:"رتب: das Buch / dir / gebe / Ich",opts:["Ich gebe dir das Buch.","Ich gebe das Buch dir.","Ich dir gebe das Buch."],correct:0,why:"الضمير قبل الاسم."},{q:"بعد الفعل يأتي أولًا…",opts:["المكان","الزمان","الفاعل"],correct:1,why:"TeKaMoLo: الزمان أولًا."},{type:"order",q:"رتب: Ich / gebe / dir / das Buch",words:["dir","gebe","Ich","das Buch"],answer:"Ich gebe dir das Buch",why:"فاعل + فعل + ضمير Dativ + اسم."}]}
 ];

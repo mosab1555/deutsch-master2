@@ -8,9 +8,9 @@
 
 /* ---------- i18n chrome (one Object.assign per lang; merged by check-translations.js) ---------- */
 try{
-  Object.assign(I18N.ar,{reference:"المرجع الألماني الشامل",title_reference:"📚 المرجع الألماني الشامل",ref_search_ph:"ابحث في المرجع: mit / Dativ / ماضي / gestern / ضمائر...",ref_search_label:"🔍 بحث المرجع",ref_paths:"المسارات المعرفية",ref_topics:"مواضيع المسار",ref_back_paths:"← كل المسارات",ref_back_path:"← مواضيع المسار",ref_what:"ما هو؟",ref_rule:"القاعدة",ref_examples:"أمثلة",ref_notes:"ملاحظات مهمة",ref_mistakes:"أخطاء شائعة",ref_related:"🔗 موضوعات مرتبطة",ref_quiz:"📝 تدريب سريع",ref_no_results:"لا توجد نتائج مطابقة — جرّب كلمة أخرى",ref_coming:"محتوى هذا المسار يُبنى في المراحل التالية ⏳",ref_grammar_hub:"📐 فتح القواعد المرتبطة",ref_open_lesson:"📖 فتح الشرح المفصل",ref_prev:"→ السابق",ref_next:"التالي ←",ref_topic_of:"الموضوع",ref_of:"من",ref_level_a1:"🟢 A1 أساسي",ref_level_a2:"🟡 A2 بعده",ref_level_b1:"🔵 B1 متقدم",ref_b1_closed:"🔵 محتوى متقدم — اضغط للفتح",ref_correct:"صحيح ✅",ref_wrong:"خطأ ❌",ref_home:"المرجع"});
-  Object.assign(I18N.en,{reference:"Complete German Reference",title_reference:"📚 Complete German Reference",ref_search_ph:"Search the reference: mit / Dativ / past / gestern / pronouns...",ref_search_label:"🔍 Reference search",ref_paths:"Knowledge paths",ref_topics:"Path topics",ref_back_paths:"← All paths",ref_back_path:"← Path topics",ref_what:"What is it?",ref_rule:"The rule",ref_examples:"Examples",ref_notes:"Important notes",ref_mistakes:"Common mistakes",ref_related:"🔗 Related topics",ref_quiz:"📝 Quick practice",ref_no_results:"No matches — try another word",ref_coming:"This path is under construction ⏳",ref_grammar_hub:"📐 Open related grammar",ref_open_lesson:"📖 Open full lesson",ref_prev:"→ Previous",ref_next:"Next ←",ref_topic_of:"Topic",ref_of:"of",ref_level_a1:"🟢 A1 basic",ref_level_a2:"🟡 A2 next",ref_level_b1:"🔵 B1 advanced",ref_b1_closed:"🔵 Advanced — tap to open",ref_correct:"Correct ✅",ref_wrong:"Wrong ❌",ref_home:"Reference"});
-  Object.assign(I18N.de,{reference:"Deutsche Komplettreferenz",title_reference:"📚 Deutsche Komplettreferenz",ref_search_ph:"Referenz durchsuchen: mit / Dativ / Vergangenheit / gestern / Pronomen...",ref_search_label:"🔍 Referenzsuche",ref_paths:"Wissenspfade",ref_topics:"Pfadthemen",ref_back_paths:"← Alle Pfade",ref_back_path:"← Pfadthemen",ref_what:"Was ist das?",ref_rule:"Die Regel",ref_examples:"Beispiele",ref_notes:"Wichtige Hinweise",ref_mistakes:"Häufige Fehler",ref_related:"🔗 Verwandte Themen",ref_quiz:"📝 Kurztraining",ref_no_results:"Keine Treffer — versuch ein anderes Wort",ref_coming:"Dieser Pfad folgt in den nächsten Stufen ⏳",ref_grammar_hub:"📐 Verwandte Grammatik öffnen",ref_open_lesson:"📖 Lektion öffnen",ref_prev:"→ Zurück",ref_next:"Weiter ←",ref_topic_of:"Thema",ref_of:"von",ref_level_a1:"🟢 A1 Basis",ref_level_a2:"🟡 A2 danach",ref_level_b1:"🔵 B1 fortgeschritten",ref_b1_closed:"🔵 Fortgeschritten — tippen zum Öffnen",ref_correct:"Richtig ✅",ref_wrong:"Falsch ❌",ref_home:"Referenz"});
+  Object.assign(I18N.ar,{reference:"المرجع الألماني الشامل",title_reference:"📚 المرجع الألماني الشامل",ref_search_ph:"ابحث في المرجع: mit / Dativ / ماضي / gestern / ضمائر...",ref_search_label:"🔍 بحث المرجع",ref_paths:"المسارات المعرفية",ref_topics:"مواضيع المسار",ref_back_paths:"← كل المسارات",ref_back_path:"← مواضيع المسار",ref_what:"ما هو؟",ref_rule:"القاعدة",ref_examples:"أمثلة",ref_notes:"ملاحظات مهمة",ref_mistakes:"أخطاء شائعة",ref_related:"🔗 موضوعات مرتبطة",ref_quiz:"📝 تدريب سريع",ref_no_results:"لا توجد نتائج مطابقة — جرّب كلمة أخرى",ref_grammar_hub:"📐 فتح القواعد المرتبطة",ref_open_lesson:"📖 فتح الشرح المفصل",ref_prev:"→ السابق",ref_next:"التالي ←",ref_topic_of:"الموضوع",ref_of:"من",ref_level_a1:"🟢 A1 أساسي",ref_level_a2:"🟡 A2 بعده",ref_level_b1:"🔵 B1 متقدم",ref_b1_closed:"🔵 محتوى متقدم — اضغط للفتح",ref_correct:"صحيح ✅",ref_wrong:"خطأ ❌",ref_home:"المرجع"});
+  Object.assign(I18N.en,{reference:"Complete German Reference",title_reference:"📚 Complete German Reference",ref_search_ph:"Search the reference: mit / Dativ / past / gestern / pronouns...",ref_search_label:"🔍 Reference search",ref_paths:"Knowledge paths",ref_topics:"Path topics",ref_back_paths:"← All paths",ref_back_path:"← Path topics",ref_what:"What is it?",ref_rule:"The rule",ref_examples:"Examples",ref_notes:"Important notes",ref_mistakes:"Common mistakes",ref_related:"🔗 Related topics",ref_quiz:"📝 Quick practice",ref_no_results:"No matches — try another word",ref_grammar_hub:"📐 Open related grammar",ref_open_lesson:"📖 Open full lesson",ref_prev:"→ Previous",ref_next:"Next ←",ref_topic_of:"Topic",ref_of:"of",ref_level_a1:"🟢 A1 basic",ref_level_a2:"🟡 A2 next",ref_level_b1:"🔵 B1 advanced",ref_b1_closed:"🔵 Advanced — tap to open",ref_correct:"Correct ✅",ref_wrong:"Wrong ❌",ref_home:"Reference"});
+  Object.assign(I18N.de,{reference:"Deutsche Komplettreferenz",title_reference:"📚 Deutsche Komplettreferenz",ref_search_ph:"Referenz durchsuchen: mit / Dativ / Vergangenheit / gestern / Pronomen...",ref_search_label:"🔍 Referenzsuche",ref_paths:"Wissenspfade",ref_topics:"Pfadthemen",ref_back_paths:"← Alle Pfade",ref_back_path:"← Pfadthemen",ref_what:"Was ist das?",ref_rule:"Die Regel",ref_examples:"Beispiele",ref_notes:"Wichtige Hinweise",ref_mistakes:"Häufige Fehler",ref_related:"🔗 Verwandte Themen",ref_quiz:"📝 Kurztraining",ref_no_results:"Keine Treffer — versuch ein anderes Wort",ref_grammar_hub:"📐 Verwandte Grammatik öffnen",ref_open_lesson:"📖 Lektion öffnen",ref_prev:"→ Zurück",ref_next:"Weiter ←",ref_topic_of:"Thema",ref_of:"von",ref_level_a1:"🟢 A1 Basis",ref_level_a2:"🟡 A2 danach",ref_level_b1:"🔵 B1 fortgeschritten",ref_b1_closed:"🔵 Fortgeschritten — tippen zum Öffnen",ref_correct:"Richtig ✅",ref_wrong:"Falsch ❌",ref_home:"Referenz"});
 }catch(e){}
 
 /* ---------- 16 knowledge paths ---------- */
@@ -65,8 +65,26 @@ function refTopicById(id){
 function refPathById(pid){return REF_PATHS.find(p=>p.id===pid)||null;}
 
 /* ---------- STRICT quiz gate: invalid questions never render ---------- */
+/* ---------- shared order-question check (words must rebuild the answer exactly) ---------- */
+function refOrderValid(words,answer){
+  if(!Array.isArray(words)||words.length<2)return false;
+  const w=words.map(o=>String(o==null?"":o).trim());
+  if(w.some(x=>!x))return false;
+  if(new Set(w).size!==w.length)return false;
+  if(typeof answer!=="string"||!answer.trim())return false;
+  let tmp=" "+answer.trim()+" ";
+  const sorted=w.slice().sort((a,b)=>b.length-a.length);
+  for(const c of sorted){const i=tmp.indexOf(c);if(i<0)return false;tmp=tmp.slice(0,i)+" "+tmp.slice(i+c.length);}
+  if(tmp.replace(/\s+/g,"")!=="")return false;
+  return true;
+}
 function refValidQuiz(q){
   if(!q||typeof q.q!=="string"||!q.q.trim())return false;
+  if(q.type==="order"){
+    if(!refOrderValid(q.words,q.answer))return false;
+    if(!q.why||!String(q.why).trim())return false;
+    return true;
+  }
   if(!Array.isArray(q.opts)||q.opts.length<2)return false;
   if(q.opts.some(o=>typeof o!=="string"||!o.trim()))return false;
   if(typeof q.correct!=="number"||q.correct<0||q.correct>=q.opts.length)return false;
@@ -87,7 +105,7 @@ function renderReference(){
   h+='<h3 class="ref-sec-title">'+refEsc(refT("ref_paths"))+'</h3><div class="ref-grid">';
   REF_PATHS.forEach(p=>{
     const n=refPathTopics(p.id).length;
-    h+='<button class="ref-card glass" data-path="'+p.id+'" style="border-top:4px solid '+p.color+'"><span class="ref-ico">'+p.icon+'</span><span class="ref-name">'+refEsc(refPathTitle(p))+'</span><span class="ref-de">'+refEsc(p.de)+'</span><span class="ref-count">'+n+' • '+(n?"✅":"⏳")+'</span></button>';
+    h+='<button class="ref-card glass" data-path="'+p.id+'" style="border-top:4px solid '+p.color+'"><span class="ref-ico">'+p.icon+'</span><span class="ref-name">'+refEsc(refPathTitle(p))+'</span><span class="ref-de">'+refEsc(p.de)+'</span><span class="ref-count">'+n+'</span></button>';
   });
   h+='</div><div id="refDetail"></div>';
   box.innerHTML=h;
@@ -118,9 +136,7 @@ function openRefPath(pid){
   h+='<div class="ref-path-head" style="border-top:4px solid '+p.color+'"><span class="ref-ico">'+p.icon+'</span><h3>'+refEsc(refPathTitle(p))+' <span class="muted">'+refEsc(p.de)+'</span></h3>';
   h+='<div class="row-flex"><button class="btn btn-ghost sm" id="refBackPaths">'+refEsc(refT("ref_back_paths"))+'</button><button class="btn btn-ghost sm" id="refGrammarHub">'+refEsc(refT("ref_grammar_hub"))+'</button></div></div>';
   h+='<div class="ref-chips">'+REF_PATHS.map(x=>'<button class="mini-btn'+(x.id===pid?" on":"")+'" data-jump="'+x.id+'">'+x.icon+' '+x.id+'</button>').join("")+'</div>';
-  if(!topics.length){
-    h+='<div class="panel glass">'+refEsc(refT("ref_coming"))+'</div>';
-  }else{
+  if(topics.length){
     h+='<h4>'+refEsc(refT("ref_topics"))+' ('+topics.length+')</h4><div class="ref-topic-list">';
     topics.forEach(tp=>{
       const body=refTopicPreview(tp);
@@ -191,7 +207,11 @@ function openRefTopic(tid){
   if(validQ.length){
     h+='<details class="panel glass" open><summary><b>'+refEsc(refT("ref_quiz"))+' ('+validQ.length+')</b></summary><div class="ref-quiz-body">';
     validQ.forEach((q,qi)=>{
-      h+='<div class="ref-q"><b>'+refEsc(q.q)+'</b><div class="quiz-opts">'+q.opts.map((o,oi)=>'<button class="quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'">'+refEsc(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
+      if(q.type==="order"){
+        h+='<div class="ref-q" data-qi="'+qi+'" data-qtype="order"><b>🔀 '+refEsc(q.q)+'</b><div class="ref-order-line" dir="ltr"></div><div class="quiz-opts ref-order-bank">'+q.words.map(w=>'<button class="quiz-opt ref-order-word">'+refEsc(w)+'</button>').join("")+'</div><div class="row-flex"><button class="btn btn-ghost sm ref-order-reset">↺</button><button class="btn btn-primary sm ref-order-check">✓</button></div><div class="quiz-feedback hidden"></div></div>';
+      }else{
+        h+='<div class="ref-q" data-qi="'+qi+'" data-qtype="choice"><b>'+refEsc(q.q)+'</b><div class="quiz-opts">'+q.opts.map((o,oi)=>'<button class="quiz-opt" data-qi="'+qi+'" data-oi="'+oi+'">'+refEsc(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
+      }
     });
     h+='</div></details>';
   }
@@ -207,8 +227,13 @@ function openRefTopic(tid){
   const exB=document.getElementById("refExplainBtn");
   if(exB&&tp.explain)exB.addEventListener("click",()=>{try{if(typeof openExplain==="function")openExplain(tp.explain);}catch(e){}});
   det.querySelectorAll(".ref-q").forEach(wrap=>{
-    const qi=parseInt(wrap.querySelector(".quiz-opt").getAttribute("data-qi"),10);
+    let qi=NaN;
+    try{qi=parseInt(wrap.getAttribute("data-qi"),10);}catch(e){}
     const q=validQ[qi];
+    if(!q||typeof wrap.querySelector!=="function")return;
+    if(q.type==="order"){wireRefOrder(wrap,q);return;}
+    const firstOpt=wrap.querySelector(".quiz-opt");
+    if(!firstOpt)return;
     wrap.querySelectorAll(".quiz-opt").forEach(btn=>btn.addEventListener("click",()=>{
       const oi=parseInt(btn.getAttribute("data-oi"),10);
       wrap.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
@@ -222,6 +247,35 @@ function openRefTopic(tid){
   if(prev)document.getElementById("refPrevBtn").addEventListener("click",()=>openRefTopic(prev.id));
   if(next)document.getElementById("refNextBtn").addEventListener("click",()=>openRefTopic(next.id));
   det.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ---------- order-type quiz wiring (tap words in order, then check) ---------- */
+function wireRefOrder(wrap,q){
+  let line=null,bank=[],fb=null,resetBtn=null,checkBtn=null;
+  try{
+    line=wrap.querySelector(".ref-order-line");
+    bank=Array.from(wrap.querySelectorAll(".ref-order-word"));
+    fb=wrap.querySelector(".quiz-feedback");
+    resetBtn=wrap.querySelector(".ref-order-reset");
+    checkBtn=wrap.querySelector(".ref-order-check");
+  }catch(e){return;}
+  if(!line||!bank.length||!fb||!resetBtn||!checkBtn)return;
+  function picks(){try{return Array.from(line.querySelectorAll(".ref-order-pick")).map(s=>s.getAttribute("data-w")||"");}catch(e){return [];}}
+  bank.forEach(b=>b.addEventListener("click",()=>{
+    if(b.disabled)return;b.disabled=true;
+    try{
+      const s=document.createElement("span");s.className="ref-order-pick";s.setAttribute("data-w",b.textContent);s.textContent=b.textContent;
+      line.appendChild(s);
+    }catch(e){}
+  }));
+  resetBtn.addEventListener("click",()=>{try{line.innerHTML="";}catch(e){}bank.forEach(b=>{b.disabled=false;});fb.classList.add("hidden");});
+  checkBtn.addEventListener("click",()=>{
+    const got=picks().join(" ");
+    fb.classList.remove("hidden");
+    if(got===q.answer){fb.className="quiz-feedback ok";fb.textContent=refT("ref_correct")+" "+(q.why||"");bank.forEach(b=>{b.disabled=true;});}
+    else{fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" ✅ "+q.answer+" — "+(q.why||"");}
+    try{if(typeof markStudyDay==="function")markStudyDay(false);}catch(e){}
+  });
 }
 
 /* ---------- professional search: de/ar/en/title/examples/keywords/related ---------- */

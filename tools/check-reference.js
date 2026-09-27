@@ -57,7 +57,19 @@ Object.keys(REF_PLAN).forEach(pid => {
 const byId = {};
 topics.forEach(tp => { if (tp && tp.id) byId[tp.id] = tp; });
 
-/* ---------- counters ---------- */
+/* ---------- load engine for the single shared quiz gate (parity guaranteed) ---------- */
+const ENG = { I18N: { ar: {}, en: {}, de: {} } };
+global.I18N = ENG.I18N;
+global.window = global.window || {};
+global.document = global.document || { getElementById() { return null; }, querySelectorAll() { return []; } };
+let refValidQuiz = null;
+try {
+  const engSrc = fs.readFileSync(path.join(CDIR, "reference.js"), "utf8");
+  const engBox = {};
+  eval(engSrc + ";engBox.refValidQuiz=(typeof refValidQuiz!==\"undefined\"?refValidQuiz:null);");
+  refValidQuiz = engBox.refValidQuiz;
+} catch (e) { console.log("FAIL engine load: " + e.message); process.exit(1); }
+if (typeof refValidQuiz !== "function") { console.log("FAIL refValidQuiz missing"); process.exit(1); }
 const C = { Missing: 0, Empty: 0, DuplicateIDs: 0, DuplicateQuestions: 0, InvalidAnswers: 0, MultipleCorrect: 0, BrokenLinks: 0, MissingGerman: 0, MissingArabic: 0, MissingEnglish: 0 };
 function bad(counter, msg) { C[counter]++; console.log("FAIL[" + counter + "] " + msg); }
 const seenIds = new Set(), seenQ = new Set();
@@ -95,13 +107,12 @@ topics.forEach(tp => {
     if (!q || isEmpty(q.q)) { bad("Missing", tag + " text"); return; }
     const nq = norm(q.q).toLowerCase();
     if (seenQ.has(nq)) bad("DuplicateQuestions", tag + " dup: " + q.q.slice(0, 40)); else seenQ.add(nq);
-    if (!Array.isArray(q.opts) || q.opts.length < 2) { bad("InvalidAnswers", tag + " opts<2"); return; }
-    if (q.opts.some(o => isEmpty(o))) { bad("Empty", tag + " empty option"); return; }
-    const no = q.opts.map(o => norm(o));
-    if (new Set(no).size !== no.length) { bad("InvalidAnswers", tag + " duplicate options"); return; }
-    if (typeof q.correct !== "number" || q.correct < 0 || q.correct >= q.opts.length) { bad("InvalidAnswers", tag + " correct out of range"); return; }
+    /* single shared gate with the app renderer: invalid = never shown */
+    let ok = false;
+    try { ok = refValidQuiz(q); } catch (e) { ok = false; }
+    if (!ok) { bad("InvalidAnswers", tag + " rejected by refValidQuiz"); return; }
     if (isEmpty(q.why)) bad("Missing", tag + " why");
-    // exactly one correct: unique options + single index guarantees it
+    // exactly one correct: unique options + single index (choice) or exact rebuild (order)
   });
 });
 

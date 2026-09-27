@@ -32,7 +32,7 @@ var REF_O=[
  notes:["Gute Nacht للوداع عند النوم فقط وليست تحية مساء.","Sie الرسمية مع الكبار والغرباء أول مرة."],
  mistakes:[{w:"Gute Nacht! (تحية مساء في لقاء)",r:"Guten Abend!",why:"Gute Nacht عند النوم فقط."}],
  related:["a-alphabet","l-woher","o-alltag"],
- quiz:[{q:"تحية الصباح…",opts:["Guten Abend!","Guten Morgen!","Gute Nacht!"],correct:1,why:"Morgen = صباح."},{q:"رد المجاملة على التعارف…",opts:["Freut mich!","Gute Nacht!","Prost!"],correct:0,why:"سعيد بلقائك."}]},
+ quiz:[{q:"تحية الصباح…",opts:["Guten Abend!","Guten Morgen!","Gute Nacht!"],correct:1,why:"Morgen = صباح."},{q:"رد المجاملة على التعارف…",opts:["Freut mich!","Gute Nacht!","Prost!"],correct:0,why:"سعيد بلقائك."},{q:"Freut mich! تعني…",opts:["سعيد بلقائك","صباح الخير","مع السلامة"],correct:0,why:"مجاملة التعارف."}]},
 {id:"o-dank",level:"A1",de:"Dank, Bitte & Entschuldigung",ar:"الشكر والطلب والاعتذار",en:"Thanks, requests and apologies",
  what:"عبارات التهذيب الثلاثة: الشكر (Danke)، الطلب (bitte)، الاعتذار (Entschuldigung / Es tut mir leid).",
  rule:"Danke für + Akk (Danke für deine Hilfe). Entschuldigung للفت الانتباه والاعتذار الخفيف، Es tut mir leid للأسف الحقيقي.",

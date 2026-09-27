@@ -20,7 +20,7 @@ var REF_I=[
  notes:["الإجابة عن Ja/Nein: Ja/Nein + جملة كاملة مهذبة.","نبرة الصوت تصعد في نهاية سؤال نعم/لا."],
  mistakes:[{w:"Du wohnst wo?",r:"Wo wohnst du?",why:"أداة السؤال أولًا + الفعل ثانيًا."}],
  related:["i-fragewoerter","m-verbstellung","g-perfekt","f-modal"],
- quiz:[{q:"رتب: du / wo / wohnst؟",opts:["Wo wohnst du?","Du wo wohnst?","Wohnst wo du?"],correct:0,why:"أداة + فعل ثانيًا."},{q:"Sprichst du Deutsch؟ نوعه…",opts:["W-Frage","Ja/Nein-Frage","أمر"],correct:1,why:"يبدأ بالفعل: نعم/لا."}]},
+ quiz:[{q:"رتب: du / wo / wohnst؟",opts:["Wo wohnst du?","Du wo wohnst?","Wohnst wo du?"],correct:0,why:"أداة + فعل ثانيًا."},{q:"Sprichst du Deutsch؟ نوعه…",opts:["W-Frage","Ja/Nein-Frage","أمر"],correct:1,why:"يبدأ بالفعل: نعم/لا."},{type:"order",q:"رتب: سؤال W سليم",words:["du?","Wo","wohnst"],answer:"Wo wohnst du?",why:"أداة + فعل ثانٍ + فاعل."}]},
 {id:"i-negation",level:"A1",de:"Negation",ar:"النفي الكامل",en:"Negation",
  what:"أدوات النفي: nicht (الفعل/الصفة)، kein (الاسم)، niemand (لا أحد)، nichts (لا شيء)، nie/niemals (أبدًا).",
  rule:"kein يحل محل أداة الاسم ويُصرَّف. nicht يأتي قبل الصفة/الظرف وبعد الفعل المُصرَّف غالبا. nie أقوى من nicht.",
