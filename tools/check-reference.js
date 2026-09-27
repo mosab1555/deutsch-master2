@@ -34,18 +34,25 @@ const ALL_PLANNED = new Set(Object.values(REF_PLAN).flat());
 /* ---------- load data files ---------- */
 const I18N = { ar: {}, en: {}, de: {} };
 const window = {};
-const files = fs.readdirSync(CDIR).filter(f => /^reference-data-.*\.js$/.test(f)).sort();
+const htmlIdx = fs.readFileSync(path.join(CDIR, "index.html"), "utf8");
+const files = [...htmlIdx.matchAll(/<script src="(reference-data-[^"]+\.js)"><\/script>/g)].map(m => m[1]);
 if (!files.length) { console.log("FAIL no reference-data files"); process.exit(1); }
 files.forEach(f => {
   const src = fs.readFileSync(path.join(CDIR, f), "utf8");
-  const names = [...src.matchAll(/^var (REF_[A-Z]+)/gm)].map(m => m[1]);
+  const names = [...src.matchAll(/^var (REF_[A-Z][A-Z0-9]*)/gm)].map(m => m[1]);
   const box = {};
   eval(src + ";" + names.map(n => "box." + n + "=(typeof " + n + "!==\"undefined\"?" + n + ":undefined);").join(""));
   names.forEach(n => { window[n] = box[n]; });
 });
+const flatTopics = [];
+Object.keys(window).forEach(k => {
+  (window[k] || []).forEach(tp => { if (tp) flatTopics.push(tp); });
+});
+/* canonical order = path-major in plan order (A..P), exactly like the app */
 const topics = [];
-Object.keys(window).filter(k => /^REF_[A-Z]+$/.test(k)).forEach(k => {
-  (window[k] || []).forEach(tp => topics.push(tp));
+Object.keys(REF_PLAN).forEach(pid => {
+  const pre = pid.toLowerCase() + "-";
+  flatTopics.forEach(tp => { if (tp && typeof tp.id === "string" && tp.id.indexOf(pre) === 0) topics.push(tp); });
 });
 const byId = {};
 topics.forEach(tp => { if (tp && tp.id) byId[tp.id] = tp; });

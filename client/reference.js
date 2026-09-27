@@ -44,9 +44,19 @@ function refTopicTitle(tp){const L=refLang();if(L==="de")return tp.de||tp.ar;if(
 function refLvlClass(l){return l==="A2"?"lvl-a2":(l==="B1"?"lvl-b1":"lvl-a1");}
 function refLvlLabel(l){return refT(l==="A2"?"ref_level_a2":(l==="B1"?"ref_level_b1":"ref_level_a1"));}
 
-/* ---------- data access (data files define window.REF_A .. window.REF_P arrays) ---------- */
+/* ---------- data access: every REF_* array; path from topic id prefix (b-*=B …) ---------- */
+function refAllTopicsFlat(){
+  const out=[];
+  try{
+    Object.keys(window).forEach(k=>{
+      if(/^REF_[A-Z][A-Z0-9]*$/.test(k)){const a=window[k];if(Array.isArray(a))a.forEach(tp=>{if(tp)out.push(tp);});}
+    });
+  }catch(e){}
+  return out;
+}
 function refPathTopics(pid){
-  try{const g=(typeof window!=="undefined"&&window["REF_"+pid])||[];return Array.isArray(g)?g:[];}catch(e){return [];}
+  const pre=String(pid||"").toLowerCase()+"-";
+  return refAllTopicsFlat().filter(tp=>tp&&typeof tp.id==="string"&&tp.id.indexOf(pre)===0);
 }
 function refTopicById(id){
   for(const p of REF_PATHS){const arr=refPathTopics(p.id);for(const tp of arr){if(tp&&tp.id===id)return {path:p,topic:tp};}
