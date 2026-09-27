@@ -144,6 +144,22 @@ function fire(type, ev) {
   else bad("offline versioned fallback broken: " + offVer);
   offline = false;
 
+  /* 5. deployment rollover: previous ?v= entries never shadow the new release */
+  netFiles["script.js?v=new2222"] = "NEW2-SCRIPT";
+  store[cur].set("https://app/script.js?v=old1111", "OLD-VERSIONED");
+  const rollBody = await load("no-cors", "script", "https://app/script.js?v=new2222");
+  if (rollBody === "NEW2-SCRIPT") good("new deployment version bypasses older cached versions");
+  else bad("rollover served stale: " + rollBody);
+
+  /* 6. registration update checks (launch.js): single registration, hourly, no reload */
+  const launchSrc = fs.readFileSync(path.join(CDIR, "launch.js"), "utf8");
+  ["visibilitychange", ".update()", "3600000", "dmSWReg"].forEach(s => {
+    if (launchSrc.includes(s)) good("registration uses " + s);
+    else bad("registration missing " + s);
+  });
+  if (/location\.reload/.test(launchSrc)) bad("registration must not force reload");
+  else good("no forced reload in registration");
+
   console.log("----");
   if (fails) { console.log("RESULT: FAIL (" + fails + ")"); process.exit(1); }
   console.log("RESULT: PASS");

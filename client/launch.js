@@ -1,8 +1,29 @@
 /* Deutsch Master - launch flow (additive). Shows splash every launch, welcome on first run only. */
 (function () {
+  /* Reliable SW updates for long-lived SPA sessions (in-app navigation does
+     not trigger the browser's update check): re-check at most once per hour
+     when the tab becomes visible. Single registration, no reload, no loops. */
+  var dmSWReg = null, dmSWLastCheck = 0;
+  function dmSWCheckUpdate() {
+    try {
+      if (!dmSWReg || !dmSWReg.update) return;
+      var now = Date.now();
+      if (now - dmSWLastCheck < 3600000) return;
+      dmSWLastCheck = now;
+      dmSWReg.update().catch(function () {});
+    } catch (e) {}
+  }
   try {
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+      window.addEventListener("load", function () {
+        if (dmSWReg) return;
+        navigator.serviceWorker.register("sw.js").then(function (reg) {
+          dmSWReg = reg; dmSWLastCheck = Date.now();
+        }).catch(function () {});
+      });
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) dmSWCheckUpdate();
+      });
     }
   } catch (e) {}
   function flag() { return '<span class="dm-flag"><i></i><i></i><i></i></span>'; }
