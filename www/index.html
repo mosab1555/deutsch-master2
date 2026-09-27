@@ -206,15 +206,21 @@
       <!-- FLASHCARDS -->
       <section class="page" id="page-flashcards">
         <div class="page-head"><h2 data-i18n="title_flash">🃏 Flashcards</h2>
-          <div class="row-flex">
-            <select id="flashCategory"><option value="" data-i18n="f_allcats">كل التصنيفات</option></select>
-            <select id="flashKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select>
+          <div class="flash-filters">
+            <label class="flash-filter"><span data-i18n="flash_cat">التصنيف</span><select id="flashCategory"><option value="" data-i18n="f_allcats">كل التصنيفات</option></select></label>
+            <label class="flash-filter"><span data-i18n="flash_kap">الفصل</span><select id="flashKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select></label>
+            <label class="flash-filter"><span data-i18n="flash_type">النوع</span><select id="flashType"><option value="" data-i18n="flash_type_all">الكل</option><option value="objects" data-i18n="flash_type_objects">أدوات / أشياء</option><option value="verbs" data-i18n="flash_type_verbs">أفعال</option></select></label>
+            <label class="flash-filter"><span data-i18n="flash_level">المستوى</span><select id="flashLevel"><option value="" data-i18n="f_alllevels">كل المستويات</option><option value="A1">A1</option><option value="A2">A2</option></select></label>
+          </div>
+          <div class="row-flex flash-actions">
             <button class="btn btn-ghost sm" id="flashShuffle" data-i18n="flash_shuffle">🔀 خلط</button>
             <button class="btn btn-ghost sm" id="flashDir" data-i18n="flash_dir_de_ar">🔄 ألماني → عربي</button>
+            <button class="btn btn-ghost sm" id="flashReset" data-i18n="flash_reset">↺ إعادة تعيين الفلاتر</button>
           </div>
         </div>
         <div class="flash-wrap">
           <div class="flash-progress"><span id="flashCounter">1 / 1</span><div class="progress"><div class="progress-fill" id="flashBar"></div></div></div>
+          <div class="flash-empty hidden" id="flashEmpty"><div data-i18n="flash_no_results">لا توجد بطاقات مطابقة للفلاتر المحددة.</div><button class="btn btn-ghost sm" id="flashResetEmpty" data-i18n="flash_reset">↺ إعادة تعيين الفلاتر</button></div>
           <div class="flashcard" id="flashcard">
             <div class="flash-inner" id="flashInner">
               <div class="flash-face flash-front"><div class="flash-article" id="flashArticle">der</div><div class="flash-word" id="flashWord">Tisch</div><div><button class="btn btn-ghost sm" id="flashSayWFront" data-say-word data-i18n="flash_say_word">🔊 الكلمة</button></div><div class="flash-plural" id="flashPlural"></div><div class="flash-ex" id="flashExFront" dir="auto"></div><div><button class="btn btn-ghost sm" id="flashSaySFront" data-say-sent data-i18n="flash_say_sent">🔊 الجملة</button></div><div class="flash-hint" data-i18n="flash_hint">اضغط للقلب 🔄</div></div>

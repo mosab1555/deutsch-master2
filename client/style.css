@@ -642,3 +642,23 @@ html[data-theme="light"] #wrIn{background:#fff}
   #sentexBox .sx-chapter-grid,#practiceBox .sx-chapter-grid{grid-template-columns:1fr 1fr;gap:6px}
   .sx-type{font-size:12px;padding:9px 10px}
 }
+
+/* ---------- Flashcards: four-filter bar (Category + Kapitel + Type + Level) ----------
+   Desktop: four controls fit in one row. Narrow screens: clean 2x2 wrap.
+   No horizontal scrolling; card dimensions untouched. */
+#page-flashcards .page-head{flex-direction:column;align-items:stretch}
+#page-flashcards .page-head h2{width:100%}
+.flash-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%;margin-top:4px;min-width:0}
+.flash-filter{display:flex;flex-direction:column;gap:6px;margin:0;min-width:0;font-size:13px;font-weight:700}
+.flash-filter span{color:var(--muted);font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flash-filter select{width:100%;max-width:100%;min-width:0;min-height:44px;padding:10px 12px;font-size:14px;overflow:hidden;text-overflow:ellipsis}
+.flash-actions{width:100%;margin-top:10px}
+.flash-empty{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px 20px;border-radius:24px;text-align:center;
+  background:linear-gradient(135deg,rgba(var(--v1),.18),rgba(var(--v2),.1));border:1px solid var(--border);font-weight:700;overflow-wrap:anywhere}
+@media(max-width:560px){
+  .flash-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .flash-filter select{min-height:44px;font-size:13px;padding:10px 8px}
+  .flash-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .flash-actions .btn{width:100%;min-width:0;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .flash-actions .btn:last-child{grid-column:1/-1}
+}

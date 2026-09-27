@@ -1792,11 +1792,40 @@ function bumpReview(id,ok){
 
 /* ============ FLASHCARDS ============ */
 let flashList=[],flashIdx=0;
-function buildFlash(){
-  const c=$("flashCategory").value;
+/* Content-type mapping reuses the existing part-of-speech field (w.type):
+   - "verbs"   -> w.type === "فعل" (German verbs only, never nouns)
+   - "objects" -> w.type === "اسم" (German nouns/objects only, never verbs)
+   - ""        -> all types (adjectives, pronouns, particles included) */
+function flashContentMatch(w,ft){
+  if(!ft)return true;
+  if(ft==="verbs")return w.type==="فعل";
+  if(ft==="objects")return w.type==="اسم";
+  return true;
+}
+/* ONE dataset, ONE pipeline: applies all four filters cumulatively
+   (Category + Kapitel + Content Type + Level). */
+function getFilteredFlashcards(){
+  const c=$("flashCategory")?$("flashCategory").value:"";
   const k=$("flashKapitel")?$("flashKapitel").value:"";
-  flashList=shuffle(allWords().filter(w=>(!c||w.cat===c)&&(!k||(w.kap||"KX")===k)));
-  if(!flashList.length)flashList=allWords().slice();
+  const ft=$("flashType")?$("flashType").value:"";
+  const lv=$("flashLevel")?$("flashLevel").value:"";
+  return allWords().filter(w=>(!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashContentMatch(w,ft)&&(!lv||(w.level||"A1")===lv));
+}
+/* If a level dataset (e.g. A2) is not loaded yet, load it on demand and
+   rebuild the deck when it arrives. Returns true when a load started. */
+function flashEnsureLevel(){
+  try{
+    const lv=$("flashLevel")?$("flashLevel").value:"";
+    if(lv&&lv!=="A1"&&typeof Curriculum!=="undefined"&&Curriculum&&Curriculum.loaded&&!Curriculum.loaded[lv]&&Curriculum.ensure){
+      Curriculum.ensure(lv,function(){try{buildFlash();}catch(e){}});
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function buildFlash(){
+  if(flashEnsureLevel())return;
+  flashList=shuffle(getFilteredFlashcards());
   flashIdx=0;renderFlash();
 }
 /* Keep the flashcard deck in sync when vocabulary grows or shrinks (custom
@@ -1808,15 +1837,18 @@ function refreshFlashList(){
     if(!flashList)flashList=[];
     const cur=flashList.length?flashList[flashIdx%flashList.length]:null;
     const curId=cur&&cur.id;
-    const c=$("flashCategory").value;
-    const k=$("flashKapitel")?$("flashKapitel").value:"";
-    const pass=function(w){return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k);};
+    const pass=function(w){
+      const c=$("flashCategory")?$("flashCategory").value:"";
+      const k=$("flashKapitel")?$("flashKapitel").value:"";
+      const ft=$("flashType")?$("flashType").value:"";
+      const lv=$("flashLevel")?$("flashLevel").value:"";
+      return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashContentMatch(w,ft)&&(!lv||(w.level||"A1")===lv);
+    };
     const live={};allWords().forEach(w=>{live[w.id]=1;});
     const seen={};flashList.forEach(w=>{seen[w.id]=1;});
     const fresh=shuffle(allWords().filter(w=>!seen[w.id]&&pass(w)));
     let list=flashList.filter(w=>live[w.id]&&pass(w));
     if(fresh.length)list=list.concat(fresh);
-    if(!list.length)list=allWords().slice();
     flashList=list;
     if(curId){const ix=flashList.findIndex(w=>w.id===curId);flashIdx=ix>=0?ix:0;}
     else if(flashIdx>=flashList.length)flashIdx=0;
@@ -1830,7 +1862,19 @@ function flashDir(){try{if(S&&S.flashDir==="ar-de")return "ar-de";}catch(e){}ret
 function updateFlashDirBtn(){try{var b=$("flashDir");if(!b)return;var d=flashDir();var k=d==="ar-de"?"flash_dir_ar_de":"flash_dir_de_ar";var label=(typeof t==="function")?t(k):null;b.textContent=label||(d==="ar-de"?"🔄 عربي → ألماني":"🔄 ألماني → عربي");}catch(e){}}
 function toggleFlashDir(){try{if(typeof ensureStudy==="function")ensureStudy();S.flashDir=flashDir()==="ar-de"?"de-ar":"ar-de";try{save();}catch(e){}}catch(e){}updateFlashDirBtn();renderFlash();}
 function renderFlash(){
-  if(!flashList.length)return;
+  /* Zero-results: never show a broken/empty card — show the empty state. */
+  if(!flashList.length){
+    try{$("flashCounter").textContent="0 / 0";}catch(e){}
+    try{$("flashBar").style.width="0%";}catch(e){}
+    try{$("flashcard").classList.remove("flipped");}catch(e){}
+    try{$("flashcard").style.display="none";}catch(e){}
+    try{const fc=document.querySelector("#page-flashcards .flash-controls");if(fc)fc.style.display="none";}catch(e){}
+    try{const em=$("flashEmpty");if(em)em.classList.remove("hidden");}catch(e){}
+    return;
+  }
+  try{const em=$("flashEmpty");if(em)em.classList.add("hidden");}catch(e){}
+  try{$("flashcard").style.display="";}catch(e){}
+  try{const fc=document.querySelector("#page-flashcards .flash-controls");if(fc)fc.style.display="";}catch(e){}
   const w=flashList[flashIdx%flashList.length];
   $("flashcard").classList.remove("flipped");
   updateFlashDirBtn();
@@ -1930,13 +1974,16 @@ $("flashcard").addEventListener("click",e=>{
 });
 $("flashPlural").addEventListener("click",e=>{e.stopPropagation();pulseFlashSayButton(e.currentTarget||$("flashPlural"));const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(w&&w.plural)speak(pluralFull(w));});
 $("flashPlural").style.cursor="pointer";$("flashPlural").title="اضغط لسماع الجمع 🔊";
-$("flashNext").addEventListener("click",()=>{flashIdx++;renderFlash();});
-$("flashPrev").addEventListener("click",()=>{flashIdx=(flashIdx-1+flashList.length)%flashList.length;renderFlash();});
+$("flashNext").addEventListener("click",()=>{if(!flashList.length)return;flashIdx++;renderFlash();});
+$("flashPrev").addEventListener("click",()=>{if(!flashList.length)return;flashIdx=(flashIdx-1+flashList.length)%flashList.length;renderFlash();});
 $("flashShuffle").addEventListener("click",()=>{buildFlash();toast("تم الخلط 🔀","ok");});
 $("flashDir").addEventListener("click",e=>{e.stopPropagation();toggleFlashDir();});
-$("flashCategory").addEventListener("change",buildFlash);
-$("flashKapitel").addEventListener("change",buildFlash);
+["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.addEventListener("change",buildFlash);});
+function resetFlashFilters(){["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.value="";});buildFlash();}
+try{const fr=$("flashReset");if(fr)fr.addEventListener("click",resetFlashFilters);}catch(e){}
+try{const fre=$("flashResetEmpty");if(fre)fre.addEventListener("click",resetFlashFilters);}catch(e){}
 document.querySelectorAll("[data-flash-rate]").forEach(b=>b.addEventListener("click",()=>{
+  if(!flashList.length)return;
   const w=flashList[flashIdx%flashList.length];if(!w)return;
   const r=b.getAttribute("data-flash-rate");
   if(r==="known"){bumpReview(w.id,true);}else if(r==="hard"){bumpReview(w.id,false);}else{setStatus(w.id,"review");markStudyDay();save();}
