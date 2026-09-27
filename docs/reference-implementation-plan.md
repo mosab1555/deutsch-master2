@@ -21,6 +21,8 @@ explanations Arabic + German examples (project Translation Policy convention).
 | 10 K numbers/quantity + L place | 🟢 done | 9b12f61 | data PASS | Zahlen, Ordinal, viel/viele, Wo/Wohin/Woher |
 | 11 N punctuation + O phrases | 🟢 done | 3382271 | data PASS | 10 marks, 4 situation groups |
 | 12 P comparisons + errors | 🟢 done | 36e7149 | data PASS 72/72 | 14 comparisons, 15 errors |
+| 13 word cards: 26 preps + 8 verbs + 11 Q-words + der/ich/weil/gestern | 🟢 done | 2cf8e6a, 14ded31, 218b629 | data+search PASS | every word = full unit (meaning/case/examples/mistake/quiz) |
+| 14 full paradigms + opposites + Lageverben + per-error rule links | 🟢 done | b722e33 | data PASS 122/122 | meiner/jener/derjenige/welcher/dessen/einer, ein/kein/mein compare, Gegenteil, nicht position, tense compare, obwohl/deshalb/trotzdem, 36 Zeitwörter, numbers in life, dialogues |
 | 13 search + related | 🟢 done | engine | 9/9 queries top-3 | de/ar/en/title/examples/keywords/related, live |
 | 14 quizzes + speech | 🟢 done | engine+data | gate enforced | invalid questions never render; speakGerman fallback chain |
 | 15 i18n | 🟢 done | — | translation PASS | 0 missing/duplicate/empty |
