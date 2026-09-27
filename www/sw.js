@@ -1,8 +1,13 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v27";
+var DM_CACHE = "german-academy-v28";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
-  "./style.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
+  "./style.css", "./reference.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
+  "./life.js", "./mygermany.js", "./dlife.js", "./glab.js", "./labsx.js", "./smart.js", "./adv.js",
+  "./reference.js", "./reference-data-am.js", "./reference-data-bc.js", "./reference-data-d.js",
+  "./reference-data-ef.js", "./reference-data-fw.js", "./reference-data-fx.js", "./reference-data-gj.js",
+  "./reference-data-h.js", "./reference-data-hw.js", "./reference-data-i.js", "./reference-data-iw.js",
+  "./reference-data-kl.js", "./reference-data-misc.js", "./reference-data-no.js", "./reference-data-p.js",
   "./life.js", "./mygermany.js", "./dlife.js", "./glab.js", "./labsx.js", "./smart.js", "./adv.js",
   "./curr-a2.js", "./curr-a1x.js", "./curr-a2b.js",
   "./curr-b1.js", "./curr-b1b.js", "./curr-b2.js", "./curr-b2b.js",
