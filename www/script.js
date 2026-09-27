@@ -1792,24 +1792,24 @@ function bumpReview(id,ok){
 
 /* ============ FLASHCARDS ============ */
 let flashList=[],flashIdx=0;
-/* Content-type mapping reuses the existing part-of-speech field (w.type):
-   - "verbs"   -> w.type === "فعل" (German verbs only, never nouns)
-   - "objects" -> w.type === "اسم" (German nouns/objects only, never verbs)
-   - ""        -> all types (adjectives, pronouns, particles included) */
-function flashContentMatch(w,ft){
+/* Type filter = German noun article (w.art), same convention as the
+   vocabulary article filter (filterArticle):
+   - "der"/"die"/"das" -> only words with exactly that article
+   - "-"               -> only words that genuinely take no article in the
+                          data (verbs, adjectives, countries, ...), never
+                          words with missing/broken data */
+function flashTypeMatch(w,ft){
   if(!ft)return true;
-  if(ft==="verbs")return w.type==="فعل";
-  if(ft==="objects")return w.type==="اسم";
-  return true;
+  return (w.art||"")===ft;
 }
 /* ONE dataset, ONE pipeline: applies all four filters cumulatively
-   (Category + Kapitel + Content Type + Level). */
+   (Category + Kapitel + Level + Type=article). */
 function getFilteredFlashcards(){
   const c=$("flashCategory")?$("flashCategory").value:"";
   const k=$("flashKapitel")?$("flashKapitel").value:"";
   const ft=$("flashType")?$("flashType").value:"";
   const lv=$("flashLevel")?$("flashLevel").value:"";
-  return allWords().filter(w=>(!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashContentMatch(w,ft)&&(!lv||(w.level||"A1")===lv));
+  return allWords().filter(w=>(!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashTypeMatch(w,ft)&&(!lv||(w.level||"A1")===lv));
 }
 /* If a level dataset (e.g. A2) is not loaded yet, load it on demand and
    rebuild the deck when it arrives. Returns true when a load started. */
@@ -1842,7 +1842,7 @@ function refreshFlashList(){
       const k=$("flashKapitel")?$("flashKapitel").value:"";
       const ft=$("flashType")?$("flashType").value:"";
       const lv=$("flashLevel")?$("flashLevel").value:"";
-      return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashContentMatch(w,ft)&&(!lv||(w.level||"A1")===lv);
+      return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashTypeMatch(w,ft)&&(!lv||(w.level||"A1")===lv);
     };
     const live={};allWords().forEach(w=>{live[w.id]=1;});
     const seen={};flashList.forEach(w=>{seen[w.id]=1;});
