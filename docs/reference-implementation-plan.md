@@ -1,14 +1,32 @@
-# Reference implementation plan (internal, not shown in app)
+# Reference v2 implementation plan (internal, not shown in app)
 
-| Stage | Status | Checkpoint | Build (www sync) | Tests | Notes |
-| ----- | ------ | ---------- | ---------------- | ----- | ----- |
-| 0 analysis | 🟢 done | 2377408 | n/a | translation PASS | arch: SPA + showPage + I18N in study.js + speakGerman + make-www.js |
-| 1 skeleton | 🟢 done | 1f78016 | www synced | translation PASS, syntax OK | 16 cats, search UI, responsive CSS, no content |
-| 2 pronouns+articles | 🟢 done | (this commit) | www synced | check-ref-stage2 PASS, translation PASS | 12 topics, exact pronoun tables, kein/nicht |
-| 3 prepositions+cases | ⬜ todo | — | — | — | TODO: mit/gestern/ماضي search hits land here |
-| 4 time+past | ⬜ todo | — | — | — | — |
-| 5+ | ⬜ todo | — | — | — | per-stage scope, no cross-stage content |
+Architecture: knowledge base, 16 paths A..P, 72 topics, unified template
+(Title/what/rule/tables/examples/notes/mistakes/related/quiz).
+Engine: client/reference.js. Data: client/reference-data-*.js (pure data).
+Quality gate: node tools/check-reference.js (all counts must be 0).
+i18n: UI chrome via I18N keys (ar/en/de); titles trilingual inline;
+explanations Arabic + German examples (project Translation Policy convention).
 
-TODO / Later (out of current scope, do not implement now):
-- Full cross-reference search ranking (stage 10): mit, ماضي, gestern currently only in later-stage data.
-- Stage-10 acceptance: matching result in first 3 for mit/Dativ/ماضي/gestern/ضمائر/nicht.
+| Stage | Status | Checkpoint | Tests | Notes |
+| ----- | ------ | ---------- | ----- | ----- |
+| 1 arch & data model | 🟢 done | 8c5f536 | translation PASS | reuses quiz-opt/ex-table/speakGerman/i18n/showPage-wrap; links to explain.js lessons instead of duplicating |
+| 2 paths A-P + engine | 🟢 done | 8c5f536 | syntax OK | 16 paths, breadcrumbs, chips, B1 collapse, quiz gate refValidQuiz, ranked search |
+| 3 B nouns/articles + C pronouns | 🟢 done | 7a52342 | data PASS | migrated old pronouns/articles content, no deletion |
+| 4 D cases + comparison | 🟢 done | 19f04f9 | data PASS | central 4-case table |
+| 5 E adjectives + F verbs | 🟢 done | a07d2c6 | data PASS | Steigerung, Modalverben, trennbar/untrennbar, sein/haben/werden |
+| 6 G tenses + J time/date | 🟢 done | 7abc178 | data+search PASS | haben/sein rule, Partizip II, 24+ Zeitwörter |
+| 7 H prepositions | 🟢 done | 3a2eeb4 | data+search PASS | Wo/Wohin with in der/in die; stopword-calibrated ranking |
+| 8 I questions/negation/conjunctions | 🟢 done | a004bd4 | data PASS | W/Ja-Nein/Modal/Perfekt, nicht vs kein, weil-V-Ende |
+| 9 A basics + M sentence | 🟢 done | e331f1c | data PASS | Alphabet/Aussprache, Wortarten, V2, TMP |
+| 10 K numbers/quantity + L place | 🟢 done | 9b12f61 | data PASS | Zahlen, Ordinal, viel/viele, Wo/Wohin/Woher |
+| 11 N punctuation + O phrases | 🟢 done | 3382271 | data PASS | 10 marks, 4 situation groups |
+| 12 P comparisons + errors | 🟢 done | 36e7149 | data PASS 72/72 | 14 comparisons, 15 errors |
+| 13 search + related | 🟢 done | engine | 9/9 queries top-3 | de/ar/en/title/examples/keywords/related, live |
+| 14 quizzes + speech | 🟢 done | engine+data | gate enforced | invalid questions never render; speakGerman fallback chain |
+| 15 i18n | 🟢 done | — | translation PASS | 0 missing/duplicate/empty |
+| 16 responsive + perf | 🟢 done | — | static review | ~145KB total, 1 topic in DOM, capped search, wrapped tables |
+| 17 regression + deploy | 🟢 done | (this commit) | search 25/25, QA 89/89 | push main, HEAD==origin/main |
+
+TODO / Later (none blocking):
+- Manual browser pass on 360×800 / 390×844 (no automation available here).
+- B1 topics (Genitiv details, Adjektivdeklination) are collapsed by design.
