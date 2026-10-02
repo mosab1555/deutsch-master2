@@ -28,8 +28,10 @@ for (const page of ["client/index.html", "client/academy.html"]) {
   const tgl = secHtml.match(/<button[^>]*id="pushToggle"[^>]*>/);
   check(page + " toggle uses btn classes", !!tgl && /btn-primary/.test(tgl[0]) && /\bsm\b/.test(tgl[0]));
   check(page + " toggle no inline width", !!tgl && !/style\s*=/.test(tgl[0]));
+  /* version-tolerant: deploy injects ?v=SHA cache-busting (inject-version.js) */
+  const pos = name => { const m = html.match(new RegExp('<script src="' + name + '(\\?[^"]*)?">')); return m ? m.index : -1; };
   check(page + " script push.js after study.js",
-    html.indexOf('<script src="push.js">') > html.indexOf('<script src="study.js">'));
+    pos("push\\.js") > pos("study\\.js") && pos("push\\.js") >= 0 && pos("study\\.js") >= 0);
 }
 
 /* ---------- B. i18n keys x3 ---------- */

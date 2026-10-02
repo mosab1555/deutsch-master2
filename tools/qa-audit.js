@@ -95,7 +95,7 @@ ok("adv:dlife-second-chance", /tried=true/.test(C("dlife.js")));
 ok("adv:html-pages", ["lislab", "fixsent", "finderr", "chall"].every(p => {
   try {
     const h = fs.readFileSync(path.join(__dirname, "..", "client", "index.html"), "utf8");
-    return h.indexOf('page-' + p) >= 0 && h.indexOf('data-page="' + p + '"') >= 0 && h.indexOf('src="adv.js"') >= 0;
+    return h.indexOf('page-' + p) >= 0 && h.indexOf('data-page="' + p + '"') >= 0 && /src="adv\.js(\?[^"]*)?"/.test(h);
   } catch (e) { return false; }
 }));
 ok("adv:sw-precaches-adv", /adv\.js/.test(C("sw.js")) && /german-academy-v(20|[2-9][0-9])/.test(C("sw.js")));

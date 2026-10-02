@@ -236,7 +236,8 @@ eval(extractFn("wrAnalyze"));
     ["shadowBox", "writeBox", "dictBox", "gsitBox", "erBox"].forEach(id => {
       check(f + " container " + id, h.indexOf('id="' + id + '"') >= 0, "");
     });
-    check(f + " loads labsx.js", h.indexOf('<script src="labsx.js"></script>') >= 0, "");
+    /* version-tolerant: deploy injects ?v=SHA cache-busting (inject-version.js) */
+    check(f + " loads labsx.js", /<script src="labsx\.js(\?[^"]*)?"><\/script>/.test(h), "");
   });
   const css = fs.readFileSync(path.join(root, "client", "style.css"), "utf8");
   check("css has labsx block", css.indexOf("labsx.js") >= 0, "");
