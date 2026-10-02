@@ -2,3 +2,5 @@ node_modules/
 dist/
 android/.gradle/
 android/app/build/
+client/supabase-config.js
+www/supabase-config.js
