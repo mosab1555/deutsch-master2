@@ -16,23 +16,24 @@ let fails = [];
 function bad(m) { fails.push(m); console.log("FAIL " + m); }
 function good(m) { console.log("PASS " + m); }
 
-/* ---------- 1. parse I18N dicts (study.js base + labsx.js additive merge) ---------- */
+/* ---------- 1. parse I18N dicts (study.js base + labsx.js/adv.js/reference.js/howto.js additive merges) ---------- */
 const study = RD("client/study.js");
 const labsx = (() => { try { return RD("client/labsx.js"); } catch (e) { return ""; } })();
 const advjs = (() => { try { return RD("client/adv.js"); } catch (e) { return ""; } })();
 const refjs = (() => { try { return RD("client/reference.js"); } catch (e) { return ""; } })();
+const howtojs = (() => { try { return RD("client/howto.js"); } catch (e) { return ""; } })();
 const dict = {};
 for (const L of ["ar", "en", "de"]) {
   const line = study.split("\n").find(l => l.startsWith(L + ":{"));
   if (!line) { bad("dict block missing for " + L); continue; }
   const pairs = [...line.matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
   dict[L] = { keys: pairs.map(p => p[1]), vals: Object.fromEntries(pairs.map(p => [p[1], p[2]])) };
-  // Merge additive labsx.js + adv.js + reference.js Object.assign(I18N.<L>,{...}) keys (same as runtime)
+  // Merge additive labsx.js + adv.js + reference.js + howto.js Object.assign(I18N.<L>,{...}) keys (same as runtime)
   try {
-    [labsx, advjs, refjs].forEach(src => {
-      const m = src.match(new RegExp("Object\\.assign\\(I18N\\." + L + ",\\{([^}]*)\\}\\)"));
+    [labsx, advjs, refjs, howtojs].forEach(src => {
+      const m = src.match(new RegExp("Object\\.assign\\(I18N\\." + L + "\\s*,\\s*\\{([\\s\\S]*?)\\}\\)"));
       if (m) {
-        const extra = [...m[1].matchAll(/([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g)];
+        const extra = [...m[1].matchAll(/([A-Za-z0-9_]+)\s*:\s*"((?:[^"\\]|\\.)*)"/g)];
         extra.forEach(p => { if (!dict[L].vals[p[1]]) { dict[L].keys.push(p[1]); dict[L].vals[p[1]] = p[2]; } });
       }
     });

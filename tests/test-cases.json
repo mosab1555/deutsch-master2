@@ -2695,6 +2695,178 @@
       "type": "edge",
       "automation": "automated:tools/test-robustness.js",
       "status": "PASS"
+    },
+    {
+        "id": "GUIDE-001",
+        "module": "study-guide",
+        "feature": "Sidebar entry for study guide",
+        "requirement": "Methodology guide appears exactly once as 8th item with one icon",
+        "priority": "P0",
+        "preconditions": [
+            "App loads"
+        ],
+        "data": "client/index.html, client/academy.html",
+        "steps": [
+            "Load app",
+            "Verify first 8 nav items order",
+            "Count howto icons"
+        ],
+        "expected": "dashboard,vocab,sentences,explain,verbs,reference,flashcards,howto; 1 icon",
+        "postconditions": [
+            "None"
+        ],
+        "dependencies": [],
+        "type": "functional",
+        "automation": "automated:tools/test-howto.js",
+        "status": "PASS"
+    },
+    {
+        "id": "GUIDE-002",
+        "module": "study-guide",
+        "feature": "Guide page routing",
+        "requirement": "showPage(howto) renders page-howto with modules",
+        "priority": "P0",
+        "preconditions": [
+            "App loads"
+        ],
+        "data": "client/howto.js",
+        "steps": [
+            "Open the methodology guide section",
+            "Verify page-howto active and howtoBox filled"
+        ],
+        "expected": "36 modules render; hero plus search plus cats plus fix grid present",
+        "postconditions": [
+            "None"
+        ],
+        "dependencies": [
+            "NAV-002"
+        ],
+        "type": "integration",
+        "automation": "automated:tools/test-howto.js",
+        "status": "PASS"
+    },
+    {
+        "id": "GUIDE-003",
+        "module": "study-guide",
+        "feature": "Module content integrity",
+        "requirement": "Every module has id, icon, cat, kw, trilingual title, body, links",
+        "priority": "P0",
+        "preconditions": [
+            "None"
+        ],
+        "data": "DM_HOWTO",
+        "steps": [
+            "Load howto.js in sandbox",
+            "Validate all module fields and topic coverage"
+        ],
+        "expected": "36 of 36 valid; all required topics present",
+        "postconditions": [
+            "None"
+        ],
+        "dependencies": [],
+        "type": "functional",
+        "automation": "automated:tools/test-howto.js",
+        "status": "PASS"
+    },
+    {
+        "id": "GUIDE-004",
+        "module": "study-guide",
+        "feature": "Guide internal links",
+        "requirement": "Every guide button routes to an existing app page",
+        "priority": "P1",
+        "preconditions": [
+            "None"
+        ],
+        "data": "DM_HOWTO go plus DM_HOWTO_FIX",
+        "steps": [
+            "Extract all go targets",
+            "Resolve against sidebar data-page list"
+        ],
+        "expected": "All targets resolve; fix-now covers 12-plus situations",
+        "postconditions": [
+            "None"
+        ],
+        "dependencies": [
+            "REF-005"
+        ],
+        "type": "integration",
+        "automation": "automated:tools/test-howto.js",
+        "status": "PASS"
+    },
+    {
+        "id": "GUIDE-005",
+        "module": "study-guide",
+        "feature": "Guide search",
+        "requirement": "Live search finds topics by Arabic, German, English keywords",
+        "priority": "P1",
+        "preconditions": [
+            "None"
+        ],
+        "data": "fixtures der, Akkusativ, plural, SRS, Arabic, horen",
+        "steps": [
+            "Search each keyword",
+            "Check gibberish returns empty"
+        ],
+        "expected": "Correct module ranked; umlaut-tolerant; empty on no-match",
+        "postconditions": [
+            "None"
+        ],
+        "dependencies": [],
+        "type": "functional",
+        "automation": "automated:tools/test-howto.js",
+        "status": "PASS"
+    },
+    {
+        "id": "GUIDE-006",
+        "module": "study-guide",
+        "feature": "Guide i18n and styling",
+        "requirement": "AR, EN, DE chrome parity; fluid CSS; offline precache",
+        "priority": "P1",
+        "preconditions": [
+            "None"
+        ],
+        "data": "howto.js I18N, style.css, sw.js",
+        "steps": [
+            "Check key parity",
+            "Check no fixed widths over 340px",
+            "Check sw precache"
+        ],
+        "expected": "16, 16, 16 keys; fluid CSS; howto.js precached",
+        "postconditions": [
+            "None"
+        ],
+        "dependencies": [
+            "DATA-004"
+        ],
+        "type": "functional",
+        "automation": "automated:tools/test-howto.js",
+        "status": "PASS"
+    },
+    {
+        "id": "GUIDE-007",
+        "module": "study-guide",
+        "feature": "Guide read progress persistence",
+        "requirement": "Mark-as-read persists in S.howto without touching other data",
+        "priority": "P2",
+        "preconditions": [
+            "Fresh store"
+        ],
+        "data": "S.howto namespace",
+        "steps": [
+            "Mark a module read",
+            "Reload state",
+            "Verify only S.howto.read changed"
+        ],
+        "expected": "Read marks persist; no other namespace modified",
+        "postconditions": [
+            "S.howto saved"
+        ],
+        "dependencies": [
+            "PROG-008"
+        ],
+        "type": "functional",
+        "automation": "manual:BLOCKED-no-browser-persistence-harness",
+        "status": "BLOCKED"
     }
   ]
 }

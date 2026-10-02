@@ -2,7 +2,8 @@
 
 | Requirement | Feature | User flow | Code area | Test IDs | Actual result | Status | Coverage |
 |---|---|---|---|---|---|---|---|
-| Sidebar order, single icons | Navigation | Open app, switch sections | `index/academy.html` nav, `showPage` | NAV-001, NAV-002 | e2e 45/45; 49 targets resolve | PASS | Full (automated) |
+| Sidebar order, single icons | Navigation | Open app, switch sections | `index/academy.html` nav, `showPage` | NAV-001, NAV-002 | e2e 45/45; 50 targets resolve | PASS | Full (automated) |
+| Study methodology guide | Guide | Open guide, search, read, follow links | `howto.js`, `page-howto`, `S.howto` | GUIDE-001..007 | test-howto 44/44 | PASS | Full (automated; persistence BLOCKED) |
 | Mobile sidebar | Navigation | Hamburger on small screen | sidebar CSS/JS | NAV-003 | runtime PASS 2026-10-02 (headless-Chrome CDP); No device lab | PASS | Full (tools/runtime-qa.js) |
 | Safe mid-training navigation | Navigation/timer | Leave quiz mid-question | `stopQTimer`, `showPage` | NAV-004, TEST-005 | Guard asserted | PASS | Full (static+unit) |
 | Career page reachable | Career pathway | Sidebar → career; life rec → career | `career.js`, `life.js` CAREERS | NAV-005, DATA-003 | 30/30 | PASS | Full |

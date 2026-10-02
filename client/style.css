@@ -646,6 +646,40 @@ html[data-theme="light"] #wrIn{background:#fff}
   .sx-type{font-size:12px;padding:9px 10px}
 }
 
+/* ---------- Study methodology guide (howto.js): same theme, fluid layout ---------- */
+#howtoBox{min-width:0;max-width:100%}
+.hw-hero-top{display:flex;gap:12px;align-items:flex-start}
+.hw-hero-ico{font-size:34px;flex-shrink:0}
+.hw-prog-row{display:flex;align-items:center;gap:10px;margin:12px 0}
+.hw-prog-row .progress{flex:1;min-width:0}
+.hw-prog-row span{white-space:nowrap;flex-shrink:0}
+#hwSearch{width:100%;max-width:100%;min-width:0;margin-bottom:10px;box-sizing:border-box}
+.hw-cats{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.hw-fix-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:8px;margin-top:10px}
+.hw-fix{text-align:right;font-size:14px;min-height:48px;white-space:normal;overflow-wrap:anywhere}
+.hw-mod{min-width:0;max-width:100%}
+.hw-head{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:none;color:var(--text);cursor:pointer;font-size:16px;font-weight:800;text-align:right;padding:2px;min-height:44px}
+.hw-ico{font-size:22px;flex-shrink:0}
+.hw-title{flex:1;min-width:0;overflow-wrap:anywhere}
+.hw-tags{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.hw-chev{color:var(--cyan)}
+.hw-body{margin-top:10px;line-height:2;font-size:15px;overflow-wrap:anywhere;min-width:0;max-width:100%}
+.hw-body h4{color:var(--gold);margin:12px 0 6px;font-size:15px}
+.hw-body p{margin:6px 0}
+.hw-de{direction:ltr;text-align:left;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:8px 0;font-weight:800;font-size:16px;line-height:2;overflow-wrap:anywhere;word-break:break-word}
+html[data-theme="light"] .hw-de{background:rgba(0,0,0,.05)}
+.hw-mod.hw-done{border-color:rgba(34,197,94,.5)}
+.hw-next{margin-top:10px;border-top:1px dashed var(--border);padding-top:10px}
+@media(max-width:560px){
+  .hw-hero-ico{font-size:28px}
+  .hw-head{font-size:15px}
+  .hw-body{font-size:14px;line-height:1.9}
+  .hw-de{font-size:14px;padding:8px 10px}
+  .hw-fix-grid{grid-template-columns:1fr 1fr}
+  .hw-fix{font-size:13px;min-height:52px}
+}
+@media(max-width:380px){.hw-fix-grid{grid-template-columns:1fr}}
+
 /* ---------- Flashcards: four-filter bar (Category + Kapitel + Type + Level) ----------
    Desktop: four controls fit in one row. Narrow screens: clean 2x2 wrap.
    No horizontal scrolling; card dimensions untouched. */

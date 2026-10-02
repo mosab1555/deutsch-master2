@@ -18,6 +18,7 @@ node tools/check-links.js          # REF-005 DATA-002
 node tools/test-career.js          # NAV-005 DATA-003
 node tools/test-sw-update.js       # PWA-001 PWA-002 PWA-003
 node tools/check-testplan.js       # catalog validity
+node tools/test-howto.js           # GUIDE-001..006 (study methodology guide)
 node tools/runtime-qa.js           # 66 headless-Chrome runtime checks (needs Chrome; ~6 min)
 ```
 
