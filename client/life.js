@@ -272,7 +272,7 @@ function renderPassport(){
 const CAREERS=[
 {id:"studium",t:"🎓 Studium",path:["A1 أساسيات","مفردات الجامعة","القواعد A1","استماع المحاضرات","التقديم للجامعة"],rec:{page:"explain",label:"ابدأ القواعد"}},
 {id:"arbeit",t:"💼 Arbeit",path:["A1 أساسيات","كلمات العمل","ألماني المكتب","المقابلة","التواصل المهني"],rec:{page:"job",label:"افتح قسم الشغل"}},
-{id:"ausbildung",t:"🏫 Ausbildung",path:["A1 أساسيات","ألماني يومي","كلمات المهنة","مقابلة Ausbildung","جاهز للتدريب"],rec:{page:"job",label:"افتح قسم الشغل"}}];
+{id:"ausbildung",t:"🏫 Ausbildung",path:["A1 أساسيات","ألماني يومي","كلمات المهنة","مقابلة Ausbildung","جاهز للتدريب"],rec:{page:"career",label:"افتح المسار المهني"}}];
 function renderCareer(){
   ensureLife();
   const box=$("lifeBox");

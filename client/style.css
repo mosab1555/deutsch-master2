@@ -286,6 +286,7 @@ html[data-theme="light"] .stat-bar-row .bar{background:rgba(0,0,0,.08)}
 /* Mistakes */
 .mist-card{padding:16px;border-radius:var(--radius);border:1px solid rgba(239,68,68,.4)}
 .mist-err{background:rgba(239,68,68,.12);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:14px}
+.mist-why{background:rgba(34,211,238,.1);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:14px}
 /* Detail modal */
 .detail-de{direction:ltr;text-align:left;font-size:30px;font-weight:900;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .detail-pl{direction:ltr;text-align:left;color:var(--cyan);font-weight:800;font-size:18px;margin:4px 0}

@@ -2633,6 +2633,12 @@ function renderMistakes(){
   }
   let ids=Object.keys(S.mistakes).sort((a,b)=>S.mistakes[b].n-S.mistakes[a].n);
   if(kf)ids=ids.filter(id=>{const w=wordById(id);return w&&w.kap===kf;});
+  /* DMProgress skill filter (progress.js): groups recurring mistakes by skill
+     using stable kind/question ids, never raw display text alone. */
+  try{
+    const sk=$("mistSkill")?$("mistSkill").value:"";
+    if(sk&&window.DMProgress)ids=ids.filter(id=>DMProgress.skillOfMistake(S.mistakes[id],wordById(id))===sk);
+  }catch(e){}
   try{
     const perKap={};
     Object.keys(S.mistakes).forEach(id=>{const w=wordById(id);const k=w?w.kap||"?":"?";perKap[k]=(perKap[k]||0)+S.mistakes[id].n;});
@@ -2645,14 +2651,25 @@ function renderMistakes(){
   if(!ids.length){g.innerHTML='<div class="panel glass">لا توجد أخطاء — استمر! 🎉<br><span class="muted">الكلمات التي تخطئ فيها أثناء الاختبارات ستظهر هنا.</span></div>';return;}
   ids.slice(0,60).forEach(id=>{
     const m=S.mistakes[id];const w=wordById(id);
+    /* DMProgress skill badge + Arabic "why" explanation (progress.js). */
+    let skillHtml="";
+    try{
+      if(window.DMProgress){
+        const sk=DMProgress.skillOfMistake(m,w);
+        const info=DMProgress.SKILLS[sk];
+        skillHtml='<div class="muted">🏷️ '+escapeHtml(info.ar)+'</div>'+
+          '<div class="mist-why">💡 '+escapeHtml(info.why)+
+          (info.ex&&info.ex[0]?'<br>🇩🇪 '+escapeHtml(info.ex[0])+(info.ex[1]?" — "+escapeHtml(info.ex[1]):""):"")+'</div>';
+      }
+    }catch(e){}
     const d=document.createElement("div");d.className="mist-card glass";
     d.innerHTML='<div class="de-line" dir="ltr"><b>'+escapeHtml(m.de||(w?fullDe(w):id))+'</b></div>'+
-      (w&&w.kap?'<div class="muted">📚 '+escapeHtml(w.kap)+'</div>':"")+
+      (w&&w.kap?'<div class="muted">📚 '+escapeHtml(w.kap)+'</div>':"")+skillHtml+
       '<div class="word-ar">'+escapeHtml(m.ar||(w?w.ar:""))+'</div>'+
       '<div class="mist-err">❌ خطأك: <b>'+escapeHtml(m.last||"—")+'</b> • تكرر <b>'+m.n+'</b> '+(m.n>1?"مرات":"مرة")+'</div>'+
       '<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">🎯 اختبرني</button><button class="mini-btn" data-a="del">🗑️</button></div>';
     d.querySelector('[data-a="speak"]').addEventListener("click",()=>{if(w)speak(fullDe(w));});
-    d.querySelector('[data-a="test"]').addEventListener("click",()=>{if(w)quickArticleQuiz(w);else toast("الكلمة غير موجودة","err");});
+    d.querySelector('[data-a="test"]').addEventListener("click",()=>{if(w)quickArticleQuiz(w);else if(/^m-(ausb|pfl)-/.test(id)){showPage("career");toast("راجع الوحدة وأعد اختبارها 🎯","ok");}else toast("الكلمة غير موجودة","err");});
     d.querySelector('[data-a="del"]').addEventListener("click",()=>{removeMistake(id);renderMistakes();});
     g.appendChild(d);
   });
