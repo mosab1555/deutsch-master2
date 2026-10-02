@@ -24,7 +24,10 @@ try {
     hw_open: "افتح ←",
     hw_no_results: "لا توجد نتائج مطابقة — جرّب كلمة أخرى.",
     hw_fixnow: "🆘 ماذا أفعل الآن؟ اختر وضعك",
-    hw_next: "➡️ خطوتك التالية المقترحة"
+    hw_next: "➡️ خطوتك التالية المقترحة",
+    hw_back: "← الرجوع إلى طريقة مذاكرة الألماني",
+    hw_related: "📚 مواضيع مرتبطة",
+    hw_features: "🛠️ تدرب في التطبيق"
   });
   Object.assign(I18N.en, {
     howto: "How to Study German",
@@ -42,7 +45,10 @@ try {
     hw_open: "Open ←",
     hw_no_results: "No matches — try another word.",
     hw_fixnow: "🆘 What should I do now? Pick your situation",
-    hw_next: "➡️ Your suggested next step"
+    hw_next: "➡️ Your suggested next step",
+    hw_back: "← Back to How to Study German",
+    hw_related: "📚 Related topics",
+    hw_features: "🛠️ Practice in the app"
   });
   Object.assign(I18N.de, {
     howto: "Deutsch lernen lernen",
@@ -60,7 +66,10 @@ try {
     hw_open: "Öffnen ←",
     hw_no_results: "Keine Treffer — versuch ein anderes Wort.",
     hw_fixnow: "🆘 Was soll ich jetzt tun? Wähle deine Situation",
-    hw_next: "➡️ Dein vorgeschlagener nächster Schritt"
+    hw_next: "➡️ Dein vorgeschlagener nächster Schritt",
+    hw_back: "← Zurück zu Deutsch lernen lernen",
+    hw_related: "📚 Verwandte Themen",
+    hw_features: "🛠️ In der App üben"
   });
 } catch (e) {}
 
@@ -424,29 +433,75 @@ function hwById(id) {
   return null;
 }
 
-/* ---------- session state (not persisted except read marks) ---------- */
-var HW = { q: "", cat: "all", open: null };
+/* ---------- session state (read marks persist in S.howto; view state is session) ---------- */
+var HW = { q: "", cat: "all", open: null, _force: 0 };
 
 /* ---------- render ---------- */
 function hwEsc(s) { try { if (typeof escapeHtml === "function") return escapeHtml(s); } catch (e) {} return String(s == null ? "" : s); }
 function hwLang() { try { return (typeof S !== "undefined" && S.uiLang) || "ar"; } catch (e) { return "ar"; } }
 function hwTitle(m) { var L = hwLang(); return m.t[L] || m.t.ar; }
 
-function renderHowto() {
-  var box = null;
-  try { box = document.getElementById("howtoBox"); } catch (e) {}
-  if (!box) return;
-  ensureHowto();
-  var H = ensureHowto();
-  var read = H.read || {};
-  var ids = howtoSearch(HW.q).filter(function (id) {
-    if (HW.cat === "all") return true;
-    var m = hwById(id);
-    return m && m.cat === HW.cat;
-  });
-  var doneN = DM_HOWTO.filter(function (m) { return read[m.id]; }).length;
-  var pct = Math.round(doneN / DM_HOWTO.length * 100);
+/* Related topics for topic-to-topic navigation: same-category siblings first. */
+function hwRelated(id) {
+  var m = hwById(id);
+  if (!m) return [];
+  var out = [];
+  DM_HOWTO.forEach(function (x) { if (x.id !== id && x.cat === m.cat) out.push(x.id); });
+  return out.slice(0, 6);
+}
 
+/* Stable internal route identifiers (deep-linkable topics, no second router).
+   Index: "howto". Topic: "howto-<moduleId>", e.g. "howto-hw-words". */
+function hwRoute(id) { return id ? "howto-" + id : "howto"; }
+function hwSetHash(id) {
+  try {
+    if (typeof history === "undefined" || !history.replaceState) return;
+    var base = "";
+    try { base = location.pathname + location.search; } catch (e) { base = ""; }
+    history.replaceState(null, "", base + "#" + hwRoute(id));
+  } catch (e) {}
+}
+function hwTopicFromHash(hash) {
+  try {
+    var s = String(hash == null ? (typeof location !== "undefined" ? location.hash : "") : hash);
+    s = s.replace(/^#/, "");
+    if (s === "howto") return null;
+    if (s.indexOf("howto-") === 0) {
+      var id = s.slice("howto-".length);
+      if (/^hw-[a-z]+$/.test(id) && hwById(id)) return id;
+    }
+  } catch (e) {}
+  return null;
+}
+
+/* Dedicated topic view: replaces the index (never rendered underneath it).
+   Navigation always flows through showPage("howto") — the project's router. */
+function openHowtoTopic(id) {
+  if (!hwById(id)) return false;
+  HW.open = id;
+  HW._force = 1;
+  hwSetHash(id);
+  hwGo("howto");
+  return true;
+}
+function closeHowtoTopic() {
+  HW.open = null;
+  HW._force = 1;
+  hwSetHash(null);
+  hwGo("howto");
+  return true;
+}
+function hwSkipPassive() {
+  try {
+    if (HW._force) return false;
+    if (typeof window !== "undefined" && window.DMPageState && window.DMPageState.skipRender) {
+      return !!window.DMPageState.skipRender("howto");
+    }
+  } catch (e) {}
+  return false;
+}
+
+function renderHowtoIndex(box, read, ids, doneN, pct) {
   var h = "";
   h += '<div class="panel glass hw-hero"><div class="hw-hero-top"><div class="hw-hero-ico">🧭</div><div><b>' + hwEsc(hwT("title_howto")) + '</b><div class="muted">' + hwEsc(hwT("hw_intro")) + '</div></div></div>';
   h += '<div class="hw-prog-row"><div class="progress"><div class="progress-fill" style="width:' + pct + '%"></div></div><span class="muted">' + doneN + '/' + DM_HOWTO.length + ' (' + pct + '%)</span></div>';
@@ -472,73 +527,125 @@ function renderHowto() {
   ids.forEach(function (id) {
     var m = hwById(id);
     if (!m) return;
-    var isOpen = HW.open === id;
     var isRead = !!read[id];
-    h += '<div class="panel glass hw-mod' + (isRead ? " hw-done" : "") + '" id="hw-' + id + '">';
-    h += '<button class="hw-head" data-hwopen="' + id + '"><span class="hw-ico">' + m.icon + '</span><span class="hw-title">' + hwEsc(hwTitle(m)) + '</span><span class="hw-tags">' + (isRead ? '<span class="status-tag known">' + hwEsc(hwT("hw_read")) + "</span>" : "") + '<span class="hw-chev">' + (isOpen ? "🔽" : "◀") + "</span></span></button>";
-    if (isOpen) {
-      h += '<div class="hw-body">' + m.body;
-      if (m.go && m.go.length) {
-        h += '<div class="hw-next"><b>' + hwEsc(hwT("hw_next")) + ':</b><div class="row-flex">';
-        m.go.forEach(function (g) {
-          h += '<button class="btn btn-ghost sm" data-hwgo="' + hwEsc(g[1]) + '">' + hwEsc(g[0]) + " " + hwEsc(hwT("hw_open")) + "</button>";
-        });
-        h += "</div></div>";
-      }
-      if (!isRead) h += '<div class="row-flex"><button class="btn btn-green sm" data-hwread="' + id + '">' + hwEsc(hwT("hw_mark")) + "</button></div>";
-      h += "</div>";
-    }
-    h += "</div>";
+    h += '<button class="panel glass hw-mod hw-entry' + (isRead ? " hw-done" : "") + '" data-hwopen="' + id + '"><span class="hw-ico">' + m.icon + '</span><span class="hw-title">' + hwEsc(hwTitle(m)) + '</span><span class="hw-tags">' + (isRead ? '<span class="status-tag known">' + hwEsc(hwT("hw_read")) + "</span>" : "") + '<span class="hw-chev">◀</span></span></button>';
   });
   box.innerHTML = h;
 
-  /* wire (rebound on every render; delegation-free direct binding on fresh nodes) */
   try {
-    var si = document.getElementById("hwSearch");
+    var si = null;
+    try { si = document.getElementById("hwSearch"); } catch (e0) {}
     if (si) {
-      si.addEventListener("input", function () { HW.q = si.value; renderHowto(); var n = document.getElementById("hwSearch"); if (n) { n.focus(); try { n.setSelectionRange(n.value.length, n.value.length); } catch (e2) {} } });
+      si.addEventListener("input", function () { HW.q = si.value; renderHowto(); var n = null; try { n = document.getElementById("hwSearch"); } catch (e1) {} if (n) { try { n.focus(); } catch (e2) {} try { n.setSelectionRange(n.value.length, n.value.length); } catch (e3) {} } });
     }
     box.querySelectorAll("[data-hwcat]").forEach(function (b) {
-      b.addEventListener("click", function () { HW.cat = b.getAttribute("data-hwcat"); HW.open = null; renderHowto(); });
+      b.addEventListener("click", function () { HW.cat = b.getAttribute("data-hwcat"); renderHowto(); });
     });
     box.querySelectorAll("[data-hwopen]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var id = b.getAttribute("data-hwopen");
-        HW.open = (HW.open === id ? null : id);
-        renderHowto();
-        if (HW.open) { try { var el = document.getElementById("hw-" + id); if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" }); } catch (e2) {} }
-      });
-    });
-    box.querySelectorAll("[data-hwread]").forEach(function (b) {
-      b.addEventListener("click", function (ev) {
-        try { ev.stopPropagation(); } catch (e2) {}
-        var id = b.getAttribute("data-hwread");
-        ensureHowto().read[id] = 1; hwSave(); renderHowto();
-        try { if (typeof toast === "function") toast("✅", "ok"); } catch (e2) {}
-      });
-    });
-    box.querySelectorAll("[data-hwgo]").forEach(function (b) {
-      b.addEventListener("click", function () { hwGo(b.getAttribute("data-hwgo")); });
+      b.addEventListener("click", function () { openHowtoTopic(b.getAttribute("data-hwopen")); });
     });
     box.querySelectorAll("[data-hwfix]").forEach(function (b) {
       b.addEventListener("click", function () {
         var f = DM_HOWTO_FIX[parseInt(b.getAttribute("data-hwfix"), 10)];
         if (!f) return;
-        HW.q = ""; HW.cat = "all"; HW.open = f.mod; renderHowto();
-        try { var el = document.getElementById("hw-" + f.mod); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); } catch (e2) {}
+        HW.q = ""; HW.cat = "all";
+        openHowtoTopic(f.mod);
       });
     });
   } catch (e) {}
 }
 
-/* ---------- wiring: showPage wrap (same additive pattern as labsx.js) ---------- */
+function renderHowtoTopic(box, m, read) {
+  var isRead = !!read[m.id];
+  var rel = hwRelated(m.id);
+  var h = "";
+  h += '<div class="hw-back-row"><button class="btn btn-ghost" data-hwback>' + hwEsc(hwT("hw_back")) + "</button></div>";
+  h += '<div class="panel glass hw-topic"><div class="hw-crumb muted">' + hwEsc(hwT("title_howto")) + " / " + hwEsc(hwCatName(m.cat)) + "</div>";
+  h += '<h2 class="hw-topic-title"><span class="hw-ico">' + m.icon + "</span> " + hwEsc(hwTitle(m)) + "</h2>";
+  h += '<div class="hw-body">' + m.body + "</div>";
+  if (m.go && m.go.length) {
+    h += '<div class="hw-next"><b>' + hwEsc(hwT("hw_features")) + ':</b><div class="row-flex">';
+    m.go.forEach(function (g) {
+      h += '<button class="btn btn-ghost sm" data-hwgo="' + hwEsc(g[1]) + '">' + hwEsc(g[0]) + " " + hwEsc(hwT("hw_open")) + "</button>";
+    });
+    h += "</div></div>";
+  }
+  if (rel.length) {
+    h += '<div class="hw-next"><b>' + hwEsc(hwT("hw_related")) + ':</b><div class="hw-fix-grid">';
+    rel.forEach(function (rid) {
+      var rm = hwById(rid);
+      if (!rm) return;
+      h += '<button class="quiz-opt hw-fix" data-hwrel="' + rid + '"><span>' + rm.icon + "</span> " + hwEsc(hwTitle(rm)) + "</button>";
+    });
+    h += "</div></div>";
+  }
+  h += '<div class="row-flex">' + (isRead ? '<span class="status-tag known">' + hwEsc(hwT("hw_read")) + "</span>" : '<button class="btn btn-green sm" data-hwread="' + m.id + '">' + hwEsc(hwT("hw_mark")) + "</button>") + "</div>";
+  h += '<div class="hw-back-row"><button class="btn btn-ghost" data-hwback>' + hwEsc(hwT("hw_back")) + "</button></div>";
+  h += "</div>";
+  box.innerHTML = h;
+
+  try {
+    box.querySelectorAll("[data-hwback]").forEach(function (b) {
+      b.addEventListener("click", function () { closeHowtoTopic(); });
+    });
+    box.querySelectorAll("[data-hwread]").forEach(function (b) {
+      b.addEventListener("click", function (ev) {
+        try { ev.stopPropagation(); } catch (e2) {}
+        ensureHowto().read[m.id] = 1; hwSave(); renderHowto();
+        try { if (typeof toast === "function") toast("✅", "ok"); } catch (e3) {}
+      });
+    });
+    box.querySelectorAll("[data-hwgo]").forEach(function (b) {
+      b.addEventListener("click", function () { hwGo(b.getAttribute("data-hwgo")); });
+    });
+    box.querySelectorAll("[data-hwrel]").forEach(function (b) {
+      b.addEventListener("click", function () { openHowtoTopic(b.getAttribute("data-hwrel")); });
+    });
+  } catch (e) {}
+}
+
+/* Index OR dedicated topic — exactly one view at a time, never both. */
+function renderHowto() {
+  var box = null;
+  try { box = document.getElementById("howtoBox"); } catch (e) {}
+  if (!box) return;
+  ensureHowto();
+  var H = ensureHowto();
+  var read = H.read || {};
+  var openM = HW.open ? hwById(HW.open) : null;
+  if (openM) { renderHowtoTopic(box, openM, read); return; }
+  if (HW.open) { HW.open = null; }
+  var ids = howtoSearch(HW.q).filter(function (id) {
+    if (HW.cat === "all") return true;
+    var m = hwById(id);
+    return m && m.cat === HW.cat;
+  });
+  var doneN = DM_HOWTO.filter(function (m) { return read[m.id]; }).length;
+  var pct = Math.round(doneN / DM_HOWTO.length * 100);
+  renderHowtoIndex(box, read, ids, doneN, pct);
+}
+
+/* ---------- wiring: showPage wrap (same additive pattern as labsx.js) ----------
+   Explicit topic opens (HW._force) always re-render as a dedicated view.
+   Passive return visits keep the as-left DOM when DMPageState asks for it,
+   so leaving the section and coming back preserves the user's state. */
 (function () {
   try {
     if (typeof showPage === "function" && !showPage._howto) {
       var _sp = showPage;
-      showPage = function (n) { _sp(n); try { if (n === "howto") renderHowto(); } catch (e) { console.error(e); } };
+      showPage = function (n) {
+        _sp(n);
+        var force = false;
+        try { force = !!HW._force; HW._force = 0; } catch (e) {}
+        try { if (n === "howto" && (force || !hwSkipPassive())) renderHowto(); } catch (e) { console.error(e); }
+      };
       showPage._howto = true;
     }
+    try {
+      /* Deep link: #howto / #howto-<topicId> restores the topic view on load. */
+      var deep = hwTopicFromHash();
+      if (deep) HW.open = deep;
+    } catch (e) {}
     try { ensureHowto(); } catch (e) {}
   } catch (e) { console.error(e); }
 })();

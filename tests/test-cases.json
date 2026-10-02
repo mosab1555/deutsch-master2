@@ -2831,7 +2831,7 @@
             "Check no fixed widths over 340px",
             "Check sw precache"
         ],
-        "expected": "16, 16, 16 keys; fluid CSS; howto.js precached",
+        "expected": "19, 19, 19 keys; fluid CSS; howto.js precached",
         "postconditions": [
             "None"
         ],
@@ -2867,6 +2867,33 @@
         "type": "functional",
         "automation": "manual:BLOCKED-no-browser-persistence-harness",
         "status": "BLOCKED"
+    },
+    {
+        "id": "GUIDE-008",
+        "module": "study-guide",
+        "feature": "Dedicated topic views",
+        "requirement": "Opening a guide topic renders a dedicated view via showPage, never scrolls the index",
+        "priority": "P0",
+        "preconditions": [
+            "App loads"
+        ],
+        "data": "client/howto.js openHowtoTopic, closeHowtoTopic",
+        "steps": [
+            "Open guide index",
+            "Open hw-words topic",
+            "Open hw-sent topic",
+            "Click back to index"
+        ],
+        "expected": "Topic view replaces index with back button; second topic replaces first; back restores index; invalid ids rejected; no scrollIntoView",
+        "postconditions": [
+            "HW.open cleared"
+        ],
+        "dependencies": [
+            "GUIDE-002"
+        ],
+        "type": "functional",
+        "automation": "automated:tools/test-howto.js",
+        "status": "PASS"
     }
   ]
 }
