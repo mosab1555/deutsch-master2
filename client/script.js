@@ -1505,7 +1505,14 @@ function showPage(name){
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
   $("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");
+  /* Page-state preservation: when DMPageState will restore a saved scroll
+     position for this page, do NOT scroll to top first (avoids jump/flicker).
+     First visits and explicit content opens still start at the top. */
+  var _dmKeepScroll=false;
+  try{_dmKeepScroll=!!(window.DMPageState&&typeof window.DMPageState.willRestore==="function"&&window.DMPageState.willRestore(name));}catch(e){}
+  if(!_dmKeepScroll){
   try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){try{window.scrollTo(0,0);}catch(_){}}
+  }
   requestAnimationFrame(observeReveals);
 }
 document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));

@@ -838,7 +838,8 @@ try{
 const ADV_PAGES={lislab:renderLislab,fixsent:renderFixsent,finderr:renderFinderr,chall:renderChall};
 try{
   const _sp=showPage;
-  showPage=function(n){_sp(n);try{if(ADV_PAGES[n])ADV_PAGES[n]();}catch(e){if(window.console)console.error(e);}};
+  /* Page-state preservation: keep active lab/challenge state as-left on return visits. */
+  showPage=function(n){_sp(n);try{if(ADV_PAGES[n]&&!(window.DMPageState&&DMPageState.skipRender&&DMPageState.skipRender(n)))ADV_PAGES[n]();}catch(e){if(window.console)console.error(e);}};
   const _rd=renderDashboard;
   renderDashboard=function(){_rd();try{advDash();}catch(e){}};
   const _rj=typeof renderJourney==="function"?renderJourney:null;

@@ -1209,6 +1209,8 @@ const PLAY_PAGES={games:renderGames,challenge:renderChallenge,me:renderMe,practi
 (function(){
   try{
     const _sp=showPage;
-    showPage=function(n){_sp(n);try{if(PLAY_PAGES[n])PLAY_PAGES[n]();}catch(e){console.error(e);}};
+    /* Page-state preservation: keep the active game/training as-left on return
+       visits; summary pages (me) always re-render (see DMPageState.NEVER_SKIP). */
+    showPage=function(n){_sp(n);try{if(PLAY_PAGES[n]&&!(window.DMPageState&&DMPageState.skipRender&&DMPageState.skipRender(n)))PLAY_PAGES[n]();}catch(e){console.error(e);}};
   }catch(e){console.error(e);}
 })();

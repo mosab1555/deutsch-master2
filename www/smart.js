@@ -912,7 +912,8 @@ function renderSmartPracticeNew(){renderSmartNew();}
   }catch(e){console.error(e);}
   try{
     const _sp=showPage;
-    showPage=function(n){_sp(n);try{if(n==="practice")renderSmartNew();}catch(e){console.error(e);}};
+    /* Page-state preservation: keep the active smart-training session as-left. */
+    showPage=function(n){_sp(n);try{if(n==="practice"&&!(typeof DMPageState!=="undefined"&&DMPageState&&DMPageState.skipRender&&DMPageState.skipRender("practice")))renderSmartNew();}catch(e){console.error(e);}};
   }catch(e){console.error(e);}
 })();
 

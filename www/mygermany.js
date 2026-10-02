@@ -283,6 +283,7 @@ const MYG_PAGES={mygermany:renderMyg};
 (function(){
   try{
     const _sp=showPage;
-    showPage=function(n){_sp(n);try{if(MYG_PAGES[n])MYG_PAGES[n]();}catch(e){console.error(e);}};
+    /* Page-state preservation: keep the open region/lesson as-left on return visits. */
+    showPage=function(n){_sp(n);try{if(MYG_PAGES[n]&&!(window.DMPageState&&DMPageState.skipRender&&DMPageState.skipRender(n)))MYG_PAGES[n]();}catch(e){console.error(e);}};
   }catch(e){console.error(e);}
 })();

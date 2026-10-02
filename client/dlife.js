@@ -207,7 +207,8 @@ const DLIFE_PAGES={dlife:renderDlife,exp:renderExp};
 (function(){
   try{
     const _sp=showPage;
-    showPage=function(n){_sp(n);try{if(DLIFE_PAGES[n])DLIFE_PAGES[n]();}catch(e){console.error(e);}};
+    /* Page-state preservation: keep the active scenario as-left on return visits. */
+    showPage=function(n){_sp(n);try{if(DLIFE_PAGES[n]&&!(window.DMPageState&&DMPageState.skipRender&&DMPageState.skipRender(n)))DLIFE_PAGES[n]();}catch(e){console.error(e);}};
     const _rd=renderDashboard;
     renderDashboard=function(){_rd();try{renderExpWidgets();}catch(e){}};
   }catch(e){console.error(e);}

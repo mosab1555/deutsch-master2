@@ -510,7 +510,8 @@ try { if (typeof module !== "undefined" && module.exports) module.exports = CARE
     try {
       if (typeof showPage === "function") {
         var prev = showPage;
-        showPage = function (n) { prev(n); try { if (n === "career") renderCareerPath(); } catch (e) {} };
+        /* Page-state preservation: keep the open career unit as-left on return visits. */
+        showPage = function (n) { prev(n); try { if (n === "career" && !(window.DMPageState && DMPageState.skipRender && DMPageState.skipRender("career"))) renderCareerPath(); } catch (e) {} };
       }
     } catch (e) {}
   }

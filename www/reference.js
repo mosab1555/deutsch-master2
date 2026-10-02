@@ -100,6 +100,10 @@ function refValidQuiz(q){
 var refState={path:null,topic:null};
 
 function renderReference(){
+  /* Page-state preservation: on a return visit keep the user's path/topic/
+     search as-left instead of resetting to the paths home. First visits and
+     explicit home navigation (breadcrumb) always render normally. */
+  try{if(window.DMPageState&&DMPageState.skipRender("reference"))return;}catch(e){}
   const box=document.getElementById("refBox");if(!box)return;
   refState={path:null,topic:null};
   let h='<div class="panel glass ref-search-panel"><label class="ref-search-label">'+refEsc(refT("ref_search_label"))+'</label>';
@@ -168,7 +172,9 @@ function refTopicPreview(tp){
 function openRefTopic(tid){
   const found=refTopicById(tid);if(!found)return;
   const {path:p,topic:tp}=found;
-  refState={path:p.id,topic:tid};
+  /* NOTE: refState is (re)assigned AFTER the detail container is ensured below.
+     renderReference() resets refState, so assigning here would be wiped when the
+     topic is opened from a path view (page-state preservation needs refState). */
   const topics=refPathTopics(p.id);
   const idx=topics.findIndex(x=>x.id===tid);
   const prev=idx>0?topics[idx-1]:null, next=(idx>=0&&idx<topics.length-1)?topics[idx+1]:null;
@@ -222,6 +228,8 @@ function openRefTopic(tid){
   /* keep search+paths grid on top: render topic into detail area if present, else full */
   let det=document.getElementById("refDetail");
   if(!det){renderReference();det=document.getElementById("refDetail");}
+  /* Assign AFTER renderReference(): it resets refState (see note in openRefTopic). */
+  refState={path:p.id,topic:tid};
   det.innerHTML=h;
   wireCrumb(det);
   det.querySelectorAll("[data-spk]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();try{if(typeof speakGerman==="function")speakGerman(b.getAttribute("data-spk"));}catch(e){}}));

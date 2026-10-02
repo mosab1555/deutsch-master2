@@ -721,7 +721,8 @@ try {
   var _sentA1SP = showPage;
   showPage = function (n) {
     _sentA1SP(n);
-    try { if (n === "sentences") sentA1Render(); } catch (e) { if (window.console) console.error(e); }
+    /* Page-state preservation: keep the filtered sentence list as-left on return visits. */
+    try { if (n === "sentences" && !(window.DMPageState && DMPageState.skipRender && DMPageState.skipRender("sentences"))) sentA1Render(); } catch (e) { if (window.console) console.error(e); }
   };
 } catch (e) {}
 try { sentA1Merge(); } catch (e) {}

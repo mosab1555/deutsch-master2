@@ -462,7 +462,8 @@ const LIFE_PAGES={life:renderLife};
       $("dashLearn").parentNode.insertBefore(d,$("dashLearn").nextSibling);
     }
     const _sp=showPage;
-    showPage=function(n){_sp(n);try{if(LIFE_PAGES[n])LIFE_PAGES[n]();if(n==="dashboard"||n==="profile")renderLifeWidgets();}catch(e){console.error(e);}};
+    /* Page-state preservation: keep Deutsch Life progress as-left on return visits. */
+    showPage=function(n){_sp(n);try{if(LIFE_PAGES[n]&&!(window.DMPageState&&DMPageState.skipRender&&DMPageState.skipRender(n)))LIFE_PAGES[n]();if(n==="dashboard"||n==="profile")renderLifeWidgets();}catch(e){console.error(e);}};
     const _rd=renderDashboard;
     renderDashboard=function(){_rd();try{renderLifeWidgets();}catch(e){}};
     ensureLife();

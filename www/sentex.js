@@ -582,8 +582,10 @@ function finishSentex(){finishSx(sxHost("sentex"));}
   try{
     const _sp=showPage;
     showPage=function(n){_sp(n);try{
-      if(n==="sentex")renderSentex();
-      if(n==="practice")renderSmartPractice();
+      /* Page-state preservation: keep active training (type/chapter/question) as-left. */
+      var _skip=!!(typeof DMPageState!=="undefined"&&DMPageState&&DMPageState.skipRender&&(DMPageState.skipRender("sentex")||DMPageState.skipRender("practice")));
+      if(n==="sentex"&&!_skip)renderSentex();
+      if(n==="practice"&&!_skip)renderSmartPractice();
     }catch(e){console.error(e);}};
   }catch(e){console.error(e);}
   try{

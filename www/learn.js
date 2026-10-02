@@ -562,7 +562,9 @@ const LEARN_PAGES={journey:renderJourney,listen:renderListen,speak:renderSpeak,t
 (function(){
   try{
     const _sp=showPage;
-    showPage=function(n){_sp(n);try{if(LEARN_PAGES[n])LEARN_PAGES[n]();}catch(e){console.error(e);}};
+    /* Page-state preservation: session pages keep live DOM (current exercise,
+       typed input) on return visits; summary pages (job/ach) always re-render. */
+    showPage=function(n){_sp(n);try{if(LEARN_PAGES[n]&&!(window.DMPageState&&DMPageState.skipRender&&DMPageState.skipRender(n)))LEARN_PAGES[n]();}catch(e){console.error(e);}};
     const _rd=renderDashboard;
     renderDashboard=function(){_rd();try{renderLearnWidgets();}catch(e){}};
     ensureLearn();

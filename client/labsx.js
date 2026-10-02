@@ -1042,7 +1042,8 @@ const LABSX_PAGES={shadowing:renderShadow,writing:renderWrite,dictation:renderDi
 (function(){
   try{
     const _sp=showPage;
-    showPage=function(n){_sp(n);try{if(LABSX_PAGES[n])LABSX_PAGES[n]();}catch(e){console.error(e);}};
+    /* Page-state preservation: keep active lab step/input as-left on return visits. */
+    showPage=function(n){_sp(n);try{if(LABSX_PAGES[n]&&!(window.DMPageState&&DMPageState.skipRender&&DMPageState.skipRender(n)))LABSX_PAGES[n]();}catch(e){console.error(e);}};
     const _rd=renderDashboard;
     renderDashboard=function(){_rd();try{renderLabsxDash();}catch(e){}};
     ensureLabsx();
