@@ -199,6 +199,42 @@ function renderStudyDash(){
     const last=S.lastActivity;
     const weak=weakAreas();
     const notifs=buildNotifs();
+    /* --- personalized block: A1 mastery + weak grammar + recent + next steps (all from real saved data) --- */
+    let a1html="",gwhtml="",acthtml="",rechtml="";
+    try{
+      const a1=words.filter(w=>(w.level||"A1")==="A1");
+      const a1k=a1.filter(w=>getStatus(w.id)==="known").length;
+      const apct=a1.length?Math.round(a1k/a1.length*100):0;
+      let gsum=0,gcnt=0;Object.keys((S.grammar||{})).forEach(id=>{try{const m=typeof gramMastery==="function"?gramMastery(id):null;if(m){gsum+=m.pct;gcnt++;}}catch(e){}});
+      const gavg=gcnt?Math.round(gsum/gcnt):0;
+      a1html='<div class="muted">📚 مفردات A1: '+a1k+'/'+a1.length+' ('+apct+'%)</div><div class="progress"><div class="progress-fill" style="width:'+apct+'%"></div></div>'
+        +'<div class="muted">📐 متوسط إتقان القواعد: '+(gcnt?gavg+'% ('+gcnt+' قاعدة مختبرة)':'لا نتائج بعد — أجب على اختبارات القواعد')+'</div>'+(gcnt?'<div class="progress"><div class="progress-fill gold" style="width:'+gavg+'%"></div></div>':"");
+    }catch(e){a1html='<div class="muted">لا بيانات كافية بعد.</div>';}
+    try{
+      const gl=[];
+      Object.keys((S.grammar||{})).forEach(id=>{try{const m=typeof gramMastery==="function"?gramMastery(id):null;if(m&&m.pct<50)gl.push({id:id,m:m});}catch(e){}});
+      gl.sort((a,b)=>a.m.pct-b.m.pct);
+      const gw2=Object.keys((S.gweak||{})).map(id=>({id:id,n:S.gweak[id]}));
+      gwhtml=gl.length?gl.slice(0,3).map(x=>{let t=x.id;try{const g=GRAMMAR.find(g=>g.id===x.id);if(g)t=g.title;}catch(e){}return '<div class="muted">🔴 '+escapeHtml(t)+' ('+x.m.pct+'%)</div>';}).join("")
+        :(gw2.length?gw2.sort((a,b)=>b.n-a.n).slice(0,3).map(x=>{let t=x.id;try{const g=GRAMMAR.find(g=>g.id===x.id);if(g)t=g.title;}catch(e){}return '<div class="muted">🟠 '+escapeHtml(t)+' ('+x.n+' أخطاء)</div>';}).join(""):'<div class="muted">لا قواعد ضعيفة — استمر! 🟢</div>');
+    }catch(e){gwhtml='<div class="muted">لا بيانات بعد.</div>';}
+    try{
+      const h=(S.quizHistory||[]).slice(0,4);
+      acthtml=h.length?h.map(q=>'<div class="muted">📝 '+escapeHtml(q.type||"اختبار")+' — '+q.score+'/'+q.total+' ('+(q.date||"")+')</div>').join(""):'<div class="muted">لا نشاط مسجل بعد — ابدأ أول اختبار! 🚀</div>';
+      if(S.place&&S.place.lvl)acthtml+='<div class="muted">🎯 تحديد المستوى: <b>'+escapeHtml(S.place.lvl)+'</b></div>';
+    }catch(e){acthtml='<div class="muted">لا نشاط بعد.</div>';}
+    try{
+      const recs=[];
+      let dueN=0;try{dueN=dueWords().length;}catch(e){}
+      if(dueN>0)recs.push({t:"🧠 راجع "+dueN+" كلمة مستحقة",go:"review"});
+      const openMist=Object.keys(S.mistakes||{}).filter(id=>!S.mistakes[id].done).length;
+      if(openMist>0)recs.push({t:"❌ تدرب على "+openMist+" خطأ مفتوح",go:"mistakes"});
+      let wg=null;try{Object.keys((S.grammar||{})).forEach(id=>{const m=typeof gramMastery==="function"?gramMastery(id):null;if(m&&m.pct<50&&(!wg||m.pct<wg.m.pct))wg={id:id,m:m};});}catch(e){}
+      if(wg){let t=wg.id;try{const g=GRAMMAR.find(g=>g.id===wg.id);if(g)t=g.title;}catch(e){}recs.push({t:"📐 راجع قاعدة: "+t,go:"grammar"});}
+      if(!recs.length)recs.push({t:"⚡ تحدَّ نفسك اليوم",go:"challenge"});
+      rechtml=recs.slice(0,3).map((r,i)=>'<button class="btn btn-ghost sm" data-rec="'+i+'">'+escapeHtml(r.t)+' ←</button>').join("");
+      setTimeout(()=>{try{document.querySelectorAll("[data-rec]").forEach(b=>b.addEventListener("click",()=>{const r=recs[parseInt(b.getAttribute("data-rec"),10)];if(r)showPage(r.go);}));}catch(e){}},0);
+    }catch(e){rechtml="";}
     host.innerHTML='<div class="panel glass reveal"><h3>🎯 هدف اليوم</h3>'
       +'<div class="row-flex"><select id="goalType"><option value="words">كلمات</option><option value="minutes">دقائق</option><option value="acts">أنشطة</option></select>'
       +'<input type="number" id="goalN" min="1" max="300" value="'+gp.need+'"><button class="btn btn-primary sm" id="goalSave">حفظ 🎯</button></div>'
@@ -206,7 +242,11 @@ function renderStudyDash(){
       +(last?'<div class="row-flex"><button class="btn btn-gold sm" id="contBtn">▶️ Continue Learning: '+escapeHtml(last.t)+'</button></div>':"")
       +'<h3>⚠️ نقاط الضعف</h3>'+(weak.length?weak.map(w=>'<div class="muted">'+w.lvl+" "+escapeHtml(w.k)+" ("+w.n+" أخطاء)</div>").join(""):'<div class="muted">لا أخطاء مسجلة — ممتاز! 🟢</div>')
       +'<h3>🔔 تنبيهات ('+notifs.length+')</h3>'+(notifs.length?notifs.map(n=>'<div class="muted">'+n.i+" "+escapeHtml(n.t)+"</div>").join(""):'<div class="muted">كل شيء تمام 🎉</div>')
-      +'<div class="muted">📚 كلمات محفوظة: '+known+'/'+words.length+'</div></div>';
+      +'<div class="muted">📚 كلمات محفوظة: '+known+'/'+words.length+'</div></div>'
+      +'<div class="panel glass reveal"><h3>🎓 إتقان A1 (من نتائجك الحقيقية)</h3>'+a1html+'</div>'
+      +'<div class="panel glass reveal"><h3>📐 قواعد تحتاج مراجعة</h3>'+gwhtml+'</div>'
+      +'<div class="panel glass reveal"><h3>🕘 النشاط الأخير</h3>'+acthtml+'</div>'
+      +(rechtml?'<div class="panel glass reveal"><h3>➡️ خطوتك التالية</h3><div class="row-flex">'+rechtml+'</div></div>':"");
     $("goalType").value=S.plan2.goalType;$("goalN").value=gp.need;
     $("goalSave").addEventListener("click",()=>{S.plan2={goalType:$("goalType").value,goalN:Math.max(1,parseInt($("goalN").value||"15",10))};Store.save();renderStudyDash();toast("تم حفظ هدفك 🎯","ok");});
     const cb=$("contBtn");
@@ -297,14 +337,27 @@ const TutorLocal={
 const TUTOR_CONV=[
 {bot:"Hallo! Wie heißt du?",ar:"أهلًا! ما اسمك؟",hint:"أجب: Ich heiße ...",keys:["heiße","heisse","bin"],ok:"ممتاز! تعريف بالنفس واضح. 🎉",no:"حاول: Ich heiße + اسمك."},
 {bot:"Woher kommst du?",ar:"من أين أنت؟",hint:"أجب: Ich komme aus ...",keys:["komme","aus"],ok:"رائع! استخدمت aus بشكل صحيح.",no:"حاول: Ich komme aus + بلدك."},
-{bot:"Was möchtest du trinken?",ar:"ماذا تريد أن تشرب؟",hint:"أجب: Ich möchte ...",keys:["möchte","will","mag"],ok:"طلب مهذب وجميل! ☕",no:"حاول: Ich möchte + مشروب."}];
+{bot:"Was möchtest du trinken?",ar:"ماذا تريد أن تشرب؟",hint:"أجب: Ich möchte ...",keys:["möchte","will","mag"],ok:"طلب مهذب وجميل! ☕",no:"حاول: Ich möchte + مشروب."},
+{bot:"Willkommen am Flughafen! Wohin fliegen Sie?",ar:"أهلًا في المطار! إلى أين تسافر؟",hint:"أجب: Ich fliege nach ...",keys:["fliege","nach","berlin","kairo"],ok:"ممتاز! إجابة سفر واضحة. ✈️",no:"حاول: Ich fliege nach + المدينة."},
+{bot:"Guten Tag! Was fehlt Ihnen?",ar:"طاب يومك! ما مشكلتك؟ (عند الطبيب)",hint:"أجب: Ich habe ...",keys:["habe","kopf","schmerzen","fieber","husten"],ok:"وصف جيد للأعراض. 🏥",no:"حاول: Ich habe + العرض (مثال: Kopfschmerzen)."}];
+/* Tutor conversation stats (real counts only): turns + per-scenario practice. */
+function tutorStats(){try{if(!S.tutorStats)S.tutorStats={turns:0,ok:0,scen:{}};return S.tutorStats;}catch(e){return {turns:0,ok:0,scen:{}};}}
 function renderTutor(){
   ensureStudy();
   $("tutorBox").innerHTML='<div class="panel glass"><h3>🤖 AI German Tutor (محلي)</h3><div class="muted">مساعد يعمل داخل جهازك. للأوضاع المتقدمة يمكن ربط API لاحقًا بدون مفاتيح في الواجهة.</div>'
-  +'<div class="row-flex" id="tutorModes">'+[["correct","تصحيح"],["translate","ترجمة"],["vocab","كلمة"],["conv","محادثة"],["explain","اشرح"],["examples","أمثلة"]].map(m=>'<button class="btn btn-ghost sm" data-tm="'+m[0]+'">'+m[1]+'</button>').join("")+'</div>'
+  +'<div class="row-flex" id="tutorModes">'+[["correct","تصحيح"],["translate","ترجمة"],["vocab","كلمة"],["conv","محادثة"],["explain","اشرح"],["examples","أمثلة"]].map(m=>'<button class="btn btn-ghost sm" data-tm="'+m[0]+'">'+m[1]+'</button>').join("")
+  +'<select id="tutorLevel" title="مستوى المحادثة"><option value="A1">A1 🟢</option><option value="A2">A2 🟡</option></select></div>'
   +'<div class="quiz-write"><input type="text" id="tutorIn" placeholder="اكتب بالألمانية..."><button class="btn btn-primary sm" id="tutorGo">إرسال ➤</button></div>'
   +'<div id="tutorOut"></div><h4>📜 آخر المحادثات</h4><div id="tutorHist"></div></div>';
   let mode="correct";
+  try{if(!S.tutorLevel)S.tutorLevel="A1";}catch(e){}
+  let tutorLastSay="";
+  try{
+    $("tutorLevel").value=S.tutorLevel;
+    $("tutorLevel").addEventListener("change",()=>{S.tutorLevel=$("tutorLevel").value;Store.save();toast("مستوى المحادثة: "+S.tutorLevel,"ok");});
+    const st0=tutorStats();
+    if(st0.turns)$("tutorHist").insertAdjacentHTML("beforebegin",'<div class="muted">💬 جولات المحادثة: '+st0.turns+' • إجابات موفقة: '+(st0.ok||0)+'</div>');
+  }catch(e){}
   $("tutorModes").querySelectorAll("[data-tm]").forEach(b=>b.addEventListener("click",()=>{
     mode=b.getAttribute("data-tm");
     $("tutorModes").querySelectorAll("[data-tm]").forEach(x=>x.classList.remove("active"));
@@ -329,8 +382,21 @@ function renderTutor(){
         a=w?("📚 "+escapeHtml(fullDe(w))+" = "+escapeHtml(w.ar)+"<br>الجمع: "+escapeHtml(w.plural||"—")+"<br>مثال: "+escapeHtml(w.ex||"—")):"لم أجد الكلمة. جرّب كلمة من القاموس.";
       }
       else if(mode==="conv"){
-        const hit=TUTOR_CONV.find(s=>s.keys.some(k=>q.toLowerCase().indexOf(k)>=0));
-        a=hit?("✅ "+hit.ok+"<br>التالي: "+TUTOR_CONV[(TUTOR_CONV.indexOf(hit)+1)%TUTOR_CONV.length].bot):("🤖 "+TUTOR_CONV[0].bot+"<br><span class=muted>"+TUTOR_CONV[0].ar+" — "+TUTOR_CONV[0].hint+"</span>");
+        const pool=(S.tutorLevel==="A2"?TUTOR_CONV.slice(2):TUTOR_CONV.slice(0,3));
+        const list=pool.length?pool:TUTOR_CONV;
+        const hit=list.find(s=>s.keys.some(k=>q.toLowerCase().indexOf(k)>=0));
+        const st=tutorStats();st.turns=(st.turns||0)+1;
+        const sayBtn='<button class="mini-btn" id="tutorSay">🔊 استمع</button>';
+        if(hit){
+          st.ok=(st.ok||0)+1;
+          try{st.scen[hit.bot]=(st.scen[hit.bot]||0)+1;save();}catch(e){}
+          tutorLastSay=list[(list.indexOf(hit)+1)%list.length].bot;
+          a=("✅ "+hit.ok+"<br>التالي ("+(S.tutorLevel||"A1")+"): "+tutorLastSay+" "+sayBtn);
+        }else{
+          tutorLastSay=list[0].bot;
+          a=("🤖 "+tutorLastSay+" "+sayBtn+"<br><span class=muted>"+list[0].ar+" — "+list[0].hint+"</span>");
+        }
+        try{save();}catch(e){}
         addXP(3,"tutor-conv");
       }
       else if(mode==="explain"){
@@ -342,6 +408,7 @@ function renderTutor(){
         a=r.length?r.map(e=>"🇩🇪 "+escapeHtml(e.de)+"<br>🇪🇬 "+escapeHtml(e.ar)).join("<br>"):"لم أجد أمثلة. جرّب كلمة ألمانية.";
       }
       $("tutorOut").innerHTML='<div class="panel glass">'+a+'</div>';
+      try{const sb=$("tutorSay");if(sb&&tutorLastSay)sb.addEventListener("click",()=>speak(tutorLastSay));}catch(e){}
       S.tutor.hist.push({q:q,a:$("tutorOut").textContent.slice(0,160)});Store.save();hist();
     });
   };

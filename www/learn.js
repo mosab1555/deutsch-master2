@@ -106,24 +106,39 @@ function renderJourney(){
 }
 function buildPlacement(){
   const words=shuffle(allWords().filter(w=>w.art!=="-")).slice(0,4);
-  const qs=words.map(w=>({t:"ما معنى: "+fullDe(w)+"؟",opts:shuffle([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar))),correct:0,fix:function(){this.opts=shuffle(this.opts);this.correct=this.opts.indexOf(w.ar);},w:w,why:fullDe(w)+" = "+w.ar}));
+  const qs=words.map(w=>({sec:"vocab",t:"ما معنى: "+fullDe(w)+"؟",opts:shuffle([w.ar].concat(shuffle(allWords().filter(x=>x.id!==w.id)).slice(0,3).map(x=>x.ar))),correct:0,fix:function(){this.opts=shuffle(this.opts);this.correct=this.opts.indexOf(w.ar);},w:w,why:fullDe(w)+" = "+w.ar}));
   qs.forEach(q=>q.fix());
   const g4=shuffle(GRAMMAR).slice(0,4);
-  g4.forEach(g=>{const so=shuffle(g.quiz.opts.map((o,ix)=>ix));qs.push({t:"قواعد: "+g.quiz.q,opts:so.map(ix=>g.quiz.opts[ix]),correct:so.indexOf(g.quiz.correct),why:g.quiz.explain});});
+  g4.forEach(g=>{const so=shuffle(g.quiz.opts.map((o,ix)=>ix));qs.push({sec:"grammar",t:"قواعد: "+g.quiz.q,opts:so.map(ix=>g.quiz.opts[ix]),correct:so.indexOf(g.quiz.correct),why:g.quiz.explain});});
   const s4=shuffle(SENTENCES).slice(0,4);
-  s4.forEach(s=>qs.push({t:"اقرأ واختر الترجمة: "+s.de,opts:shuffle([s.ar].concat(shuffle(SENTENCES.filter(x=>x.id!==s.id)).slice(0,3).map(x=>x.ar))),correct:0,fix2:s,why:s.de+" = "+s.ar}));
+  s4.forEach(s=>qs.push({sec:"reading",t:"اقرأ واختر الترجمة: "+s.de,opts:shuffle([s.ar].concat(shuffle(SENTENCES.filter(x=>x.id!==s.id)).slice(0,3).map(x=>x.ar))),correct:0,fix2:s,why:s.de+" = "+s.ar}));
   qs.slice(8).forEach(q=>{if(q.fix2){q.opts=shuffle(q.opts);q.correct=q.opts.indexOf(q.fix2.ar);}});
   return shuffle(qs);
 }
 function startPlacement(){
   const qs=buildPlacement();let i=0,score=0;
+  const skills={vocab:{n:0,ok:0},grammar:{n:0,ok:0},reading:{n:0,ok:0}};
   const box=$("placeBox");
+  const SK_AR={vocab:"المفردات",grammar:"القواعد",reading:"القراءة والفهم"};
   function render(){
     if(i>=qs.length){
       const lvl=score<=3?"A0 (ابدأ من الصفر)":score<=6?"A1":score<=9?"A2 (تقديري)":"B1 (تقديري)";
       const path=score<=6?"Start A1 🟢":"راجع A1 ثم انتقل للمستوى التالي";
-      S.place={score:score,lvl:lvl,path:path,date:todayStr()};addXP(20);save();checkAch();
-      box.innerHTML='<div class="quiz-feedback ok">النتيجة: '+score+'/12<br>مستواك التقديري: <b>'+lvl+'</b><br>المسار المقترح: <b>'+path+'</b> ⭐+20</div>';
+      const det=Object.keys(skills).map(k=>{const s=skills[k];return {k:k,n:s.n,ok:s.ok,pct:s.n?Math.round(s.ok/s.n*100):0};});
+      const weak=det.filter(d=>d.n&&d.pct<60).sort((a,b)=>a.pct-b.pct);
+      S.place={score:score,lvl:lvl,path:path,date:todayStr(),skills:det};
+      try{
+        if(!Array.isArray(S.placeHistory))S.placeHistory=[];
+        S.placeHistory.unshift({score:score,lvl:lvl,date:todayStr(),skills:det});
+        while(S.placeHistory.length>10)S.placeHistory.pop();
+      }catch(e){}
+      addXP(20);save();checkAch();
+      box.innerHTML='<div class="quiz-feedback ok">النتيجة: '+score+'/12<br>مستواك التقديري: <b>'+lvl+'</b> <span class="muted">(تقييم غير رسمي داخل التطبيق — ليس شهادة CEFR)</span><br>المسار المقترح: <b>'+path+'</b> ⭐+20</div>'
+        +'<div class="panel glass"><h3>📊 نقاط القوة والضعف</h3>'+det.map(d=>'<div class="muted">'+(d.pct>=60?"✅":"❌")+" "+SK_AR[d.k]+": "+d.ok+"/"+d.n+" ("+d.pct+'%)</div>').join("")
+        +(weak.length?'<div class="muted">🎯 ركّز على: '+weak.map(d=>SK_AR[d.k]).join("، ")+'</div>':'<div class="muted">🎉 متوازن في كل المهارات!</div>')
+        +(S.placeHistory.length>1?'<div class="muted">🕘 محاولات سابقة: '+S.placeHistory.slice(1,4).map(h=>h.score+"/12 ("+h.date+")").join(" • ")+'</div>':"")
+        +'<div class="row-flex"><button class="btn btn-ghost sm" id="placeAgain">🔁 إعادة الاختبار</button></div></div>';
+      $("placeAgain").addEventListener("click",startPlacement);
       renderJourney();return;
     }
     const q=qs[i];
@@ -132,8 +147,8 @@ function startPlacement(){
       const j=parseInt(b.getAttribute("data-j"),10);
       const fb=$("plFb");fb.classList.remove("hidden");
       box.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
-      if(j===q.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+q.why;score++;}
-      else{b.classList.add("wrong");box.querySelectorAll(".quiz-opt")[q.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="❌ الإجابة: "+q.opts[q.correct]+" — "+q.why;if(q.w)recordMistake(q.w,q.opts[j],"placement");}
+      if(j===q.correct){b.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+q.why;score++;try{if(q.sec&&skills[q.sec]){skills[q.sec].n++;skills[q.sec].ok++;}}catch(e){}}
+      else{b.classList.add("wrong");box.querySelectorAll(".quiz-opt")[q.correct].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="❌ الإجابة: "+q.opts[q.correct]+" — "+q.why;if(q.w)recordMistake(q.w,q.opts[j],"placement");try{if(q.sec&&skills[q.sec]){skills[q.sec].n++;}}catch(e){}}
       save();setTimeout(()=>{i++;render();},1600);
     }));
   }

@@ -1756,15 +1756,40 @@ function renderDashboard(){
   '<div class="stat-bar-row"><span class="lbl">⏱️ دقائق</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dm/Math.max(1,p.minutes)*100)+'%;background:linear-gradient(90deg,#b8860b,#fde68a)"></div></div><b>'+dm+'/'+p.minutes+'</b></div>';
 }
 
-/* ============ REVIEW SYSTEM ============ */
+/* ============ REVIEW SYSTEM (date-aware SRS queue) ============ */
+/* Scheduling policy (documented, deterministic):
+   1) srs.due overdue (most overdue first) — set by srsUpdate/nextReview;
+   2) recurring mistakes (higher error count first);
+   3) status priority hard > review > later > new > known.
+   A word is due when: its SRS date arrived, OR it was never mastered. */
+function srsOverdue(id){
+  try{const s=S.srs&&S.srs[id];return !!(s&&s.due&&s.due<=todayStr());}catch(e){return false;}
+}
+/* Human reason why a word is scheduled — shown in the review session. */
+function srsWhy(id){
+  try{
+    const s=S.srs&&S.srs[id];
+    if(s&&s.due&&s.due<todayStr())return "موعد مراجعتها كان "+s.due+" — حان وقت التثبيت 🗓️";
+    if(s&&s.due&&s.due===todayStr())return "مجدولة لمراجعة اليوم 📌";
+    const m=S.mistakes&&S.mistakes[id];
+    if(m&&!m.done&&m.n>=2)return "أخطأت فيها "+m.n+" مرات — تحتاج تثبيتًا 🔁";
+    const st=getStatus(id);
+    if(st==="hard")return "علّمتها كصعبة — راجعها بتركيز 🔴";
+    if(st==="new")return "كلمة جديدة لم تُراجع بعد 🆕";
+    return "ضمن قائمة المراجعة اليومية 📌";
+  }catch(e){return "";}
+}
 function dueWords(){
   const words=allWords();
   return words.filter(w=>{
+    if(srsOverdue(w.id))return true;
     const st=getStatus(w.id);const r=S.review[w.id]||{c:0,w:0};
     if(st==="known"&&r.w===0)return false;
     if(st==="known")return r.w>r.c;
     return true;
   }).sort((a,b)=>{
+    const oa=srsOverdue(a.id)?1:0,ob=srsOverdue(b.id)?1:0;
+    if(ob!==oa)return ob-oa;
     const ra=S.review[a.id]||{c:0,w:0},rb=S.review[b.id]||{c:0,w:0};
     const sa=(rb.w-rb.c)-(ra.w-ra.c);
     if(sa!==0)return sa;
@@ -1785,7 +1810,7 @@ function renderReview(){
   due.slice(0,9).forEach(w=>g.appendChild(wordCard(w)));
   if(!due.length)g.innerHTML='<div class="muted">ممتاز! لا توجد كلمات تحتاج مراجعة اليوم 🎉</div>';
 }
-let reviewQueue=[],reviewIdx=0;
+let reviewQueue=[],reviewIdx=0,reviewDir="de-ar";
 $("startReview").addEventListener("click",()=>{
   reviewQueue=dueWords().slice(0,15);
   if(!reviewQueue.length){toast("لا توجد كلمات للمراجعة 🎉","ok");return;}
@@ -1795,16 +1820,28 @@ function renderReviewQ(){
   const box=$("reviewSession");box.classList.remove("hidden");
   const w=reviewQueue[reviewIdx];if(!w){box.innerHTML='<h3>🎉 انتهت جلسة المراجعة!</h3><button class="btn btn-primary" onclick="document.getElementById(\'reviewSession\').classList.add(\'hidden\')">إغلاق</button>';renderAll();return;}
   const full=(w.art!=="-"?w.art+" ":"")+w.de;
+  const deFirst=reviewDir!=="ar-de";
+  const front=deFirst
+    ?'<div class="word-de word-de-ltr" style="font-size:32px">'+escapeHtml(full)+' <button class="mini-btn" id="rvSpeak">🔊</button></div>'
+    :'<div class="word-ar" style="font-size:32px">'+escapeHtml(w.ar)+'</div>';
+  const back=deFirst
+    ?'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-ar" style="font-size:26px">'+escapeHtml(w.ar)+'</div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div></div>'
+    :'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-de word-de-ltr" style="font-size:26px">'+escapeHtml(full)+' <button class="mini-btn" id="rvSpeak2">🔊</button></div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div></div>';
   box.innerHTML='<h3>مراجعة '+(reviewIdx+1)+' / '+reviewQueue.length+'</h3>'+
-  '<div class="word-de word-de-ltr" style="font-size:32px">'+escapeHtml(full)+' <button class="mini-btn" id="rvSpeak">🔊</button></div>'+
-  '<div class="muted">حاول تذكر المعنى ثم أظهر الإجابة</div>'+
-  '<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-ar" style="font-size:26px">'+escapeHtml(w.ar)+'</div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div></div>'+
+  '<div class="muted">لماذا الآن؟ '+escapeHtml(srsWhy(w.id))+'</div>'+
+  front+
+  '<div class="muted">'+(deFirst?"حاول تذكر المعنى ثم أظهر الإجابة":"حاول تذكر الكلمة الألمانية ثم أظهر الإجابة")+'</div>'+
+  back+
   '<div class="row-flex"><button class="btn btn-ghost sm" id="rvShow">👁️ إظهار الإجابة</button>'+
+  '<button class="btn btn-ghost sm" id="rvDir">🔄 '+(deFirst?"عربي → ألماني":"ألماني → عربي")+'</button>'+
   '<button class="btn btn-green sm" id="rvOk">✅ عرفتها</button>'+
   '<button class="btn btn-red sm" id="rvNo">❌ أخطأت</button></div>';
   box.scrollIntoView({behavior:"smooth"});
-  $("rvSpeak").addEventListener("click",()=>speak(full));
+  const rvSpk=()=>speak(full);
+  if($("rvSpeak"))$("rvSpeak").addEventListener("click",rvSpk);
+  if($("rvSpeak2"))$("rvSpeak2").addEventListener("click",rvSpk);
   $("rvShow").addEventListener("click",()=>$("rvAns").classList.remove("hidden"));
+  $("rvDir").addEventListener("click",()=>{reviewDir=deFirst?"ar-de":"de-ar";renderReviewQ();});
   $("rvOk").addEventListener("click",()=>{bumpReview(w.id,true);reviewIdx++;renderReviewQ();});
   $("rvNo").addEventListener("click",()=>{bumpReview(w.id,false);reviewIdx++;renderReviewQ();});
 }
@@ -2093,7 +2130,7 @@ function renderGrammar(){
   list.forEach((g,gi)=>{
     const d=document.createElement("div");d.className="grammar-card glass";
     const ex=g.ex.map(e=>'<div class="grammar-ex"><div style="direction:ltr;text-align:left;font-weight:800">'+escapeHtml(e[0])+'</div><div style="color:var(--gold)">'+escapeHtml(e[1])+'</div></div>').join("");
-    d.innerHTML='<h3>📐 '+escapeHtml(g.title)+'</h3><div style="margin-bottom:8px"><span class="tag kap-tag">'+kapName(g.kap)+'</span></div><div class="grammar-body">'+escapeHtml(g.body)+'</div>'+ex+
+    d.innerHTML='<h3>📐 '+escapeHtml(g.title)+'</h3><div style="margin-bottom:8px"><span class="tag kap-tag">'+kapName(g.kap)+'</span>'+(function(){try{const m=gramMastery(g.id);return m?'<span class="tag">'+m.badge+' إتقان '+m.pct+'% ('+m.ok+'/'+m.n+')</span>':'<span class="tag">⚪ لم تُختبر بعد</span>';}catch(e){return "";}})()+'</div><div class="grammar-body">'+escapeHtml(g.body)+'</div>'+ex+
     '<div class="row-flex" style="margin:10px 0"><button class="btn btn-primary sm" data-explain="'+g.id+'">📖 شرح القاعدة</button></div>'+
     '<div class="grammar-quiz"><b>❓ اختبار سريع:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" style="margin:8px 0">'+g.quiz.opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
     d.querySelector("[data-explain]").addEventListener("click",()=>openExplain(g.id));
@@ -2108,8 +2145,8 @@ function renderGrammar(){
       const fb=d.querySelector(".quiz-feedback");fb.classList.remove("hidden");
       d.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
       const isCorrect=r.origIx===g.quiz.correct;
-      if(isCorrect){r.el.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;S.totalCorrect++;markStudyDay();}
-      else{r.el.classList.add("wrong");d.querySelectorAll(".quiz-opt")[gOrder.indexOf(g.quiz.correct)].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;}
+      if(isCorrect){r.el.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;S.totalCorrect++;markStudyDay();gramRecord(g.id,true);}
+      else{r.el.classList.add("wrong");d.querySelectorAll(".quiz-opt")[gOrder.indexOf(g.quiz.correct)].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;gramRecord(g.id,false);}
       S.totalAnswered++;save();renderDashboard();renderStats();
     }));
     box.appendChild(d);
@@ -2216,8 +2253,8 @@ function openExplain(id){
       const i=parseInt(btn.getAttribute("data-i"),10);
       const fb=$("exDrillFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exDrillOpts .quiz-opt").forEach(x=>x.disabled=true);
-      if(i===dr.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+dr.why;}
-      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exDrillOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===dr.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ الصحيح: "+dr.opts[dr.correct]+" — لماذا؟ "+dr.why;}
+      if(i===dr.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+dr.why;gramRecord(g.id,true);}
+      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exDrillOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===dr.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ الصحيح: "+dr.opts[dr.correct]+" — لماذا؟ "+dr.why;gramRecord(g.id,false);}
     }));
   }
   if(g.quiz){
@@ -2225,8 +2262,8 @@ function openExplain(id){
       const i=parseInt(btn.getAttribute("data-i"),10);
       const fb=$("exQuizFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exQuizOpts .quiz-opt").forEach(x=>x.disabled=true);
-      if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;try{if(typeof completeLesson==="function")completeLesson(g.id);}catch(e){}}
-      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exQuizOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===g.quiz.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;try{if(S){S.gweak=S.gweak||{};S.gweak[g.id]=(S.gweak[g.id]||0)+1;save();}}catch(e){}}
+      if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;try{if(typeof completeLesson==="function")completeLesson(g.id);}catch(e){}gramRecord(g.id,true);}
+      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exQuizOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===g.quiz.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;try{if(S){S.gweak=S.gweak||{};S.gweak[g.id]=(S.gweak[g.id]||0)+1;save();}}catch(e){}gramRecord(g.id,false);}
     }));
   }
 }
@@ -2291,6 +2328,13 @@ function recordMistake(w,picked,kind,extra){
   if(extra&&extra.qid)m.qid=extra.qid;
   if(extra&&extra.chapterId)m.chapterId=extra.chapterId;
   if(extra&&extra.lessonId!==undefined)m.lessonId=extra.lessonId;
+  /* Attempt history (capped): lets the review page show previous tries and
+     proves improvement is measured from real attempts, never from a click. */
+  try{
+    if(!Array.isArray(m.hist))m.hist=[];
+    m.hist.push({ok:false,date:todayStr()});
+    while(m.hist.length>5)m.hist.shift();
+  }catch(e){}
   S.mistakes[w.id]=m;
   const keys=Object.keys(S.mistakes);
   if(keys.length>200){keys.sort((a,b)=>S.mistakes[a].n-S.mistakes[b].n);for(let i=0;i<keys.length-200;i++)delete S.mistakes[keys[i]];}
@@ -2303,12 +2347,37 @@ function noteMastered(id){
   try{
     const m=S.mistakes&&S.mistakes[id];if(!m)return false;
     m.okn=(m.okn||0)+1;
+    try{
+      if(!Array.isArray(m.hist))m.hist=[];
+      m.hist.push({ok:true,date:todayStr()});
+      while(m.hist.length>5)m.hist.shift();
+    }catch(e){}
     if(m.okn>=3&&!m.done){m.done=true;S.fixedTotal=(S.fixedTotal||0)+1;save();}
     else save();
     return !!m.done;
   }catch(e){return false;}
 }
 function removeMistake(id){if(S.mistakes&&S.mistakes[id]){delete S.mistakes[id];save();}}
+/* Grammar mastery per topic: recorded ONLY from real assessment answers
+   (grammar quick-quiz + explain drills/quizzes). Never unlocked by visits.
+   S.grammar[gid]={n,ok} → badge 🟢≥80% (n≥3) / 🟡≥50% / 🔴 below. */
+function gramRecord(gid,ok){
+  try{
+    if(!gid)return;
+    if(!S.grammar)S.grammar={};
+    const g=S.grammar[gid]||{n:0,ok:0};
+    g.n++;if(ok)g.ok++;
+    S.grammar[gid]=g;save();
+  }catch(e){}
+}
+function gramMastery(gid){
+  try{
+    const g=S.grammar&&S.grammar[gid];
+    if(!g||!g.n)return null;
+    const pct=Math.round(g.ok/g.n*100);
+    return {n:g.n,ok:g.ok,pct:pct,badge:pct>=80&&g.n>=3?"🟢":pct>=50?"🟡":"🔴"};
+  }catch(e){return null;}
+}
 /* المراجعة الذكية: وزن الكلمة حسب أخطائها وحالتها وحداثة الخطأ وصعوبتها.
    - تكرار الخطأ (حتى 5) هو العامل الأقوى.
    - خطأ حديث (<3 أيام) أولوية أعلى؛ خطأ قديم (>14 يوم) يعاد تنشيطه بلطف.
@@ -2662,11 +2731,17 @@ function renderMistakes(){
           (info.ex&&info.ex[0]?'<br>🇩🇪 '+escapeHtml(info.ex[0])+(info.ex[1]?" — "+escapeHtml(info.ex[1]):""):"")+'</div>';
       }
     }catch(e){}
+    let histHtml="";
+    try{
+      if(Array.isArray(m.hist)&&m.hist.length){
+        histHtml='<div class="muted">🕘 المحاولات: '+m.hist.map(h=>(h.ok?"✅":"❌")).join(" ")+'</div>';
+      }
+    }catch(e){}
     const d=document.createElement("div");d.className="mist-card glass";
     d.innerHTML='<div class="de-line" dir="ltr"><b>'+escapeHtml(m.de||(w?fullDe(w):id))+'</b></div>'+
       (w&&w.kap?'<div class="muted">📚 '+escapeHtml(w.kap)+'</div>':"")+skillHtml+
       '<div class="word-ar">'+escapeHtml(m.ar||(w?w.ar:""))+'</div>'+
-      '<div class="mist-err">❌ خطأك: <b>'+escapeHtml(m.last||"—")+'</b> • تكرر <b>'+m.n+'</b> '+(m.n>1?"مرات":"مرة")+'</div>'+
+      '<div class="mist-err">❌ خطأك: <b>'+escapeHtml(m.last||"—")+'</b> • تكرر <b>'+m.n+'</b> '+(m.n>1?"مرات":"مرة")+'</div>'+histHtml+
       '<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">🎯 اختبرني</button><button class="mini-btn" data-a="del">🗑️</button></div>';
     d.querySelector('[data-a="speak"]').addEventListener("click",()=>{if(w)speak(fullDe(w));});
     d.querySelector('[data-a="test"]').addEventListener("click",()=>{if(w)quickArticleQuiz(w);else if(/^m-(ausb|pfl)-/.test(id)){showPage("career");toast("راجع الوحدة وأعد اختبارها 🎯","ok");}else toast("الكلمة غير موجودة","err");});
@@ -2709,6 +2784,36 @@ function renderStats(){
     div.innerHTML='<div class="week-bar" style="height:'+(on?100:12)+'px;opacity:'+(on?1:.3)+'"></div><span>'+daysAr[d.getDay()]+'</span>';
     wc.appendChild(div);
   }
+  /* Weekly learning report (from the real event log; honest empty state). */
+  try{
+    if($("weekPanel"))$("weekPanel").remove();
+    if(window.DMProgress){
+      const wsum=DMProgress.weeklySummary(S);
+      const wp=document.createElement("div");wp.className="panel glass";wp.id="weekPanel";wp.style.marginTop="12px";
+      wp.innerHTML='<h3>📊 التقرير الأسبوعي</h3>'+(wsum.hasData?
+        '<div class="muted">آخر ٧ أيام: '+wsum.cur.ans+' محاولة ('+wsum.cur.pct+'٪) — الأسبوع السابق: '+wsum.prev.ans+' ('+wsum.prev.pct+'٪) — الفرق: '+(wsum.deltaAns>=0?"+":"")+wsum.deltaAns+' محاولة / '+(wsum.deltaPct>=0?"+":"")+wsum.deltaPct+'٪</div>'
+        :'<div class="muted">لا بيانات كافية بعد — أجب على بعض الأسئلة وسيظهر تقريرك هنا. (قلة البيانات تُعرض كغياب بيانات وليست صفر نشاط.)</div>')
+        +'<div class="row-flex"><button class="btn btn-ghost sm" id="weekExport">⬇️ تنزيل التقرير (.txt)</button></div>';
+      const wrap=$("weekChart").closest(".panel");
+      if(wrap&&wrap.parentNode)wrap.parentNode.insertBefore(wp,wrap.nextSibling);
+      const xb=$("weekExport");
+      if(xb)xb.addEventListener("click",()=>{
+        try{
+          const lines=["تقرير Deutsch Master الأسبوعي — "+todayStr(),"",
+            "آخر ٧ أيام: "+wsum.cur.ans+" محاولة، "+wsum.cur.ok+" صحيحة ("+wsum.cur.pct+"٪)",
+            "الأسبوع السابق: "+wsum.prev.ans+" محاولة ("+wsum.prev.pct+"٪)",
+            "Streak: "+(S.streak.count||0)+" يوم (الأطول: "+(S.streak.longest||0)+")",
+            "أيام المذاكرة: "+Object.keys(S.studyDays||{}).length,
+            "كلمات محفوظة: "+allWords().filter(w=>getStatus(w.id)==="known").length+"/"+allWords().length];
+          const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/plain;charset=utf-8"});
+          const a=document.createElement("a");
+          a.href=URL.createObjectURL(blob);a.download="dm-weekly-"+todayStr()+".txt";
+          document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+          toast("تم تنزيل التقرير ⬇️","ok");
+        }catch(e){toast("تعذّر التنزيل","err");}
+      });
+    }
+  }catch(e){}
 }
 $("resetStats").addEventListener("click",()=>{
   if(!confirm("تصفير الإحصائيات؟"))return;

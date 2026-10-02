@@ -379,6 +379,50 @@ try { if (typeof module !== "undefined" && module.exports) module.exports = DMPr
         }
       } catch (e) {}
 
+      /* 5b) Offline downloads manager (settings page): shows what is cached
+            via the Cache API + storage estimate. Never deletes user data. */
+      try {
+        var setGrid = document.querySelector("#page-settings .grid-2");
+        if (setGrid && !document.getElementById("dmOffline")) {
+          var op = document.createElement("div");
+          op.className = "panel glass"; op.id = "dmOffline";
+          op.innerHTML = '<h3>📴 المحتوى دون اتصال</h3><div class="muted" id="dmOffStatus">جارٍ الفحص...</div>'
+            + '<div class="muted">الدروس والكلمات والقواعد والبطاقات والاختبارات المحلية تعمل دون إنترنت. الميزات الشبكية (مزامنة السيرفر إن وُجدت، أصوات الشبكة) تحتاج اتصالًا.</div>'
+            + '<div class="row-flex"><button class="btn btn-ghost sm" id="dmOffCheck">🔄 تحديث الحالة</button></div>';
+          setGrid.appendChild(op);
+          var offCheck = function () {
+            var st = document.getElementById("dmOffStatus");
+            if (!st) return;
+            try {
+              if (!("caches" in window)) { st.textContent = "⚠️ التخزين المحلي غير مدعوم في هذا المتصفح."; return; }
+              var need = ["./", "./index.html", "./script.js", "./style.css"];
+              caches.keys().then(function (ks) {
+                var ours = ks.filter(function (k) { return /^german-academy-v/.test(k); });
+                if (!ours.length) { st.textContent = "⚠️ لا توجد نسخة محفوظة بعد — افتح التطبيق مرة واحدة وأنت متصل."; return; }
+                caches.open(ours.sort().pop()).then(function (c) {
+                  return Promise.all(need.map(function (u) { return c.match(u).then(function (r) { return !!r; }); }));
+                }).then(function (hits) {
+                  var n = hits.filter(Boolean).length;
+                  st.innerHTML = (navigator.onLine === false ? "📴 أنت دون اتصال الآن. " : "🟢 متصل. ")
+                    + "الملفات الأساسية محفوظة: " + n + "/" + need.length + '<span id="dmOffQuota"></span>';
+                  try {
+                    if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(function (e2) {
+                      try {
+                        var el = document.getElementById("dmOffQuota");
+                        if (el && e2 && e2.quota) el.textContent = " • التخزين: " + Math.round((e2.usage || 0) / 1048576) + " / " + Math.round(e2.quota / 1048576) + " MB";
+                      } catch (x) {}
+                    });
+                  } catch (x) {}
+                }).catch(function () { st.textContent = "تعذّر فحص التخزين."; });
+              }).catch(function () { st.textContent = "تعذّر فحص التخزين."; });
+            } catch (e) { st.textContent = "تعذّر فحص التخزين."; }
+          };
+          var ocb = document.getElementById("dmOffCheck");
+          if (ocb) ocb.addEventListener("click", offCheck);
+          setTimeout(offCheck, 800);
+        }
+      } catch (e) {}
+
       /* 6) Dashboard: continue-learning + weekly summary (pure helpers). */
       try {
         var dash = document.getElementById("page-dashboard");
