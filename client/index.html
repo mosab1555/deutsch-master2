@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="reference.css">
 <link rel="stylesheet" href="launch.css">
+<link rel="stylesheet" href="home.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070b18">
 <meta name="mobile-web-app-capable" content="yes">
@@ -123,27 +124,50 @@
     </header>
 
     <main class="content">
-      <!-- DASHBOARD -->
+            <!-- DASHBOARD -->
       <section class="page active" id="page-dashboard">
-        <div class="hero glass reveal">
-          <div class="hero-text">
-            <div class="hero-tag" data-i18n="hero_tag">🇩🇪 مستوى A1 • German Learning + Technology</div>
-            <h1><span data-i18n="hero_welcome">مرحبًا بك في</span> <span class="grad-text">Deutsch Master</span></h1>
+        <div class="hm-hero hero glass reveal">
+          <div class="hm-hero-main">
+            <span class="hm-eyebrow" data-i18n="home_eyebrow">🇩🇪 من A1 إلى B2 • طريقك للألمانية</span>
+            <h1><span data-i18n="home_headline">أتقن الألمانية. خطوة بخطوة.</span></h1>
+            <p class="hm-sub" data-i18n="home_sub">تعلّم المفردات والقواعد والجمل والنطق والمحادثة في مسار منظم من A1 حتى B2 — مع مراجعة ذكية وتتبع لتقدمك.</p>
             <p class="typing-line"><span id="typingText"></span><span class="caret">|</span></p>
-            <div class="hero-btns">
-              <button class="btn btn-primary" data-goto="vocab" data-i18n="hero_words">ابدأ الكلمات 📚</button>
-              <button class="btn btn-ghost" data-goto="quiz" data-i18n="hero_quiz">اختبر نفسك 📝</button>
-              <button class="btn btn-gold" data-goto="review" data-i18n="hero_review">مراجعة اليوم 🧠</button>
+            <div class="hm-cta">
+              <button class="btn btn-primary" id="hmPrimary" data-goto="vocab" data-i18n="home_start">ابدأ التعلم 🚀</button>
+              <button class="btn btn-ghost" id="hmSecondary" data-goto="journey" data-i18n="home_placement">اختبار تحديد المستوى 🎯</button>
+            </div>
+            <div class="hm-trust">
+              <span id="hmTrustWords"><b>0</b></span>
+              <span data-i18n="home_trust_path">مسار A1 ← B2</span>
+              <span data-i18n="home_trust_offline">يعمل دون إنترنت</span>
             </div>
           </div>
-          <div class="hero-card">
-            <div class="hero-level">A1</div>
-            <div class="hero-level-sub">Deutsch • Anfänger</div>
-            <div class="hero-progress">
-              <div class="hero-progress-top"><span data-i18n="hero_progress">نسبة التقدم</span><span id="heroProgressPct">0%</span></div>
-              <div class="progress"><div class="progress-fill" id="heroProgressFill" style="width:0%"></div></div>
+          <div class="hm-visual">
+            <div class="hm-flag" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="hm-ring-row">
+              <div class="hm-ring" id="hmRing" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b>0%</b></div>
+              <div class="hm-visual-meta">
+                <div class="hm-lvl">A1 → B2</div>
+                <div class="muted"><span data-i18n="hero_progress">نسبة التقدم</span> <span id="heroProgressPct">0%</span></div>
+                <div class="progress"><div class="progress-fill" id="heroProgressFill" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="hm-chips" id="hmChips" aria-hidden="true"></div>
+            <div class="hm-visual-foot">
+              <div class="hm-mini" id="hmHeroStreak"><b>0</b><span>🔥</span></div>
+              <div class="hm-mini" id="hmHeroDue"><b>0</b><span data-i18n="home_t_review">مراجعة مستحقة</span></div>
             </div>
           </div>
+        </div>
+
+        <div class="hm-continue glass reveal hm-sec">
+          <div class="hm-cont-ico" aria-hidden="true">▶️</div>
+          <div class="hm-continue-body">
+            <h2 data-i18n="home_cont_title">واصل رحلتك الألمانية</h2>
+            <div class="hm-path" id="hmContSub"></div>
+            <div class="progress"><div class="progress-fill" id="hmContFill" style="width:0%"></div></div>
+          </div>
+          <button class="btn btn-primary hm-card-btn" id="hmContBtn" data-goto="vocab" data-i18n="home_cont_btn">تابع الآن</button>
         </div>
 
         <div class="panel glass reveal" id="gamerStrip">
@@ -156,6 +180,40 @@
           <div class="muted" id="lastQuizTxt">لم تحل أي اختبار بعد — ابدأ الآن! 🚀</div>
         </div>
         <div id="dashLearn"></div>
+
+        <div class="hm-sec">
+          <div class="hm-sec-head"><h2 data-i18n="home_today">🎯 تعلّم اليوم</h2><p data-i18n="home_today_sub">خطوات صغيرة كل يوم تصنع الفرق.</p></div>
+          <div class="hm-today">
+            <button class="hm-today-card glass" data-goto="planner"><span class="hm-t-ico">🎯</span><span><b data-i18n="home_t_goal">هدف اليوم</b><span class="hm-t-num" id="hmGoalNum">0 / 20</span><span class="muted" id="hmGoalDet"></span></span></button>
+            <button class="hm-today-card glass" data-goto="review"><span class="hm-t-ico">🧠</span><span><b data-i18n="home_t_review">مراجعة مستحقة</b><span class="hm-t-num" id="hmReviewNum">0</span></span></button>
+            <button class="hm-today-card glass" data-goto="mistakes"><span class="hm-t-ico">❌</span><span><b data-i18n="home_t_mistakes">أخطاء بانتظار المراجعة</b><span class="hm-t-num" id="hmMistNum">0</span></span></button>
+            <button class="hm-today-card glass" data-goto="challenge"><span class="hm-t-ico">⚡</span><span><b data-i18n="home_t_challenge">تحدي اليوم</b><span class="hm-t-num" id="hmChallState"></span></span></button>
+          </div>
+        </div>
+
+        <div class="hm-sec">
+          <div class="hm-sec-head"><h2 data-i18n="home_quick">⚡ أدوات التعلم</h2><p data-i18n="home_quick_sub">كل أدواتك في مكان واحد.</p></div>
+          <div class="hm-quick-grid">
+            <button class="hm-quick glass" data-goto="vocab"><span class="hm-q-ico">📚</span><b data-i18n="vocab">الكلمات</b><span data-i18n="hq_vocab_d">احفظ كلمات A1–B2 بالبطاقات</span></button>
+            <button class="hm-quick glass" data-goto="sentences"><span class="hm-q-ico">💬</span><b data-i18n="sentences">الجمل</b><span data-i18n="hq_sent_d">جمل حقيقية مع النطق</span></button>
+            <button class="hm-quick glass" data-goto="grammar"><span class="hm-q-ico">📐</span><b data-i18n="grammar">القواعد</b><span data-i18n="hq_gram_d">قواعد مشروحة بالعربية</span></button>
+            <button class="hm-quick glass" data-goto="verbs"><span class="hm-q-ico">⚡</span><b data-i18n="verbs">الأفعال</b><span data-i18n="hq_verbs_d">تصريف الأفعال الشائعة</span></button>
+            <button class="hm-quick glass" data-goto="flashcards"><span class="hm-q-ico">🃏</span><b data-i18n="flashcards">Flashcards</b><span data-i18n="hq_flash_d">راجع بسرعة بالبطاقات</span></button>
+            <button class="hm-quick glass" data-goto="practice"><span class="hm-q-ico">🎯</span><b data-i18n="practice">تدريب ذكي</b><span data-i18n="hq_smart_d">تدريب مخصص لنقاط ضعفك</span></button>
+            <button class="hm-quick glass" data-goto="tutor"><span class="hm-q-ico">🤖</span><b data-i18n="tutor">المدرّب</b><span data-i18n="hq_tutor_d">اسأل وصحح أخطاءك</span></button>
+            <button class="hm-quick glass" data-goto="listen"><span class="hm-q-ico">🎧</span><b data-i18n="listen">استماع</b><span data-i18n="hq_listen_d">درّب أذنك على الألمانية</span></button>
+            <button class="hm-quick glass" data-goto="speak"><span class="hm-q-ico">🎤</span><b data-i18n="speak">تحدث</b><span data-i18n="hq_speak_d">تحدث بثقة من اليوم الأول</span></button>
+            <button class="hm-quick glass" data-goto="reference"><span class="hm-q-ico">🏛️</span><b data-i18n="reference">المرجع الألماني الشامل</b><span data-i18n="hq_ref_d">مرجع شامل للقواعد</span></button>
+            <button class="hm-quick glass" data-quiz="article"><span class="hm-q-ico">🎯</span><b data-i18n="qt_article">🎯 الأدوات</b><span data-i18n="hq_art_d">اختبار سريع: der/die/das</span></button>
+            <button class="hm-quick glass" data-quiz="listening"><span class="hm-q-ico">👂</span><b data-i18n="qt_listen">🎧 استماع</b><span data-i18n="hq_lis_d">اختبار استماع سريع</span></button>
+          </div>
+        </div>
+
+        <div class="hm-sec">
+          <div class="hm-sec-head"><h2 data-i18n="home_road">🗺️ رحلة المستويات</h2><p data-i18n="home_road_sub">من A1 إلى B2 — تقدّمك الحقيقي.</p></div>
+          <div class="hm-road" id="hmRoad"></div>
+        </div>
+
         <div class="stats-grid">
           <div class="stat-card glass reveal"><div class="stat-ico">📖</div><div class="stat-num" data-count id="dSaved">0</div><div class="stat-label" data-i18n="stat_saved">كلمات محفوظة</div><div class="progress sm"><div class="progress-fill" id="dSavedBar"></div></div></div>
           <div class="stat-card glass reveal"><div class="stat-ico">🔁</div><div class="stat-num" data-count id="dReview">0</div><div class="stat-label" data-i18n="stat_due">تحتاج مراجعة</div><div class="progress sm"><div class="progress-fill orange" id="dReviewBar"></div></div></div>
@@ -171,17 +229,9 @@
             <div id="dashPlanner"></div>
             <button class="btn btn-primary sm" data-goto="planner" data-i18n="plan_open">فتح الخطة</button>
           </div>
-          <div class="panel glass reveal">
-            <h3 data-i18n="quick_head">⚡ إجراءات سريعة</h3>
-            <div class="quick-grid">
-              <button class="quick-btn" data-goto="flashcards" data-i18n="quick_flash">🃏 فلاش كارد</button>
-              <button class="quick-btn" data-quiz="article">der/die/das</button>
-              <button class="quick-btn" data-goto="sentences" data-i18n="quick_sent">💬 جمل A1</button>
-              <button class="quick-btn" data-goto="verbs" data-i18n="quick_verbs">⚡ تصريف الأفعال</button>
-              <button class="quick-btn" data-quiz="listening" data-i18n="quick_listen">🎧 اختبار استماع</button>
-              <button class="quick-btn" data-goto="grammar" data-i18n="quick_rule">📐 قاعدة اليوم</button>
-              <button class="quick-btn" data-goto="mistakes" data-i18n="quick_mist">❌ أخطائي</button>
-            </div>
+          <div class="hm-motiv glass reveal hm-sec">
+            <span class="hm-m-ico">💡</span>
+            <span id="hmMotivTxt" data-i18n="home_mot_new">كل خبير كان مبتدئًا. ابدأ اليوم بكلمة واحدة. 🌱</span>
           </div>
         </div>
       </section>
@@ -674,5 +724,6 @@
     <script src="reference.js"></script>
     <script src="progress.js"></script>
     <script src="career.js"></script>
+    <script src="home.js"></script>
 </body>
 </html>

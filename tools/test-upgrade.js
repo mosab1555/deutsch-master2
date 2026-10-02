@@ -89,7 +89,7 @@ check("U16 reviewDir declared", /let reviewQueue=\[\],reviewIdx=0,reviewDir="de-
 check("U17 direction toggle wired", script.indexOf('id="rvDir"') >= 0 && script.indexOf('ar-de":"de-ar') >= 0);
 check("U18 sw precache fixed", (() => {
   const sw = fs.readFileSync(path.join(root, "client", "sw.js"), "utf8");
-  return sw.indexOf("german-academy-v33") >= 0 && sw.indexOf("./feats.js") >= 0 && sw.indexOf("./sent-a1.js") >= 0;
+  return /german-academy-v\d+/.test(sw) && sw.indexOf("./feats.js") >= 0 && sw.indexOf("./sent-a1.js") >= 0 && sw.indexOf("./home.js") >= 0 && sw.indexOf("./home.css") >= 0;
 })());
 check("U19 offline manager in settings", fs.readFileSync(path.join(root, "client", "progress.js"), "utf8").indexOf("dmOffline") >= 0);
 check("U20 weekly export wired", script.indexOf("weekExport") >= 0 && script.indexOf("dm-weekly-") >= 0);
