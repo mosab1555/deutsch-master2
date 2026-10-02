@@ -125,116 +125,232 @@
     </header>
 
     <main class="content">
-            <!-- DASHBOARD -->
+                        <!-- DASHBOARD -->
       <section class="page active" id="page-dashboard">
-        <div class="hm-hero hero glass reveal">
+      <div class="cmd-scope">
+        <div class="cmd-ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+
+        <div class="cmd-hero hero glass reveal">
           <div class="hm-hero-main">
-            <span class="hm-eyebrow" data-i18n="home_eyebrow">🇩🇪 من A1 إلى B2 • طريقك للألمانية</span>
-            <h1><span data-i18n="home_headline">أتقن الألمانية. خطوة بخطوة.</span></h1>
-            <p class="hm-sub" data-i18n="home_sub">تعلّم المفردات والقواعد والجمل والنطق والمحادثة في مسار منظم من A1 حتى B2 — مع مراجعة ذكية وتتبع لتقدمك.</p>
-            <p class="typing-line"><span id="typingText"></span><span class="caret">|</span></p>
-            <div class="hm-cta">
-              <button class="btn btn-primary" id="hmPrimary" data-goto="vocab" data-i18n="home_start">ابدأ التعلم 🚀</button>
-              <button class="btn btn-ghost" id="hmSecondary" data-goto="journey" data-i18n="home_placement">اختبار تحديد المستوى 🎯</button>
+            <div class="cmd-brand">
+              <div class="cmd-logo">DE</div>
+              <div><b>Deutsch Master</b><small data-i18n="cmd_brand_tag">نظام تعلم الألمانية</small></div>
             </div>
-            <div class="hm-trust">
-              <span id="hmTrustWords"><b>0</b></span>
+            <span class="hm-eyebrow" data-i18n="home_eyebrow">🇩🇪 من A1 إلى B2 • طريقك للألمانية</span>
+            <h1><span data-i18n="cmd_h1a">أتقن الألمانية بـ</span> <span class="grad-text" data-i18n="cmd_h1b">نظامٍ متكامل، لا دروس عشوائية.</span></h1>
+            <p class="cmd-sub" data-i18n="cmd_sub">المفردات والقواعد والجمل والنطق والاستماع والتحدث والمراجعة الذكية — كلها تعمل معًا في نظام واحد مبني حول مستواك.</p>
+            <p class="typing-line"><span id="typingText"></span><span class="caret">|</span></p>
+            <div class="cmd-cta">
+              <button class="btn btn-primary" id="hmPrimary" data-goto="vocab" data-i18n="cmd_start">ابدأ التعلم 🚀</button>
+              <button class="btn btn-ghost" id="hmSecondary" data-goto="journey" data-i18n="cmd_place">اختبار تحديد المستوى 🎯</button>
+            </div>
+            <div class="cmd-trust">
+              <span><i class="cmd-dot"></i><span id="cmdTrustWords"><b>0</b></span></span>
               <span data-i18n="home_trust_path">مسار A1 ← B2</span>
               <span data-i18n="home_trust_offline">يعمل دون إنترنت</span>
             </div>
+            <div class="cmd-welcome muted" id="cmdWelcome" style="display:none"><span id="cmdBackTxt"></span></div>
+            <div class="cmd-steps" id="cmdOnboard">
+              <button class="cmd-stepbtn glass" data-goto="journey"><span class="n">1</span><span><b data-i18n="cmd_step1t">حدد مستواك</b><small data-i18n="cmd_step1d">اختبار ١٢ سؤالًا</small></span></button>
+              <button class="cmd-stepbtn glass" data-goto="vocab"><span class="n">2</span><span><b data-i18n="cmd_step2t">ابدأ أول درس</b><small data-i18n="cmd_step2d">المستوى A1</small></span></button>
+              <button class="cmd-stepbtn glass" data-goto="howto"><span class="n">3</span><span><b data-i18n="cmd_step3t">ابنِ عادتك اليومية</b><small data-i18n="cmd_step3d">مهمة كل يوم</small></span></button>
+            </div>
           </div>
           <div class="hm-visual">
-            <div class="hm-flag" aria-hidden="true"><i></i><i></i><i></i></div>
-            <div class="hm-ring-row">
-              <div class="hm-ring" id="hmRing" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b>0%</b></div>
-              <div class="hm-visual-meta">
-                <div class="hm-lvl">A1 → B2</div>
-                <div class="muted"><span data-i18n="hero_progress">نسبة التقدم</span> <span id="heroProgressPct">0%</span></div>
-                <div class="progress"><div class="progress-fill" id="heroProgressFill" style="width:0%"></div></div>
+            <div class="cmd-orbit" id="cmdOrbit">
+              <div class="orbit-ring r1"></div>
+              <div class="orbit-ring r2"></div>
+              <div class="orbit-core" id="hmRing" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="orbit-pct">0%</div>
+                <div class="orbit-lbl" data-i18n="cmd_core">تقدمك العام</div>
+                <div class="orbit-streak" id="orbitStreak">🔥 0</div>
+                <span class="hidden"><span id="heroProgressPct">0%</span><span class="progress"><span class="progress-fill" id="heroProgressFill" style="width:0%"></span></span></span>
+              </div>
+              <div class="orbit-nodes" id="orbitNodes"></div>
+            </div>
+            <div class="orbit-detail glass">
+              <h3 id="orbitName"></h3>
+              <p id="orbitDesc"></p>
+              <div class="row"><span class="orbit-metric" id="orbitMetric"></span><button type="button" class="btn btn-primary sm" id="orbitGo" data-goto="vocab"></button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">01</span><h2 data-i18n="cmd_next">خطوتك التالية الأفضل</h2></div>
+          <div class="cmd-next glass reveal" id="cmdNextBody"></div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">02</span><h2 data-i18n="cmd_mission">مهمة اليوم</h2><p data-i18n="cmd_mission_sub">خطوات صغيرة كل يوم تصنع الفرق.</p></div>
+          <div class="cmd-mission glass reveal">
+            <div class="cmd-arc" id="cmdArc" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b id="cmdArcNum">0/3</b></div>
+            <div>
+              <div class="cmd-m-tiles">
+                <div class="cmd-m-tile"><b data-i18n="cmd_m_goal">هدف الكلمات</b><span id="cmdMGoal">0 / 20</span></div>
+                <div class="cmd-m-tile"><b data-i18n="cmd_m_chal">التحدي اليومي</b><span id="cmdMChal"></span></div>
+                <div class="cmd-m-tile"><b data-i18n="cmd_m_rev">مراجعات مستحقة</b><span id="cmdMRev">0</span></div>
+              </div>
+              <div id="dashPlanner"></div>
+              <button class="btn btn-green" id="cmdMissionGo" data-goto="planner" data-i18n="cmd_m_cta">أكمل مهمة اليوم</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">03</span><h2 data-i18n="cmd_journey">رحلتك الألمانية</h2><p data-i18n="cmd_journey_sub">من A1 إلى B1 — كل خطوة تُحتسب.</p></div>
+          <div class="cmd-rail" id="cmdRail"></div>
+          <div id="dashLearn"></div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-spot glass reveal">
+            <span class="cmd-eyebrow">04</span>
+            <h3><span data-i18n="cmd_smart">التدريب الذكي</span> <span class="grad-text" data-i18n="cmd_focus">تركيز اليوم</span></h3>
+            <p class="muted" data-i18n="cmd_smart_sub">تدرب على ما تتعثر فيه فعلًا — يختار النظام كلماتك الأضعف تلقائيًا.</p>
+            <div class="cmd-focus" id="cmdFocusRow"></div>
+            <button class="btn btn-primary" id="cmdSpotGo" data-goto="practice" data-i18n="cmd_smart_cta">ابدأ التدريب الذكي</button>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">05</span><h2 data-i18n="cmd_mini">جرّب درسًا مصغرًا</h2><p data-i18n="cmd_mini_sub">جملة حقيقية واحدة. ثلاثون ثانية.</p></div>
+          <div class="cmd-mini glass reveal">
+            <div>
+              <div class="cmd-mini-sent">Ich <span class="cmd-mini-word">lerne</span> Deutsch.</div>
+              <div class="row-flex"><button class="btn btn-gold sm" id="cmdMiniHear" data-i18n="cmd_mini_listen">استمع 🔊</button></div>
+            </div>
+            <div>
+              <div id="cmdMiniQ"></div>
+              <div class="row-flex"><button class="btn btn-ghost sm" data-goto="vocab" data-i18n="cmd_mini_more">أكمل داخل Deutsch Master</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">06</span><h2 data-i18n="cmd_explore">اكتشف Deutsch Master</h2><p data-i18n="cmd_explore_sub">أربعة عوالم، نظام واحد.</p></div>
+          <div class="cmd-groups">
+            <div class="cmd-group g-learn glass reveal"><h3>📖 <span data-i18n="cmd_g_learn">تعلّم</span></h3>
+              <div class="cmd-feats">
+                <button class="cmd-feat" data-goto="vocab"><span class="fi">📚</span><span><b data-i18n="vocab">الكلمات</b><small data-i18n="hq_vocab_d">احفظ كلمات A1–B2 بالبطاقات</small></span><span class="cnt" id="cntWords"></span></button>
+                <button class="cmd-feat" data-goto="sentences"><span class="fi">💬</span><span><b data-i18n="sentences">الجمل</b><small data-i18n="hq_sent_d">جمل حقيقية مع النطق</small></span><span class="cnt" id="cntSents"></span></button>
+                <button class="cmd-feat" data-goto="grammar"><span class="fi">📐</span><span><b data-i18n="grammar">القواعد</b><small data-i18n="hq_gram_d">قواعد مشروحة بالعربية</small></span><span class="cnt" id="cntGram"></span></button>
+                <button class="cmd-feat" data-goto="verbs"><span class="fi">⚡</span><span><b data-i18n="verbs">الأفعال</b><small data-i18n="hq_verbs_d">تصريف الأفعال الشائعة</small></span><span class="cnt" id="cntVerbs"></span></button>
               </div>
             </div>
-            <div class="hm-chips" id="hmChips" aria-hidden="true"></div>
-            <div class="hm-visual-foot">
-              <div class="hm-mini" id="hmHeroStreak"><b>0</b><span>🔥</span></div>
-              <div class="hm-mini" id="hmHeroDue"><b>0</b><span data-i18n="home_t_review">مراجعة مستحقة</span></div>
+            <div class="cmd-group g-practice glass reveal"><h3>🎯 <span data-i18n="cmd_g_practice">تدرب</span></h3>
+              <div class="cmd-feats">
+                <button class="cmd-feat" data-goto="flashcards"><span class="fi">🃏</span><span><b data-i18n="flashcards">Flashcards</b><small data-i18n="hq_flash_d">راجع بسرعة بالبطاقات</small></span></button>
+                <button class="cmd-feat" data-goto="practice"><span class="fi">🧠</span><span><b data-i18n="practice">تدريب ذكي</b><small data-i18n="hq_smart_d">تدريب مخصص لنقاط ضعفك</small></span></button>
+                <button class="cmd-feat" data-goto="challenge"><span class="fi">⚡</span><span><b data-i18n="challenge">التحدي</b><small data-i18n="hq_chal_d">تحدي اليوم: ١٠ أسئلة</small></span></button>
+                <button class="cmd-feat" data-goto="quiz"><span class="fi">📝</span><span><b data-i18n="quiz">الاختبارات</b><small data-i18n="hq_quiz_d">اختبارات بكل الأنواع</small></span><span class="cnt" id="cntTests"></span></button>
+              </div>
+            </div>
+            <div class="cmd-group g-real glass reveal"><h3>🌍 <span data-i18n="cmd_g_real">ألماني حقيقي</span></h3>
+              <div class="cmd-feats">
+                <button class="cmd-feat" data-goto="listen"><span class="fi">🎧</span><span><b data-i18n="listen">استماع</b><small data-i18n="hq_listen_d">درّب أذنك على الألمانية</small></span></button>
+                <button class="cmd-feat" data-goto="speak"><span class="fi">🎤</span><span><b data-i18n="speak">تحدث</b><small data-i18n="hq_speak_d">تحدث بثقة من اليوم الأول</small></span></button>
+                <button class="cmd-feat" data-goto="talk"><span class="fi">💬</span><span><b data-i18n="talk">محادثة</b><small data-i18n="hq_talk_d">محادثات تفاعلية</small></span></button>
+              </div>
+            </div>
+            <div class="cmd-group g-master glass reveal"><h3>🏆 <span data-i18n="cmd_g_master">أتقن</span></h3>
+              <div class="cmd-feats">
+                <button class="cmd-feat" data-goto="mistakes"><span class="fi">❌</span><span><b data-i18n="mistakes">أخطائي</b><small data-i18n="hq_mist_d">راجع أخطاءك المسجلة</small></span><span class="cnt" id="cntMist"></span></button>
+                <button class="cmd-feat" data-goto="review"><span class="fi">🧠</span><span><b data-i18n="review">المراجعة</b><small data-i18n="hq_rev_d">مراجعة SRS ذكية</small></span><span class="cnt" id="cntRev"></span></button>
+                <button class="cmd-feat" data-goto="tutor"><span class="fi">🤖</span><span><b data-i18n="tutor">المدرّب</b><small data-i18n="hq_tutor_d">اسأل وصحح أخطاءك</small></span></button>
+                <button class="cmd-feat" data-goto="reference"><span class="fi">🏛️</span><span><b data-i18n="reference">المرجع الألماني الشامل</b><small data-i18n="hq_ref_d">مرجع شامل للقواعد</small></span></button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="hm-continue glass reveal hm-sec">
-          <div class="hm-cont-ico" aria-hidden="true">▶️</div>
-          <div class="hm-continue-body">
-            <h2 data-i18n="home_cont_title">واصل رحلتك الألمانية</h2>
-            <div class="hm-path" id="hmContSub"></div>
-            <div class="progress"><div class="progress-fill" id="hmContFill" style="width:0%"></div></div>
-          </div>
-          <button class="btn btn-primary hm-card-btn" id="hmContBtn" data-goto="vocab" data-i18n="home_cont_btn">تابع الآن</button>
-        </div>
-
-        <div class="panel glass reveal" id="gamerStrip">
-          <div class="gamer-top">
-            <div class="lvl-badge">⭐<div><div class="lvl-num">مستوى <span id="lvlNum">1</span></div><div class="lvl-name" id="lvlName">مبتدئ</div></div></div>
-            <div class="xp-wrap"><div class="xp-top"><span>XP: <b id="xpNum">0</b></span><span id="xpNext">0 / 100</span></div><div class="progress"><div class="progress-fill gold" id="xpFill" style="width:0%"></div></div></div>
-            <div class="gamer-stats"><span>🎯 <b id="accNum">0%</b></span><span>🏆 <b id="bestNum">0%</b></span><span>🔥 <b id="comboNum">0</b></span></div>
-          </div>
-          <div class="row-flex"><button class="btn btn-primary sm" data-goto="vocab" data-i18n="dash_words">📚 الكلمات</button><button class="btn btn-gold sm" data-goto="quiz" data-i18n="dash_quiz">📝 ابدأ اختبار</button><button class="btn btn-green sm" data-goto="review" data-i18n="dash_review">🧠 ابدأ المذاكرة</button><button class="btn btn-red sm" data-goto="mistakes" data-i18n="mist_head">❌ مراجعة أخطائي</button></div>
-          <div class="muted" id="lastQuizTxt">لم تحل أي اختبار بعد — ابدأ الآن! 🚀</div>
-        </div>
-        <div id="dashLearn"></div>
-
-        <div class="hm-sec">
-          <div class="hm-sec-head"><h2 data-i18n="home_today">🎯 تعلّم اليوم</h2><p data-i18n="home_today_sub">خطوات صغيرة كل يوم تصنع الفرق.</p></div>
-          <div class="hm-today">
-            <button class="hm-today-card glass" data-goto="planner"><span class="hm-t-ico">🎯</span><span><b data-i18n="home_t_goal">هدف اليوم</b><span class="hm-t-num" id="hmGoalNum">0 / 20</span><span class="muted" id="hmGoalDet"></span></span></button>
-            <button class="hm-today-card glass" data-goto="review"><span class="hm-t-ico">🧠</span><span><b data-i18n="home_t_review">مراجعة مستحقة</b><span class="hm-t-num" id="hmReviewNum">0</span></span></button>
-            <button class="hm-today-card glass" data-goto="mistakes"><span class="hm-t-ico">❌</span><span><b data-i18n="home_t_mistakes">أخطاء بانتظار المراجعة</b><span class="hm-t-num" id="hmMistNum">0</span></span></button>
-            <button class="hm-today-card glass" data-goto="challenge"><span class="hm-t-ico">⚡</span><span><b data-i18n="home_t_challenge">تحدي اليوم</b><span class="hm-t-num" id="hmChallState"></span></span></button>
-          </div>
-        </div>
-
-        <div class="hm-sec">
-          <div class="hm-sec-head"><h2 data-i18n="home_quick">⚡ أدوات التعلم</h2><p data-i18n="home_quick_sub">كل أدواتك في مكان واحد.</p></div>
-          <div class="hm-quick-grid">
-            <button class="hm-quick glass" data-goto="vocab"><span class="hm-q-ico">📚</span><b data-i18n="vocab">الكلمات</b><span data-i18n="hq_vocab_d">احفظ كلمات A1–B2 بالبطاقات</span></button>
-            <button class="hm-quick glass" data-goto="sentences"><span class="hm-q-ico">💬</span><b data-i18n="sentences">الجمل</b><span data-i18n="hq_sent_d">جمل حقيقية مع النطق</span></button>
-            <button class="hm-quick glass" data-goto="grammar"><span class="hm-q-ico">📐</span><b data-i18n="grammar">القواعد</b><span data-i18n="hq_gram_d">قواعد مشروحة بالعربية</span></button>
-            <button class="hm-quick glass" data-goto="verbs"><span class="hm-q-ico">⚡</span><b data-i18n="verbs">الأفعال</b><span data-i18n="hq_verbs_d">تصريف الأفعال الشائعة</span></button>
-            <button class="hm-quick glass" data-goto="flashcards"><span class="hm-q-ico">🃏</span><b data-i18n="flashcards">Flashcards</b><span data-i18n="hq_flash_d">راجع بسرعة بالبطاقات</span></button>
-            <button class="hm-quick glass" data-goto="practice"><span class="hm-q-ico">🎯</span><b data-i18n="practice">تدريب ذكي</b><span data-i18n="hq_smart_d">تدريب مخصص لنقاط ضعفك</span></button>
-            <button class="hm-quick glass" data-goto="tutor"><span class="hm-q-ico">🤖</span><b data-i18n="tutor">المدرّب</b><span data-i18n="hq_tutor_d">اسأل وصحح أخطاءك</span></button>
-            <button class="hm-quick glass" data-goto="listen"><span class="hm-q-ico">🎧</span><b data-i18n="listen">استماع</b><span data-i18n="hq_listen_d">درّب أذنك على الألمانية</span></button>
-            <button class="hm-quick glass" data-goto="speak"><span class="hm-q-ico">🎤</span><b data-i18n="speak">تحدث</b><span data-i18n="hq_speak_d">تحدث بثقة من اليوم الأول</span></button>
-            <button class="hm-quick glass" data-goto="reference"><span class="hm-q-ico">🏛️</span><b data-i18n="reference">المرجع الألماني الشامل</b><span data-i18n="hq_ref_d">مرجع شامل للقواعد</span></button>
-            <button class="hm-quick glass" data-quiz="article"><span class="hm-q-ico">🎯</span><b data-i18n="qt_article">🎯 الأدوات</b><span data-i18n="hq_art_d">اختبار سريع: der/die/das</span></button>
-            <button class="hm-quick glass" data-quiz="listening"><span class="hm-q-ico">👂</span><b data-i18n="qt_listen">🎧 استماع</b><span data-i18n="hq_lis_d">اختبار استماع سريع</span></button>
-          </div>
-        </div>
-
-        <div class="hm-sec">
-          <div class="hm-sec-head"><h2 data-i18n="home_road">🗺️ رحلة المستويات</h2><p data-i18n="home_road_sub">من A1 إلى B2 — تقدّمك الحقيقي.</p></div>
-          <div class="hm-road" id="hmRoad"></div>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card glass reveal"><div class="stat-ico">📖</div><div class="stat-num" data-count id="dSaved">0</div><div class="stat-label" data-i18n="stat_saved">كلمات محفوظة</div><div class="progress sm"><div class="progress-fill" id="dSavedBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">🔁</div><div class="stat-num" data-count id="dReview">0</div><div class="stat-label" data-i18n="stat_due">تحتاج مراجعة</div><div class="progress sm"><div class="progress-fill orange" id="dReviewBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">📅</div><div class="stat-num" data-count id="dDays">0</div><div class="stat-label" data-i18n="stat_days">أيام المذاكرة</div><div class="progress sm"><div class="progress-fill green" id="dDaysBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">📝</div><div class="stat-num" data-count id="dTests">0</div><div class="stat-label" data-i18n="stat_tests">اختبارات محلولة</div><div class="progress sm"><div class="progress-fill purple" id="dTestsBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">✅</div><div class="stat-num" data-count id="dCorrect">0</div><div class="stat-label" data-i18n="stat_correct">إجابات صحيحة</div><div class="progress sm"><div class="progress-fill gold" id="dCorrectBar"></div></div></div>
-          <div class="stat-card glass reveal"><div class="stat-ico">🔥</div><div class="stat-num" data-count id="dStreak">0</div><div class="stat-label" data-i18n="stat_streak">Streak أيام متتالية</div><div class="progress sm"><div class="progress-fill red" id="dStreakBar"></div></div></div>
-        </div>
-
-        <div class="grid-2">
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">07</span><h2 data-i18n="cmd_loop">حلقة Deutsch Master</h2><p data-i18n="cmd_loop_sub">تعلمه. استخدمه. احتفظ به.</p></div>
           <div class="panel glass reveal">
-            <h3 data-i18n="plan_today">🎯 خطة اليوم</h3>
-            <div id="dashPlanner"></div>
-            <button class="btn btn-primary sm" data-goto="planner" data-i18n="plan_open">فتح الخطة</button>
-          </div>
-          <div class="hm-motiv glass reveal hm-sec">
-            <span class="hm-m-ico">💡</span>
-            <span id="hmMotivTxt" data-i18n="home_mot_new">كل خبير كان مبتدئًا. ابدأ اليوم بكلمة واحدة. 🌱</span>
+            <div class="cmd-loop">
+              <button class="cmd-loop-step" data-goto="vocab"><span class="li">📚</span><b data-i18n="cmd_g_learn">تعلّم</b><small data-i18n="vocab">الكلمات</small></button>
+              <button class="cmd-loop-step" data-goto="sentences"><span class="li">✍️</span><b data-i18n="cmd_g_practice">تدرب</b><small data-i18n="sentences">الجمل</small></button>
+              <button class="cmd-loop-step" data-goto="mistakes"><span class="li">🧭</span><b data-i18n="mistakes">أخطائي</b><small data-i18n="cmd_pipe_open">مفتوحة</small></button>
+              <button class="cmd-loop-step" data-goto="review"><span class="li">🧠</span><b data-i18n="review">المراجعة</b><small>SRS</small></button>
+              <button class="cmd-loop-step" data-goto="flashcards"><span class="li">💎</span><b data-i18n="cmd_remember">تذكر</b><small>Flashcards</small></button>
+              <button class="cmd-loop-step" data-goto="speak"><span class="li">🎤</span><b data-i18n="speak">تحدث</b><small data-i18n="cmd_g_real">ألماني حقيقي</small></button>
+            </div>
           </div>
         </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">08</span><h2 data-i18n="cmd_progress">مركز قيادة التقدم</h2></div>
+          <div class="cmd-pgrid glass reveal">
+            <div class="cmd-big-ring" id="cmdBigRing" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div><b id="cmdBigNum">0%</b><span data-i18n="cmd_core">تقدمك العام</span></div></div>
+            <div>
+              <div class="cmd-pstats">
+                <div class="cmd-pstat"><div class="pi">📖</div><b id="cmdPKnown">0/0</b><span data-i18n="stat_saved">كلمات محفوظة</span><span class="hidden" id="dSaved">0</span><div class="progress sm"><div class="progress-fill" id="dSavedBar"></div></div></div>
+                <div class="cmd-pstat"><div class="pi">🔥</div><b id="cmdPStreak">0</b><span data-i18n="stat_streak">Streak أيام متتالية</span><span class="hidden" id="dStreak">0</span><div class="progress sm"><div class="progress-fill red" id="dStreakBar"></div></div></div>
+                <div class="cmd-pstat"><div class="pi">🔁</div><b id="cmdPDue">0</b><span data-i18n="stat_due">تحتاج مراجعة</span><span class="hidden" id="dReview">0</span><div class="progress sm"><div class="progress-fill orange" id="dReviewBar"></div></div></div>
+                <div class="cmd-pstat"><div class="pi">❌</div><b id="cmdPMist">0</b><span data-i18n="mistakes">أخطائي</span></div>
+                <div class="cmd-pstat"><div class="pi">📝</div><b id="cmdPTests">0</b><span data-i18n="stat_tests">اختبارات محلولة</span><span class="hidden" id="dTests">0</span><div class="progress sm"><div class="progress-fill purple" id="dTestsBar"></div></div></div>
+                <div class="cmd-pstat"><div class="pi">✅</div><b id="cmdPFixed">0</b><span data-i18n="cmd_pipe_fixed">صُححت</span><span class="hidden" id="dCorrect">0</span><div class="progress sm"><div class="progress-fill gold" id="dCorrectBar"></div></div></div>
+              </div>
+              <div class="cmd-week"><span data-i18n="cmd_week">هذا الأسبوع</span><span class="cmd-dots" id="cmdDots"></span><span class="cmd-trend" id="cmdTrend"></span><span class="hidden" id="dDays">0</span><div class="progress sm hidden"><div class="progress-fill green" id="dDaysBar"></div></div></div>
+            </div>
+          </div>
+          <div class="panel glass reveal" id="gamerStrip">
+            <div class="gamer-top">
+              <div class="lvl-badge">⭐<div><div class="lvl-num">مستوى <span id="lvlNum">1</span></div><div class="lvl-name" id="lvlName">مبتدئ</div></div></div>
+              <div class="xp-wrap"><div class="xp-top"><span>XP: <b id="xpNum">0</b></span><span id="xpNext">0 / 100</span></div><div class="progress"><div class="progress-fill gold" id="xpFill" style="width:0%"></div></div></div>
+              <div class="gamer-stats"><span>🎯 <b id="accNum">0%</b></span><span>🏆 <b id="bestNum">0%</b></span><span>🔥 <b id="comboNum">0</b></span></div>
+            </div>
+            <div class="row-flex"><button class="btn btn-primary sm" data-goto="vocab" data-i18n="dash_words">📚 الكلمات</button><button class="btn btn-gold sm" data-goto="quiz" data-i18n="dash_quiz">📝 ابدأ اختبار</button><button class="btn btn-green sm" data-goto="review" data-i18n="dash_review">🧠 ابدأ المذاكرة</button><button class="btn btn-red sm" data-goto="mistakes" data-i18n="mist_head">❌ مراجعة أخطائي</button></div>
+            <div class="muted" id="lastQuizTxt">لم تحل أي اختبار بعد — ابدأ الآن! 🚀</div>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">09</span><h2 data-i18n="cmd_pipe">من الأخطاء إلى الإتقان</h2><p data-i18n="cmd_pipe_sub">كل خطأ يُتتبع ويُشرح ويُعاد التدرب عليه حتى يُصحح.</p></div>
+          <div class="panel glass reveal">
+            <div class="cmd-pipe" id="cmdPipe">
+              <div class="cmd-pipe-step"><div class="pi">❌</div><b data-i18n="mistakes">أخطائي</b><span id="cmdPipeOpen">0</span><small data-i18n="cmd_pipe_open">مفتوحة</small></div>
+              <div class="cmd-pipe-step"><div class="pi">🧠</div><b data-i18n="review">المراجعة</b><span id="cmdPipeDue">0</span><small>SRS</small></div>
+              <div class="cmd-pipe-step"><div class="pi">🎯</div><b data-i18n="practice">تدريب ذكي</b><span id="cmdPipeTests">0</span><small data-i18n="stat_tests">اختبارات محلولة</small></div>
+              <div class="cmd-pipe-step"><div class="pi">🏆</div><b data-i18n="cmd_pipe_fixed">صُححت</b><span id="cmdPipeFixed">0</span><small>✓</small></div>
+            </div>
+            <div class="row-flex"><button class="btn btn-primary sm" data-goto="mistakes" data-i18n="cmd_pipe_cta">راجع الأخطاء</button><span class="muted" id="cmdPipeMsg" data-i18n="cmd_pipe_clean">أنت مواكب تمامًا. واصل التدرب.</span></div>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-sec-head"><span class="cmd-eyebrow">10</span><h2 data-i18n="cmd_why">لماذا Deutsch Master؟</h2></div>
+          <div class="cmd-why">
+            <div class="cmd-why-card glass reveal"><div class="wi">🗺️</div><b data-i18n="cmd_why1t">مسار A1 منظم</b><p data-i18n="cmd_why1d">فصول ودروس بالترتيب، واختبار نهائي يثبت إتقانك.</p></div>
+            <div class="cmd-why-card glass reveal"><div class="wi">📖</div><b data-i18n="cmd_why2t">الأداة والجمع مع كل اسم</b><p data-i18n="cmd_why2d">der/die/das والجمع يُحفظان مع الكلمة — لا تخمين.</p></div>
+            <div class="cmd-why-card glass reveal"><div class="wi">🔊</div><b data-i18n="cmd_why3t">جمل حقيقية بالصوت</b><p data-i18n="cmd_why3d">مئات الجمل بالنطق الألماني والترجمة.</p></div>
+            <div class="cmd-why-card glass reveal"><div class="wi">📐</div><b data-i18n="cmd_why4t">مرجع قواعد + تدريبات</b><p data-i18n="cmd_why4d">شرح مبسط لكل قاعدة مع اختبار فوري.</p></div>
+            <div class="cmd-why-card glass reveal"><div class="wi">🧠</div><b data-i18n="cmd_why5t">مراجعة ذكية لأخطائك</b><p data-i18n="cmd_why5d">نظام SRS يعيد أخطاءك حتى تثبت.</p></div>
+            <div class="cmd-why-card glass reveal"><div class="wi">🎧</div><b data-i18n="cmd_why6t">استماع وتحدث وتتبع</b><p data-i18n="cmd_why6d">مختبرات صوتية وإحصائيات تقدم دقيقة.</p></div>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-method glass reveal">
+            <div>
+              <span class="cmd-eyebrow">11</span>
+              <h3 data-i18n="cmd_method_t">طريقة مذاكرة الألماني</h3>
+              <p class="muted" data-i18n="cmd_method_sub">احفظ ← افهم ← كوّن جملة ← تدرب ← راجع ← استخدم.</p>
+              <div class="cmd-msteps"><span data-i18n="cmd_m1">احفظ</span><span data-i18n="cmd_m2">افهم</span><span data-i18n="cmd_m3">كوّن جملة</span><span data-i18n="cmd_m4">تدرب</span><span data-i18n="cmd_m5">راجع</span><span data-i18n="cmd_m6">استخدم</span></div>
+            </div>
+            <button class="btn btn-gold" id="cmdMethodGo" data-i18n="cmd_method_cta">تعلم طريقة المذاكرة</button>
+          </div>
+        </div>
+
+        <div class="cmd-sec">
+          <div class="cmd-final glass reveal">
+            <div class="cmd-logo" style="margin:0 auto 14px">DE</div>
+            <h2><span data-i18n="cmd_final_t">مستقبلك الألماني يبدأ اليوم.</span></h2>
+            <button class="btn btn-primary" id="cmdFinalGo" data-goto="vocab" data-i18n="cmd_start">ابدأ التعلم 🚀</button>
+          </div>
+        </div>
+
+      </div>
       </section>
 
       <!-- VOCAB -->
