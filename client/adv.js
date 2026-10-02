@@ -119,6 +119,12 @@ function renderMistakes(){
     }
     let list=advMistakes();
     if(kf)list=list.filter(x=>advMistKap(x.m,x.id)===kf);
+    /* Skill filter (progress.js DMProgress): same grouping as the base
+       renderer — stable kind/question ids, never display text alone. */
+    try{
+      const sk=$("mistSkill")?$("mistSkill").value:"";
+      if(sk&&window.DMProgress)list=list.filter(x=>DMProgress.skillOfMistake(x.m,wordById(x.id))===sk);
+    }catch(e){}
     const tab=S.mistTab||"all";
     const active=list.filter(x=>!x.m.done), done=list.filter(x=>x.m.done);
     let shown=active;
@@ -143,11 +149,30 @@ function renderMistakes(){
       const m=x.m;let w=null;try{w=wordById(x.id);}catch(e){}
       const kap=advMistKap(m,x.id);
       const kindAr=ADV_KIND_AR[m.kind]||m.kind||"—";
+      /* Skill badge + Arabic "why" + attempt history (progress.js). Guarded:
+         renders only when DMProgress is present; otherwise v2 card as before. */
+      let skillHtml="",histHtml="";
+      try{
+        if(window.DMProgress){
+          const sk=DMProgress.skillOfMistake(m,w);
+          const info=DMProgress.SKILLS[sk];
+          if(info)skillHtml='<div class="muted">🏷️ '+escapeHtml(info.ar)+'</div>'
+            +'<div class="mist-why">💡 '+escapeHtml(info.why)
+            +(info.ex&&info.ex[0]?'<br>🇩🇪 '+escapeHtml(info.ex[0])+(info.ex[1]?" — "+escapeHtml(info.ex[1]):""):"")+'</div>';
+        }
+      }catch(e){}
+      try{
+        if(Array.isArray(m.hist)&&m.hist.length){
+          histHtml='<div class="muted">🕘 المحاولات: '+m.hist.map(h=>(h.ok?"✅":"❌")).join(" ")+'</div>';
+        }
+      }catch(e){}
       const d=document.createElement("div");d.className="mist-card glass";
       d.innerHTML='<div class="de-line" dir="ltr"><b>'+escapeHtml(m.de||(w?fullDe(w):x.id))+'</b></div>'
         +(m.q?'<div class="muted">❓ '+escapeHtml(m.q)+'</div>':"")
         +'<div class="word-ar">'+escapeHtml(m.ar||(w?w.ar:""))+'</div>'
+        +skillHtml
         +'<div class="mist-err">❌ إجابتك: <b>'+escapeHtml(m.last||"—")+'</b> • ✅ الصحيحة: <b style="color:var(--green)">'+escapeHtml(m.ok||(w?w.ar:"—"))+'</b></div>'
+        +histHtml
         +'<div class="muted">📝 '+(kindAr)+' • 📚 '+(kap?escapeHtml(kapName(kap)):escapeHtml(kap||"—"))+' • 🔁 تكرر <b>'+(m.n||1)+'</b> • 📅 '+escapeHtml(m.date||"—")
         +(m.done?' • <b style="color:var(--green)">'+escapeHtml(t("adv_mastered"))+'</b>':"")+'</div>'
         +'<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">'+escapeHtml(t("adv_practice"))+'</button><button class="mini-btn" data-a="sim">'+escapeHtml(t("adv_similar"))+'</button><button class="mini-btn" data-a="del">🗑️</button></div>';
@@ -166,6 +191,9 @@ function advMistPractice(id,similar){
     ensureAdv();
     const m=(S.mistakes||{})[id];
     let w=null;try{w=wordById(id);}catch(e){}
+    /* Career-path mistakes reference module quizzes, not dictionary words:
+       route back to the career page for retry instead of erroring. */
+    if(!w&&/^m-(ausb|pfl)-/.test(id)){showPage("career");toast("راجع الوحدة وأعد اختبارها 🎯","ok");return;}
     if(!w&&m&&m.de){toast("الكلمة غير موجودة في القاموس","err");return;}
     if(!w){toast("الكلمة غير موجودة","err");return;}
     const words=allWords();

@@ -75,8 +75,11 @@ var DMProgress = (function () {
 
   /* Record one attempt. Returns {recorded:true} or {recorded:false, reason}.
      Reasons: "no-aid" (caller must supply stable id), "duplicate" (already
-     logged — re-render/refresh/retry of the same attempt), "bad-event". */
-  function logAttempt(store, evt) {
+     logged — re-render/refresh/retry of the same attempt), "bad-event".
+     opts.counted===true: the caller already updated totalAnswered/totalCorrect
+     itself (e.g. showFeedback); the event is recorded + deduped but aggregates
+     are NOT bumped again. Default bumps aggregates exactly once. */
+  function logAttempt(store, evt, opts) {
     if (!store || !evt) return { recorded: false, reason: "bad-event" };
     ensureStore(store);
     if (!evt.aid) return { recorded: false, reason: "no-aid" };
@@ -96,8 +99,10 @@ var DMProgress = (function () {
       /* always keep the most recent overflow keys too (still bounded) */
       store.evSeen = fresh;
     }
-    store.totalAnswered += 1;
-    if (e.ok) store.totalCorrect += 1;
+    if (!(opts && opts.counted === true)) {
+      store.totalAnswered += 1;
+      if (e.ok) store.totalCorrect += 1;
+    }
     return { recorded: true };
   }
 
@@ -325,7 +330,9 @@ try { if (typeof module !== "undefined" && module.exports) module.exports = DMPr
                   lvl: (q.w && q.w.level) || (q.fillItem && q.fillItem.lvl) || "",
                   kap: (q.fillItem && q.fillItem.chapterId) || (q.w && q.w.kap) || "",
                   ok: ok === true, tries: 1, hint: false
-                }));
+                /* counted:true — showFeedback itself bumps totalAnswered/
+                   totalCorrect below; the event must not bump them again. */
+                }), { counted: true });
                 if (r.recorded) { try { save(); } catch (e) {} }
               }
             } catch (e) {}

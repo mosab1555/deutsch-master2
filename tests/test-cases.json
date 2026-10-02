@@ -3,128 +3,2698 @@
     "project": "Deutsch Master",
     "version": "d867fc0",
     "created": "2026-10-02",
-    "statuses": ["PASS", "FAIL", "BLOCKED", "NOT APPLICABLE", "NOT TESTED"],
-    "priorities": ["P0", "P1", "P2", "P3"],
+    "statuses": [
+      "PASS",
+      "FAIL",
+      "BLOCKED",
+      "NOT APPLICABLE",
+      "NOT TESTED"
+    ],
+    "priorities": [
+      "P0",
+      "P1",
+      "P2",
+      "P3"
+    ],
     "note": "Status PASS only where actually executed. Browser/device-only checks are BLOCKED (no browser automation in this environment)."
   },
   "cases": [
-    {"id": "NAV-001", "module": "navigation", "feature": "Sidebar order and icons", "requirement": "Sidebar keeps canonical order with one icon per item", "priority": "P0", "preconditions": ["App loads"], "data": "client/index.html, client/academy.html", "steps": ["Load app", "Count .nav-item icons", "Verify first 7 items order"], "expected": "1 icon per item; dashboard,vocab,sentences,explain,verbs,reference,flashcards first", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/e2e.js", "status": "PASS"},
-    {"id": "NAV-002", "module": "navigation", "feature": "Page routing", "requirement": "showPage opens correct section, stops quiz timer", "priority": "P0", "preconditions": ["App loads"], "data": "49 nav targets", "steps": ["Click each nav item", "Verify matching section activates"], "expected": "Every data-page has a page-* section; timer stopped on nav", "postconditions": ["None"], "dependencies": [], "type": "integration", "automation": "automated:tools/e2e.js+probe", "status": "PASS"},
-    {"id": "NAV-003", "module": "navigation", "feature": "Mobile sidebar open/close", "requirement": "Hamburger opens overlay sidebar on small screens", "priority": "P1", "preconditions": ["Viewport 360x800"], "data": "None", "steps": ["Tap hamburger", "Tap overlay", "Select a page"], "expected": "Sidebar opens/closes; selecting page closes it", "postconditions": ["None"], "dependencies": [], "type": "ui", "automation": "manual:BLOCKED-no-device-lab", "status": "BLOCKED"},
-    {"id": "NAV-004", "module": "navigation", "feature": "Navigation during active training", "requirement": "Leaving mid-quiz stops timer, no state corruption", "priority": "P1", "preconditions": ["Quiz in progress"], "data": "None", "steps": ["Start quiz", "Navigate away mid-question"], "expected": "Timer stopped (qa-audit nav guard); partial answers not scored", "postconditions": ["Progress unchanged"], "dependencies": ["TEST-004"], "type": "error", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "NAV-005", "module": "navigation", "feature": "Career page routing", "requirement": "New career page reachable from sidebar and life rec", "priority": "P1", "preconditions": ["App loads"], "data": "CAREER_TRACKS", "steps": ["Click المسار المهني", "Open life career goal ausbildung rec"], "expected": "career page renders tracks; life rec routes to career", "postconditions": ["None"], "dependencies": [], "type": "integration", "automation": "automated:tools/test-career.js", "status": "PASS"},
-    {"id": "VOC-001", "module": "vocabulary", "feature": "Word list render", "requirement": "All VOCAB entries render with article, Arabic, plural", "priority": "P0", "preconditions": ["App loads"], "data": "1884 vocab records", "steps": ["Open الكلمات"], "expected": "Cards show article color, Arabic, plural, example", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "VOC-002", "module": "vocabulary", "feature": "Exact search ranking", "requirement": "Exact match ranks before prefix/substring/fuzzy", "priority": "P0", "preconditions": ["None"], "data": "fixtures gehen/Tisch/Straße", "steps": ["Search gehen, geh, Straße, plural"], "expected": "Exact first; umlaut/ß tolerant; plural resolves", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-search.js", "status": "PASS"},
-    {"id": "VOC-003", "module": "vocabulary", "feature": "Search no-results and empty query", "requirement": "Empty query shows bank; gibberish shows empty state", "priority": "P1", "preconditions": ["None"], "data": "query zzzqqq", "steps": ["Clear search", "Type zzzqqq"], "expected": "Full list on empty; clean empty state on no-match, no crash", "postconditions": ["None"], "dependencies": [], "type": "edge", "automation": "automated:tools/test-search.js", "status": "PASS"},
-    {"id": "VOC-004", "module": "vocabulary", "feature": "Category/Kapitel/Level/Article/Status filters", "requirement": "Filters combine cumulatively", "priority": "P0", "preconditions": ["App loads"], "data": "VOCAB", "steps": ["Combine category+kapitel+article filters"], "expected": "Only matching words; counts consistent", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "VOC-005", "module": "vocabulary", "feature": "Word detail modal", "requirement": "Detail shows plural, examples, actions", "priority": "P1", "preconditions": ["Word exists"], "data": "word id", "steps": ["Open word detail", "Play audio", "Mark known"], "expected": "Modal renders; status persists after refresh", "postconditions": ["status saved"], "dependencies": ["PROG-008"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "VOC-006", "module": "vocabulary", "feature": "Add custom word validation", "requirement": "Invalid/duplicate words rejected with message", "priority": "P1", "preconditions": ["None"], "data": "empty + duplicate payloads", "steps": ["Submit empty word", "Submit duplicate"], "expected": "Rejected with toast; storage unchanged", "postconditions": ["No corrupt record"], "dependencies": [], "type": "error", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "VOC-007", "module": "vocabulary", "feature": "Umlaut/ß search tolerance", "requirement": "aufraumen finds aufräumen; ss finds ß", "priority": "P1", "preconditions": ["None"], "data": "aufräumen, Straße", "steps": ["Type ascii variants"], "expected": "Tolerant match via dmNorm", "postconditions": ["None"], "dependencies": [], "type": "edge", "automation": "automated:tools/test-search.js", "status": "PASS"},
-    {"id": "VOC-008", "module": "vocabulary", "feature": "Data integrity: articles and plurals", "requirement": "Every noun has valid article+plural", "priority": "P0", "preconditions": ["None"], "data": "curr-*.js datasets", "steps": ["Run audit-curriculum"], "expected": "PASS: no missing articles/plurals/pronunciation", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/audit-curriculum.js", "status": "PASS"},
-    {"id": "SENT-001", "module": "sentences", "feature": "Sentence bank integrity", "requirement": "218 sentences with Arabic, deduped", "priority": "P0", "preconditions": ["None"], "data": "sent-a1.js + curriculum fills", "steps": ["Run smoke-curriculum"], "expected": "218 sentences, 1462 fills, 0 dups", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/smoke-curriculum.js", "status": "PASS"},
-    {"id": "SENT-002", "module": "sentences", "feature": "Sentence training flow", "requirement": "State-driven training with retry", "priority": "P1", "preconditions": ["App loads"], "data": "SENT_FILL", "steps": ["Open تدريبات الجمل", "Answer, retry"], "expected": "Feedback + retry; mistakes recorded", "postconditions": ["Mistakes saved"], "dependencies": ["MIST-001"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "SENT-003", "module": "sentences", "feature": "Sentence audio", "requirement": "TTS plays sentence; fallback on failure", "priority": "P2", "preconditions": ["None"], "data": "None", "steps": ["Tap 🔊 on sentence", "Deny/block audio"], "expected": "Speech or graceful toast; no crash", "postconditions": ["None"], "dependencies": [], "type": "error", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "SENT-004", "module": "sentences", "feature": "Kapitel/topic filter + pagination", "requirement": "Filter narrows bank; pages stable", "priority": "P2", "preconditions": ["App loads"], "data": "K0..K5", "steps": ["Filter K2", "Page forward/back"], "expected": "Consistent pages; no empty-page trap", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "SENT-005", "module": "sentences", "feature": "Order normalization edge cases", "requirement": "Punctuation/case-insensitive grading", "priority": "P1", "preconditions": ["None"], "data": "order fixtures", "steps": ["Run qa-audit order checks"], "expected": "Accepts punct variants; rejects wrong order", "postconditions": ["None"], "dependencies": [], "type": "edge", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "GRAM-001", "module": "grammar", "feature": "Grammar bank completeness", "requirement": "58 rules with body+examples+quiz+explain", "priority": "P0", "preconditions": ["None"], "data": "curriculum grammar", "steps": ["Run audit-curriculum"], "expected": "PASS all rules complete", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/audit-curriculum.js", "status": "PASS"},
-    {"id": "GRAM-002", "module": "grammar", "feature": "Mastery from real answers only", "requirement": "Visits never unlock; answers update S.grammar", "priority": "P0", "preconditions": ["Fresh store"], "data": "g1 fixture", "steps": ["gramMastery null", "gramRecord x4", "check badges"], "expected": "null→50%🟡→75%+; badges correct", "postconditions": ["S.grammar persisted"], "dependencies": ["PROG-001"], "type": "functional", "automation": "automated:tools/test-upgrade.js", "status": "PASS"},
-    {"id": "GRAM-003", "module": "grammar", "feature": "Quick-quiz fair shuffle mapping", "requirement": "Correct answer remapped after shuffle", "priority": "P0", "preconditions": ["None"], "data": "explain drills + ref bank", "steps": ["Run test-quiz-shuffle"], "expected": "Balanced positions; correct present in 5400 blocks", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-quiz-shuffle.js", "status": "PASS"},
-    {"id": "GRAM-004", "module": "grammar", "feature": "Weak grammar surfaces in study dash", "requirement": "pct<50 rules listed with titles", "priority": "P1", "preconditions": ["S.grammar with weak rule"], "data": "fixture", "steps": ["Render study dash logic"], "expected": "Weak rule shown; fallback to gweak counts", "postconditions": ["None"], "dependencies": ["GRAM-002"], "type": "integration", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "GRAM-005", "module": "grammar", "feature": "Explain drill + quiz record mastery", "requirement": "Both paths call gramRecord", "priority": "P1", "preconditions": ["None"], "data": "script.js static", "steps": ["Grep gramRecord call sites"], "expected": "grammar quiz, exDrill, exQuiz all record", "postconditions": ["None"], "dependencies": ["GRAM-002"], "type": "functional", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "VERB-001", "module": "verbs", "feature": "Verb list with conjugation", "requirement": "Verbs show ich/du/er forms or phrase fallback", "priority": "P1", "preconditions": ["App loads"], "data": "allVerbs()", "steps": ["Open الأفعال"], "expected": "Conjugation tables render", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "VERB-002", "module": "verbs", "feature": "Verb search integration", "requirement": "Global search finds verbs", "priority": "P2", "preconditions": ["None"], "data": "fixtures", "steps": ["Run test-search verb cases"], "expected": "Verbs use dmNorm ranking", "postconditions": ["None"], "dependencies": ["VOC-002"], "type": "functional", "automation": "automated:tools/test-search.js", "status": "PASS"},
-    {"id": "VERB-003", "module": "verbs", "feature": "Verb audio", "requirement": "Conjugation audio plays", "priority": "P3", "preconditions": ["None"], "data": "None", "steps": ["Tap verb audio"], "expected": "Speech or toast fallback", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "VERB-004", "module": "verbs", "feature": "Kapitel filter", "requirement": "verbKapitel narrows list", "priority": "P3", "preconditions": ["App loads"], "data": "None", "steps": ["Select kapitel"], "expected": "Filtered verbs only", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "REF-001", "module": "reference", "feature": "124 topics render", "requirement": "Reference data complete with tables/examples", "priority": "P0", "preconditions": ["None"], "data": "reference-data-*.js", "steps": ["Run check-reference"], "expected": "124 topics, 0 missing AR/EN", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/check-reference.js", "status": "PASS"},
-    {"id": "REF-002", "module": "reference", "feature": "No duplicate reference entries", "requirement": "Unique DOM ids and records", "priority": "P1", "preconditions": ["None"], "data": "reference bank", "steps": ["Run check-ref-dups, check-ref-dom, stage2"], "expected": "All PASS", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/check-ref-*.js", "status": "PASS"},
-    {"id": "REF-003", "module": "reference", "feature": "Reference choice/order shuffle", "requirement": "Shuffled render keeps correct mapping", "priority": "P0", "preconditions": ["None"], "data": "reference bank", "steps": ["Run test-quiz-shuffle"], "expected": "Correct remapped by original index", "postconditions": ["None"], "dependencies": ["GRAM-003"], "type": "functional", "automation": "automated:tools/test-quiz-shuffle.js", "status": "PASS"},
-    {"id": "REF-004", "module": "reference", "feature": "Reference navigation", "requirement": "Sections open without duplicate icons", "priority": "P2", "preconditions": ["App loads"], "data": "None", "steps": ["Open المرجع", "Switch sections"], "expected": "Single icon; content renders", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "REF-005", "module": "reference", "feature": "Career/skill rule links resolve", "requirement": "g-ids referenced exist in EXPLAIN", "priority": "P1", "preconditions": ["None"], "data": "explain.js", "steps": ["Run check-links"], "expected": "All rule links resolve", "postconditions": ["None"], "dependencies": [], "type": "integration", "automation": "automated:tools/check-links.js", "status": "PASS"},
-    {"id": "CARD-001", "module": "flashcards", "feature": "Deck from 4 filters", "requirement": "Category+Kapitel+Level+Type(article) cumulative", "priority": "P0", "preconditions": ["App loads"], "data": "VOCAB", "steps": ["Set all four filters"], "expected": "Intersection only; dir filter uses art incl. '-'", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-flashdir.js", "status": "PASS"},
-    {"id": "CARD-002", "module": "flashcards", "feature": "Direction toggle de-ar/ar-de", "requirement": "Both directions grade correctly", "priority": "P1", "preconditions": ["Deck built"], "data": "None", "steps": ["Flip direction", "Grade easy/hard"], "expected": "Prompt side swaps; SRS updated", "postconditions": ["SRS saved"], "dependencies": ["PROG-006"], "type": "functional", "automation": "automated:tools/test-flashdir.js", "status": "PASS"},
-    {"id": "CARD-003", "module": "flashcards", "feature": "Empty deck state", "requirement": "No-match filters show reset CTA", "priority": "P1", "preconditions": ["Restrictive filters"], "data": "None", "steps": ["Filter to empty"], "expected": "Empty state + reset button", "postconditions": ["None"], "dependencies": [], "type": "edge", "automation": "automated:tools/test-flashdir.js", "status": "PASS"},
-    {"id": "CARD-004", "module": "flashcards", "feature": "No fixed-width overflow", "requirement": "Cards fit 360px screens", "priority": "P1", "preconditions": ["None"], "data": "style.css", "steps": ["Run test-flashdir CSS checks"], "expected": "No fixed widths >340px in flash CSS", "postconditions": ["None"], "dependencies": [], "type": "ui", "automation": "automated:tools/test-flashdir.js", "status": "PASS"},
-    {"id": "CARD-005", "module": "flashcards", "feature": "Flip and grading persistence", "requirement": "Grades update status+SRS exactly once", "priority": "P1", "preconditions": ["Deck built"], "data": "None", "steps": ["Flip, grade, refresh"], "expected": "Grade persisted; no double count", "postconditions": ["Progress saved"], "dependencies": ["PROG-003"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "CARD-006", "module": "flashcards", "feature": "Rapid grading clicks", "requirement": "Double-tap grade counts once", "priority": "P2", "preconditions": ["Card shown"], "data": "None", "steps": ["Double-click grade fast"], "expected": "Single advance; no skip", "postconditions": ["Queue intact"], "dependencies": [], "type": "error", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "TRAIN-001", "module": "smart-training", "feature": "20 question types generate", "requirement": "All types valid with mapped answers", "priority": "P0", "preconditions": ["None"], "data": "WORD fixtures", "steps": ["Run test-smart"], "expected": "20/20 valid; grading accepts/rejects", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "TRAIN-002", "module": "smart-training", "feature": "Session diversity, no repeats", "requirement": "No 3 same-type in row; no dup qid; 6+ types", "priority": "P0", "preconditions": ["None"], "data": "pools", "steps": ["Build 20-Q sessions"], "expected": "Diversity invariants hold", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "TRAIN-003", "module": "smart-training", "feature": "Adaptive weak-skill targeting", "requirement": "Weak skill outweighs mastered in weights", "priority": "P1", "preconditions": ["None"], "data": "skill stats", "steps": ["Run adaptive checks"], "expected": "Weak skill targeted (flaky-tail accepted, see report)", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "TRAIN-004", "module": "smart-training", "feature": "Arabic feedback per type", "requirement": "Each type explains answer in Arabic", "priority": "P1", "preconditions": ["None"], "data": "20 types", "steps": ["Check feedback strings"], "expected": "Answer + gentle Arabic guidance", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "TRAIN-005", "module": "smart-training", "feature": "Difficulty easy/hard transforms", "requirement": "Easy caps 3 opts; hard converts to writing", "priority": "P1", "preconditions": ["None"], "data": "fixtures", "steps": ["Apply difficulty engine"], "expected": "Transforms correct; grading intact", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "TRAIN-006", "module": "smart-training", "feature": "Kapitel filter + empty pools", "requirement": "Unknown kapitel never throws; pools filter", "priority": "P1", "preconditions": ["None"], "data": "bad kapitel", "steps": ["Build with unknown kapitel"], "expected": "Empty session, no exception", "postconditions": ["None"], "dependencies": [], "type": "edge", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "TRAIN-007", "module": "smart-training", "feature": "Recent-qid anti-repeat", "requirement": "History avoids recent qids", "priority": "P2", "preconditions": ["History present"], "data": "history", "steps": ["Build session with history"], "expected": "Recent qids excluded", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "TRAIN-008", "module": "smart-training", "feature": "UI renderers for all types", "requirement": "smQ routes every ui kind", "priority": "P1", "preconditions": ["None"], "data": "static", "steps": ["Check renderer coverage"], "expected": "choice/chips/order/write/match all routed", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-smart.js", "status": "PASS"},
-    {"id": "AI-001", "module": "ai-tutor", "feature": "Local modes work offline", "requirement": "correct/translate/vocab/explain/examples answer locally", "priority": "P1", "preconditions": ["App loads"], "data": "None", "steps": ["Use each mode offline"], "expected": "Local answers; honest offline note", "postconditions": ["None"], "dependencies": ["PWA-003"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "AI-002", "module": "ai-tutor", "feature": "Conversation scenarios A1/A2", "requirement": "Level filter selects scenario pool; keys match", "priority": "P1", "preconditions": ["None"], "data": "TUTOR_CONV", "steps": ["Answer conv prompts A1 and A2"], "expected": "Keyword grading; next prompt; stats increment", "postconditions": ["tutorStats saved"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "AI-003", "module": "ai-tutor", "feature": "Tutor stats honesty", "requirement": "turns/ok/scen counts from real interactions", "priority": "P2", "preconditions": ["None"], "data": "static", "steps": ["Inspect tutorStats wiring"], "expected": "Incremented only on conv turns", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "AI-004", "module": "ai-tutor", "feature": "No API keys in client", "requirement": "No secrets committed", "priority": "P0", "preconditions": ["None"], "data": "client/*", "steps": ["Run test-push secrets scan"], "expected": "No keys/tokens found", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-push.js", "status": "PASS"},
-    {"id": "AI-005", "module": "ai-tutor", "feature": "Arabic-first explanations preserved", "requirement": "Language selection intact", "priority": "P2", "preconditions": ["App loads"], "data": "None", "steps": ["Switch ar/de/en; ask tutor"], "expected": "Chrome translates; content intact", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-languages.js", "status": "PASS"},
-    {"id": "AI-006", "module": "ai-tutor", "feature": "Listen button for prompts", "requirement": "tutorSay speaks next prompt", "priority": "P3", "preconditions": ["Conv active"], "data": "None", "steps": ["Tap استمع"], "expected": "TTS of prompt or fallback", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "LISTEN-001", "module": "listening", "feature": "Listening lab renders questions", "requirement": "lislab builds playable items", "priority": "P1", "preconditions": ["App loads"], "data": "None", "steps": ["Run e2e lislab"], "expected": "Question renders; answer grades", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/e2e.js", "status": "PASS"},
-    {"id": "LISTEN-002", "module": "listening", "feature": "5 listening types + speeds", "requirement": "choose/type/complete/arrange/spot at 0.75/1/1.25", "priority": "P1", "preconditions": ["None"], "data": "adv.js", "steps": ["Run qa-audit listening checks"], "expected": "All types+speeds present", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "LISTEN-003", "module": "listening", "feature": "Dictation + shadowing grading", "requirement": "Typed input graded with feedback; progress", "priority": "P1", "preconditions": ["App loads"], "data": "None", "steps": ["Run e2e shadow/dictation"], "expected": "Feedback, next advances, retry works", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/e2e.js", "status": "PASS"},
-    {"id": "LISTEN-004", "module": "listening", "feature": "Labs IDs unique, no collisions", "requirement": "labsx ids not reused elsewhere", "priority": "P1", "preconditions": ["None"], "data": "all js", "steps": ["Run test-labsx + dom"], "expected": "69+41 checks pass", "postconditions": ["None"], "dependencies": [], "type": "integration", "automation": "automated:tools/test-labsx.js", "status": "PASS"},
-    {"id": "SPEAK-001", "module": "speaking", "feature": "SpeechRecognition fallback chain", "requirement": "Native→Web→text input; honest capability text", "priority": "P1", "preconditions": ["No mic / unsupported browser"], "data": "None", "steps": ["Open تحدث without SR support"], "expected": "Text fallback offered; no fake pronunciation score", "postconditions": ["None"], "dependencies": [], "type": "error", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "SPEAK-002", "module": "speaking", "feature": "Mic permission denied path", "requirement": "Graceful message + text alternative", "priority": "P1", "preconditions": ["Permission denied"], "data": "None", "steps": ["Deny microphone"], "expected": "Explains + offers typing; progress safe", "postconditions": ["No data loss"], "dependencies": [], "type": "error", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "SPEAK-003", "module": "speaking", "feature": "Conversation scenarios coherent", "requirement": "Dialogues keep context; follow-ups on-topic", "priority": "P2", "preconditions": ["App loads"], "data": "DL_SITS, career dialogues", "steps": ["Walk shopping/interview scenario"], "expected": "Coherent turns; model answers", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "SPEAK-004", "module": "speaking", "feature": "Career dialogue speak + translation toggle", "requirement": "🔊 per line; hide/show Arabic", "priority": "P2", "preconditions": ["Career module open"], "data": "CAREER_TRACKS", "steps": ["Toggle translations; play lines"], "expected": "Toggle works; TTS or fallback", "postconditions": ["None"], "dependencies": ["NAV-005"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "TEST-001", "module": "tests", "feature": "Placement per-skill subscores", "requirement": "vocab/grammar/reading counted; weak listed", "priority": "P0", "preconditions": ["None"], "data": "skill fixtures", "steps": ["Run test-upgrade U15 + flow sim"], "expected": "Subscores correct; weak<60% flagged", "postconditions": ["S.placeHistory capped 10"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-upgrade.js", "status": "PASS"},
-    {"id": "TEST-002", "module": "tests", "feature": "Placement level honesty", "requirement": "Labels تقديري + non-official disclaimer", "priority": "P1", "preconditions": ["None"], "data": "learn.js", "steps": ["Finish placement"], "expected": "A0/A1/A2/B1 تقديري + CEFR disclaimer + history", "postconditions": ["S.place saved"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "TEST-003", "module": "tests", "feature": "Quiz generation: mixed/quick/article", "requirement": "Kind rotation; weighted picks; no 3-same", "priority": "P0", "preconditions": ["None"], "data": "VOCAB", "steps": ["Run buildQuestions checks"], "expected": "Rotation + fitting kinds", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "TEST-004", "module": "tests", "feature": "Single scoring per attempt", "requirement": "showFeedback path scores exactly once", "priority": "P0", "preconditions": ["Quiz active"], "data": "None", "steps": ["Answer; try re-click; next"], "expected": "Options disabled after answer; totals +1", "postconditions": ["totals consistent"], "dependencies": ["PROG-001"], "type": "functional", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "TEST-005", "module": "tests", "feature": "Quiz timer expiry", "requirement": "Timeout marks wrong once; feedback shows", "priority": "P1", "preconditions": ["Timed quiz"], "data": "None", "steps": ["Let timer expire"], "expected": "timeoutAnswer guarded; single scoring", "postconditions": ["Totals +1 wrong"], "dependencies": ["TEST-004"], "type": "error", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "TEST-006", "module": "tests", "feature": "Results + retry + mistakes link", "requirement": "Result lists wrong answers with correct forms", "priority": "P1", "preconditions": ["Finished quiz"], "data": "None", "steps": ["Finish with errors"], "expected": "Score %, wrong list, retry/mistakes buttons", "postconditions": ["quizHistory capped 20"], "dependencies": ["MIST-001"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "TEST-007", "module": "tests", "feature": "Daily challenge determinism", "requirement": "Same date same order; dates differ", "priority": "P2", "preconditions": ["None"], "data": "seeded shuffle", "steps": ["Run qa-audit daily checks"], "expected": "Deterministic per date", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "TEST-008", "module": "tests", "feature": "Challenge stations + games hub", "requirement": "5 stations; games session/back; no leaks", "priority": "P1", "preconditions": ["App loads"], "data": "None", "steps": ["Run e2e chall+games"], "expected": "All e2e chall/games PASS", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/e2e.js", "status": "PASS"},
-    {"id": "PROG-001", "module": "progress", "feature": "Correct/incorrect recorded once", "requirement": "One event per attempt; totals +1", "priority": "P0", "preconditions": ["Fresh store"], "data": "attempt fixtures", "steps": ["logAttempt ok + fail"], "expected": "totals 2/1; events 2", "postconditions": ["Aggregates exact"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "PROG-002", "module": "progress", "feature": "Duplicate aids rejected", "requirement": "Re-render/refresh never inflates", "priority": "P0", "preconditions": ["Logged aid"], "data": "same aid", "steps": ["Log same aid twice"], "expected": "duplicate; totals unchanged", "postconditions": ["No inflation"], "dependencies": ["PROG-001"], "type": "error", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "PROG-003", "module": "progress", "feature": "Scores survive refresh", "requirement": "rebuildTotals reconstructs exactly", "priority": "P0", "preconditions": ["Serialized log"], "data": "JSON round-trip", "steps": ["Zero counters; rebuild"], "expected": "Counters match log", "postconditions": ["None"], "dependencies": ["PROG-001"], "type": "functional", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "PROG-004", "module": "progress", "feature": "Migration preserves legacy data", "requirement": "v0→v3 keeps counters/words/mistakes", "priority": "P0", "preconditions": ["Legacy store"], "data": "legacy fixture", "steps": ["migrate twice"], "expected": "Migrated once; data intact", "postconditions": ["schemaV=3"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "PROG-005", "module": "progress", "feature": "Review policy correctness", "requirement": "Fail→1d; success grows; mastered=90d finite", "priority": "P0", "preconditions": ["None"], "data": "policy fixtures", "steps": ["nextReview matrix"], "expected": "1<3<growing; missed halved", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "PROG-006", "module": "progress", "feature": "Review queue ordering", "requirement": "Overdue+missed first", "priority": "P0", "preconditions": ["None"], "data": "queue fixtures", "steps": ["buildQueue + dueWords"], "expected": "Overdue first; known-clean excluded", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-progress.js+test-upgrade.js", "status": "PASS"},
-    {"id": "PROG-007", "module": "progress", "feature": "Streak and study days", "requirement": "UTC-midnight streak; trivial actions excluded", "priority": "P1", "preconditions": ["None"], "data": "dates", "steps": ["Run qa-audit streak checks"], "expected": "DST-safe; real=false skips", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "PROG-008", "module": "progress", "feature": "Persistence across restart", "requirement": "localStorage survives browser/PWA restart", "priority": "P0", "preconditions": ["Saved progress"], "data": "real browser profile", "steps": ["Close browser; reopen"], "expected": "XP/streak/mistakes intact", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "PROG-009", "module": "progress", "feature": "Weekly summary honesty + export", "requirement": "Real event-log data; empty→honest message", "priority": "P1", "preconditions": ["With/without events"], "data": "event log", "steps": ["weeklySummary empty+full; export txt"], "expected": "hasData false when empty; counts exact", "postconditions": ["File downloads"], "dependencies": ["PROG-001"], "type": "functional", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "PROG-010", "module": "progress", "feature": "Corrupted storage recovery", "requirement": "Malformed JSON never bricks app", "priority": "P0", "preconditions": ["Corrupt LS value"], "data": "garbage payloads", "steps": ["Load with corrupt/missing/quota-fail storage"], "expected": "Defaults used; user can continue", "postconditions": ["No data beyond corrupt key lost"], "dependencies": [], "type": "error", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "MIST-001", "module": "mistakes", "feature": "Mistake recorded with context", "requirement": "q/ok/kap/qid extras stored; capped 200", "priority": "P0", "preconditions": ["Quiz wrong answer"], "data": "word fixture", "steps": ["recordMistake x7 same word"], "expected": "n grows; hist capped 5 all-fail", "postconditions": ["Entry complete"], "dependencies": ["PROG-001"], "type": "functional", "automation": "automated:tools/test-upgrade.js", "status": "PASS"},
-    {"id": "MIST-002", "module": "mistakes", "feature": "Mastery lifecycle needs 3 corrects", "requirement": "2 corrects insufficient; 3rd resolves", "priority": "P0", "preconditions": ["Open mistake"], "data": "fixture", "steps": ["noteMastered x2 then x1"], "expected": "done false,false,true; hist mixed", "postconditions": ["fixedTotal+1"], "dependencies": ["MIST-001"], "type": "functional", "automation": "automated:tools/test-upgrade.js", "status": "PASS"},
-    {"id": "MIST-003", "module": "mistakes", "feature": "Skill grouping uses stable ids", "requirement": "Same text different kinds stay separate", "priority": "P1", "preconditions": ["None"], "data": "kind fixtures", "steps": ["classifyError matrix"], "expected": "article≠plural for same text", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "MIST-004", "module": "mistakes", "feature": "Skill filter + Arabic why cards", "requirement": "Filter narrows; cards show skill+why+example", "priority": "P1", "preconditions": ["Mistakes exist"], "data": "None", "steps": ["Select skill; inspect card"], "expected": "Filtered list; badge+why visible", "postconditions": ["None"], "dependencies": ["MIST-003"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "MIST-005", "module": "mistakes", "feature": "Retry navigation per mistake", "requirement": "اختبرني quizzes word; career ids route to career", "priority": "P1", "preconditions": ["Mistake entries"], "data": "vocab + career ids", "steps": ["Tap retry on each kind"], "expected": "Correct destination; missing→toast", "postconditions": ["None"], "dependencies": [], "type": "integration", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "MIST-006", "module": "mistakes", "feature": "Clear mistakes confirms", "requirement": "Confirm gate; badges update", "priority": "P2", "preconditions": ["Mistakes exist"], "data": "None", "steps": ["Clear with confirm/cancel"], "expected": "Cancel keeps; confirm empties", "postconditions": ["Badges 0"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "MIST-007", "module": "mistakes", "feature": "Attempt history display", "requirement": "Last 5 tries shown as ✅/❌", "priority": "P2", "preconditions": ["hist present"], "data": "fixture", "steps": ["Render mistakes with hist"], "expected": "History row rendered", "postconditions": ["None"], "dependencies": ["MIST-001"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "PWA-001", "module": "pwa", "feature": "SW install/activate lifecycle", "requirement": "Precaches; deletes old; claims clients", "priority": "P0", "preconditions": ["None"], "data": "sw.js stubs", "steps": ["Run test-sw-update"], "expected": "All lifecycle PASS", "postconditions": ["Cache ready"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-sw-update.js", "status": "PASS"},
-    {"id": "PWA-002", "module": "pwa", "feature": "No stale version on reload", "requirement": "Network-first HTML/JS/CSS serves new release", "priority": "P0", "preconditions": ["New deployment"], "data": "stubs", "steps": ["Reload with new version live"], "expected": "New files; no hard refresh needed", "postconditions": ["Cache updated"], "dependencies": ["PWA-001"], "type": "functional", "automation": "automated:tools/test-sw-update.js", "status": "PASS"},
-    {"id": "PWA-003", "module": "pwa", "feature": "Offline startup + fallback", "requirement": "Cached shell serves offline incl. ?v= URLs", "priority": "P0", "preconditions": ["Installed once online"], "data": "stubs", "steps": ["Go offline; reload; open lesson"], "expected": "Shell + cached lessons work", "postconditions": ["None"], "dependencies": ["PWA-001"], "type": "functional", "automation": "automated:tools/test-sw-update.js", "status": "PASS"},
-    {"id": "PWA-004", "module": "pwa", "feature": "Versioned asset URLs", "requirement": "inject-version deterministic + idempotent", "priority": "P1", "preconditions": ["None"], "data": "git sha", "steps": ["Run inject-version twice"], "expected": "Same output; refs versioned", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/inject-version.js", "status": "PASS"},
-    {"id": "PWA-005", "module": "pwa", "feature": "SW precache completeness", "requirement": "Every client script precached; version current", "priority": "P0", "preconditions": ["None"], "data": "client/*.js", "steps": ["Coverage probe + upgrade U18"], "expected": "All but sw.js itself cached; v33", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-upgrade.js+test-robustness.js", "status": "PASS"},
-    {"id": "PWA-006", "module": "pwa", "feature": "Offline manager panel honesty", "requirement": "Shows cached counts/quota; no user-data deletion", "priority": "P1", "preconditions": ["Settings open"], "data": "Cache API", "steps": ["Open settings offline+online"], "expected": "Accurate status; unsupported→message", "postconditions": ["None"], "dependencies": ["PWA-003"], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "PWA-007", "module": "pwa", "feature": "www/ mirrors client/", "requirement": "Generated output identical (mod ?v=)", "priority": "P0", "preconditions": ["After npm run www"], "data": "both dirs", "steps": ["Diff file lists + contents"], "expected": "0 diffs", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "PWA-008", "module": "pwa", "feature": "Reminders permission + fallback", "requirement": "Denied/unsupported → clear message, app usable", "priority": "P1", "preconditions": ["None"], "data": "fixtures", "steps": ["Run test-push (105 checks)"], "expected": "All PASS incl. fallback paths", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-push.js", "status": "PASS"},
-    {"id": "PWA-009", "module": "pwa", "feature": "Installed PWA update propagation", "requirement": "Hourly update checks; no forced reload mid-session", "priority": "P1", "preconditions": ["Installed PWA"], "data": "real device", "steps": ["Deploy; reopen PWA next day"], "expected": "Update applied without losing progress", "postconditions": ["Progress intact"], "dependencies": ["PWA-002"], "type": "functional", "automation": "manual:BLOCKED-real-device", "status": "BLOCKED"},
-    {"id": "DATA-001", "module": "data", "feature": "Unique stable IDs everywhere", "requirement": "No duplicate vocab/grammar/sentence/question ids", "priority": "P0", "preconditions": ["None"], "data": "all datasets", "steps": ["Run audit+smoke+career dup checks"], "expected": "0 duplicates", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/audit-curriculum.js", "status": "PASS"},
-    {"id": "DATA-002", "module": "data", "feature": "References resolve, no orphans", "requirement": "wordKeys, gramTitles, rule links valid", "priority": "P0", "preconditions": ["None"], "data": "sent-a1, career, skills", "steps": ["Run check-links"], "expected": "All resolve; no cross-module dup sentences", "postconditions": ["None"], "dependencies": [], "type": "integration", "automation": "automated:tools/check-links.js", "status": "PASS"},
-    {"id": "DATA-003", "module": "data", "feature": "Career content validity", "requirement": "8 modules x5 quizzes; articles/plurals sane", "priority": "P0", "preconditions": ["None"], "data": "CAREER_TRACKS", "steps": ["Run test-career"], "expected": "30/30 incl. honesty labels", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-career.js", "status": "PASS"},
-    {"id": "DATA-004", "module": "data", "feature": "Translation completeness", "requirement": "AR+EN present; static chrome keyed ar/en/de", "priority": "P1", "preconditions": ["None"], "data": "datasets + study.js dict", "steps": ["Run check-translations + reference"], "expected": "PASS both", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/check-translations.js", "status": "PASS"},
-    {"id": "DATA-005", "module": "data", "feature": "Malformed records handled", "requirement": "Missing fields never crash renderers", "priority": "P1", "preconditions": ["None"], "data": "mutated fixtures", "steps": ["Feed missing-field records"], "expected": "Fallbacks; no exceptions", "postconditions": ["None"], "dependencies": [], "type": "error", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "UI-001", "module": "ui", "feature": "Theme persist + instant apply", "requirement": "34 themes incl. 12 premium; no reload needed", "priority": "P1", "preconditions": ["App loads"], "data": "THEMES", "steps": ["Apply each theme; reload"], "expected": "Instant apply; persisted; contrast kept", "postconditions": ["Theme saved"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "UI-002", "module": "ui", "feature": "Responsive no-overflow 360..1920", "requirement": "No horizontal scroll; targets ≥40px", "priority": "P1", "preconditions": ["Viewports"], "data": "real devices", "steps": ["Audit vocab/quiz/settings at 5 sizes"], "expected": "No overflow/clipping", "postconditions": ["None"], "dependencies": [], "type": "ui", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "UI-003", "module": "ui", "feature": "RTL Arabic + LTR German mix", "requirement": "dir attributes correct; no mirrored German", "priority": "P1", "preconditions": ["Arabic UI"], "data": "mixed strings", "steps": ["Inspect cards/modals/quiz"], "expected": "German LTR; Arabic RTL", "postconditions": ["None"], "dependencies": [], "type": "ui", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "UI-004", "module": "ui", "feature": "Modals and toasts", "requirement": "Detail modal closes on ✖/backdrop; toasts expire", "priority": "P2", "preconditions": ["App loads"], "data": "None", "steps": ["Open/close modal; trigger toast"], "expected": "Clean open/close; no stacking", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "UI-005", "module": "ui", "feature": "No duplicate element IDs", "requirement": "Static HTML ids unique per page", "priority": "P0", "preconditions": ["None"], "data": "index+academy html", "steps": ["ID uniqueness probe"], "expected": "256 ids, 0 duplicates", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "UI-006", "module": "ui", "feature": "Injected markup uses themed classes", "requirement": "progress/career markup uses existing CSS", "priority": "P2", "preconditions": ["None"], "data": "progress.js+career.js", "steps": ["Class coverage probe"], "expected": "All classes defined in style.css", "postconditions": ["None"], "dependencies": [], "type": "functional", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "A11Y-001", "module": "accessibility", "feature": "Keyboard operability", "requirement": "Nav/quiz/options reachable by keyboard", "priority": "P1", "preconditions": ["Desktop"], "data": "None", "steps": ["Tab through; Enter answers"], "expected": "Full task completion keyboard-only", "postconditions": ["None"], "dependencies": [], "type": "accessibility", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "A11Y-002", "module": "accessibility", "feature": "Labels and aria on controls", "requirement": "Icon buttons named; hamburger labeled", "priority": "P2", "preconditions": ["None"], "data": "static html", "steps": ["Audit aria-labels"], "expected": "Controls named (menu ✓)", "postconditions": ["None"], "dependencies": [], "type": "accessibility", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "A11Y-003", "module": "accessibility", "feature": "Focus visibility", "requirement": "Visible focus in all themes", "priority": "P2", "preconditions": ["None"], "data": "None", "steps": ["Tab in each theme"], "expected": "Focus ring visible", "postconditions": ["None"], "dependencies": ["UI-001"], "type": "accessibility", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "A11Y-004", "module": "accessibility", "feature": "Reduced motion respected", "requirement": "No forced animation when reduced", "priority": "P3", "preconditions": ["reduced-motion on"], "data": "None", "steps": ["Enable; navigate"], "expected": "Calm transitions", "postconditions": ["None"], "dependencies": [], "type": "accessibility", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "PERF-001", "module": "performance", "feature": "Search stays responsive", "requirement": "Debounced; no per-keystroke index rebuild", "priority": "P1", "preconditions": ["2727 word index"], "data": "fixtures", "steps": ["Profile search chain g..gehen"], "expected": "Prefix chain fast; exact first", "postconditions": ["None"], "dependencies": ["VOC-002"], "type": "performance", "automation": "automated:tools/test-search.js", "status": "PASS"},
-    {"id": "PERF-002", "module": "performance", "feature": "Lazy heavy sections", "requirement": "vocab/sentences/verbs/grammar/explain render on visit", "priority": "P1", "preconditions": ["Cold load"], "data": "None", "steps": ["Measure initial render; visit sections"], "expected": "Fast start; isolated errors", "postconditions": ["None"], "dependencies": [], "type": "performance", "automation": "manual:BLOCKED", "status": "BLOCKED"},
-    {"id": "PERF-003", "module": "performance", "feature": "No timer/interval leaks", "requirement": "Games/challenge clean up on exit", "priority": "P1", "preconditions": ["App loads"], "data": "None", "steps": ["Run e2e leak checks"], "expected": "No interval leak", "postconditions": ["None"], "dependencies": [], "type": "performance", "automation": "automated:tools/e2e.js", "status": "PASS"},
-    {"id": "ERR-001", "module": "error-states", "feature": "Corrupt localStorage entry", "requirement": "App boots with defaults; user continues", "priority": "P0", "preconditions": ["LS has garbage"], "data": "garbage JSON", "steps": ["Boot with corrupt deutsch_master_v2"], "expected": "Defaults; no white screen", "postconditions": ["Recoverable"], "dependencies": ["PROG-010"], "type": "error", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "ERR-002", "module": "error-states", "feature": "Quota-exceeded save", "requirement": "Compact retry; in-memory keeps working", "priority": "P1", "preconditions": ["Full storage"], "data": "large events", "steps": ["safeSave under quota error"], "expected": "Compacted save or graceful fail", "postconditions": ["Session continues"], "dependencies": [], "type": "error", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "ERR-003", "module": "error-states", "feature": "Missing browser APIs", "requirement": "No speech/caches/storage → guarded fallbacks", "priority": "P1", "preconditions": ["APIs undefined"], "data": "None", "steps": ["Static guard audit"], "expected": "All capability uses guarded", "postconditions": ["None"], "dependencies": [], "type": "error", "automation": "automated:tools/qa-audit.js", "status": "PASS"},
-    {"id": "ERR-004", "module": "error-states", "feature": "Refresh mid-exercise", "requirement": "Totals reconstruct; session restarts clean", "priority": "P1", "preconditions": ["Mid-quiz"], "data": "None", "steps": ["Refresh mid-quiz"], "expected": "rebuildTotals exact; no phantom score", "postconditions": ["Consistent"], "dependencies": ["PROG-003", "TEST-004"], "type": "error", "automation": "automated:tools/test-progress.js", "status": "PASS"},
-    {"id": "ERR-005", "module": "error-states", "feature": "Empty/single-item datasets", "requirement": "Pickers/generators never throw", "priority": "P1", "preconditions": ["None"], "data": "empty + 1-item pools", "steps": ["Build sessions from edge pools"], "expected": "Empty-safe results", "postconditions": ["None"], "dependencies": ["TRAIN-006"], "type": "edge", "automation": "automated:tools/test-robustness.js", "status": "PASS"},
-    {"id": "ERR-006", "module": "error-states", "feature": "Long/RTL/mixed strings", "requirement": "No overflow/crash on extreme text", "priority": "P2", "preconditions": ["None"], "data": "200-char words, mixed scripts", "steps": ["Normalize+render probes"], "expected": "Handled; CSS wraps", "postconditions": ["None"], "dependencies": [], "type": "edge", "automation": "automated:tools/test-robustness.js", "status": "PASS"}
+    {
+      "id": "NAV-001",
+      "module": "navigation",
+      "feature": "Sidebar order and icons",
+      "requirement": "Sidebar keeps canonical order with one icon per item",
+      "priority": "P0",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "client/index.html, client/academy.html",
+      "steps": [
+        "Load app",
+        "Count .nav-item icons",
+        "Verify first 7 items order"
+      ],
+      "expected": "1 icon per item; dashboard,vocab,sentences,explain,verbs,reference,flashcards first",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/e2e.js",
+      "status": "PASS"
+    },
+    {
+      "id": "NAV-002",
+      "module": "navigation",
+      "feature": "Page routing",
+      "requirement": "showPage opens correct section, stops quiz timer",
+      "priority": "P0",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "49 nav targets",
+      "steps": [
+        "Click each nav item",
+        "Verify matching section activates"
+      ],
+      "expected": "Every data-page has a page-* section; timer stopped on nav",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "integration",
+      "automation": "automated:tools/e2e.js+probe",
+      "status": "PASS"
+    },
+    {
+      "id": "NAV-003",
+      "module": "navigation",
+      "feature": "Mobile sidebar open/close",
+      "requirement": "Hamburger opens overlay sidebar on small screens",
+      "priority": "P1",
+      "preconditions": [
+        "Viewport 360x800"
+      ],
+      "data": "None",
+      "steps": [
+        "Tap hamburger",
+        "Tap overlay",
+        "Select a page"
+      ],
+      "expected": "Sidebar opens/closes; selecting page closes it",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "ui",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "NAV-004",
+      "module": "navigation",
+      "feature": "Navigation during active training",
+      "requirement": "Leaving mid-quiz stops timer, no state corruption",
+      "priority": "P1",
+      "preconditions": [
+        "Quiz in progress"
+      ],
+      "data": "None",
+      "steps": [
+        "Start quiz",
+        "Navigate away mid-question"
+      ],
+      "expected": "Timer stopped (qa-audit nav guard); partial answers not scored",
+      "postconditions": [
+        "Progress unchanged"
+      ],
+      "dependencies": [
+        "TEST-004"
+      ],
+      "type": "error",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "NAV-005",
+      "module": "navigation",
+      "feature": "Career page routing",
+      "requirement": "New career page reachable from sidebar and life rec",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "CAREER_TRACKS",
+      "steps": [
+        "Click المسار المهني",
+        "Open life career goal ausbildung rec"
+      ],
+      "expected": "career page renders tracks; life rec routes to career",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "integration",
+      "automation": "automated:tools/test-career.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-001",
+      "module": "vocabulary",
+      "feature": "Word list render",
+      "requirement": "All VOCAB entries render with article, Arabic, plural",
+      "priority": "P0",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "1884 vocab records",
+      "steps": [
+        "Open الكلمات"
+      ],
+      "expected": "Cards show article color, Arabic, plural, example",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-002",
+      "module": "vocabulary",
+      "feature": "Exact search ranking",
+      "requirement": "Exact match ranks before prefix/substring/fuzzy",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "fixtures gehen/Tisch/Straße",
+      "steps": [
+        "Search gehen, geh, Straße, plural"
+      ],
+      "expected": "Exact first; umlaut/ß tolerant; plural resolves",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-search.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-003",
+      "module": "vocabulary",
+      "feature": "Search no-results and empty query",
+      "requirement": "Empty query shows bank; gibberish shows empty state",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "query zzzqqq",
+      "steps": [
+        "Clear search",
+        "Type zzzqqq"
+      ],
+      "expected": "Full list on empty; clean empty state on no-match, no crash",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "edge",
+      "automation": "automated:tools/test-search.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-004",
+      "module": "vocabulary",
+      "feature": "Category/Kapitel/Level/Article/Status filters",
+      "requirement": "Filters combine cumulatively",
+      "priority": "P0",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "VOCAB",
+      "steps": [
+        "Combine category+kapitel+article filters"
+      ],
+      "expected": "Only matching words; counts consistent",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-005",
+      "module": "vocabulary",
+      "feature": "Word detail modal",
+      "requirement": "Detail shows plural, examples, actions",
+      "priority": "P1",
+      "preconditions": [
+        "Word exists"
+      ],
+      "data": "word id",
+      "steps": [
+        "Open word detail",
+        "Play audio",
+        "Mark known"
+      ],
+      "expected": "Modal renders; status persists after refresh",
+      "postconditions": [
+        "status saved"
+      ],
+      "dependencies": [
+        "PROG-008"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-006",
+      "module": "vocabulary",
+      "feature": "Add custom word validation",
+      "requirement": "Invalid/duplicate words rejected with message",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "empty + duplicate payloads",
+      "steps": [
+        "Submit empty word",
+        "Submit duplicate"
+      ],
+      "expected": "Rejected with toast; storage unchanged",
+      "postconditions": [
+        "No corrupt record"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-007",
+      "module": "vocabulary",
+      "feature": "Umlaut/ß search tolerance",
+      "requirement": "aufraumen finds aufräumen; ss finds ß",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "aufräumen, Straße",
+      "steps": [
+        "Type ascii variants"
+      ],
+      "expected": "Tolerant match via dmNorm",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "edge",
+      "automation": "automated:tools/test-search.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VOC-008",
+      "module": "vocabulary",
+      "feature": "Data integrity: articles and plurals",
+      "requirement": "Every noun has valid article+plural",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "curr-*.js datasets",
+      "steps": [
+        "Run audit-curriculum"
+      ],
+      "expected": "PASS: no missing articles/plurals/pronunciation",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/audit-curriculum.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SENT-001",
+      "module": "sentences",
+      "feature": "Sentence bank integrity",
+      "requirement": "218 sentences with Arabic, deduped",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "sent-a1.js + curriculum fills",
+      "steps": [
+        "Run smoke-curriculum"
+      ],
+      "expected": "218 sentences, 1462 fills, 0 dups",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/smoke-curriculum.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SENT-002",
+      "module": "sentences",
+      "feature": "Sentence training flow",
+      "requirement": "State-driven training with retry",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "SENT_FILL",
+      "steps": [
+        "Open تدريبات الجمل",
+        "Answer, retry"
+      ],
+      "expected": "Feedback + retry; mistakes recorded",
+      "postconditions": [
+        "Mistakes saved"
+      ],
+      "dependencies": [
+        "MIST-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SENT-003",
+      "module": "sentences",
+      "feature": "Sentence audio",
+      "requirement": "TTS plays sentence; fallback on failure",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "None",
+      "steps": [
+        "Tap 🔊 on sentence",
+        "Deny/block audio"
+      ],
+      "expected": "Speech or graceful toast; no crash",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SENT-004",
+      "module": "sentences",
+      "feature": "Kapitel/topic filter + pagination",
+      "requirement": "Filter narrows bank; pages stable",
+      "priority": "P2",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "K0..K5",
+      "steps": [
+        "Filter K2",
+        "Page forward/back"
+      ],
+      "expected": "Consistent pages; no empty-page trap",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SENT-005",
+      "module": "sentences",
+      "feature": "Order normalization edge cases",
+      "requirement": "Punctuation/case-insensitive grading",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "order fixtures",
+      "steps": [
+        "Run qa-audit order checks"
+      ],
+      "expected": "Accepts punct variants; rejects wrong order",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "edge",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "GRAM-001",
+      "module": "grammar",
+      "feature": "Grammar bank completeness",
+      "requirement": "58 rules with body+examples+quiz+explain",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "curriculum grammar",
+      "steps": [
+        "Run audit-curriculum"
+      ],
+      "expected": "PASS all rules complete",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/audit-curriculum.js",
+      "status": "PASS"
+    },
+    {
+      "id": "GRAM-002",
+      "module": "grammar",
+      "feature": "Mastery from real answers only",
+      "requirement": "Visits never unlock; answers update S.grammar",
+      "priority": "P0",
+      "preconditions": [
+        "Fresh store"
+      ],
+      "data": "g1 fixture",
+      "steps": [
+        "gramMastery null",
+        "gramRecord x4",
+        "check badges"
+      ],
+      "expected": "null→50%🟡→75%+; badges correct",
+      "postconditions": [
+        "S.grammar persisted"
+      ],
+      "dependencies": [
+        "PROG-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-upgrade.js",
+      "status": "PASS"
+    },
+    {
+      "id": "GRAM-003",
+      "module": "grammar",
+      "feature": "Quick-quiz fair shuffle mapping",
+      "requirement": "Correct answer remapped after shuffle",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "explain drills + ref bank",
+      "steps": [
+        "Run test-quiz-shuffle"
+      ],
+      "expected": "Balanced positions; correct present in 5400 blocks",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-quiz-shuffle.js",
+      "status": "PASS"
+    },
+    {
+      "id": "GRAM-004",
+      "module": "grammar",
+      "feature": "Weak grammar surfaces in study dash",
+      "requirement": "pct<50 rules listed with titles",
+      "priority": "P1",
+      "preconditions": [
+        "S.grammar with weak rule"
+      ],
+      "data": "fixture",
+      "steps": [
+        "Render study dash logic"
+      ],
+      "expected": "Weak rule shown; fallback to gweak counts",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "GRAM-002"
+      ],
+      "type": "integration",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "GRAM-005",
+      "module": "grammar",
+      "feature": "Explain drill + quiz record mastery",
+      "requirement": "Both paths call gramRecord",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "script.js static",
+      "steps": [
+        "Grep gramRecord call sites"
+      ],
+      "expected": "grammar quiz, exDrill, exQuiz all record",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "GRAM-002"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VERB-001",
+      "module": "verbs",
+      "feature": "Verb list with conjugation",
+      "requirement": "Verbs show ich/du/er forms or phrase fallback",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "allVerbs()",
+      "steps": [
+        "Open الأفعال"
+      ],
+      "expected": "Conjugation tables render",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VERB-002",
+      "module": "verbs",
+      "feature": "Verb search integration",
+      "requirement": "Global search finds verbs",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "fixtures",
+      "steps": [
+        "Run test-search verb cases"
+      ],
+      "expected": "Verbs use dmNorm ranking",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "VOC-002"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-search.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VERB-003",
+      "module": "verbs",
+      "feature": "Verb audio",
+      "requirement": "Conjugation audio plays",
+      "priority": "P3",
+      "preconditions": [
+        "None"
+      ],
+      "data": "None",
+      "steps": [
+        "Tap verb audio"
+      ],
+      "expected": "Speech or toast fallback",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "VERB-004",
+      "module": "verbs",
+      "feature": "Kapitel filter",
+      "requirement": "verbKapitel narrows list",
+      "priority": "P3",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Select kapitel"
+      ],
+      "expected": "Filtered verbs only",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "REF-001",
+      "module": "reference",
+      "feature": "124 topics render",
+      "requirement": "Reference data complete with tables/examples",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "reference-data-*.js",
+      "steps": [
+        "Run check-reference"
+      ],
+      "expected": "124 topics, 0 missing AR/EN",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/check-reference.js",
+      "status": "PASS"
+    },
+    {
+      "id": "REF-002",
+      "module": "reference",
+      "feature": "No duplicate reference entries",
+      "requirement": "Unique DOM ids and records",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "reference bank",
+      "steps": [
+        "Run check-ref-dups, check-ref-dom, stage2"
+      ],
+      "expected": "All PASS",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/check-ref-*.js",
+      "status": "PASS"
+    },
+    {
+      "id": "REF-003",
+      "module": "reference",
+      "feature": "Reference choice/order shuffle",
+      "requirement": "Shuffled render keeps correct mapping",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "reference bank",
+      "steps": [
+        "Run test-quiz-shuffle"
+      ],
+      "expected": "Correct remapped by original index",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "GRAM-003"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-quiz-shuffle.js",
+      "status": "PASS"
+    },
+    {
+      "id": "REF-004",
+      "module": "reference",
+      "feature": "Reference navigation",
+      "requirement": "Sections open without duplicate icons",
+      "priority": "P2",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Open المرجع",
+        "Switch sections"
+      ],
+      "expected": "Single icon; content renders",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "REF-005",
+      "module": "reference",
+      "feature": "Career/skill rule links resolve",
+      "requirement": "g-ids referenced exist in EXPLAIN",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "explain.js",
+      "steps": [
+        "Run check-links"
+      ],
+      "expected": "All rule links resolve",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "integration",
+      "automation": "automated:tools/check-links.js",
+      "status": "PASS"
+    },
+    {
+      "id": "CARD-001",
+      "module": "flashcards",
+      "feature": "Deck from 4 filters",
+      "requirement": "Category+Kapitel+Level+Type(article) cumulative",
+      "priority": "P0",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "VOCAB",
+      "steps": [
+        "Set all four filters"
+      ],
+      "expected": "Intersection only; dir filter uses art incl. '-'",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-flashdir.js",
+      "status": "PASS"
+    },
+    {
+      "id": "CARD-002",
+      "module": "flashcards",
+      "feature": "Direction toggle de-ar/ar-de",
+      "requirement": "Both directions grade correctly",
+      "priority": "P1",
+      "preconditions": [
+        "Deck built"
+      ],
+      "data": "None",
+      "steps": [
+        "Flip direction",
+        "Grade easy/hard"
+      ],
+      "expected": "Prompt side swaps; SRS updated",
+      "postconditions": [
+        "SRS saved"
+      ],
+      "dependencies": [
+        "PROG-006"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-flashdir.js",
+      "status": "PASS"
+    },
+    {
+      "id": "CARD-003",
+      "module": "flashcards",
+      "feature": "Empty deck state",
+      "requirement": "No-match filters show reset CTA",
+      "priority": "P1",
+      "preconditions": [
+        "Restrictive filters"
+      ],
+      "data": "None",
+      "steps": [
+        "Filter to empty"
+      ],
+      "expected": "Empty state + reset button",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "edge",
+      "automation": "automated:tools/test-flashdir.js",
+      "status": "PASS"
+    },
+    {
+      "id": "CARD-004",
+      "module": "flashcards",
+      "feature": "No fixed-width overflow",
+      "requirement": "Cards fit 360px screens",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "style.css",
+      "steps": [
+        "Run test-flashdir CSS checks"
+      ],
+      "expected": "No fixed widths >340px in flash CSS",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "ui",
+      "automation": "automated:tools/test-flashdir.js",
+      "status": "PASS"
+    },
+    {
+      "id": "CARD-005",
+      "module": "flashcards",
+      "feature": "Flip and grading persistence",
+      "requirement": "Grades update status+SRS exactly once",
+      "priority": "P1",
+      "preconditions": [
+        "Deck built"
+      ],
+      "data": "None",
+      "steps": [
+        "Flip, grade, refresh"
+      ],
+      "expected": "Grade persisted; no double count",
+      "postconditions": [
+        "Progress saved"
+      ],
+      "dependencies": [
+        "PROG-003"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "CARD-006",
+      "module": "flashcards",
+      "feature": "Rapid grading clicks",
+      "requirement": "Double-tap grade counts once",
+      "priority": "P2",
+      "preconditions": [
+        "Card shown"
+      ],
+      "data": "None",
+      "steps": [
+        "Double-click grade fast"
+      ],
+      "expected": "Single advance; no skip",
+      "postconditions": [
+        "Queue intact"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-001",
+      "module": "smart-training",
+      "feature": "20 question types generate",
+      "requirement": "All types valid with mapped answers",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "WORD fixtures",
+      "steps": [
+        "Run test-smart"
+      ],
+      "expected": "20/20 valid; grading accepts/rejects",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-002",
+      "module": "smart-training",
+      "feature": "Session diversity, no repeats",
+      "requirement": "No 3 same-type in row; no dup qid; 6+ types",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "pools",
+      "steps": [
+        "Build 20-Q sessions"
+      ],
+      "expected": "Diversity invariants hold",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-003",
+      "module": "smart-training",
+      "feature": "Adaptive weak-skill targeting",
+      "requirement": "Weak skill outweighs mastered in weights",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "skill stats",
+      "steps": [
+        "Run adaptive checks"
+      ],
+      "expected": "Weak skill targeted (flaky-tail accepted, see report)",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-004",
+      "module": "smart-training",
+      "feature": "Arabic feedback per type",
+      "requirement": "Each type explains answer in Arabic",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "20 types",
+      "steps": [
+        "Check feedback strings"
+      ],
+      "expected": "Answer + gentle Arabic guidance",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-005",
+      "module": "smart-training",
+      "feature": "Difficulty easy/hard transforms",
+      "requirement": "Easy caps 3 opts; hard converts to writing",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "fixtures",
+      "steps": [
+        "Apply difficulty engine"
+      ],
+      "expected": "Transforms correct; grading intact",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-006",
+      "module": "smart-training",
+      "feature": "Kapitel filter + empty pools",
+      "requirement": "Unknown kapitel never throws; pools filter",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "bad kapitel",
+      "steps": [
+        "Build with unknown kapitel"
+      ],
+      "expected": "Empty session, no exception",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "edge",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-007",
+      "module": "smart-training",
+      "feature": "Recent-qid anti-repeat",
+      "requirement": "History avoids recent qids",
+      "priority": "P2",
+      "preconditions": [
+        "History present"
+      ],
+      "data": "history",
+      "steps": [
+        "Build session with history"
+      ],
+      "expected": "Recent qids excluded",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TRAIN-008",
+      "module": "smart-training",
+      "feature": "UI renderers for all types",
+      "requirement": "smQ routes every ui kind",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "static",
+      "steps": [
+        "Check renderer coverage"
+      ],
+      "expected": "choice/chips/order/write/match all routed",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-smart.js",
+      "status": "PASS"
+    },
+    {
+      "id": "AI-001",
+      "module": "ai-tutor",
+      "feature": "Local modes work offline",
+      "requirement": "correct/translate/vocab/explain/examples answer locally",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Use each mode offline"
+      ],
+      "expected": "Local answers; honest offline note",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "PWA-003"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "AI-002",
+      "module": "ai-tutor",
+      "feature": "Conversation scenarios A1/A2",
+      "requirement": "Level filter selects scenario pool; keys match",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "TUTOR_CONV",
+      "steps": [
+        "Answer conv prompts A1 and A2"
+      ],
+      "expected": "Keyword grading; next prompt; stats increment",
+      "postconditions": [
+        "tutorStats saved"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "AI-003",
+      "module": "ai-tutor",
+      "feature": "Tutor stats honesty",
+      "requirement": "turns/ok/scen counts from real interactions",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "static",
+      "steps": [
+        "Inspect tutorStats wiring"
+      ],
+      "expected": "Incremented only on conv turns",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "AI-004",
+      "module": "ai-tutor",
+      "feature": "No API keys in client",
+      "requirement": "No secrets committed",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "client/*",
+      "steps": [
+        "Run test-push secrets scan"
+      ],
+      "expected": "No keys/tokens found",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-push.js",
+      "status": "PASS"
+    },
+    {
+      "id": "AI-005",
+      "module": "ai-tutor",
+      "feature": "Arabic-first explanations preserved",
+      "requirement": "Language selection intact",
+      "priority": "P2",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Switch ar/de/en; ask tutor"
+      ],
+      "expected": "Chrome translates; content intact",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-languages.js",
+      "status": "PASS"
+    },
+    {
+      "id": "AI-006",
+      "module": "ai-tutor",
+      "feature": "Listen button for prompts",
+      "requirement": "tutorSay speaks next prompt",
+      "priority": "P3",
+      "preconditions": [
+        "Conv active"
+      ],
+      "data": "None",
+      "steps": [
+        "Tap استمع"
+      ],
+      "expected": "TTS of prompt or fallback",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "LISTEN-001",
+      "module": "listening",
+      "feature": "Listening lab renders questions",
+      "requirement": "lislab builds playable items",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Run e2e lislab"
+      ],
+      "expected": "Question renders; answer grades",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/e2e.js",
+      "status": "PASS"
+    },
+    {
+      "id": "LISTEN-002",
+      "module": "listening",
+      "feature": "5 listening types + speeds",
+      "requirement": "choose/type/complete/arrange/spot at 0.75/1/1.25",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "adv.js",
+      "steps": [
+        "Run qa-audit listening checks"
+      ],
+      "expected": "All types+speeds present",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "LISTEN-003",
+      "module": "listening",
+      "feature": "Dictation + shadowing grading",
+      "requirement": "Typed input graded with feedback; progress",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Run e2e shadow/dictation"
+      ],
+      "expected": "Feedback, next advances, retry works",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/e2e.js",
+      "status": "PASS"
+    },
+    {
+      "id": "LISTEN-004",
+      "module": "listening",
+      "feature": "Labs IDs unique, no collisions",
+      "requirement": "labsx ids not reused elsewhere",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "all js",
+      "steps": [
+        "Run test-labsx + dom"
+      ],
+      "expected": "69+41 checks pass",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "integration",
+      "automation": "automated:tools/test-labsx.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SPEAK-001",
+      "module": "speaking",
+      "feature": "SpeechRecognition fallback chain",
+      "requirement": "Native→Web→text input; honest capability text",
+      "priority": "P1",
+      "preconditions": [
+        "No mic / unsupported browser"
+      ],
+      "data": "None",
+      "steps": [
+        "Open تحدث without SR support"
+      ],
+      "expected": "Text fallback offered; no fake pronunciation score",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SPEAK-002",
+      "module": "speaking",
+      "feature": "Mic permission denied path",
+      "requirement": "Graceful message + text alternative",
+      "priority": "P1",
+      "preconditions": [
+        "Permission denied"
+      ],
+      "data": "None",
+      "steps": [
+        "Deny microphone"
+      ],
+      "expected": "Explains + offers typing; progress safe",
+      "postconditions": [
+        "No data loss"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SPEAK-003",
+      "module": "speaking",
+      "feature": "Conversation scenarios coherent",
+      "requirement": "Dialogues keep context; follow-ups on-topic",
+      "priority": "P2",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "DL_SITS, career dialogues",
+      "steps": [
+        "Walk shopping/interview scenario"
+      ],
+      "expected": "Coherent turns; model answers",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "SPEAK-004",
+      "module": "speaking",
+      "feature": "Career dialogue speak + translation toggle",
+      "requirement": "🔊 per line; hide/show Arabic",
+      "priority": "P2",
+      "preconditions": [
+        "Career module open"
+      ],
+      "data": "CAREER_TRACKS",
+      "steps": [
+        "Toggle translations; play lines"
+      ],
+      "expected": "Toggle works; TTS or fallback",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "NAV-005"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-001",
+      "module": "tests",
+      "feature": "Placement per-skill subscores",
+      "requirement": "vocab/grammar/reading counted; weak listed",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "skill fixtures",
+      "steps": [
+        "Run test-upgrade U15 + flow sim"
+      ],
+      "expected": "Subscores correct; weak<60% flagged",
+      "postconditions": [
+        "S.placeHistory capped 10"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-upgrade.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-002",
+      "module": "tests",
+      "feature": "Placement level honesty",
+      "requirement": "Labels تقديري + non-official disclaimer",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "learn.js",
+      "steps": [
+        "Finish placement"
+      ],
+      "expected": "A0/A1/A2/B1 تقديري + CEFR disclaimer + history",
+      "postconditions": [
+        "S.place saved"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-003",
+      "module": "tests",
+      "feature": "Quiz generation: mixed/quick/article",
+      "requirement": "Kind rotation; weighted picks; no 3-same",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "VOCAB",
+      "steps": [
+        "Run buildQuestions checks"
+      ],
+      "expected": "Rotation + fitting kinds",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-004",
+      "module": "tests",
+      "feature": "Single scoring per attempt",
+      "requirement": "showFeedback path scores exactly once",
+      "priority": "P0",
+      "preconditions": [
+        "Quiz active"
+      ],
+      "data": "None",
+      "steps": [
+        "Answer; try re-click; next"
+      ],
+      "expected": "Options disabled after answer; totals +1",
+      "postconditions": [
+        "totals consistent"
+      ],
+      "dependencies": [
+        "PROG-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-005",
+      "module": "tests",
+      "feature": "Quiz timer expiry",
+      "requirement": "Timeout marks wrong once; feedback shows",
+      "priority": "P1",
+      "preconditions": [
+        "Timed quiz"
+      ],
+      "data": "None",
+      "steps": [
+        "Let timer expire"
+      ],
+      "expected": "timeoutAnswer guarded; single scoring",
+      "postconditions": [
+        "Totals +1 wrong"
+      ],
+      "dependencies": [
+        "TEST-004"
+      ],
+      "type": "error",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-006",
+      "module": "tests",
+      "feature": "Results + retry + mistakes link",
+      "requirement": "Result lists wrong answers with correct forms",
+      "priority": "P1",
+      "preconditions": [
+        "Finished quiz"
+      ],
+      "data": "None",
+      "steps": [
+        "Finish with errors"
+      ],
+      "expected": "Score %, wrong list, retry/mistakes buttons",
+      "postconditions": [
+        "quizHistory capped 20"
+      ],
+      "dependencies": [
+        "MIST-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-007",
+      "module": "tests",
+      "feature": "Daily challenge determinism",
+      "requirement": "Same date same order; dates differ",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "seeded shuffle",
+      "steps": [
+        "Run qa-audit daily checks"
+      ],
+      "expected": "Deterministic per date",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-008",
+      "module": "tests",
+      "feature": "Challenge stations + games hub",
+      "requirement": "5 stations; games session/back; no leaks",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Run e2e chall+games"
+      ],
+      "expected": "All e2e chall/games PASS",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/e2e.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-001",
+      "module": "progress",
+      "feature": "Correct/incorrect recorded once",
+      "requirement": "One event per attempt; totals +1",
+      "priority": "P0",
+      "preconditions": [
+        "Fresh store"
+      ],
+      "data": "attempt fixtures",
+      "steps": [
+        "logAttempt ok + fail"
+      ],
+      "expected": "totals 2/1; events 2",
+      "postconditions": [
+        "Aggregates exact"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-002",
+      "module": "progress",
+      "feature": "Duplicate aids rejected",
+      "requirement": "Re-render/refresh never inflates",
+      "priority": "P0",
+      "preconditions": [
+        "Logged aid"
+      ],
+      "data": "same aid",
+      "steps": [
+        "Log same aid twice"
+      ],
+      "expected": "duplicate; totals unchanged",
+      "postconditions": [
+        "No inflation"
+      ],
+      "dependencies": [
+        "PROG-001"
+      ],
+      "type": "error",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-003",
+      "module": "progress",
+      "feature": "Scores survive refresh",
+      "requirement": "rebuildTotals reconstructs exactly",
+      "priority": "P0",
+      "preconditions": [
+        "Serialized log"
+      ],
+      "data": "JSON round-trip",
+      "steps": [
+        "Zero counters; rebuild"
+      ],
+      "expected": "Counters match log",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "PROG-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-004",
+      "module": "progress",
+      "feature": "Migration preserves legacy data",
+      "requirement": "v0→v3 keeps counters/words/mistakes",
+      "priority": "P0",
+      "preconditions": [
+        "Legacy store"
+      ],
+      "data": "legacy fixture",
+      "steps": [
+        "migrate twice"
+      ],
+      "expected": "Migrated once; data intact",
+      "postconditions": [
+        "schemaV=3"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-005",
+      "module": "progress",
+      "feature": "Review policy correctness",
+      "requirement": "Fail→1d; success grows; mastered=90d finite",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "policy fixtures",
+      "steps": [
+        "nextReview matrix"
+      ],
+      "expected": "1<3<growing; missed halved",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-006",
+      "module": "progress",
+      "feature": "Review queue ordering",
+      "requirement": "Overdue+missed first",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "queue fixtures",
+      "steps": [
+        "buildQueue + dueWords"
+      ],
+      "expected": "Overdue first; known-clean excluded",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js+test-upgrade.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-007",
+      "module": "progress",
+      "feature": "Streak and study days",
+      "requirement": "UTC-midnight streak; trivial actions excluded",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "dates",
+      "steps": [
+        "Run qa-audit streak checks"
+      ],
+      "expected": "DST-safe; real=false skips",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-008",
+      "module": "progress",
+      "feature": "Persistence across restart",
+      "requirement": "localStorage survives browser/PWA restart",
+      "priority": "P0",
+      "preconditions": [
+        "Saved progress"
+      ],
+      "data": "real browser profile",
+      "steps": [
+        "Close browser; reopen"
+      ],
+      "expected": "XP/streak/mistakes intact",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-009",
+      "module": "progress",
+      "feature": "Weekly summary honesty + export",
+      "requirement": "Real event-log data; empty→honest message",
+      "priority": "P1",
+      "preconditions": [
+        "With/without events"
+      ],
+      "data": "event log",
+      "steps": [
+        "weeklySummary empty+full; export txt"
+      ],
+      "expected": "hasData false when empty; counts exact",
+      "postconditions": [
+        "File downloads"
+      ],
+      "dependencies": [
+        "PROG-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PROG-010",
+      "module": "progress",
+      "feature": "Corrupted storage recovery",
+      "requirement": "Malformed JSON never bricks app",
+      "priority": "P0",
+      "preconditions": [
+        "Corrupt LS value"
+      ],
+      "data": "garbage payloads",
+      "steps": [
+        "Load with corrupt/missing/quota-fail storage"
+      ],
+      "expected": "Defaults used; user can continue",
+      "postconditions": [
+        "No data beyond corrupt key lost"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "MIST-001",
+      "module": "mistakes",
+      "feature": "Mistake recorded with context",
+      "requirement": "q/ok/kap/qid extras stored; capped 200",
+      "priority": "P0",
+      "preconditions": [
+        "Quiz wrong answer"
+      ],
+      "data": "word fixture",
+      "steps": [
+        "recordMistake x7 same word"
+      ],
+      "expected": "n grows; hist capped 5 all-fail",
+      "postconditions": [
+        "Entry complete"
+      ],
+      "dependencies": [
+        "PROG-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-upgrade.js",
+      "status": "PASS"
+    },
+    {
+      "id": "MIST-002",
+      "module": "mistakes",
+      "feature": "Mastery lifecycle needs 3 corrects",
+      "requirement": "2 corrects insufficient; 3rd resolves",
+      "priority": "P0",
+      "preconditions": [
+        "Open mistake"
+      ],
+      "data": "fixture",
+      "steps": [
+        "noteMastered x2 then x1"
+      ],
+      "expected": "done false,false,true; hist mixed",
+      "postconditions": [
+        "fixedTotal+1"
+      ],
+      "dependencies": [
+        "MIST-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-upgrade.js",
+      "status": "PASS"
+    },
+    {
+      "id": "MIST-003",
+      "module": "mistakes",
+      "feature": "Skill grouping uses stable ids",
+      "requirement": "Same text different kinds stay separate",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "kind fixtures",
+      "steps": [
+        "classifyError matrix"
+      ],
+      "expected": "article≠plural for same text",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "MIST-004",
+      "module": "mistakes",
+      "feature": "Skill filter + Arabic why cards",
+      "requirement": "Filter narrows; cards show skill+why+example",
+      "priority": "P1",
+      "preconditions": [
+        "Mistakes exist"
+      ],
+      "data": "None",
+      "steps": [
+        "Select skill; inspect card"
+      ],
+      "expected": "Filtered list; badge+why visible",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "MIST-003"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "MIST-005",
+      "module": "mistakes",
+      "feature": "Retry navigation per mistake",
+      "requirement": "اختبرني quizzes word; career ids route to career",
+      "priority": "P1",
+      "preconditions": [
+        "Mistake entries"
+      ],
+      "data": "vocab + career ids",
+      "steps": [
+        "Tap retry on each kind"
+      ],
+      "expected": "Correct destination; missing→toast",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "integration",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "MIST-006",
+      "module": "mistakes",
+      "feature": "Clear mistakes confirms",
+      "requirement": "Confirm gate; badges update",
+      "priority": "P2",
+      "preconditions": [
+        "Mistakes exist"
+      ],
+      "data": "None",
+      "steps": [
+        "Clear with confirm/cancel"
+      ],
+      "expected": "Cancel keeps; confirm empties",
+      "postconditions": [
+        "Badges 0"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "MIST-007",
+      "module": "mistakes",
+      "feature": "Attempt history display",
+      "requirement": "Last 5 tries shown as ✅/❌",
+      "priority": "P2",
+      "preconditions": [
+        "hist present"
+      ],
+      "data": "fixture",
+      "steps": [
+        "Render mistakes with hist"
+      ],
+      "expected": "History row rendered",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "MIST-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-001",
+      "module": "pwa",
+      "feature": "SW install/activate lifecycle",
+      "requirement": "Precaches; deletes old; claims clients",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "sw.js stubs",
+      "steps": [
+        "Run test-sw-update"
+      ],
+      "expected": "All lifecycle PASS",
+      "postconditions": [
+        "Cache ready"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-sw-update.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-002",
+      "module": "pwa",
+      "feature": "No stale version on reload",
+      "requirement": "Network-first HTML/JS/CSS serves new release",
+      "priority": "P0",
+      "preconditions": [
+        "New deployment"
+      ],
+      "data": "stubs",
+      "steps": [
+        "Reload with new version live"
+      ],
+      "expected": "New files; no hard refresh needed",
+      "postconditions": [
+        "Cache updated"
+      ],
+      "dependencies": [
+        "PWA-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-sw-update.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-003",
+      "module": "pwa",
+      "feature": "Offline startup + fallback",
+      "requirement": "Cached shell serves offline incl. ?v= URLs",
+      "priority": "P0",
+      "preconditions": [
+        "Installed once online"
+      ],
+      "data": "stubs",
+      "steps": [
+        "Go offline; reload; open lesson"
+      ],
+      "expected": "Shell + cached lessons work",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "PWA-001"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/test-sw-update.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-004",
+      "module": "pwa",
+      "feature": "Versioned asset URLs",
+      "requirement": "inject-version deterministic + idempotent",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "git sha",
+      "steps": [
+        "Run inject-version twice"
+      ],
+      "expected": "Same output; refs versioned",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/inject-version.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-005",
+      "module": "pwa",
+      "feature": "SW precache completeness",
+      "requirement": "Every client script precached; version current",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "client/*.js",
+      "steps": [
+        "Coverage probe + upgrade U18"
+      ],
+      "expected": "All but sw.js itself cached; v33",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-upgrade.js+test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-006",
+      "module": "pwa",
+      "feature": "Offline manager panel honesty",
+      "requirement": "Shows cached counts/quota; no user-data deletion",
+      "priority": "P1",
+      "preconditions": [
+        "Settings open"
+      ],
+      "data": "Cache API",
+      "steps": [
+        "Open settings offline+online"
+      ],
+      "expected": "Accurate status; unsupported→message",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "PWA-003"
+      ],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-007",
+      "module": "pwa",
+      "feature": "www/ mirrors client/",
+      "requirement": "Generated output identical (mod ?v=)",
+      "priority": "P0",
+      "preconditions": [
+        "After npm run www"
+      ],
+      "data": "both dirs",
+      "steps": [
+        "Diff file lists + contents"
+      ],
+      "expected": "0 diffs",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-008",
+      "module": "pwa",
+      "feature": "Reminders permission + fallback",
+      "requirement": "Denied/unsupported → clear message, app usable",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "fixtures",
+      "steps": [
+        "Run test-push (105 checks)"
+      ],
+      "expected": "All PASS incl. fallback paths",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-push.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PWA-009",
+      "module": "pwa",
+      "feature": "Installed PWA update propagation",
+      "requirement": "Hourly update checks; no forced reload mid-session",
+      "priority": "P1",
+      "preconditions": [
+        "Installed PWA"
+      ],
+      "data": "real device",
+      "steps": [
+        "Deploy; reopen PWA next day"
+      ],
+      "expected": "Update applied without losing progress",
+      "postconditions": [
+        "Progress intact"
+      ],
+      "dependencies": [
+        "PWA-002"
+      ],
+      "type": "functional",
+      "automation": "partial:tools/runtime-qa.js(SW-half:PASS);manual:BLOCKED-real-device(install-half)",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "DATA-001",
+      "module": "data",
+      "feature": "Unique stable IDs everywhere",
+      "requirement": "No duplicate vocab/grammar/sentence/question ids",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "all datasets",
+      "steps": [
+        "Run audit+smoke+career dup checks"
+      ],
+      "expected": "0 duplicates",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/audit-curriculum.js",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-002",
+      "module": "data",
+      "feature": "References resolve, no orphans",
+      "requirement": "wordKeys, gramTitles, rule links valid",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "sent-a1, career, skills",
+      "steps": [
+        "Run check-links"
+      ],
+      "expected": "All resolve; no cross-module dup sentences",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "integration",
+      "automation": "automated:tools/check-links.js",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-003",
+      "module": "data",
+      "feature": "Career content validity",
+      "requirement": "8 modules x5 quizzes; articles/plurals sane",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "CAREER_TRACKS",
+      "steps": [
+        "Run test-career"
+      ],
+      "expected": "30/30 incl. honesty labels",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-career.js",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-004",
+      "module": "data",
+      "feature": "Translation completeness",
+      "requirement": "AR+EN present; static chrome keyed ar/en/de",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "datasets + study.js dict",
+      "steps": [
+        "Run check-translations + reference"
+      ],
+      "expected": "PASS both",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/check-translations.js",
+      "status": "PASS"
+    },
+    {
+      "id": "DATA-005",
+      "module": "data",
+      "feature": "Malformed records handled",
+      "requirement": "Missing fields never crash renderers",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "mutated fixtures",
+      "steps": [
+        "Feed missing-field records"
+      ],
+      "expected": "Fallbacks; no exceptions",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-001",
+      "module": "ui",
+      "feature": "Theme persist + instant apply",
+      "requirement": "34 themes incl. 12 premium; no reload needed",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "THEMES",
+      "steps": [
+        "Apply each theme; reload"
+      ],
+      "expected": "Instant apply; persisted; contrast kept",
+      "postconditions": [
+        "Theme saved"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-002",
+      "module": "ui",
+      "feature": "Responsive no-overflow 360..1920",
+      "requirement": "No horizontal scroll; targets ≥40px",
+      "priority": "P1",
+      "preconditions": [
+        "Viewports"
+      ],
+      "data": "real devices",
+      "steps": [
+        "Audit vocab/quiz/settings at 5 sizes"
+      ],
+      "expected": "No overflow/clipping",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "ui",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-003",
+      "module": "ui",
+      "feature": "RTL Arabic + LTR German mix",
+      "requirement": "dir attributes correct; no mirrored German",
+      "priority": "P1",
+      "preconditions": [
+        "Arabic UI"
+      ],
+      "data": "mixed strings",
+      "steps": [
+        "Inspect cards/modals/quiz"
+      ],
+      "expected": "German LTR; Arabic RTL",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "ui",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-004",
+      "module": "ui",
+      "feature": "Modals and toasts",
+      "requirement": "Detail modal closes on ✖/backdrop; toasts expire",
+      "priority": "P2",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Open/close modal; trigger toast"
+      ],
+      "expected": "Clean open/close; no stacking",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-005",
+      "module": "ui",
+      "feature": "No duplicate element IDs",
+      "requirement": "Static HTML ids unique per page",
+      "priority": "P0",
+      "preconditions": [
+        "None"
+      ],
+      "data": "index+academy html",
+      "steps": [
+        "ID uniqueness probe"
+      ],
+      "expected": "256 ids, 0 duplicates",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "UI-006",
+      "module": "ui",
+      "feature": "Injected markup uses themed classes",
+      "requirement": "progress/career markup uses existing CSS",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "progress.js+career.js",
+      "steps": [
+        "Class coverage probe"
+      ],
+      "expected": "All classes defined in style.css",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "functional",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "A11Y-001",
+      "module": "accessibility",
+      "feature": "Keyboard operability",
+      "requirement": "Nav/quiz/options reachable by keyboard",
+      "priority": "P1",
+      "preconditions": [
+        "Desktop"
+      ],
+      "data": "None",
+      "steps": [
+        "Tab through; Enter answers"
+      ],
+      "expected": "Full task completion keyboard-only",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "accessibility",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "A11Y-002",
+      "module": "accessibility",
+      "feature": "Labels and aria on controls",
+      "requirement": "Icon buttons named; hamburger labeled",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "static html",
+      "steps": [
+        "Audit aria-labels"
+      ],
+      "expected": "Controls named (menu ✓)",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "accessibility",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "A11Y-003",
+      "module": "accessibility",
+      "feature": "Focus visibility",
+      "requirement": "Visible focus in all themes",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "None",
+      "steps": [
+        "Tab in each theme"
+      ],
+      "expected": "Focus ring visible",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "UI-001"
+      ],
+      "type": "accessibility",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "A11Y-004",
+      "module": "accessibility",
+      "feature": "Reduced motion respected",
+      "requirement": "No forced animation when reduced",
+      "priority": "P3",
+      "preconditions": [
+        "reduced-motion on"
+      ],
+      "data": "None",
+      "steps": [
+        "Enable; navigate"
+      ],
+      "expected": "Calm transitions",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "accessibility",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PERF-001",
+      "module": "performance",
+      "feature": "Search stays responsive",
+      "requirement": "Debounced; no per-keystroke index rebuild",
+      "priority": "P1",
+      "preconditions": [
+        "2727 word index"
+      ],
+      "data": "fixtures",
+      "steps": [
+        "Profile search chain g..gehen"
+      ],
+      "expected": "Prefix chain fast; exact first",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "VOC-002"
+      ],
+      "type": "performance",
+      "automation": "automated:tools/test-search.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PERF-002",
+      "module": "performance",
+      "feature": "Lazy heavy sections",
+      "requirement": "vocab/sentences/verbs/grammar/explain render on visit",
+      "priority": "P1",
+      "preconditions": [
+        "Cold load"
+      ],
+      "data": "None",
+      "steps": [
+        "Measure initial render; visit sections"
+      ],
+      "expected": "Fast start; isolated errors",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "performance",
+      "automation": "automated:tools/runtime-qa.js",
+      "status": "PASS"
+    },
+    {
+      "id": "PERF-003",
+      "module": "performance",
+      "feature": "No timer/interval leaks",
+      "requirement": "Games/challenge clean up on exit",
+      "priority": "P1",
+      "preconditions": [
+        "App loads"
+      ],
+      "data": "None",
+      "steps": [
+        "Run e2e leak checks"
+      ],
+      "expected": "No interval leak",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "performance",
+      "automation": "automated:tools/e2e.js",
+      "status": "PASS"
+    },
+    {
+      "id": "ERR-001",
+      "module": "error-states",
+      "feature": "Corrupt localStorage entry",
+      "requirement": "App boots with defaults; user continues",
+      "priority": "P0",
+      "preconditions": [
+        "LS has garbage"
+      ],
+      "data": "garbage JSON",
+      "steps": [
+        "Boot with corrupt deutsch_master_v2"
+      ],
+      "expected": "Defaults; no white screen",
+      "postconditions": [
+        "Recoverable"
+      ],
+      "dependencies": [
+        "PROG-010"
+      ],
+      "type": "error",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "ERR-002",
+      "module": "error-states",
+      "feature": "Quota-exceeded save",
+      "requirement": "Compact retry; in-memory keeps working",
+      "priority": "P1",
+      "preconditions": [
+        "Full storage"
+      ],
+      "data": "large events",
+      "steps": [
+        "safeSave under quota error"
+      ],
+      "expected": "Compacted save or graceful fail",
+      "postconditions": [
+        "Session continues"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "ERR-003",
+      "module": "error-states",
+      "feature": "Missing browser APIs",
+      "requirement": "No speech/caches/storage → guarded fallbacks",
+      "priority": "P1",
+      "preconditions": [
+        "APIs undefined"
+      ],
+      "data": "None",
+      "steps": [
+        "Static guard audit"
+      ],
+      "expected": "All capability uses guarded",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "error",
+      "automation": "automated:tools/qa-audit.js",
+      "status": "PASS"
+    },
+    {
+      "id": "ERR-004",
+      "module": "error-states",
+      "feature": "Refresh mid-exercise",
+      "requirement": "Totals reconstruct; session restarts clean",
+      "priority": "P1",
+      "preconditions": [
+        "Mid-quiz"
+      ],
+      "data": "None",
+      "steps": [
+        "Refresh mid-quiz"
+      ],
+      "expected": "rebuildTotals exact; no phantom score",
+      "postconditions": [
+        "Consistent"
+      ],
+      "dependencies": [
+        "PROG-003",
+        "TEST-004"
+      ],
+      "type": "error",
+      "automation": "automated:tools/test-progress.js",
+      "status": "PASS"
+    },
+    {
+      "id": "ERR-005",
+      "module": "error-states",
+      "feature": "Empty/single-item datasets",
+      "requirement": "Pickers/generators never throw",
+      "priority": "P1",
+      "preconditions": [
+        "None"
+      ],
+      "data": "empty + 1-item pools",
+      "steps": [
+        "Build sessions from edge pools"
+      ],
+      "expected": "Empty-safe results",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [
+        "TRAIN-006"
+      ],
+      "type": "edge",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    },
+    {
+      "id": "ERR-006",
+      "module": "error-states",
+      "feature": "Long/RTL/mixed strings",
+      "requirement": "No overflow/crash on extreme text",
+      "priority": "P2",
+      "preconditions": [
+        "None"
+      ],
+      "data": "200-char words, mixed scripts",
+      "steps": [
+        "Normalize+render probes"
+      ],
+      "expected": "Handled; CSS wraps",
+      "postconditions": [
+        "None"
+      ],
+      "dependencies": [],
+      "type": "edge",
+      "automation": "automated:tools/test-robustness.js",
+      "status": "PASS"
+    }
   ]
 }

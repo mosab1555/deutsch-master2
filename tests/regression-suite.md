@@ -1,19 +1,24 @@
 # Regression Suite — run after any fix, before every push
 
-Prioritized, all Node-executable. A single FAIL blocks the release.
+Prioritized. A single FAIL blocks the release.
 
-## P0 — must always pass (core learning + data + deployment)
+> Tooling hygiene: run tools by EXPLICIT list (below). Never `node tools/*.js` blindly:
+> `inject-version.js` rewrites HTML in place and `make-www.js` regenerates `www/`
+> as side effects. Run those two only intentionally.
+
+## P0 — must always pass (core learning + data + deployment + runtime)
 
 ```powershell
 node tools/audit-curriculum.js      # VOC-008 GRAM-001 DATA-001
 node tools/smoke-curriculum.js     # SENT-001 DATA-001
-node tools/test-progress.js        # PROG-001..006 PROG-009 TEST-004 ERR-004
+node tools/test-progress.js        # PROG-001..006 PROG-009 TEST-004 ERR-004 (+T5b-d counted flag)
 node tools/test-upgrade.js         # GRAM-002 MIST-001 MIST-002 TEST-001 PWA-005
-node tools/test-robustness.js      # PROG-010 ERR-001 ERR-002 ERR-005 ERR-006 UI-005 UI-006 PWA-007 NAV-002
+node tools/test-robustness.js      # PROG-010 ERR-* UI-005 UI-006 PWA-007 NAV-002 + R31-36 answer guards
 node tools/check-links.js          # REF-005 DATA-002
 node tools/test-career.js          # NAV-005 DATA-003
 node tools/test-sw-update.js       # PWA-001 PWA-002 PWA-003
 node tools/check-testplan.js       # catalog validity
+node tools/runtime-qa.js           # 66 headless-Chrome runtime checks (needs Chrome; ~6 min)
 ```
 
 ## P1 — full sweep (everything else automated)
@@ -44,6 +49,10 @@ node tools/inject-version.js   # PWA-004 (rewrites ?v= in place; idempotent)
 3. Review staged diff: no secrets, no unrelated files.
 4. Commit → push → `HEAD == origin/main` → spot-check live site.
 
-## Last full run (2026-10-02)
+## Last full run (2026-10-02, stage 2)
 
-All P0+P1 suites PASS. Known flakes: `test-smart` adaptive-targeting (~1/6 runs, pre-existing, unrelated to app code — passes on rerun).
+All P0+P1 suites PASS + `runtime-qa.js` 66/66. Catalog: 117 PASS / 1 BLOCKED (PWA-009 install-half).
+Fixed this cycle: curriculum `shuf` scope crash, quiz double-count (`counted:true`),
+mistakes-v2 feature parity (skill filter/badge/why/history, career retry route),
+order-question timer + double-submit guards. Known flakes: `test-smart` adaptive-targeting
+(~1/6 runs, pre-existing, passes on rerun).

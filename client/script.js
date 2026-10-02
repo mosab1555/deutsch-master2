@@ -2538,6 +2538,7 @@ function renderQ(){
     const check=document.createElement("button");check.className="btn btn-primary sm";check.textContent="تحقق ✅";
     check.addEventListener("click",()=>answerOrder(picked.join(" ")));
     $("quizOrder").appendChild(pool);$("quizOrder").appendChild(ans);$("quizOrder").appendChild(check);
+    startQTimer();
     return;
   }
   if(q.kind==="write"){
@@ -2569,6 +2570,7 @@ function timeoutAnswer(){
   if(!q||!$("quizNext").disabled)return;
   if(q.kind==="write"){$("quizWriteInput").disabled=true;$("quizWriteCheck").disabled=true;}
   Array.from($("quizOpts").children).forEach(b=>{b.disabled=true;});
+  Array.from($("quizOrder").querySelectorAll("button")).forEach(b=>{b.disabled=true;});
   toast("⏱️ انتهى الوقت!","err");
   showFeedback(false,q,"(انتهى الوقت)");
 }
@@ -2587,6 +2589,7 @@ function answerQuiz(picked,btn){
 }
 function answerOrder(joined){
   const q=quizQs[quizIdx];
+  if(!q||!$("quizNext").disabled)return;
   const norm=s=>s.replace(/[.?!,]/g,"").trim().replace(/\s+/g," ").toLowerCase();
   const ok=norm(joined)===norm(q.correct.replace(/[.?!,]/g,""));
   showFeedback(ok,q);

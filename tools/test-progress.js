@@ -38,7 +38,20 @@ check("T5 duplicate aid rejected", dup.recorded === false && dup.reason === "dup
 check("T6 no inflation after duplicate", s.totalAnswered === 2 && s.totalCorrect === 1);
 check("T7 aid required", DMProgress.logAttempt(s, { sec: "quiz", ok: true }).recorded === false);
 
-/* retention bound */
+/* 3b: caller-counted attempts (showFeedback path): event recorded + deduped,
+   aggregates untouched (the caller bumps them exactly once itself) */
+let sc = { events: [], evSeen: {}, evSeq: 0, totalAnswered: 10, totalCorrect: 7 };
+check("T5b counted:true records without bump",
+  DMProgress.logAttempt(sc, DMProgress.makeAttempt({ aid: "c1", ok: true }), { counted: true }).recorded === true
+  && sc.totalAnswered === 10 && sc.totalCorrect === 7 && sc.events.length === 1);
+const cdup = DMProgress.logAttempt(sc, DMProgress.makeAttempt({ aid: "c1", ok: true }), { counted: true });
+check("T5c counted duplicate rejected", cdup.recorded === false && cdup.reason === "duplicate" && sc.events.length === 1);
+check("T5d mixed counted+uncounted rebuild consistent",
+  (function () {
+    DMProgress.logAttempt(sc, DMProgress.makeAttempt({ aid: "c2", ok: false }));
+    const r = DMProgress.rebuildTotals(sc);
+    return r.totalAnswered === 2 && r.totalCorrect === 1;
+  })());
 let big = {};
 for (let i = 0; i < 600; i++) DMProgress.logAttempt(big, DMProgress.makeAttempt({ aid: "e" + i, ok: i % 2 === 0 }));
 check("T8 retention capped at MAX_EVENTS", big.events.length === DMProgress.MAX_EVENTS, String(big.events.length));

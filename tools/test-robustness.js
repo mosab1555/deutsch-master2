@@ -138,7 +138,20 @@ for (const f of ["client/index.html", "client/academy.html"]) {
   check("R29 sw cache version current", /german-academy-v(3[3-9]|[4-9][0-9])/.test(sw));
 })();
 
-/* ---------- UI-006: dynamic markup CSS coverage ---------- */
+/* ---------- quiz answer-path guards (static pins for runtime-verified behavior) ---------- */
+(function () {
+  const script = RD("client/script.js");
+  const orderBranch = script.slice(script.indexOf("if(q.kind===\"order\"){"), script.indexOf("if(q.kind===\"write\"){"));
+  check("R31 order questions start the quiz timer", orderBranch.indexOf("startQTimer()") >= 0);
+  const aoStart = script.indexOf("function answerOrder(");
+  check("R32 answerOrder has re-entry guard", /quizNext/.test(script.slice(aoStart, aoStart + 200)));
+  const toStart = script.indexOf("function timeoutAnswer(");
+  check("R33 timeout disables order controls", script.slice(toStart, toStart + 500).indexOf("quizOrder") >= 0);
+  const adv = RD("client/adv.js");
+  check("R34 mistakes v2 honors skill filter", adv.indexOf("mistSkill") >= 0 && adv.indexOf("skillOfMistake") >= 0);
+  check("R35 mistakes v2 renders skill why + history", adv.indexOf("mist-why") >= 0 && adv.indexOf("المحاولات") >= 0);
+  check("R36 career mistake retry routes to career", adv.indexOf("m-(ausb|pfl)-") >= 0);
+})();
 (function () {
   const css = RD("client/style.css");
   const src = RD("client/career.js") + "\n" + RD("client/progress.js");
