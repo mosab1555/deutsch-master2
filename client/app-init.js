@@ -57,6 +57,8 @@
         // Hide sidebar
         document.getElementById("sidebar")?.classList.remove("open");
         document.getElementById("sidebarOverlay")?.classList.remove("show");
+        // Update auth UI
+        if (typeof updateAuthUI === "function") updateAuthUI(false);
     }
 
     // Show main app (hide auth page)
@@ -71,6 +73,8 @@
             dashboard.classList.add("active");
         }
         document.querySelector('.nav-item[data-page="dashboard"]')?.classList.add("active");
+        // Update auth UI
+        if (typeof updateAuthUI === "function") updateAuthUI(true);
     }
 
     // Show auth message
@@ -249,6 +253,23 @@
             var otpInput = document.getElementById("authOTP");
             if (otpInput) otpInput.value = "";
         });
+
+        // Topbar login button
+        document.getElementById("loginBtn")?.addEventListener("click", function() {
+            showAuthPage();
+        });
+
+        // Topbar profile button
+        document.getElementById("profileBtn")?.addEventListener("click", function() {
+            if (typeof showPage === "function") showPage("profile");
+        });
+
+        // Topbar logout button
+        document.getElementById("logoutBtn")?.addEventListener("click", function() {
+            if (window.AuthModule && typeof window.AuthModule.signOut === "function") {
+                window.AuthModule.signOut();
+            }
+        });
     }
 
     // Initialize profile page when shown
@@ -319,6 +340,7 @@
                 if (session && session.user) {
                 // User signed in
                 showMainApp();
+                if (typeof updateAuthUI === "function") updateAuthUI(true);
                 // Initialize sync
                 window.CloudSync?.migrateLocalToCloud?.(session.user.id, window.S);
                 // Start auto sync
@@ -330,6 +352,7 @@
             } else {
                 // User signed out
                 showAuthPage();
+                if (typeof updateAuthUI === "function") updateAuthUI(false);
                 window.CloudSync?.stopAutoSync?.();
             }
         });
@@ -357,6 +380,7 @@
             // Already authenticated
             console.log("[App] Existing session found for:", initResult.user.email || initResult.user.phone);
             showMainApp();
+            updateAuthUI(true);
             var cloudSync = window.CloudSync;
             if (cloudSync && typeof cloudSync.migrateLocalToCloud === "function") {
                 cloudSync.migrateLocalToCloud(initResult.user.id, window.S).then(function() {
@@ -373,6 +397,7 @@
                     }
                 });
             } else {
+                updateAuthUI(false);
                 if (cloudSync && typeof cloudSync.startAutoSync === "function") {
                     cloudSync.startAutoSync(60000);
                 }
@@ -385,6 +410,19 @@
                     profileModule.getProfile();
                 }
             }
+
+        // Update auth UI in topbar
+        function updateAuthUI(isLoggedIn) {
+            var loginBtn = document.getElementById("loginBtn");
+            var userMenu = document.getElementById("userMenu");
+            if (isLoggedIn) {
+                if (loginBtn) loginBtn.style.display = "none";
+                if (userMenu) userMenu.classList.remove("hidden");
+            } else {
+                if (loginBtn) loginBtn.style.display = "";
+                if (userMenu) userMenu.classList.add("hidden");
+            }
+        }
 
         // Hook into profile page navigation
         var originalShowPage = window.showPage;

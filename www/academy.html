@@ -112,7 +112,7 @@
         <input type="text" id="globalSearch" data-i18n-ph="search_ph" placeholder="ابحث: Haus / البيت / فعل / قاعدة...">
         <div class="search-results" id="searchResults"></div>
       </div>
-      <div class="top-actions">
+<div class="top-actions">
         <select id="speedSelect" class="speed-select" data-i18n-title="speed_title" title="سرعة النطق">
           <option value="0.5">0.5x</option>
           <option value="0.75">0.75x</option>
@@ -120,7 +120,13 @@
           <option value="1.25">1.25x</option>
         </select>
         <button class="icon-btn" id="themeBtn" title="Dark / Light">🌙</button>
+        <div class="sync-indicator" id="syncIndicator" data-i18n="sync_ready" data-i18n-title="sync_status_title">☁ جاهز</div>
         <div class="streak-pill" id="topStreak">🔥 0</div>
+        <button class="icon-btn" id="loginBtn" data-i18n="login" data-i18n-title="login" title="تسجيل الدخول" style="display:none">👤</button>
+        <div class="user-menu hidden" id="userMenu">
+          <button class="icon-btn" id="profileBtn" data-i18n="profile" data-i18n-title="profile" title="الملف الشخصي">👤</button>
+          <button class="icon-btn" id="logoutBtn" data-i18n="logout" data-i18n-title="logout" title="تسجيل الخروج">↩️</button>
+        </div>
       </div>
     </header>
 
