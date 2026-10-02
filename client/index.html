@@ -395,12 +395,16 @@
               <div class="flash-face flash-back"><div class="flash-ar" id="flashAr">الطاولة</div><div><button class="btn btn-ghost sm" id="flashSayWBack" data-say-word data-i18n="flash_say_word">🔊 الكلمة</button></div><div class="flash-pron" id="flashPron">دير تيش</div><div class="flash-ex" id="flashEx"></div><div><button class="btn btn-ghost sm" id="flashSaySBack" data-say-sent data-i18n="flash_say_sent">🔊 الجملة</button></div></div>
             </div>
           </div>
-          <div class="flash-controls">
+<div class="flash-controls">
             <button class="btn btn-ghost" id="flashPrev" data-i18n="flash_prev">⏮ السابق</button>
             <button class="btn btn-green" data-flash-rate="known" data-i18n="rate_easy">😊 سهل</button>
             <button class="btn btn-gold" data-flash-rate="review" data-i18n="rate_mid">😐 متوسط</button>
             <button class="btn btn-red" data-flash-rate="hard" data-i18n="rate_hard">😟 صعب</button>
             <button class="btn btn-ghost" id="flashNext" data-i18n="quiz_next">التالي ⏭</button>
+          </div>
+          <div class="flash-connections glass hidden" id="flashConnections" style="margin-top:12px;padding:12px;border-radius:12px;display:none">
+            <h4 style="margin-bottom:8px">🔗 محتوى متصل</h4>
+            <div class="row-flex" style="flex-wrap:wrap;gap:8px" id="flashConnButtons"></div>
           </div>
         </div>
       </section>
@@ -700,10 +704,16 @@
         <div class="panel glass hidden" id="reviewSession"></div>
       </section>
 
-      <!-- MISTAKES -->
+<!-- MISTAKES -->
       <section class="page" id="page-mistakes">
         <div class="page-head"><h2><span data-i18n="mist_head">❌ مراجعة أخطائي</span> (<span id="mistCount">0</span>)</h2>
-          <div class="row-flex"><select id="mistKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select><button class="btn btn-primary sm" id="startMistakes" data-i18n="mist_test">🎯 اختبر أخطائي فقط</button><button class="btn btn-ghost sm" id="clearMistakes" data-i18n="mist_clear">🗑️ مسح الأخطاء</button></div>
+          <div class="row-flex" style="flex-wrap:wrap;gap:8px">
+            <select id="mistKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select>
+            <select id="mistCategory"><option value="all">📂 كل التصنيفات</option></select>
+            <select id="mistView"><option value="all">👁️ الكل</option><option value="weak">🔴 ضعيفة (3+)</option><option value="recent">🕒 حديثة</option><option value="fixed">✅ مصلحة</option><option value="mastered">🏆 متقنة</option></select>
+            <button class="btn btn-primary sm" id="startMistakes" data-i18n="mist_test">🎯 اختبر أخطائي فقط</button>
+            <button class="btn btn-ghost sm" id="clearMistakes" data-i18n="mist_clear">🗑️ مسح الأخطاء</button>
+          </div>
         </div>
         <div class="cards-grid" id="mistGrid"></div>
       </section>

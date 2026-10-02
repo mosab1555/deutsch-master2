@@ -1761,6 +1761,101 @@ function renderDashboard(){
   $("dashPlanner").innerHTML='<div class="stat-bar-row"><span class="lbl">📚 كلمات</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dw/Math.max(1,p.words)*100)+'%;background:linear-gradient(90deg,#7c3aed,#00d4ff)"></div></div><b>'+dw+'/'+p.words+'</b></div>'+
   '<div class="stat-bar-row"><span class="lbl">💬 جمل</span><div class="bar"><div class="fill" style="width:'+Math.min(100,ds/Math.max(1,p.sentences)*100)+'%;background:linear-gradient(90deg,#059669,#34d399)"></div></div><b>'+ds+'/'+p.sentences+'</b></div>'+
   '<div class="stat-bar-row"><span class="lbl">⏱️ دقائق</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dm/Math.max(1,p.minutes)*100)+'%;background:linear-gradient(90deg,#b8860b,#fde68a)"></div></div><b>'+dm+'/'+p.minutes+'</b></div>';
+  renderNextBestStep();
+  renderFocusRow();
+}
+
+function computeNextBestStep(){
+  const words=allWords();
+  const known=words.filter(w=>getStatus(w.id)==="known").length;
+  const due=dueWords().length;
+  const mistakesCount=Object.keys(S.mistakes||{}).length;
+  const hardCount=words.filter(w=>getStatus(w.id)==="hard").length;
+  const newCount=words.filter(w=>getStatus(w.id)==="new").length;
+  const acc=S.totalAnswered?Math.round(S.totalCorrect/S.totalAnswered*100):0;
+  const streak=S.streak.count||0;
+  const lastQuiz=S.lastQuiz;
+  const today=todayStr();
+  const dw=S.planner.day===today?S.planner.dw:0;
+  const ds=S.planner.day===today?S.planner.ds:0;
+
+  if(due>10){
+    return {action:"review",label:"راجع "+due+" كلمة مستحقة",goto:"review",icon:"🧠",reason:"لديك كلمات كثيرة تنتظر المراجعة — SRS يضمن عدم نسيانها."};
+  }
+  if(mistakesCount>0){
+    const topMistake=Object.entries(S.mistakes).sort((a,b)=>b[1].n-a[1].n)[0];
+    if(topMistake && topMistake[1].n>=2){
+      return {action:"mistakes",label:"صحح خطأك المتكرر: "+(topMistake[1].de||""),goto:"mistakes",icon:"❌",reason:"هذا الخطأ تكرر "+topMistake[1].n+" مرات — راجع وافهمه."};
+    }
+    return {action:"mistakes",label:"راجع أخطاءك ("+mistakesCount+")",goto:"mistakes",icon:"❌",reason:"كل خطأ فرصة للتعلم — راجعها الآن."};
+  }
+  if(hardCount>5){
+    return {action:"practice",label:"تدرب على "+hardCount+" كلمة صعبة",goto:"practice",icon:"🎯",reason:"الكلمات الصعبة تحتاج تدريبًا مركّزًا — التدريب الذكي يختارها تلقائيًا."};
+  }
+  if(newCount>0 && known/words.length<0.3){
+    return {action:"vocab",label:"تعلم كلمات جديدة ("+newCount+" متاحة)",goto:"vocab",icon:"📚",reason:"بناء قاعدة مفردات قوية هو الأساس — ابدأ بالكلمات الجديدة."};
+  }
+  if(dw < (S.planner.words||20)){
+    return {action:"vocab",label:"أكمل هدفك اليومي: "+((S.planner.words||20)-dw)+" كلمة",goto:"vocab",icon:"📚",reason:"الاستمرارية اليومية تبني العادة — هدفك "+(S.planner.words||20)+" كلمة/يوم."};
+  }
+  if(ds < (S.planner.sentences||10)){
+    return {action:"sentences",label:"أكمل هدف الجمل: "+((S.planner.sentences||10)-ds)+" جملة",goto:"sentences",icon:"💬",reason:"الجمل تعلمك السياق والترتيب — هدفك "+(S.planner.sentences||10)+" جملة/يوم."};
+  }
+  if(streak===0){
+    return {action:"vocab",label:"ابدأ سلسلة أيامك الأولى 🔥",goto:"vocab",icon:"🔥",reason:"أول يوم في السلسلة هو الأصعب — ابدأ بكلمة واحدة."};
+  }
+  if(lastQuiz && lastQuiz.pct<60){
+    return {action:"practice",label:"قوِّ نقاط ضعفك من آخر اختبار",goto:"practice",icon:"🎯",reason:"نتيجتك "+lastQuiz.pct+"% — التدريب الذكي يركز على ما أخطأت فيه."};
+  }
+  return {action:"journey",label:"واصل رحلتك الألمانية",goto:"journey",icon:"🗺️",reason:"تقدم ممتاز! تابع المسار المنظم من A1 إلى B2."};
+}
+
+function renderNextBestStep(){
+  const step=computeNextBestStep();
+  const el=$("cmdNextBody");
+  if(!el)return;
+  el.innerHTML='<div class="cmd-next-card glass">'+
+    '<div class="cmd-next-icon">'+step.icon+'</div>'+
+    '<div class="cmd-next-text"><b>'+step.label+'</b><div class="muted">'+step.reason+'</div></div>'+
+    '<button class="btn btn-primary" data-goto="'+step.goto+'">ابدأ الآن</button>'+
+    '</div>';
+  el.querySelector("button").addEventListener("click",()=>showPage(step.goto));
+}
+
+function computeWeakAreas(){
+  const words=allWords();
+  const areas=[];
+  const mistakes=S.mistakes||{};
+  const hardWords=words.filter(w=>getStatus(w.id)==="hard");
+  const newWords=words.filter(w=>getStatus(w.id)==="new").length;
+  const dueCount=dueWords().length;
+  const articleMistakes=Object.values(mistakes).filter(m=>m.kind==="article"||m.kind==="sm-article").length;
+  const pluralMistakes=Object.values(mistakes).filter(m=>m.kind==="plural"||m.kind==="sm-plural").length;
+  const verbMistakes=Object.values(mistakes).filter(m=>m.kind==="verb"||m.kind==="sm-verb"||m.kind==="conjugation"||m.kind==="sm-conjugation").length;
+  const grammarMistakes=Object.values(mistakes).filter(m=>m.kind==="grammar"||m.kind==="sm-grammar"||m.kind==="akkusativ"||m.kind==="wortstellung").length;
+
+  if(dueCount>0)areas.push({id:"review",label:"مراجعة مستحقة ("+dueCount+")",count:dueCount,icon:"🧠",goto:"review"});
+  if(hardWords.length>0)areas.push({id:"hard",label:"كلمات صعبة ("+hardWords.length+")",count:hardWords.length,icon:"🔴",goto:"practice"});
+  if(articleMistakes>0)areas.push({id:"article",label:"أدوات التعريف ("+articleMistakes+" أخطاء)",count:articleMistakes,icon:"🎯",goto:"practice"});
+  if(pluralMistakes>0)areas.push({id:"plural",label:"الجمع ("+pluralMistakes+" أخطاء)",count:pluralMistakes,icon:"👥",goto:"practice"});
+  if(verbMistakes>0)areas.push({id:"verb",label:"تصريف الأفعال ("+verbMistakes+" أخطاء)",count:verbMistakes,icon:"⚡",goto:"practice"});
+  if(grammarMistakes>0)areas.push({id:"grammar",label:"قواعد ("+grammarMistakes+" أخطاء)",count:grammarMistakes,icon:"📐",goto:"practice"});
+  if(newWords>0 && words.filter(w=>getStatus(w.id)==="known").length/words.length<0.3)areas.push({id:"vocab",label:"كلمات جديدة ("+newWords+")",count:newWords,icon:"📚",goto:"vocab"});
+
+  areas.sort((a,b)=>b.count-a.count);
+  return areas.slice(0,4);
+}
+
+function renderFocusRow(){
+  const areas=computeWeakAreas();
+  const el=$("cmdFocusRow");
+  if(!el)return;
+  if(!areas.length){
+    el.innerHTML='<div class="muted">ممتاز! لا توجد نقاط ضعف واضحة حاليًا 🎉</div>';
+    return;
+  }
+  el.innerHTML=areas.map(a=>'<button class="focus-chip glass" data-goto="'+a.goto+'"><span class="fi">'+a.icon+'</span><span>'+a.label+'</span></button>').join("");
+  el.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-goto"))));
 }
 
 /* ============ REVIEW SYSTEM (date-aware SRS queue) ============ */
@@ -1770,7 +1865,11 @@ function renderDashboard(){
    3) status priority hard > review > later > new > known.
    A word is due when: its SRS date arrived, OR it was never mastered. */
 function srsOverdue(id){
-  try{const s=S.srs&&S.srs[id];return !!(s&&s.due&&s.due<=todayStr());}catch(e){return false;}
+  try{
+    if(S.srs&&S.srs[id]&&S.srs[id].due&&S.srs[id].due<=todayStr())return true;
+    const s=S.srs&&S.srs[id];
+    return !!(s&&s.due&&s.due<=todayStr());
+  }catch(e){return false;}
 }
 /* Human reason why a word is scheduled — shown in the review session. */
 function srsWhy(id){
@@ -1789,12 +1888,17 @@ function srsWhy(id){
 function dueWords(){
   const words=allWords();
   return words.filter(w=>{
+    // Check DMProgress SRS due date first
+    if(S.srs&&S.srs[w.id]&&S.srs[w.id].due&&S.srs[w.id].due<=todayStr())return true;
     if(srsOverdue(w.id))return true;
     const st=getStatus(w.id);const r=S.review[w.id]||{c:0,w:0};
     if(st==="known"&&r.w===0)return false;
     if(st==="known")return r.w>r.c;
     return true;
   }).sort((a,b)=>{
+    const aOverdue=(S.srs&&S.srs[a.id]&&S.srs[a.id].due&&S.srs[a.id].due<=todayStr())?1:0;
+    const bOverdue=(S.srs&&S.srs[b.id]&&S.srs[b.id].due&&S.srs[b.id].due<=todayStr())?1:0;
+    if(bOverdue!==aOverdue)return bOverdue-aOverdue;
     const oa=srsOverdue(a.id)?1:0,ob=srsOverdue(b.id)?1:0;
     if(ob!==oa)return ob-oa;
     const ra=S.review[a.id]||{c:0,w:0},rb=S.review[b.id]||{c:0,w:0};
@@ -1854,8 +1958,24 @@ function renderReviewQ(){
 }
 function bumpReview(id,ok){
   if(!S.review[id])S.review[id]={c:0,w:0};
-  if(ok){S.review[id].c++;if(getStatus(id)!=="hard")setStatus(id,"known");}
-  else{S.review[id].w++;setStatus(id,"hard");}
+  if(ok){
+    S.review[id].c++;
+    if(getStatus(id)!=="hard")setStatus(id,"known");
+  }else{
+    S.review[id].w++;
+    setStatus(id,"hard");
+  }
+
+  // Use DMProgress SM-2-lite for proper SRS scheduling
+  if(window.DMProgress){
+    const st=S.srs&&S.srs[id]||{laps:0,ease:2.5,miss:0};
+    st.miss=(S.mistakes&&S.mistakes[id]&&S.mistakes[id].n)||0;
+    st.ok=ok;
+    const nxt=DMProgress.nextReview(st);
+    if(!S.srs)S.srs={};
+    S.srs[id]={laps:nxt.laps,ease:nxt.ease,due:DMProgress.todayKey(new Date(Date.now()+nxt.dueIn*86400000)),miss:st.miss};
+  }
+
   S.totalAnswered++;if(ok)S.totalCorrect++;
   markStudyDay();save();renderAll();
 }
@@ -1996,6 +2116,44 @@ function renderFlash(){
     $("flashcard").dataset.wid=w.id;
     $("flashCounter").textContent=(flashIdx%flashList.length+1)+" / "+flashList.length;
     $("flashBar").style.width=((flashIdx%flashList.length+1)/flashList.length*100)+"%";
+
+    // Populate content connections
+    const connBox=$("flashConnButtons");
+    if(connBox){
+      const relatedSentences=SENTENCES.filter(s=>s.de.includes(w.de)).slice(0,2);
+      const relatedGrammar=GRAMMAR.filter(g=>g.body.includes(w.de) || (g.ex&&g.ex.some(e=>e[0].includes(w.de)))).slice(0,1);
+      const isMistake=S.mistakes&&S.mistakes[w.id];
+      const isDue=dueWords().some(dw=>dw.id===w.id);
+
+      let connHtml='';
+      if(relatedSentences.length)connHtml+='<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' جملة</button>';
+      if(relatedGrammar.length)connHtml+='<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' قاعدة</button>';
+      if(w.type==="اسم")connHtml+='<button class="btn btn-ghost sm" data-goto="vocab" data-search="'+escapeHtml(w.de)+'">📚 كلمة</button>';
+      if(isMistake)connHtml+='<button class="btn btn-red sm" data-goto="mistakes">❌ خطأ ('+isMistake.n+'x)</button>';
+      if(isDue)connHtml+='<button class="btn btn-green sm" data-goto="review">🧠 مستحقة</button>';
+      connHtml+='<button class="btn btn-primary sm" data-goto="practice">🎯 تدريب</button>';
+
+      connBox.innerHTML=connHtml;
+      connBox.querySelectorAll("[data-goto]").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const page=btn.getAttribute("data-goto");
+          const search=btn.getAttribute("data-search");
+          showPage(page);
+          if(search){
+            setTimeout(()=>{
+              if(page==="sentences"){$("sentenceSearch").value=search;renderSentences();}
+              else if(page==="grammar"){renderGrammar();}
+              else if(page==="vocab"){$("vocabSearch").value=search;renderVocab();}
+            },100);
+          }
+        });
+      });
+      const connEl=$("flashConnections");
+      if(connEl){
+        connEl.style.display=connHtml?"flex":"none";
+        connEl.classList.toggle("hidden",!connHtml);
+      }
+    }
   },150);
 }
 /* Face language: front shows German unless direction is ar-de (and vice versa). */
@@ -2707,11 +2865,40 @@ function renderQuizHistory(){
 function renderMistakes(){
   if(!S.mistakes)S.mistakes={};
   const kf=$("mistKapitel")?$("mistKapitel").value:"";
+  const vf=$("mistView")?$("mistView").value:"all";
+
   if($("mistKapitel")&&!$("mistKapitel").options.length||$("mistKapitel")&&$("mistKapitel").options.length<=1){
     try{$("mistKapitel").innerHTML='<option value="">كل الكبيتلات</option>'+KAPITEL.filter(k=>k.id!=="KX").map(k=>'<option value="'+k.id+'">'+k.icon+" "+k.id+" • "+k.name+"</option>").join("");$("mistKapitel").value=kf;}catch(e){}
   }
+
+  // Build mistake categories
+  const categories={
+    all:"الكل",
+    article:"🎯 أدوات التعريف",
+    plural:"👥 الجمع",
+    verb:"⚡ الأفعال",
+    grammar:"📐 القواعد",
+    akkusativ:"📍 المفعول به",
+    wortstellung:"🔤 ترتيب الجملة",
+    listening:"🎧 الاستماع",
+    translation:"🔄 الترجمة"
+  };
+
+  if($("mistCategory")&&!$("mistCategory").options.length){
+    try{$("mistCategory").innerHTML=Object.entries(categories).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join("");}catch(e){}
+  }
+  const cf=$("mistCategory")?$("mistCategory").value:"all";
+
   let ids=Object.keys(S.mistakes).sort((a,b)=>S.mistakes[b].n-S.mistakes[a].n);
   if(kf)ids=ids.filter(id=>{const w=wordById(id);return w&&w.kap===kf;});
+  if(cf!=="all")ids=ids.filter(id=>{const m=S.mistakes[id];const w=wordById(id);return DMProgress&&DMProgress.skillOfMistake(m,w)===cf;});
+
+  // View filters
+  if(vf==="weak")ids=ids.filter(id=>S.mistakes[id].n>=3);
+  else if(vf==="recent")ids=ids.filter(id=>{const m=S.mistakes[id];return m.date && (Date.now()-new Date(m.date).getTime())<7*86400000;});
+  else if(vf==="fixed")ids=ids.filter(id=>S.mistakes[id].done===true);
+  else if(vf==="mastered")ids=ids.filter(id=>{const m=S.mistakes[id];return m.okn>=3;});
+
   /* DMProgress skill filter (progress.js): groups recurring mistakes by skill
      using stable kind/question ids, never raw display text alone. */
   try{
@@ -2726,11 +2913,34 @@ function renderMistakes(){
   }catch(e){}
   $("mistCount").textContent=ids.length;
   $("navMistBadge").textContent=ids.length;
+
   const g=$("mistGrid");g.innerHTML="";
-  if(!ids.length){g.innerHTML='<div class="panel glass">لا توجد أخطاء — استمر! 🎉<br><span class="muted">الكلمات التي تخطئ فيها أثناء الاختبارات ستظهر هنا.</span></div>';return;}
+  if(!ids.length){
+    const emptyMsg=vf==="all"?'لا توجد أخطاء — استمر! 🎉<br><span class="muted">الكلمات التي تخطئ فيها أثناء الاختبارات ستظهر هنا.</span>':
+      vf==="weak"?'لا توجد أخطاء متكررة (3+ مرات) 🎉':
+      vf==="recent"?'لا توجد أخطاء حديثة (آخر ٧ أيام) 🎉':
+      vf==="fixed"?'لا توجد أخطاء مُصلحة بعد 🎉':
+      'لا توجد أخطاء مُتقنة بعد 🎉';
+    g.innerHTML='<div class="panel glass">'+emptyMsg+'</div>';
+    return;
+  }
+
+  // Stats cards for mistake dashboard
+  const totalMistakes=Object.keys(S.mistakes).length;
+  const weakMistakes=Object.values(S.mistakes).filter(m=>m.n>=3).length;
+  const fixedMistakes=Object.values(S.mistakes).filter(m=>m.done===true).length;
+  const masteredMistakes=Object.values(S.mistakes).filter(m=>m.okn>=3).length;
+
+  let statsHtml='<div class="mist-stats-row">';
+  statsHtml+='<div class="stat-card glass"><div class="stat-ico">❌</div><div class="stat-num">'+totalMistakes+'</div><div class="stat-label">إجمالي الأخطاء</div></div>';
+  statsHtml+='<div class="stat-card glass"><div class="stat-ico">🔴</div><div class="stat-num">'+weakMistakes+'</div><div class="stat-label">متكررة (3+)</div></div>';
+  statsHtml+='<div class="stat-card glass"><div class="stat-ico">✅</div><div class="stat-num">'+fixedMistakes+'</div><div class="stat-label">مُصلحة</div></div>';
+  statsHtml+='<div class="stat-card glass"><div class="stat-ico">🏆</div><div class="stat-num">'+masteredMistakes+'</div><div class="stat-label">مُتقنة</div></div>';
+  statsHtml+='</div>';
+  g.innerHTML=statsHtml;
+
   ids.slice(0,60).forEach(id=>{
     const m=S.mistakes[id];const w=wordById(id);
-    /* DMProgress skill badge + Arabic "why" explanation (progress.js). */
     let skillHtml="";
     try{
       if(window.DMProgress){
@@ -2747,14 +2957,20 @@ function renderMistakes(){
         histHtml='<div class="muted">🕘 المحاولات: '+m.hist.map(h=>(h.ok?"✅":"❌")).join(" ")+'</div>';
       }
     }catch(e){}
+    const masteryBadge=m.done?'<span class="badge" style="background:var(--green)">🏆 مُتقن</span>':
+      m.okn>=2?'<span class="badge" style="background:var(--gold)">⭐ '+m.okn+'/3</span>':
+      m.n>=3?'<span class="badge" style="background:var(--red)">🔴 '+m.n+'x</span>':
+      '<span class="badge" style="background:var(--orange)">⚠️ '+m.n+'x</span>';
+
     const d=document.createElement("div");d.className="mist-card glass";
-    d.innerHTML='<div class="de-line" dir="ltr"><b>'+escapeHtml(m.de||(w?fullDe(w):id))+'</b></div>'+
+    d.innerHTML='<div class="de-line" dir="ltr"><b>'+escapeHtml(m.de||(w?fullDe(w):id))+'</b> '+masteryBadge+'</div>'+
       (w&&w.kap?'<div class="muted">📚 '+escapeHtml(w.kap)+'</div>':"")+skillHtml+
       '<div class="word-ar">'+escapeHtml(m.ar||(w?w.ar:""))+'</div>'+
       '<div class="mist-err">❌ خطأك: <b>'+escapeHtml(m.last||"—")+'</b> • تكرر <b>'+m.n+'</b> '+(m.n>1?"مرات":"مرة")+'</div>'+histHtml+
-      '<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">🎯 اختبرني</button><button class="mini-btn" data-a="del">🗑️</button></div>';
+      '<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">🎯 اختبرني</button><button class="mini-btn" data-a="review">🔁 مراجعة</button><button class="mini-btn" data-a="del">🗑️</button></div>';
     d.querySelector('[data-a="speak"]').addEventListener("click",()=>{if(w)speak(fullDe(w));});
     d.querySelector('[data-a="test"]').addEventListener("click",()=>{if(w)quickArticleQuiz(w);else if(/^m-(ausb|pfl)-/.test(id)){showPage("career");toast("راجع الوحدة وأعد اختبارها 🎯","ok");}else toast("الكلمة غير موجودة","err");});
+    d.querySelector('[data-a="review"]').addEventListener("click",()=>{if(w){setStatus(w.id,"review");markStudyDay();save();renderMistakes();toast("أُضيفت للمراجعة 🔁","ok");}});
     d.querySelector('[data-a="del"]').addEventListener("click",()=>{removeMistake(id);renderMistakes();});
     g.appendChild(d);
   });
@@ -3115,6 +3331,27 @@ function openWordDetail(id){
   const artCls=w.art==="der"?"der":w.art==="die"?"die":w.art==="das"?"das":"none";
   const head=w.art!=="-"?'<span class="article '+artCls+'">'+w.art+'</span><span>'+escapeHtml(w.de)+'</span>':'<span>'+escapeHtml(w.de)+'</span>';
   const pl=(w.type==="اسم"&&w.plural)?'<div class="detail-pl"><span class="article '+artCls+' sm">'+w.art+'</span> '+escapeHtml(w.plural)+' <button class="icon-btn" id="dtSpeakPl" title="نطق الجمع">🔊</button></div>':'';
+
+  // Find related content
+  const relatedSentences=SENTENCES.filter(s=>s.de.includes(w.de)).slice(0,3);
+  const relatedGrammar=GRAMMAR.filter(g=>g.body.includes(w.de) || (g.ex&&g.ex.some(e=>e[0].includes(w.de)))).slice(0,2);
+  const isMistake=S.mistakes&&S.mistakes[w.id];
+  const isDue=dueWords().some(dw=>dw.id===w.id);
+
+  const connectionsHtml=`
+    <div class="detail-connections glass" style="margin-top:12px;padding:12px;border-radius:12px">
+      <h4 style="margin-bottom:8px">🔗 محتوى متصل</h4>
+      <div class="row-flex" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        ${relatedSentences.length?'<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' جملة</button>':''}
+        ${relatedGrammar.length?'<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' قاعدة</button>':''}
+        ${w.type==="اسم"?'<button class="btn btn-ghost sm" data-goto="flashcards" data-filter-type="'+(w.art||'')+'">🃏 فلاش كارد</button>':''}
+        ${isMistake?'<button class="btn btn-red sm" data-goto="mistakes">❌ في أخطائي ('+isMistake.n+'x)</button>':''}
+        ${isDue?'<button class="btn btn-green sm" data-goto="review">🧠 مستحقة للمراجعة</button>':''}
+        <button class="btn btn-ghost sm" data-goto="practice">🎯 تدريب ذكي</button>
+      </div>
+    </div>
+  `;
+
   $("detailBody").innerHTML=
     '<div class="detail-de">'+head+' <button class="icon-btn" id="dtSpeak">🔊</button></div>'+pl+
     (w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(w.de)+'" loading="lazy">':'')+
@@ -3122,6 +3359,7 @@ function openWordDetail(id){
     '<div class="word-pron">النطق: '+escapeHtml(w.pron)+'</div>'+
     '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div>'+
     '<div class="word-meta"><span class="tag kap-tag">'+kapName(w.kap||"KX")+'</span><span class="tag">'+escapeHtml(w.cat)+'</span><span class="tag">'+escapeHtml(w.type)+'</span><span class="tag">مستوى '+(w.level||"A1")+'</span><span class="status-tag '+st+'">'+STATUS_AR[st]+'</span></div>'+
+    connectionsHtml+
     '<div class="row-flex"><button class="btn btn-green sm" id="dtKnown">✅ أعرفها</button><button class="btn btn-gold sm" id="dtReview">🔁 تحتاج مراجعة</button><button class="btn btn-ghost sm" id="dtFav">'+(fav?"💔 إزالة من المفضلة":"❤️ مفضلة")+'</button><button class="btn btn-primary sm" id="dtQuiz">❓ اختبرني</button></div>';
   $("detailModal").classList.remove("hidden");
   $("dtSpeak").addEventListener("click",()=>speak(fullDe(w)));
@@ -3130,6 +3368,30 @@ function openWordDetail(id){
   $("dtReview").addEventListener("click",()=>{setStatus(w.id,"review");markStudyDay();renderAll();openWordDetail(id);toast("ستُراجع لاحقًا 🔁","ok");});
   $("dtFav").addEventListener("click",()=>{toggleFav(w.id);openWordDetail(id);});
   $("dtQuiz").addEventListener("click",()=>{$("detailModal").classList.add("hidden");quickArticleQuiz(w);});
+
+  // Add click handlers for connection buttons
+  setTimeout(()=>{
+    $("detailBody").querySelectorAll("[data-goto]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const page=btn.getAttribute("data-goto");
+        const search=btn.getAttribute("data-search");
+        const filterType=btn.getAttribute("data-filter-type");
+        showPage(page);
+        if(search){
+          setTimeout(()=>{
+            if(page==="sentences"){$("sentenceSearch").value=search;renderSentences();}
+            else if(page==="grammar"){$("grammarKapitel").value="";renderGrammar();}
+          },100);
+        }
+        if(filterType){
+          setTimeout(()=>{
+            if(page==="flashcards"){$("flashType").value=filterType;buildFlash();}
+          },100);
+        }
+        $("detailModal").classList.add("hidden");
+      });
+    });
+  },0);
 }
 $("closeDetail").addEventListener("click",()=>$("detailModal").classList.add("hidden"));
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").classList.add("hidden");});
