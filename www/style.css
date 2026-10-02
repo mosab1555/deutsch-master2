@@ -52,11 +52,9 @@ html[data-theme="light"] .sidebar{background:rgba(255,255,255,.85)}
 html[data-theme="light"] .search-wrap input{background:#fff}
 .search-ico{position:absolute;right:12px;transition:opacity .25s ease,transform .25s ease,visibility .25s;pointer-events:none}
 .search-wrap.has-text .search-ico{opacity:0;transform:scale(.6);visibility:hidden}
-.search-results{position:absolute;top:110%;right:0;left:0;background:#101736;border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
-html[data-theme="light"] .search-results{background:#fff}
+.search-results{position:absolute;top:110%;right:0;left:0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
 .search-results.show{display:block}
-#notifDrop{position:absolute;top:110%;left:0;min-width:260px;max-width:90vw;background:#101736;border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
-html[data-theme="light"] #notifDrop{background:#fff}
+#notifDrop{position:absolute;top:110%;left:0;min-width:260px;max-width:90vw;background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
 #notifDrop.show{display:block}
 .top-actions{position:relative}
 .search-hit{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border)}.search-hit:hover{background:rgba(var(--v2),.12)}
@@ -258,7 +256,7 @@ html[data-theme="light"] .stat-bar-row .bar{background:rgba(0,0,0,.08)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 /* Toast */
 .toast-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:300}
-.toast{background:#101736;border:1px solid var(--cyan);color:#fff;padding:12px 22px;border-radius:14px;font-weight:700;animation:pageIn .3s;box-shadow:0 0 20px rgba(var(--v2),.4)}
+.toast{background:var(--bg2);border:1px solid var(--cyan);color:var(--text);padding:12px 22px;border-radius:14px;font-weight:700;animation:pageIn .3s;box-shadow:0 0 20px rgba(var(--v2),.4)}
 .toast.ok{border-color:var(--green)}.toast.err{border-color:var(--red)}
 /* Responsive */
 /* Word display: der Tisch / die Tische */
@@ -370,6 +368,10 @@ html[data-theme="light"] .talk-bot{background:rgba(0,0,0,.05)}
 .theme-card{border:2px solid var(--border);border-radius:14px;padding:10px;cursor:pointer;background:rgba(255,255,255,.03);transition:.25s;text-align:center}
 .theme-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(var(--v2),.35)}
 .theme-card.selected{border-color:var(--cyan);box-shadow:0 0 16px rgba(var(--v2),.5)}
+.theme-card.selected .theme-name::after{content:" ✓";color:var(--cyan)}
+.theme-sw{display:flex;gap:6px;justify-content:center;margin:6px 0 2px}
+.theme-sw span{width:18px;height:18px;border-radius:50%;border:1px solid rgba(128,128,128,.45)}
+@media (prefers-reduced-motion:reduce){.theme-card,.theme-card:hover{transform:none;transition:none}}
 .theme-name{font-weight:800;font-size:13px;margin:6px 0 2px}
 .theme-prev{height:34px;border-radius:9px;margin-bottom:2px}
 .theme-hex{font-size:11px;color:var(--muted);direction:ltr}

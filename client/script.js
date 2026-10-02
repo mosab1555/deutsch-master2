@@ -1539,21 +1539,47 @@ const THEMES=[
 {id:"neon",name:"Neon",c1:"#22ff88",c2:"#00e5ff",gold:"#faff00",p2:"#00aa55"},
 {id:"midnight",name:"Midnight",c1:"#312e81",c2:"#155e75",gold:"#d4a017",p2:"#1e1b4b"},
 {id:"cyber",name:"Cyber",c1:"#d946ef",c2:"#22d3ee",gold:"#f0abfc",p2:"#a21caf"},
-{id:"darkpurple",name:"Dark Purple",c1:"#6d28d9",c2:"#4c1d95",gold:"#c4b5fd",p2:"#4c1d95"}];
+{id:"darkpurple",name:"Dark Purple",c1:"#6d28d9",c2:"#4c1d95",gold:"#c4b5fd",p2:"#4c1d95"},
+/* ---- Premium collection (additive): distinct identities, coordinated accents.
+   Optional fields (backward compatible): p1 = button/accent override (when c1
+   is too light for white text), base = preferred "light"/"dark" surface set,
+   surf = surface overrides applied as CSS vars (cleared when absent). ---- */
+{id:"cyberneon",name:"Cyber Neon",c1:"#00e5ff",c2:"#a855f7",gold:"#facc15",p1:"#0369a1",p2:"#1e40af"},
+{id:"royalpurple",name:"Royal Purple",c1:"#6d28d9",c2:"#c084fc",gold:"#e9d5ff",p2:"#4c1d95"},
+{id:"emeraldpro",name:"Emerald Pro",c1:"#059669",c2:"#34d399",gold:"#f5c451",p1:"#047857",p2:"#065f46"},
+{id:"crimsonfire",name:"Crimson Fire",c1:"#dc2626",c2:"#f97316",gold:"#fdba74",p2:"#7f1d1d"},
+{id:"oceanblue",name:"Ocean Blue",c1:"#1e40af",c2:"#22d3ee",gold:"#fcd34d",p2:"#0c4a6e"},
+{id:"sunsetfusion",name:"Sunset Fusion",c1:"#a21caf",c2:"#fb923c",gold:"#fecdd3",p2:"#4c1d95"},
+{id:"luxurygold",name:"Luxury Gold",c1:"#b8860b",c2:"#f5c451",gold:"#fff7ed",p1:"#854d0e",p2:"#451a03",surf:{bg:"#0d0b08",bg2:"#1a1510"}},
+{id:"arcticice",name:"Arctic Ice",c1:"#0284c7",c2:"#7dd3fc",gold:"#92400e",p2:"#0c4a6e",base:"light"},
+{id:"aurora",name:"Aurora",c1:"#14b8a6",c2:"#c084fc",gold:"#f0abfc",p1:"#0f766e",p2:"#134e4a"},
+{id:"obsidian",name:"Obsidian",c1:"#e2e8f0",c2:"#38bdf8",gold:"#cbd5e1",p1:"#334155",p2:"#334155",surf:{bg:"#050507",bg2:"#0e0e14"}},
+{id:"sapphireglass",name:"Sapphire Glass",c1:"#1d4ed8",c2:"#7dd3fc",gold:"#dbeafe",p2:"#172554",surf:{border:"rgba(147,197,253,.22)"}},
+{id:"rosequartz",name:"Rose Quartz",c1:"#db2777",c2:"#f9a8d4",gold:"#92400e",p2:"#831843",base:"light",surf:{bg:"#fdf2f6",bg2:"#ffffff"}}];
 function themeById(id){return THEMES.find(t=>t.id===id)||THEMES[0];}
 function applyColor(id){
   const t=themeById(id||(S.settings&&S.settings.color)||"default");
   const r=document.documentElement.style;
   r.setProperty("--violet",t.c1);r.setProperty("--neon",t.c2);r.setProperty("--cyan",t.c2);
-  r.setProperty("--gold",t.gold);r.setProperty("--p1",t.c1);r.setProperty("--p2",t.p2);
-  r.setProperty("--v1",hexRgb(t.c1));r.setProperty("--v2",hexRgb(t.c2));r.setProperty("--v3",hexRgb(t.gold));
+  r.setProperty("--gold",t.gold);r.setProperty("--p1",t.p1||t.c1);r.setProperty("--p2",t.p2);
+  r.setProperty("--v1",hexRgb(t.p1||t.c1));r.setProperty("--v2",hexRgb(t.c2));r.setProperty("--v3",hexRgb(t.gold));
   r.setProperty("--grad","linear-gradient(135deg,"+t.c1+","+t.c2+")");
+  /* Optional per-theme surfaces (absent = legacy behavior, fully backward compatible).
+     Previously applied overrides are always cleared first so switching back to a
+     classic theme restores the base surfaces exactly. */
+  ["--bg","--bg2","--card","--border","--text","--muted"].forEach(k=>r.removeProperty(k));
+  if(t.base&&(typeof S!=="undefined")&&S&&S.settings&&S.settings.theme!==t.base){
+    S.settings.theme=t.base;try{save();}catch(e){}
+    document.documentElement.setAttribute("data-theme",t.base);
+    const tb=$("themeBtn");if(tb)tb.textContent=t.base==="dark"?"🌙":"☀️";
+  }
+  if(t.surf){for(const k in t.surf){if(Object.prototype.hasOwnProperty.call(t.surf,k))r.setProperty("--"+k,t.surf[k]);}}
 }
 function setColor(id){S.settings.color=id;save();applyColor(id);renderThemes();toast("تم تطبيق اللون ✅","ok");}
 function renderThemes(){
   const box=$("themeGrid");if(!box)return;
   const cur=(S.settings&&S.settings.color)||"default";
-  box.innerHTML=THEMES.map(t=>'<div class="theme-card'+(t.id===cur?" selected":"")+'" data-th="'+t.id+'"><div class="theme-prev" style="background:linear-gradient(135deg,'+t.c1+','+t.c2+')"></div><div class="theme-name">'+t.name+'</div><div class="theme-hex">'+t.c1+' • '+t.c2+'</div></div>').join("");
+  box.innerHTML=THEMES.map(t=>'<div class="theme-card'+(t.id===cur?" selected":"")+'" data-th="'+t.id+'"><div class="theme-prev" style="background:linear-gradient(135deg,'+t.c1+','+t.c2+')"></div><div class="theme-sw"><span style="background:'+t.c1+'"></span><span style="background:'+t.c2+'"></span><span style="background:'+t.gold+'"></span></div><div class="theme-name">'+t.name+'</div><div class="theme-hex">'+t.c1+' • '+t.c2+'</div></div>').join("");
   box.querySelectorAll("[data-th]").forEach(c=>c.addEventListener("click",()=>setColor(c.getAttribute("data-th"))));
 }
 $("themeBtn").addEventListener("click",()=>{S.settings.theme=S.settings.theme==="dark"?"light":"dark";save();applyTheme();});
