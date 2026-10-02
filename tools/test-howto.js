@@ -11,7 +11,9 @@ let pass = 0, fail = 0;
 function check(n, c, x) { if (c) { pass++; console.log("PASS " + n); } else { fail++; console.log("FAIL " + n + (x ? "  [" + x + "]" : "")); } }
 
 /* ---------- 1. sidebar + shells ---------- */
-const EXPECT_HEAD = ["dashboard", "vocab", "sentences", "explain", "verbs", "reference", "flashcards", "howto"];
+/* Required sidebar head order: dashboard, vocab, sentences, flashcards, explain,
+   verbs, grammar, reference, howto, career — everything else keeps its order after. */
+const EXPECT_HEAD = ["dashboard", "vocab", "sentences", "flashcards", "explain", "verbs", "grammar", "reference", "howto", "career"];
 for (const f of ["client/index.html", "client/academy.html"]) {
   const h = RD(f);
   const navCount = (h.match(/data-page="howto"/g) || []).length;
@@ -19,8 +21,8 @@ for (const f of ["client/index.html", "client/academy.html"]) {
   const ico = h.match(/data-page="howto"><span class="nav-ico">([^<]*)</);
   check(f + " nav howto has single icon", !!ico && ico[1].trim().length > 0, ico ? ico[1] : "none");
   const navs = [...h.matchAll(/<button class="nav-item[^"]*" data-page="([^"]+)"/g)].map(m => m[1]);
-  const head = navs.slice(0, 8);
-  check(f + " sidebar order keeps howto 8th", head.join(",") === EXPECT_HEAD.join(","), head.join(","));
+  const head = navs.slice(0, 10);
+  check(f + " sidebar starts with required head order", head.join(",") === EXPECT_HEAD.join(","), head.join(","));
   check(f + " section page-howto", h.indexOf('id="page-howto"') >= 0);
   check(f + " container howtoBox", h.indexOf('id="howtoBox"') >= 0);
   check(f + " loads howto.js", /<script src="howto\.js(\?[^"]*)?"><\/script>/.test(h));
