@@ -14,7 +14,7 @@
 window.SUPABASE_CONFIG = {
     url: "https://bhdgpscedjowchldsjnd.supabase.co",
     // TODO: paste the Supabase Publishable key here (starts with sb_publishable_).
-    anonKey: "",
+    anonKey: "sb_publishable_uXuF7XTCdEjkcsKiHSKpbA_hT6kkbCg",
     // OAuth / email redirect targets (allowed in Supabase Dashboard > Authentication > URL Configuration)
     redirectUrls: {
         local: "http://127.0.0.1:5500/",
