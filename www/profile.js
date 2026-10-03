@@ -8,13 +8,20 @@ const ProfileModule = (function () {
 
     let profileCache = null;
 
+    // Shared client: app-init publishes the single AuthModule-owned instance on
+    // window.supabaseClient; fall back to AuthModule directly (init race).
+    function db() {
+        return window.supabaseClient || window.AuthModule?.getClient?.() || null;
+    }
+
     // Get profile data
     async function getProfile() {
         const user = window.AuthModule?.getUser?.();
-        if (!user) return null;
+        const client = db();
+        if (!user || !client) return null;
 
         try {
-            const { data, error } = await window.supabaseClient
+            const { data, error } = await client
                 .from("profiles")
                 .select("*")
                 .eq("id", user.id)
@@ -32,10 +39,12 @@ const ProfileModule = (function () {
     // Update profile
     async function updateProfile(updates) {
         const user = window.AuthModule?.getUser?.();
+        const client = db();
         if (!user) return { error: "Not authenticated" };
+        if (!client) return { error: "Sync not initialized" };
 
         try {
-            const { data, error } = await window.supabaseClient
+            const { data, error } = await client
                 .from("profiles")
                 .update({ ...updates, updated_at: new Date().toISOString() })
                 .eq("id", user.id)
@@ -63,16 +72,17 @@ const ProfileModule = (function () {
     // Get sync status info
     async function getSyncStatus() {
         const user = window.AuthModule?.getUser?.();
-        if (!user) return null;
+        const client = db();
+        if (!user || !client) return null;
 
         try {
-            const { data: progress } = await window.supabaseClient
+            const { data: progress } = await client
                 .from("user_progress")
                 .select("version, updated_at, device_id")
                 .eq("user_id", user.id)
                 .single();
 
-            const { data: devices } = await window.supabaseClient
+            const { data: devices } = await client
                 .from("devices")
                 .select("device_id, device_name, platform, last_sync_at, created_at")
                 .eq("user_id", user.id);

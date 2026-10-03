@@ -237,18 +237,41 @@ const CloudSync = (function () {
     }
 
     // Upload local changes only (incremental)
+    // Read-before-write: if the cloud holds a NEWER version than this device,
+    // merge first so we never silently overwrite newer progress with older data.
     async function uploadChanges(userId, localState) {
         if (!supabaseClient || !userId || !isOnline) {
             return queueOperation("upsert_progress", { state: localState });
         }
 
         try {
-            const version = getLocalVersion() + 1;
+            const localVersion = getLocalVersion();
+            let stateToUpload = localState;
+            let version = localVersion + 1;
+
+            try {
+                const { data: cloudRow, error: cloudError } = await supabaseClient
+                    .from("user_progress")
+                    .select("state, version")
+                    .eq("user_id", userId)
+                    .single();
+                if (!cloudError && cloudRow && (cloudRow.version || 0) > localVersion) {
+                    // Cloud is newer - deterministic merge, then upload merged state
+                    const merged = mergeStates(localState, cloudRow.state || {}, localVersion, cloudRow.version || 0);
+                    stateToUpload = merged.state;
+                    version = (cloudRow.version || 0) + 1;
+                    applyMergedState(stateToUpload);
+                }
+            } catch (e) {
+                // Version pre-check is best-effort; fall through to plain upload
+                console.warn("[Sync] Cloud version pre-check failed, uploading local:", e);
+            }
+
             const { error } = await supabaseClient
                 .from("user_progress")
                 .upsert({
                     user_id: userId,
-                    state: localState,
+                    state: stateToUpload,
                     version,
                     device_id: window.AuthModule?.getDeviceId?.(),
                     updated_at: new Date().toISOString()
@@ -581,22 +604,45 @@ const CloudSync = (function () {
     }
 
     // Execute a queued operation
+    // Same read-before-write guard as uploadChanges: a stale queued payload
+    // must never clobber newer cloud progress when connectivity returns.
     async function executeOperation(op) {
         const user = window.AuthModule?.getUser?.();
         if (!user) throw new Error("No user");
 
         switch (op.type) {
-            case "upsert_progress":
-                await supabaseClient
+            case "upsert_progress": {
+                let stateToUpload = op.payload.state;
+                let version = getLocalVersion() + 1;
+                try {
+                    const { data: cloudRow, error: cloudError } = await supabaseClient
+                        .from("user_progress")
+                        .select("state, version")
+                        .eq("user_id", user.id)
+                        .single();
+                    if (!cloudError && cloudRow && (cloudRow.version || 0) >= version) {
+                        const merged = mergeStates(op.payload.state, cloudRow.state || {}, getLocalVersion(), cloudRow.version || 0);
+                        stateToUpload = merged.state;
+                        version = (cloudRow.version || 0) + 1;
+                    }
+                } catch (e) {
+                    console.warn("[Sync] Queue version pre-check failed, uploading queued state:", e);
+                }
+                const { error } = await supabaseClient
                     .from("user_progress")
                     .upsert({
                         user_id: user.id,
-                        state: op.payload.state,
-                        version: getLocalVersion() + 1,
+                        state: stateToUpload,
+                        version,
                         device_id: window.AuthModule?.getDeviceId?.(),
                         updated_at: new Date().toISOString()
                     }, { onConflict: "user_id" });
+                if (error) throw error;
+                if (stateToUpload !== op.payload.state) applyMergedState(stateToUpload);
+                setLocalVersion(version);
+                currentVersion = version;
                 break;
+            }
             default:
                 console.warn("[Sync] Unknown operation type:", op.type);
         }

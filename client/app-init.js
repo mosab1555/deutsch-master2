@@ -93,6 +93,48 @@
         }
     }
 
+    // Password-recovery completion (the reset EMAIL is sent by AuthModule.resetPassword;
+    // this wires the landing side: after the user clicks the email link, Supabase
+    // fires PASSWORD_RECOVERY and AuthModule.updatePassword sets the new password).
+    // Dynamic strings only (no new data-i18n keys, no dict changes).
+    var recoveryMode = false;
+    function handlePasswordRecovery() {
+        recoveryMode = true;
+        showAuthPage();
+        showAuthMessage("أدخل كلمة المرور الجديدة في حقل كلمة المرور ثم اضغط زر التعيين.", false);
+        var form = document.getElementById("emailForm");
+        if (form && !document.getElementById("btnUpdatePassword")) {
+            var btn = document.createElement("button");
+            btn.id = "btnUpdatePassword";
+            btn.type = "button";
+            btn.className = "btn btn-primary btn-block";
+            btn.textContent = "تعيين كلمة المرور الجديدة";
+            btn.style.marginTop = "8px";
+            btn.addEventListener("click", function () {
+                var pw = document.getElementById("authPassword")?.value;
+                if (!pw || pw.length < 6) {
+                    showAuthMessage(window.t?.("weak_password") || "كلمة المرور ضعيفة جداً. استخدم 6 أحرف على الأقل.");
+                    return;
+                }
+                setButtonLoading(btn, true);
+                var promise = window.AuthModule?.updatePassword?.(pw);
+                promise?.then(function (result) {
+                    setButtonLoading(btn, false, "تعيين كلمة المرور الجديدة");
+                    if (result?.error) {
+                        showAuthMessage(window.AuthModule?.translateError?.(result.error) || result.error);
+                    } else {
+                        recoveryMode = false;
+                        showAuthMessage("تم تحديث كلمة المرور بنجاح ✓", false);
+                        var pwInput = document.getElementById("authPassword");
+                        if (pwInput) pwInput.value = "";
+                        showMainApp();
+                    }
+                });
+            });
+            form.appendChild(btn);
+        }
+    }
+
     // Show auth message
     function showAuthMessage(message, isError) {
         var el = document.getElementById("authMessage");
@@ -346,10 +388,61 @@
             window.CloudSync.init(supabaseClient);
         }
 
+        // Debounced cloud upload after every local save(): closes the data-loss
+        // window between the 60s auto-sync ticks (e.g. tab closed mid-study).
+        // Local save always runs first and unchanged; the cloud leg is skipped
+        // while signed out, offline, or mid-sync (next save/tick covers it),
+        // and uploadChanges queues offline so nothing is lost.
+        var saveUploadTimer = null;
+        function scheduleCloudUpload() {
+            if (saveUploadTimer) { try { clearTimeout(saveUploadTimer); } catch (e) {} }
+            saveUploadTimer = setTimeout(function () {
+                saveUploadTimer = null;
+                try {
+                    var user = window.AuthModule?.getUser?.();
+                    if (!user || !navigator.onLine) return;
+                    if (!window.CloudSync || typeof window.CloudSync.uploadChanges !== "function") return;
+                    if (typeof window.CloudSync.getStatus === "function" &&
+                        window.CloudSync.getStatus().status === "syncing") return;
+                    var r = window.CloudSync.uploadChanges(user.id, window.S);
+                    if (r && typeof r.catch === "function") {
+                        r.catch(function (e) { console.warn("[App] Scheduled upload failed:", e); });
+                    }
+                } catch (e) {
+                    console.warn("[App] Scheduled upload failed:", e);
+                }
+            }, 4000);
+        }
+        try {
+            var _origSave = window.save;
+            if (typeof _origSave === "function" && !window.save?.__cloudHooked) {
+                // NOTE: the actual local write stays inside _origSave; this wrapper
+                // only schedules the debounced cloud leg afterwards.
+                var hookedSave = function () {
+                    var out;
+                    try { out = _origSave.apply(this, arguments); }
+                    finally { scheduleCloudUpload(); }
+                    return out;
+                };
+                hookedSave.__cloudHooked = true;
+                window.save = hookedSave;
+                try { save = hookedSave; } catch (e) {}
+            }
+        } catch (e) {
+            console.warn("[App] Cloud save hook install failed:", e);
+        }
+
         // Single session handler for listener + initial restore.
         // No login wall: signed-out users keep learning offline/local-first;
         // signing in happens explicitly via the topbar login button.
-        function handleSession(session) {
+        function handleSession(session, event) {
+            if (event === "SIGNED_OUT") recoveryMode = false;
+            // Password-recovery landing must stay on the auth page until the new
+            // password is set (otherwise the main app would hide the recovery UI).
+            if (recoveryMode || event === "PASSWORD_RECOVERY") {
+                handlePasswordRecovery();
+                return;
+            }
             if (session && session.user) {
                 // User signed in
                 showMainApp();
@@ -358,7 +451,14 @@
                 if (!state) {
                     console.warn("[App] Local store unavailable, skipping cloud sync");
                 } else if (window.CloudSync && typeof window.CloudSync.migrateLocalToCloud === "function") {
-                    window.CloudSync.migrateLocalToCloud(session.user.id, state);
+                    try {
+                        var mig = window.CloudSync.migrateLocalToCloud(session.user.id, state);
+                        if (mig && typeof mig.catch === "function") {
+                            mig.catch(function (e) { console.warn("[App] First-login migration failed:", e); });
+                        }
+                    } catch (e) {
+                        console.warn("[App] First-login migration failed:", e);
+                    }
                 }
                 // Start auto sync
                 if (window.CloudSync && typeof window.CloudSync.startAutoSync === "function") {
@@ -386,7 +486,7 @@
         if (window.AuthModule && typeof window.AuthModule.onAuthStateChange === "function") {
             window.AuthModule.onAuthStateChange(function(event, session) {
                 console.log("[App] Auth state:", event, session ? "authenticated" : "unauthenticated");
-                handleSession(session || null);
+                handleSession(session || null, event);
             });
         }
 

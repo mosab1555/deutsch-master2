@@ -152,13 +152,22 @@ CREATE POLICY "devices_delete_own" ON devices
 CREATE POLICY "auth_events_select_own" ON auth_events
     FOR SELECT USING (auth.uid() = user_id);
 
+-- Auth Events: allow inserts for a user's own events (user_id NULL permitted
+-- for pre-login failures such as sign_up/sign_in errors; client logging is
+-- fail-safe and never blocks the auth flow)
+CREATE POLICY "auth_events_insert_own" ON auth_events
+    FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+
 -- ============================================================
 -- 7. TRIGGERS & FUNCTIONS
 -- ============================================================
 
 -- Auto-create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
     INSERT INTO public.profiles (id, display_name, avatar_url, provider)
     VALUES (
@@ -265,14 +274,17 @@ CREATE INDEX IF NOT EXISTS idx_user_progress_updated ON user_progress(updated_at
 CREATE INDEX IF NOT EXISTS idx_devices_user ON devices(user_id);
 
 -- ============================================================
--- 10. GRANT PERMISSIONS (for anon role via RLS)
+-- 10. GRANT PERMISSIONS (authenticated + anon roles via RLS)
 -- ============================================================
-GRANT SELECT, INSERT, UPDATE, DELETE ON profiles TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON user_progress TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON sync_queue TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON devices TO anon;
-GRANT SELECT ON auth_events TO anon;
+-- NOTE: Supabase issues authenticated requests under the `authenticated`
+-- role (not `anon`), so tables MUST be granted to BOTH roles; RLS policies
+-- above remain the actual security boundary (users only touch own rows).
+GRANT SELECT, INSERT, UPDATE, DELETE ON profiles TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_progress TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON sync_queue TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON devices TO anon, authenticated;
+GRANT SELECT, INSERT ON auth_events TO anon, authenticated;
 
-GRANT USAGE ON SEQUENCE user_progress_id_seq TO anon;
-GRANT USAGE ON SEQUENCE sync_queue_id_seq TO anon;
-GRANT USAGE ON SEQUENCE auth_events_id_seq TO anon;
+GRANT USAGE ON SEQUENCE user_progress_id_seq TO anon, authenticated;
+GRANT USAGE ON SEQUENCE sync_queue_id_seq TO anon, authenticated;
+GRANT USAGE ON SEQUENCE auth_events_id_seq TO anon, authenticated;
