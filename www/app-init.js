@@ -526,10 +526,15 @@
             }
 
             // Provider/server refusals are deterministic failures: message + clean now.
+            // The error NAME (never description/values) is appended so the exact
+            // refusal is visible for diagnosis (e.g. access_denied after leaving
+            // Google's consent screen vs a server-side refusal).
             if (errName) {
                 if (!liveHasSession()) {
+                    var safeCode = String(errName).slice(0, 60);
                     try { console.warn("[App] OAuth callback refused (param names only): error"); } catch (e) {}
-                    showAuthMessage(window.AuthModule?.translateError?.({ message: "OAuth " + String(errName).slice(0, 60) }) || "حدث خطأ في تسجيل الدخول. حاول مرة أخرى.");
+                    var mapped = window.AuthModule?.translateError?.({ message: "OAuth " + safeCode }) || "حدث خطأ في تسجيل الدخول. حاول مرة أخرى.";
+                    showAuthMessage(mapped + " (" + safeCode + ")");
                 }
                 stripOAuthParams();
                 return;
