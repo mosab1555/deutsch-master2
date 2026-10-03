@@ -497,7 +497,11 @@
         if (window.AuthModule && typeof window.AuthModule.initialize === "function") {
             try {
                 var initResult = await window.AuthModule.initialize();
-                handleSession((initResult && initResult.session) || null);
+                // OAuth PKCE race guard: SIGNED_IN may have arrived via
+                // onAuthStateChange while initialize() was in flight — prefer
+                // the live session over the stale initResult snapshot.
+                var liveSession = (window.AuthModule && typeof window.AuthModule.getSession === "function") ? window.AuthModule.getSession() : null;
+                handleSession(liveSession || (initResult && initResult.session) || null);
             } catch (e) {
                 console.warn("[App] Session restore failed:", e);
                 handleSession(null);

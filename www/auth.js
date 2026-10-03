@@ -106,8 +106,13 @@ const AuthModule = (function () {
                 console.error("[Auth] Get session error:", error);
                 return { user: null, session: null, error: error.message };
             }
-            currentSession = data.session;
-            currentUser = data.session?.user || null;
+            // OAuth PKCE race guard: getSession() may resolve null while the
+            // code exchange is still in flight; onAuthStateChange(SIGNED_IN)
+            // may have already stored the fresh session — never clobber it.
+            if (data.session) {
+                currentSession = data.session;
+                currentUser = data.session?.user || null;
+            }
             return { user: currentUser, session: currentSession };
         } catch (e) {
             console.error("[Auth] Initialize error:", e);
