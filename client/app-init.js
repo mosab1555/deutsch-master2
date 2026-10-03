@@ -482,6 +482,80 @@
             }
         }
 
+        // OAuth callback hygiene (PKCE `?code=` / `?error=` are single-use).
+        // The Supabase client silently ignores callbacks it cannot exchange
+        // (missing PKCE verifier after a cross-browser/context return, expired
+        // or reused code, provider refusals): no event, no error, session stays
+        // null, and the dead params linger in the URL so every reload replays
+        // the dead exchange. Detect those shapes here using param NAMES only
+        // (never values), surface a retry message through the existing auth UI,
+        // then drop ONLY the consumed OAuth params (all other query params are
+        // preserved). Never touches session state; read-only session checks.
+        function handleOAuthCallback() {
+            var params = null;
+            try {
+                var search = window.location.search || "";
+                if (!search) return;
+                params = new URLSearchParams(search);
+            } catch (e) { return; }
+            var hasCode = false, errName = null;
+            try {
+                hasCode = params.has("code");
+                errName = params.get("error");
+            } catch (e) { return; }
+            if (!hasCode && !errName) return;
+
+            function stripOAuthParams() {
+                try {
+                    var p = new URLSearchParams(window.location.search || "");
+                    var keys = ["code", "state", "error", "error_description", "error_code"];
+                    var changed = false;
+                    keys.forEach(function (k) { if (p.has(k)) { p.delete(k); changed = true; } });
+                    if (!changed) return;
+                    var rest = p.toString();
+                    var next = window.location.pathname + (rest ? "?" + rest : "") + (window.location.hash || "");
+                    window.history.replaceState(null, "", next);
+                } catch (e) {}
+            }
+
+            function liveHasSession() {
+                try {
+                    var s = (window.AuthModule && typeof window.AuthModule.getSession === "function") ? window.AuthModule.getSession() : null;
+                    return !!(s && s.user);
+                } catch (e) { return false; }
+            }
+
+            // Provider/server refusals are deterministic failures: message + clean now.
+            if (errName) {
+                if (!liveHasSession()) {
+                    try { console.warn("[App] OAuth callback refused (param names only): error"); } catch (e) {}
+                    showAuthMessage(window.AuthModule?.translateError?.({ message: "OAuth " + String(errName).slice(0, 60) }) || "حدث خطأ في تسجيل الدخول. حاول مرة أخرى.");
+                }
+                stripOAuthParams();
+                return;
+            }
+
+            // `?code=` with a live session: exchange already succeeded; just clean.
+            if (liveHasSession()) { stripOAuthParams(); return; }
+
+            // `?code=` without a session yet: the exchange may still be in flight
+            // (slow network), so re-check after a grace period instead of alarming
+            // now. A still-dead code then gets a retry message and is cleaned so
+            // reloads cannot replay it.
+            setTimeout(function () {
+                try {
+                    if (recoveryMode) { stripOAuthParams(); return; }
+                    if (liveHasSession()) { stripOAuthParams(); return; }
+                    var still = false;
+                    try { still = new URLSearchParams(window.location.search || "").has("code"); } catch (e) {}
+                    if (!still) return;
+                    try { console.warn("[App] OAuth code did not yield a session; cleaned dead callback params"); } catch (e) {}
+                    showAuthMessage("تعذر إتمام تسجيل الدخول. حاول تسجيل الدخول مرة أخرى.");
+                    stripOAuthParams();
+                } catch (e) {}
+            }, 8000);
+        }
+
         // Set up auth state listener
         if (window.AuthModule && typeof window.AuthModule.onAuthStateChange === "function") {
             window.AuthModule.onAuthStateChange(function(event, session) {
@@ -509,6 +583,9 @@
         } else {
             handleSession(null);
         }
+
+        // Surface + clean single-use OAuth callback params (no-op without them).
+        try { handleOAuthCallback(); } catch (e) {}
 
         // Hook into profile page navigation
         var originalShowPage = window.showPage;
