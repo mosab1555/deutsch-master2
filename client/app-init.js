@@ -48,9 +48,12 @@
     // Show auth page
     function showAuthPage() {
         var authPage = document.getElementById("page-auth");
-        if (authPage) {
-            authPage.classList.add("active");
+        if (!authPage) {
+            // Pages without an auth section (e.g. academy.html) - use the main login
+            window.location.href = "index.html";
+            return;
         }
+        authPage.classList.add("active");
         // Hide all other pages
         document.querySelectorAll(".page:not(#page-auth)").forEach(function(p) { p.classList.remove("active"); });
         document.querySelectorAll(".nav-item").forEach(function(b) { b.classList.remove("active"); });
@@ -58,7 +61,7 @@
         document.getElementById("sidebar")?.classList.remove("open");
         document.getElementById("sidebarOverlay")?.classList.remove("show");
         // Update auth UI
-        if (typeof updateAuthUI === "function") updateAuthUI(false);
+        updateAuthUI(false);
     }
 
     // Show main app (hide auth page)
@@ -74,7 +77,20 @@
         }
         document.querySelector('.nav-item[data-page="dashboard"]')?.classList.add("active");
         // Update auth UI
-        if (typeof updateAuthUI === "function") updateAuthUI(true);
+        updateAuthUI(true);
+    }
+
+    // Update auth UI in topbar (scope-level so every flow can reach it)
+    function updateAuthUI(isLoggedIn) {
+        var loginBtn = document.getElementById("loginBtn");
+        var userMenu = document.getElementById("userMenu");
+        if (isLoggedIn) {
+            if (loginBtn) loginBtn.style.display = "none";
+            if (userMenu) userMenu.classList.remove("hidden");
+        } else {
+            if (loginBtn) loginBtn.style.display = "";
+            if (userMenu) userMenu.classList.add("hidden");
+        }
     }
 
     // Show auth message
@@ -285,149 +301,115 @@
 
         // Check config first - do not load Supabase if not configured
         if (!checkConfig()) {
-            // No config - run app without auth
+            // No config - run app without auth (fully offline-capable)
             showMainApp();
+            updateAuthUI(false);
             return;
         }
 
-        // Load Supabase library
+        // Load Supabase library (CDN, online only - offline keeps working without auth)
         try {
             await loadSupabaseLibrary();
         } catch (e) {
             console.warn("[App] Failed to load Supabase library:", e);
             // Continue without auth/sync features
             showMainApp();
-            return;
-}
-        
-        // Initialize Supabase client
-        if (!window.supabase) {
-            console.warn("[App] Supabase library not loaded, skipping client creation");
-            showMainApp();
+            updateAuthUI(false);
             return;
         }
-        var supabaseClient = window.supabase.createClient(
-            window.SUPABASE_CONFIG.url,
-            window.SUPABASE_CONFIG.anonKey,
-            {
-                auth: {
-                    persistSession: true,
-                    autoRefreshToken: true,
-                    detectSessionInUrl: true,
-                    flowType: "pkce"
-                }
-            }
-        );
 
-        // Make supabase client globally available
+        // Single Supabase client, owned by AuthModule (never create a second client).
+        // AuthModule.init creates exactly one client; everything else reuses it.
+        if (window.AuthModule && typeof window.AuthModule.init === "function") {
+            if (!window.AuthModule.init(window.SUPABASE_CONFIG)) {
+                console.warn("[App] Auth init failed, continuing offline-first");
+                showMainApp();
+                updateAuthUI(false);
+                return;
+            }
+        }
+        var supabaseClient = (window.AuthModule && typeof window.AuthModule.getClient === "function")
+            ? window.AuthModule.getClient()
+            : null;
+        if (!supabaseClient) {
+            console.warn("[App] No Supabase client, continuing offline-first");
+            showMainApp();
+            updateAuthUI(false);
+            return;
+        }
+
+        // Make the single client globally available (ProfileModule reads it)
         window.supabaseClient = supabaseClient;
 
-        // Initialize Auth Module
-        if (window.AuthModule && typeof window.AuthModule.init === "function") {
-            window.AuthModule.init(window.SUPABASE_CONFIG);
-        }
-
-        // Initialize Cloud Sync
+        // Initialize Cloud Sync with the same client instance
         if (window.CloudSync && typeof window.CloudSync.init === "function") {
             window.CloudSync.init(supabaseClient);
+        }
+
+        // Single session handler for listener + initial restore.
+        // No login wall: signed-out users keep learning offline/local-first;
+        // signing in happens explicitly via the topbar login button.
+        function handleSession(session) {
+            if (session && session.user) {
+                // User signed in
+                showMainApp();
+                updateAuthUI(true);
+                var state = window.S;
+                if (!state) {
+                    console.warn("[App] Local store unavailable, skipping cloud sync");
+                } else if (window.CloudSync && typeof window.CloudSync.migrateLocalToCloud === "function") {
+                    window.CloudSync.migrateLocalToCloud(session.user.id, state);
+                }
+                // Start auto sync
+                if (window.CloudSync && typeof window.CloudSync.startAutoSync === "function") {
+                    window.CloudSync.startAutoSync(60000);
+                }
+                // Register device
+                if (window.AuthModule && typeof window.AuthModule.registerDevice === "function") {
+                    window.AuthModule.registerDevice();
+                }
+                // Load profile
+                if (window.ProfileModule && typeof window.ProfileModule.getProfile === "function") {
+                    window.ProfileModule.getProfile();
+                }
+            } else {
+                // Signed out (or no previous session) - stay in the app, offline-first
+                showMainApp();
+                updateAuthUI(false);
+                if (window.CloudSync && typeof window.CloudSync.stopAutoSync === "function") {
+                    window.CloudSync.stopAutoSync();
+                }
+            }
         }
 
         // Set up auth state listener
         if (window.AuthModule && typeof window.AuthModule.onAuthStateChange === "function") {
             window.AuthModule.onAuthStateChange(function(event, session) {
                 console.log("[App] Auth state:", event, session ? "authenticated" : "unauthenticated");
+                handleSession(session || null);
+            });
+        }
 
-                if (session && session.user) {
-                // User signed in
-                showMainApp();
-                if (typeof updateAuthUI === "function") updateAuthUI(true);
-                // Initialize sync
-                window.CloudSync?.migrateLocalToCloud?.(session.user.id, window.S);
-                // Start auto sync
-                window.CloudSync?.startAutoSync?.(60000);
-                // Register device
-                window.AuthModule?.registerDevice?.();
-                // Load profile
-                window.ProfileModule?.getProfile?.();
-            } else {
-                // User signed out
-                showAuthPage();
-                if (typeof updateAuthUI === "function") updateAuthUI(false);
-                window.CloudSync?.stopAutoSync?.();
-            }
-        });
-
-        // Initialize auth UI
+        // Initialize auth UI buttons (guarded - auth forms exist on index.html only)
         initAuthUI();
 
-// Check initial session
-        var authModule = window.AuthModule;
-        var initResult = null;
-        var initPromise = null;
-        if (authModule && typeof authModule.initialize === "function") {
-            initPromise = authModule.initialize();
-        }
-        if (initPromise && typeof initPromise.then === "function") {
-            initPromise.then(function(result) {
-                initResult = result;
-                checkInitResult();
-            });
+        // Restore existing session (fires the handler exactly once)
+        if (window.AuthModule && typeof window.AuthModule.initialize === "function") {
+            try {
+                var initResult = await window.AuthModule.initialize();
+                handleSession((initResult && initResult.session) || null);
+            } catch (e) {
+                console.warn("[App] Session restore failed:", e);
+                handleSession(null);
+            }
         } else {
-            checkInitResult();
-        }
-
-        function checkInitResult() {
-            // Already authenticated
-            console.log("[App] Existing session found for:", initResult.user.email || initResult.user.phone);
-            showMainApp();
-            updateAuthUI(true);
-            var cloudSync = window.CloudSync;
-            if (cloudSync && typeof cloudSync.migrateLocalToCloud === "function") {
-                cloudSync.migrateLocalToCloud(initResult.user.id, window.S).then(function() {
-                    if (cloudSync && typeof cloudSync.startAutoSync === "function") {
-                        cloudSync.startAutoSync(60000);
-                    }
-                    var authModule2 = window.AuthModule;
-                    if (authModule2 && typeof authModule2.registerDevice === "function") {
-                        authModule2.registerDevice();
-                    }
-                    var profileModule = window.ProfileModule;
-                    if (profileModule && typeof profileModule.getProfile === "function") {
-                        profileModule.getProfile();
-                    }
-                });
-            } else {
-                updateAuthUI(false);
-                if (cloudSync && typeof cloudSync.startAutoSync === "function") {
-                    cloudSync.startAutoSync(60000);
-                }
-                var authModule2 = window.AuthModule;
-                if (authModule2 && typeof authModule2.registerDevice === "function") {
-                    authModule2.registerDevice();
-                }
-                var profileModule = window.ProfileModule;
-                if (profileModule && typeof profileModule.getProfile === "function") {
-                    profileModule.getProfile();
-                }
-            }
-
-        // Update auth UI in topbar
-        function updateAuthUI(isLoggedIn) {
-            var loginBtn = document.getElementById("loginBtn");
-            var userMenu = document.getElementById("userMenu");
-            if (isLoggedIn) {
-                if (loginBtn) loginBtn.style.display = "none";
-                if (userMenu) userMenu.classList.remove("hidden");
-            } else {
-                if (loginBtn) loginBtn.style.display = "";
-                if (userMenu) userMenu.classList.add("hidden");
-            }
+            handleSession(null);
         }
 
         // Hook into profile page navigation
         var originalShowPage = window.showPage;
-        if (originalShowPage && !window.showPage.__authWrapped) {
-            window.showPage.__authWrapped = true;
+        if (originalShowPage && !originalShowPage.__authWrapped) {
+            originalShowPage.__authWrapped = true;
             window.showPage = function(name) {
                 if (name === "profile") {
                     initProfilePage();
@@ -437,13 +419,12 @@
         }
 
         // Sync status listener for UI
-        window.CloudSync?.onStatusChange?.(function(status) {
-            // Sync indicator is updated by CloudSync internally
-        });
+        // (Sync indicator is updated by CloudSync internally)
+        if (window.CloudSync && typeof window.CloudSync.onStatusChange === "function") {
+            window.CloudSync.onStatusChange(function() {});
+        }
 
         console.log("[App] Initialization complete");
-    }
-
     }
 
     // Run initialization when DOM is ready
@@ -458,6 +439,4 @@
             console.warn("[App] Initialization failed:", e);
         });
     }
-}
-
 })();

@@ -1,5 +1,5 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v37";
+var DM_CACHE = "german-academy-v38";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./reference.css", "./home.css", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
@@ -13,6 +13,8 @@ var DM_FILES = [
   "./curr-b1.js", "./curr-b1b.js", "./curr-b2.js", "./curr-b2b.js",
   "./curriculum.js",
   "./progress.js", "./career.js", "./home.js", "./page-state.js",
+  "./auth.js", "./cloud-sync.js", "./profile.js", "./app-init.js",
+  "./supabase-config.js",
   "./push.js",
   "./launch.css", "./launch.js",
   "./manifest.json",
@@ -28,8 +30,19 @@ self.addEventListener("activate", function (e) {
     return Promise.all(ks.map(function (k) { if (k !== DM_CACHE) return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
+/* Same-origin scope for the fetch guard below (derived once; if the
+   location API is unavailable the guard is skipped = previous behavior). */
+var dmOrigin = null;
+try { dmOrigin = new URL(self.location.href).origin; } catch (err) {}
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
+  /* Never intercept cross-origin traffic (Supabase auth/rest, CDN libraries):
+     private API responses must never be served from or written to the cache. */
+  if (dmOrigin) {
+    try {
+      if (new URL(e.request.url).origin !== dmOrigin) return;
+    } catch (err) { /* unparseable URL: fall through to same-origin handling */ }
+  }
   /* Freshness rule: HTML pages, JS and CSS are network-first so a normal
      reload always picks up the latest release (no hard refresh needed);
      the cache is only a fallback for offline use (PWA stays offline-ready).

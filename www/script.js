@@ -1340,6 +1340,9 @@ let S = defaultState();
 try{const raw=localStorage.getItem(LS_KEY);if(raw){const p=JSON.parse(raw);S=Object.assign(defaultState(),p);S.streak=Object.assign({count:0,last:"",longest:0},p.streak||{});S.planner=Object.assign(defaultState().planner,p.planner||{});S.settings=Object.assign({theme:"dark",speed:1,color:"default"},p.settings||{});}}catch(e){}
 try{const old=localStorage.getItem("deutsch_master_v1");if(old&&!localStorage.getItem(LS_KEY)){const p=JSON.parse(old);if(p.streak)S.streak=p.streak;if(p.studyDays)S.studyDays=p.studyDays;if(p.settings)S.settings=Object.assign({theme:"dark",speed:1},p.settings);if(p.planner)S.planner=p.planner;if(p.customWords)S.customWords=p.customWords;save();}}catch(e){}
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
+/* Live bridge for optional integrations (auth/cloud-sync read window.S).
+   A getter is used so it stays correct across S reassignments (import/wipe). */
+try{Object.defineProperty(window,"S",{configurable:true,get:function(){return S;}});}catch(e){try{window.S=S;}catch(e2){}}
 function todayStr(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
 function allWords(){return VOCAB.concat(S.customWords||[]);}
 function getStatus(id){return S.status[id]||"new";}

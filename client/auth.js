@@ -77,6 +77,12 @@ const AuthModule = (function () {
         return currentUser;
     }
 
+    // Get the single shared Supabase client (created by init).
+    // Other modules must reuse this instance - never create a second client.
+    function getClient() {
+        return supabaseClient;
+    }
+
     // Check if authenticated
     function isAuthenticated() {
         return !!currentUser;
@@ -160,8 +166,10 @@ const AuthModule = (function () {
                 email: email.trim().toLowerCase(),
                 password
             });
+            logAuthEvent("sign_in", "email", !error, error?.message, data?.user?.id);
             return { data, error };
         } catch (e) {
+            logAuthEvent("sign_in", "email", false, e.message, null);
             return { error: e.message };
         }
     }
@@ -182,8 +190,10 @@ const AuthModule = (function () {
                     emailRedirectTo: redirectUrl
                 }
             });
+            logAuthEvent("sign_up", "email", !error, error?.message, data?.user?.id);
             return { data, error };
         } catch (e) {
+            logAuthEvent("sign_up", "email", false, e.message, null);
             return { error: e.message };
         }
     }
@@ -272,6 +282,10 @@ const AuthModule = (function () {
     async function signOut() {
         if (!supabaseClient) return { error: "Supabase not initialized" };
 
+        // Log while still authenticated (logging never blocks logout)
+        const uid = currentUser?.id || null;
+        const prov = currentUser?.app_metadata?.provider || null;
+        logAuthEvent("sign_out", prov, true, null, uid);
         try {
             const { error } = await supabaseClient.auth.signOut();
             currentSession = null;
@@ -419,19 +433,20 @@ const AuthModule = (function () {
         return "web";
     }
 
-    // Log auth event
-    async function logAuthEvent(eventType, provider, success, errorMessage) {
+    // Log auth event (only safe metadata - never tokens, passwords, or keys).
+    // Fail-safe: logging must never break the auth flow (RLS may deny it).
+    async function logAuthEvent(eventType, provider, success, errorMessage, userId) {
         if (!supabaseClient) return;
 
         try {
             await supabaseClient.from("auth_events").insert({
-                user_id: currentUser?.id,
+                user_id: userId || currentUser?.id || null,
                 event_type: eventType,
-                provider,
-                success,
-                error_message: errorMessage,
+                provider: provider || null,
+                success: success === true,
+                error_message: errorMessage ? String(errorMessage).slice(0, 500) : null,
                 ip_address: null, // Will be filled by Supabase if needed
-                user_agent: navigator.userAgent
+                user_agent: (navigator.userAgent || "").slice(0, 500)
             });
         } catch (e) {
             console.warn("[Auth] Failed to log auth event:", e);
@@ -442,6 +457,7 @@ const AuthModule = (function () {
     return {
         init: initSupabase,
         initialize,
+        getClient,
         getSession,
         getUser,
         isAuthenticated,

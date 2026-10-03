@@ -290,7 +290,7 @@ const ProfileModule = (function () {
     }
 
     function escapeHtml(s) {
-        const map = { "&": "&", "<": "<", ">": ">", '"': "\"", "'": "'" };
+        const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
         return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) { return map[c]; });
     }
 
