@@ -482,6 +482,19 @@ function sentAutoTopic(de, kap) {
 function sentA1Merge() {
   try {
     if (typeof SENTENCES === "undefined" || typeof VOCAB === "undefined") return SentA1.stats;
+    /* Perf: the merge only produces new work when bank membership changed
+       (curriculum levels / custom content arriving later). Re-scanning +
+       re-normalizing all banks on every render/keystroke is pure waste, so
+       skip when lengths are unchanged since the last successful merge. */
+    try {
+      var cwLen = 0;
+      try { cwLen = (window.S && window.S.customWords && window.S.customWords.length) || 0; } catch (e) {}
+      var gLen = 0;
+      try { gLen = (typeof GRAMMAR !== "undefined" && GRAMMAR.length) || 0; } catch (e) {}
+      var sig = SENTENCES.length + "|" + VOCAB.length + "|" + gLen + "|" + cwLen;
+      if (SentA1.merged && SentA1._mergeSig === sig) return SentA1.stats;
+      SentA1._mergeSig = sig;
+    } catch (e) {}
     var seen = {};
     SENTENCES.forEach(function (s) { seen[sentKey(s.de)] = 1; });
     try {
@@ -691,7 +704,10 @@ function sentA1Render() {
     box.innerHTML = "";
     if (!list.length) { box.innerHTML = '<div class="panel glass">لا توجد جمل هنا بعد.</div>'; return; }
     var shown = list.slice(0, sentA1Limit);
-    shown.forEach(function (s, i) { box.appendChild(sentA1Card(s, i)); });
+    /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
+    var frag = document.createDocumentFragment();
+    shown.forEach(function (s, i) { frag.appendChild(sentA1Card(s, i)); });
+    box.appendChild(frag);
     if (list.length > sentA1Limit) {
       var b = document.createElement("button");
       b.className = "btn btn-ghost";
@@ -706,6 +722,16 @@ function sentA1Render() {
 /* استبدال العارضين القديمين بالموحد (نفس الأسماء — المستمعات القديمة تعمل) */
 try { renderSentences = sentA1Render; } catch (e) {}
 try { currApplySentFilter = sentA1Render; } catch (e) {}
+/* Perf: script.js built DM_LAZY.sentences (and renderAll re-runs) with a
+   captured reference to the pre-replacement unbounded renderer, which built
+   thousands of cards on every first visit + every renderAll, only to be
+   overwritten here by the paginated unified render. Point the lazy entry at
+   the unified renderer when it still holds the stale reference. */
+try {
+  if (typeof DM_LAZY !== "undefined" && DM_LAZY && DM_LAZY.sentences && DM_LAZY.sentences !== sentA1Render) {
+    DM_LAZY.sentences = sentA1Render;
+  }
+} catch (e) {}
 try {
   ["sentenceSearch", "sentenceKapitel"].forEach(function (id) {
     var el = document.getElementById(id);
@@ -725,4 +751,17 @@ try {
     try { if (n === "sentences" && !(window.DMPageState && DMPageState.skipRender && DMPageState.skipRender("sentences"))) sentA1Render(); } catch (e) { if (window.console) console.error(e); }
   };
 } catch (e) {}
-try { sentA1Merge(); } catch (e) {}
+/* Perf: the one-time sentence merge (~100ms bank scan) ran synchronously
+   during script evaluation, blocking first paint on every load. It is now
+   scheduled while the browser is idle instead. Every consumer that needs
+   merged data (sentA1Render, SentAudit) runs sentA1Merge() itself first,
+   and boot-time uses are length-counts only — so correctness never depends
+   on this warm-up having fired. */
+try {
+  var _dmWarmMerge = function () { try { sentA1Merge(); } catch (e) {} };
+  if (typeof requestIdleCallback === "function") {
+    try { requestIdleCallback(_dmWarmMerge, { timeout: 4000 }); } catch (e) { setTimeout(_dmWarmMerge, 1500); }
+  } else {
+    setTimeout(_dmWarmMerge, 1500);
+  }
+} catch (e) {}

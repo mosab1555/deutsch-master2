@@ -914,11 +914,46 @@ const KAPITEL = [
 {id:"K5",name:"Kapitel 5 – Alltag und Familie",icon:"🏠"},
 {id:"KX",name:"➕ كلماتي المضافة",icon:"⭐"}
 ];
-function kapName(k){const f=KAPITEL.find(x=>x.id===k);return f?f.icon+" "+f.id+" • "+f.name:k||"";}
+function kapName(k){
+  /* KAPITEL is static: index once, O(1) per card instead of O(K) find.
+     Called per card across vocab/sentences/verbs/grammar renders. */
+  try{
+    let m=kapName._m;
+    if(!m){ m=new Map(); try{KAPITEL.forEach(x=>m.set(x.id,x));}catch(e){} kapName._m=m; }
+    const f=m.get(k);
+    return f?f.icon+" "+f.id+" • "+f.name:k||"";
+  }catch(e){
+    const f=KAPITEL.find(x=>x.id===k);return f?f.icon+" "+f.id+" • "+f.name:k||"";
+  }
+}
 /* الصيغ الكاملة: der Tisch / die Tische */
 function fullDe(w){return (w.art!=="-"?w.art+" ":"")+w.de;}
 function pluralFull(w){if(!w.plural)return "";var p=String(w.plural);if(/^(der|die|das)\s/.test(p))return p;return ((w.art&&w.art!=="-"?w.art+" ":"")+p);}
-function wordById(id){return allWords().find(w=>w.id===id);}
+function wordById(id){
+  /* Indexed lookup: the old version concatenated the whole bank
+     (VOCAB.concat(customWords)) on EVERY call — O(W) alloc + O(W) scan per
+     call, and callers invoke it per list item (sentences filter, detail
+     opens). The Map stores live object references, so in-place edits stay
+     visible; it rebuilds only when membership can change (custom-words
+     array identity or length, i.e. add/remove/import/identity switch). */
+  try{
+    const cw=(typeof S!=="undefined"&&S&&S.customWords)||[];
+    let c=wordById._c;
+    if(!c||c.cw!==cw||c.n!==(cw.length+(typeof VOCAB!=="undefined"?VOCAB.length:0))){
+      const m=new Map();
+      try{
+        if(typeof VOCAB!=="undefined")VOCAB.forEach(w=>{if(w&&w.id)m.set(w.id,w);});
+        /* Bank wins on id collision (same order as VOCAB.concat(custom).find). */
+        cw.forEach(w=>{if(w&&w.id&&!m.has(w.id))m.set(w.id,w);});
+      }catch(e){}
+      c={cw:cw,n:(cw.length+(typeof VOCAB!=="undefined"?VOCAB.length:0)),m:m};
+      wordById._c=c;
+    }
+    return c.m.get(id);
+  }catch(e){
+    return allWords().find(w=>w.id===id);
+  }
+}
 function pluralDistractors(w){
   const correct=pluralFull(w);
   const bare=String(w.plural||"").replace(/^(der|die|das)\s+/,"");
@@ -1685,16 +1720,25 @@ let observer=null;
 function observeReveals(){
   if(!("IntersectionObserver" in window)){document.querySelectorAll(".reveal").forEach(e=>e.classList.add("visible"));return;}
   if(!observer)observer=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("visible");observer.unobserve(e.target);}}),{threshold:.1});
-  document.querySelectorAll(".reveal:not(.visible)").forEach(e=>observer.observe(e));
+  /* Perf: scope to the visible page. The old full-document query re-matched
+     ~10k nodes on every navigation; reveals in hidden pages are picked up
+     when their page is shown (showPage always re-runs this). Same final
+     state, fraction of the work. */
+  let root=null;
+  try{root=document.querySelector(".page.active")||document;}catch(e){root=document;}
+  try{root.querySelectorAll(".reveal:not(.visible)").forEach(e=>observer.observe(e));}catch(e){}
 }
 
 /* ============ WORD CARD ============ */
 function wordCard(w){
-  const st=getStatus(w.id);const fav=S.favs.includes(w.id);
+  const st=getStatus(w.id);const fav=dmFavSet().has(w.id);
   const artCls=w.art==="der"?"der":w.art==="die"?"die":w.art==="das"?"das":"none";
   const artTxt=w.art==="-"?"–":w.art;
   const full=(w.art!=="-"?w.art+" ":"")+w.de;
   const d=document.createElement("div");d.className="word-card glass";
+  /* data-wid lets the single delegated #vocabGrid listener resolve the word
+     (per-card/per-button listeners were ~9 per card). */
+  try{d.setAttribute("data-wid",w.id);}catch(e){}
   const hasArt=w.art!=="-";
   const deLine=hasArt?'<span class="article '+artCls+'">'+artTxt+'</span><span class="word-de">'+escapeHtml(w.de)+'</span>':'<span class="word-de">'+escapeHtml(w.de)+'</span>';
   const plLine=(w.type==="اسم"&&w.plural)?'<div class="de-plural"><span class="article '+artCls+' sm">'+artTxt+'</span><span>'+escapeHtml(w.plural)+'</span><button class="mini-btn" data-act="speakPl" title="نطق الجمع">🔊</button></div>':'';
@@ -1715,21 +1759,52 @@ function wordCard(w){
     '<button class="mini-btn" data-act="later">⏳ لاحقًا</button>'+
     '<button class="mini-btn" data-act="speakEx">🔊 المثال</button>'+
     '<button class="mini-btn" data-act="quiz">❓ اختبرني</button></div>';
-  d.querySelector(".de-line").addEventListener("click",ev=>{
-    if(ev.target.closest("button"))return;
-    if(w.type==="اسم"||w.art!=="-")openWordDetail(w.id);else speak(full);
-  });
-  d.querySelectorAll("button").forEach(b=>b.addEventListener("click",ev=>{
-    ev.stopPropagation();const a=b.getAttribute("data-act");
-    if(a==="detail")return;
-    if(a==="speak")speak(full);
-    else if(a==="speakPl")speak(pluralFull(w));
-    else if(a==="speakEx")speak(w.ex);
-    else if(a==="fav")toggleFav(w.id);
-    else if(a==="quiz")quickArticleQuiz(w);
-    else{setStatus(w.id,a==="known"?"known":a);markStudyDay();renderAll();toast(a==="known"?"أحسنت! كلمة محفوظة ✅":"تم تحديث حالة الكلمة 📌","ok");}
-  }));
   return d;
+}
+/* Per-render favorites Set: O(1) membership per card instead of O(F) indexOf.
+   Rebuilt by renderVocab before building cards; falls back to live S.favs. */
+function dmFavSet(){
+  try{
+    const f=(typeof S!=="undefined"&&S&&S.favs)||[];
+    let c=dmFavSet._c;
+    if(!c||c.f!==f||c.n!==f.length){ c={f:f,n:f.length,s:new Set(f)}; dmFavSet._c=c; }
+    return c.s;
+  }catch(e){ return {has:function(){return false;}}; }
+}
+/* Single delegated click handler for #vocabGrid: identical dispatch to the
+   former per-card/per-button listeners (same functions, same order, same
+   toasts). Attached once; survives innerHTML re-renders. */
+function dmVocabGridClick(ev){
+  try{
+    const g=$("vocabGrid");
+    if(!g)return;
+    const t=ev.target&&ev.target.closest?ev.target:null;
+    if(!t)return;
+    const card=t.closest(".word-card");
+    if(!card||!g.contains(card))return;
+    let wid=null;
+    try{wid=card.getAttribute("data-wid");}catch(e){}
+    const w=wid?wordById(wid):null;
+    if(!w)return;
+    const b=t.closest("button[data-act]");
+    if(b&&g.contains(b)){
+      const a=b.getAttribute("data-act");
+      if(a==="detail")return;
+      const full=(w.art!=="-"?w.art+" ":"")+w.de;
+      if(a==="speak")speak(full);
+      else if(a==="speakPl")speak(pluralFull(w));
+      else if(a==="speakEx")speak(w.ex);
+      else if(a==="fav")toggleFav(w.id);
+      else if(a==="quiz")quickArticleQuiz(w);
+      else{setStatus(w.id,a==="known"?"known":a);markStudyDay();renderAll();toast(a==="known"?"أحسنت! كلمة محفوظة ✅":"تم تحديث حالة الكلمة 📌","ok");}
+      return;
+    }
+    const line=t.closest(".de-line");
+    if(line&&card.contains(line)){
+      const full=(w.art!=="-"?w.art+" ":"")+w.de;
+      if(w.type==="اسم"||w.art!=="-")openWordDetail(w.id);else speak(full);
+    }
+  }catch(e){}
 }
 function escapeHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 function toggleFav(id){
@@ -1789,7 +1864,10 @@ function renderVocab(more){
   $("vocabCount").textContent=list.length;
   const g=$("vocabGrid");g.innerHTML="";
   if(!list.length){g.innerHTML='<div class="panel glass">لا توجد نتائج. جرّب بحثًا آخر أو أضف كلمة جديدة ➕</div>';return;}
-  list.slice(0,vocabLimit).forEach(w=>g.appendChild(wordCard(w)));
+  /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
+  const frag=document.createDocumentFragment();
+  list.slice(0,vocabLimit).forEach(w=>frag.appendChild(wordCard(w)));
+  g.appendChild(frag);
   if(list.length>vocabLimit){
     const b=document.createElement("button");
     b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
@@ -1800,13 +1878,24 @@ function renderVocab(more){
 }
 function renderVocabSoon(){try{clearTimeout(vocabT);}catch(e){}vocabT=setTimeout(()=>{try{renderVocab();}catch(e){console.error(e);}},160);}
 ["vocabSearch","filterCategory","filterType","filterStatus","filterArticle","filterKapitel","filterLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",renderVocabSoon);});
+/* Delegated vocab-grid clicks: attached once (survives innerHTML rebuilds),
+   replaces ~9 listeners per card. */
+try{
+  const _vg=$("vocabGrid");
+  if(_vg&&!_vg._dmDelegated){ _vg._dmDelegated=true; _vg.addEventListener("click",dmVocabGridClick); }
+}catch(e){}
 
 /* ============ DASHBOARD ============ */
 function animateCount(el,to){
   const from=parseInt(el.textContent||"0",10)||0;
+  /* Cancel a previous in-flight animation on the same element: renderAll
+     fires often (quiz answers, status taps); overlapping intervals would
+     fight over the same textContent and churn timers. */
+  try{ if(el._dmCountIv){clearInterval(el._dmCountIv);el._dmCountIv=null;} }catch(e){}
   if(from===to){el.textContent=to;return;}
   const step=Math.max(1,Math.ceil(Math.abs(to-from)/20));let cur=from;
-  const iv=setInterval(()=>{cur+=to>from?step:-step;if((to>from&&cur>=to)||(to<from&&cur<=to)){cur=to;clearInterval(iv);}el.textContent=cur;},40);
+  const iv=setInterval(()=>{cur+=to>from?step:-step;if((to>from&&cur>=to)||(to<from&&cur<=to)){cur=to;clearInterval(iv);try{if(el._dmCountIv===iv)el._dmCountIv=null;}catch(e){}}el.textContent=cur;},40);
+  try{el._dmCountIv=iv;}catch(e){}
 }
 function renderDashboard(){
   const words=allWords();
@@ -2324,8 +2413,23 @@ function renderSentences(){
     box.appendChild(d);
   });
 }
-$("sentenceSearch").addEventListener("input",renderSentences);
-$("sentenceKapitel").addEventListener("change",renderSentences);
+/* Debounced sentence search: per-keystroke full renders jank mobile.
+   When sent-a1.js has taken over (#sentList unified renderer), its own
+   debounced listeners drive the page and this path stays quiet to avoid a
+   duplicate render; otherwise it debounces the current global renderer. */
+let sentT=null;
+function renderSentencesSoon(){
+  try{clearTimeout(sentT);}catch(e){}
+  sentT=setTimeout(()=>{
+    try{
+      const s=$("sentenceSearch");
+      if(s&&s.dataset&&s.dataset.sentA1)return; /* unified renderer owns it */
+      (typeof renderSentences==="function"?renderSentences:function(){})();
+    }catch(e){console.error(e);}
+  },160);
+}
+$("sentenceSearch").addEventListener("input",renderSentencesSoon);
+$("sentenceKapitel").addEventListener("change",renderSentencesSoon);
 
 /* ============ VERBS ============ */
 function renderVerbs(){
@@ -2346,6 +2450,8 @@ function renderVerbs(){
   }).filter(x=>!q||x.score>=0).sort((a,b)=>a.score-b.score).map(x=>x.v);
   const list=scored;
   if(!list.length){box.innerHTML='<div class="panel glass">لا توجد أفعال هنا بعد.</div>';return;}
+  /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
+  const vfrag=document.createDocumentFragment();
   list.slice(0,120).forEach(v=>{
     const d=document.createElement("div");d.className="word-card glass";
     let body="";
@@ -2359,10 +2465,15 @@ function renderVerbs(){
     '<div class="word-ar">'+escapeHtml(v.ar)+'</div><div class="word-pron">النطق: '+escapeHtml(v.pron)+'</div>'+
     '<div class="word-meta"><span class="tag kap-tag">'+kapName(v.kap)+'</span></div>'+body;
     d.querySelector("button").addEventListener("click",()=>speak(v.inf));
-    box.appendChild(d);
+    vfrag.appendChild(d);
   });
+  box.appendChild(vfrag);
 }
-$("verbSearch").addEventListener("input",renderVerbs);
+/* Debounced verb search (same 160ms pattern as vocab): full-list renders
+   with conjugation tables must not run on every keystroke. */
+let verbT=null;
+function renderVerbsSoon(){try{clearTimeout(verbT);}catch(e){}verbT=setTimeout(()=>{try{renderVerbs();}catch(e){console.error(e);}},160);}
+$("verbSearch").addEventListener("input",renderVerbsSoon);
 $("verbKapitel").addEventListener("change",renderVerbs);
 
 /* ============ GRAMMAR ============ */
@@ -3171,9 +3282,22 @@ function renderFavs(){
 /* Robust search engine: single dynamic source (allWords/SENTENCES/GRAMMAR),
    umlaut-tolerant, case/space-insensitive, level-aware, ranked. No static lists. */
 function dmNorm(s){
-  return String(s==null?"":s).trim().replace(/\s+/g," ").toLowerCase()
+  /* Memoized: pure function of the input string (keyed by input, never by
+     object identity, so it can never serve stale data). Hot path: called
+     per bank item per keystroke across vocab/sentences/verbs/global search.
+     Bounded Map (FIFO reset) so long sessions cannot grow memory. */
+  const key=String(s==null?"":s);
+  let m=null;
+  try{ m=dmNorm._c||(dmNorm._c=new Map()); }catch(e){}
+  if(m){
+    try{ if(m.has(key))return m.get(key); }catch(e){}
+    if(m.size>2000){ try{m.clear();}catch(e){} }
+  }
+  const out=key.trim().replace(/\s+/g," ").toLowerCase()
     .replace(/ß/g,"ss").replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u")
     .replace(/ae/g,"a").replace(/oe/g,"o").replace(/ue/g,"u");
+  if(m){ try{m.set(key,out);}catch(e){} }
+  return out;
 }
 if(typeof window!=="undefined")window.dmNorm=dmNorm;
 if(typeof window!=="undefined"&&!window.gsLevel)window.gsLevel="mixed";
