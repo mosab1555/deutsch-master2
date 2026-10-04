@@ -30,6 +30,7 @@ const CloudSync = (function () {
     function setActiveUser(userId) {
         activeUserId = userId || null;
         syncGeneration++;
+        try { if (typeof clearFullSyncRetry === "function") clearFullSyncRetry(); } catch (e) {}
         return syncGeneration;
     }
     function getActiveUser() { return activeUserId; }
@@ -180,6 +181,55 @@ const CloudSync = (function () {
 
     // ==================== MAIN SYNC OPERATIONS ====================
 
+    // Classify a sync failure without exposing sensitive data. Uses only the
+    // transport code/status and generic message patterns — never tokens,
+    // passwords, OTPs, or personal data. Lets the console distinguish a dead
+    // network from an expired session, an RLS denial, or a schema problem.
+    function classifySyncError(e) {
+        try {
+            const code = String((e && (e.code || e.errorCode)) || "");
+            const status = Number((e && (e.status || e.statusCode)) || 0);
+            const msg = String((e && (e.message || e.error_description || e.error)) || "");
+            if (!navigator.onLine) return "offline";
+            if (status === 401 || /jwt|token|session|expired|unauthorized|invalid login|invalid credentials/i.test(msg)) return "auth";
+            if (status === 403 || code === "42501" || /permission denied|row-level|rls|policy/i.test(msg)) return "permission";
+            if (status === 400 || status === 404 || code === "PGRST204" || /does not exist|not found|schema|column/i.test(msg)) return "schema";
+            if (status === 409 || /conflict/i.test(msg)) return "conflict";
+            if (status >= 500 || /timeout|abort|econn|enotfound/i.test(msg)) return "server";
+            if (/failed to fetch|networkerror|network|fetch failed|load failed/i.test(msg)) return "network";
+        } catch (e2) {}
+        return "unknown";
+    }
+
+    // One-shot retry for a failed fullSync. Transient network blips at login
+    // used to stamp ERROR forever (nothing ever retried fullSync). Exactly
+    // one delayed attempt, only for network/server failures, aborted when
+    // the identity, generation, connectivity, or session changes meanwhile.
+    // Auth/permission/schema failures never retry here: they need re-login
+    // or a Dashboard fix, not another request.
+    let fullSyncRetryTimer = null;
+    function clearFullSyncRetry() {
+        try { if (fullSyncRetryTimer) clearTimeout(fullSyncRetryTimer); } catch (e) {}
+        fullSyncRetryTimer = null;
+    }
+    function scheduleFullSyncRetry(userId, localState, generation) {
+        clearFullSyncRetry();
+        try {
+            fullSyncRetryTimer = setTimeout(function () {
+                fullSyncRetryTimer = null;
+                try {
+                    if (!isOnline) return;
+                    if (!checkActive(userId, generation)) return;
+                    if (window.AuthModule?.getUser?.()?.id !== userId) return;
+                    fullSync(userId, localState).catch(function () {});
+                } catch (e) {}
+            }, 15000);
+            if (fullSyncRetryTimer && typeof fullSyncRetryTimer.unref === "function") {
+                try { fullSyncRetryTimer.unref(); } catch (e) {}
+            }
+        } catch (e) {}
+    }
+
     // Full sync: upload local + download cloud + merge
     async function fullSync(userId, localState) {
         if (!supabaseClient || !userId) {
@@ -191,6 +241,19 @@ const CloudSync = (function () {
 
         if (!isOnline) {
             return { success: false, error: "Offline", queued: true };
+        }
+
+        // Session pre-check: a stale user id with no live session can only
+        // produce a doomed 401. Skip quietly instead of stamping ERROR.
+        try {
+            if (supabaseClient.auth && typeof supabaseClient.auth.getSession === "function") {
+                const sess = await supabaseClient.auth.getSession();
+                if (!sess || !sess.data || !sess.data.session) {
+                    return { success: false, error: "No session" };
+                }
+            }
+        } catch (e) {
+            return { success: false, error: "Session check failed" };
         }
 
         setStatus(SYNC_STATUS.SYNCING);
@@ -273,9 +336,13 @@ const CloudSync = (function () {
             return { success: true, version: newVersion };
 
         } catch (e) {
-            console.error("[Sync] Full sync failed:", e);
-            setStatus(SYNC_STATUS.ERROR, { error: e.message });
-            return { success: false, error: e.message };
+            const kind = classifySyncError(e);
+            console.error("[Sync] Full sync failed [" + kind + "]:", (e && e.message) || e);
+            setStatus(SYNC_STATUS.ERROR, { error: kind, lastErrorKind: kind });
+            if ((kind === "network" || kind === "server" || kind === "offline") && isOnline) {
+                scheduleFullSyncRetry(userId, localState, generation);
+            }
+            return { success: false, error: kind };
         }
     }
 
@@ -929,6 +996,7 @@ const CloudSync = (function () {
         getLocalVersion,
         getCloudVersion,
         mergeStates,
+        classifySyncError,
         SYNC_STATUS
     };
 })();
