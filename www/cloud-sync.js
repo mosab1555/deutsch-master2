@@ -341,6 +341,12 @@ const CloudSync = (function () {
             setLocalVersion(version);
             currentVersion = version;
             setStatus(SYNC_STATUS.ONLINE, { lastSync: new Date().toISOString() });
+            // Writes succeed again: drain anything queued during the outage so
+            // a transient failure stops sticking in the indicator. No-op when
+            // the queue is empty; foreign/guest ops stay held as before.
+            try { await processQueue(); } catch (e2) {
+                console.warn("[Sync] Post-upload queue drain failed:", e2);
+            }
             return { success: true, version };
 
         } catch (e) {
@@ -625,19 +631,52 @@ const CloudSync = (function () {
         }
     }
 
+    // Backstop so a long failure streak cannot grow localStorage without
+    // bound. Only full-state snapshots are ever dropped (they are superseded
+    // by newer snapshots); per-owner binding below is always preserved first.
+    const MAX_QUEUE = 100;
+
     // Queue an operation for later sync. Operations are bound to the user id
     // that was active when they were created ("guest" while signed out) so an
     // offline write can never be uploaded under a different account later.
+    // Full-state snapshots supersede each other: when the newest queued op
+    // for the same owner already carries an older snapshot, refresh it in
+    // place instead of appending a duplicate. Only the newest snapshot ever
+    // matters for a last-writer-wins upsert, so this keeps the visible
+    // pending count truthful without changing upload semantics. The retry
+    // counter is kept (never reset) so a persistently failing payload still
+    // expires after 5 attempts exactly as before.
     function queueOperation(type, payload, userId) {
+        const owner = userId || "guest";
         const queue = getPendingQueue();
+        if (type === "upsert_progress") {
+            for (let i = queue.length - 1; i >= 0; i--) {
+                const op = queue[i];
+                if (op && op.type === type && (op.userId || "guest") === owner) {
+                    op.payload = payload;
+                    op.createdAt = new Date().toISOString();
+                    savePendingQueue(queue);
+                    setStatus(syncState.status, { pendingCount: queue.length });
+                    console.log("[Sync] Coalesced duplicate operation:", type);
+                    return { success: false, queued: true, coalesced: true };
+                }
+            }
+        }
         queue.push({
             id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
             type,
             payload,
-            userId: userId || "guest",
+            userId: owner,
             createdAt: new Date().toISOString(),
             retries: 0
         });
+        while (queue.length > MAX_QUEUE) {
+            let dropIdx = -1;
+            for (let i = 0; i < queue.length; i++) {
+                if (queue[i] && queue[i].type === "upsert_progress") { dropIdx = i; break; }
+            }
+            queue.splice(dropIdx < 0 ? 0 : dropIdx, 1);
+        }
         savePendingQueue(queue);
         setStatus(syncState.status, { pendingCount: queue.length });
         console.log("[Sync] Queued operation:", type);
@@ -660,10 +699,19 @@ const CloudSync = (function () {
         return syncState.pendingCount;
     }
 
+    // Re-entrancy guard: online events, fullSync and successful uploads can
+    // all trigger a drain at once. Overlapping runs would double-upload the
+    // same snapshots and burn retries twice, so a second run yields to the
+    // one already in flight (the next save/auto-sync triggers again).
+    let queueProcessing = false;
+
     // Process the offline queue
     async function processQueue() {
         if (!supabaseClient || !isOnline) return;
+        if (queueProcessing) return;
+        queueProcessing = true;
 
+        try {
         const queue = getPendingQueue();
         if (!queue.length) return;
 
@@ -704,6 +752,9 @@ const CloudSync = (function () {
         savePendingQueue(remaining);
         refreshPendingCount();
         setStatus(SYNC_STATUS.ONLINE, { pendingCount: syncState.pendingCount });
+        } finally {
+            queueProcessing = false;
+        }
     }
 
     // Execute a queued operation
