@@ -391,6 +391,20 @@
             <button class="btn btn-ghost sm" id="flashDir" data-i18n="flash_dir_de_ar">🔄 ألماني → عربي</button>
             <button class="btn btn-ghost sm" id="flashReset" data-i18n="flash_reset">↺ إعادة تعيين الفلاتر</button>
           </div>
+          <div class="panel glass" id="srsPanel">
+            <div class="muted" id="srsCounts"></div>
+            <div class="row-flex">
+              <label class="flash-filter"><span data-i18n="srs_deck">المجموعة</span><select id="flashDeck"><option value="all" data-i18n="srs_deck_all">الكل</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="verbs" data-i18n="srs_deck_verbs">الأفعال</option></select></label>
+              <label class="flash-filter"><span data-i18n="srs_mode">الجلسة</span><select id="flashMode"><option value="all" data-i18n="srs_mode_all">كل البطاقات</option><option value="due" data-i18n="srs_mode_due">المستحقة اليوم</option><option value="weak" data-i18n="srs_mode_weak">الكلمات الضعيفة</option><option value="mist" data-i18n="srs_mode_mist">أخطائي</option></select></label>
+              <label class="flash-filter"><span data-i18n="srs_count">العدد</span><select id="flashCount"><option>10</option><option selected>20</option><option>30</option><option>50</option></select></label>
+            </div>
+            <details id="srsAdv"><summary data-i18n="srs_adv">إعدادات متقدمة</summary>
+              <div class="row-flex">
+                <label class="flash-filter"><span data-i18n="srs_newperday">جديدة/يوم</span><input type="number" id="srsNewPerDay" min="0" max="100" step="1"></label>
+                <label class="flash-filter"><span data-i18n="srs_maxreview">أقصى مراجعة/يوم</span><input type="number" id="srsMaxReview" min="1" max="500" step="1"></label>
+              </div>
+            </details>
+          </div>
         </div>
         <div class="flash-wrap">
           <div class="flash-progress"><span id="flashCounter">1 / 1</span><div class="progress"><div class="progress-fill" id="flashBar"></div></div></div>

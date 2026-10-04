@@ -275,12 +275,134 @@ var DMProgress = (function () {
     };
   }
 
+  /* ---- Anki-style card states (single engine; nextReview stays the day
+     interval core) ----
+     States: new -> learning -> review; forgotten review -> relearning.
+     - Learning needs LEARN_STEPS good ratings to graduate (short intraday
+       steps via dueMin, epoch ms; empty/0 = day-granularity due only).
+     - Relearning needs RELEARN_STEPS goods to return to review.
+     - Again: laps reset, ease penalized, back to (re)learning step 0, due
+       in LEARN_STEPS[0] minutes (prompt return, never a fixed forever lag).
+     - Hard: slower growth (interval x1.2, min 1d), ease penalized lightly;
+       learning cards stay in-step with a +30min step.
+     - Good: normal nextReview progression; learning cards advance a step.
+     - Easy: longest interval (at least previous+1 day), ease rewarded.
+     Legacy {e} records migrate to {ease}; unknown shapes default to new.
+     All inputs/outputs are plain JSON (persist + sync safe); nowMs makes
+     scheduling deterministic and testable. */
+  var LEARN_STEPS = [10, 30];
+  var RELEARN_STEPS = [10];
+  function clampEase(e) {
+    e = +e; if (!isFinite(e)) e = 2.5;
+    return Math.min(2.8, Math.max(1.3, +e.toFixed(2)));
+  }
+  function srsCard(store, id, nowMs) {
+    var now = (typeof nowMs === "number" && isFinite(nowMs)) ? nowMs : Date.now();
+    var raw = null;
+    try { raw = store && store.srs && store.srs[id]; } catch (e) { raw = null; }
+    var c = {
+      st: "new", step: 0, iv: 0, laps: 0, ease: 2.5,
+      due: todayKey(new Date(now)), dueMin: 0, last: null, miss: 0, reps: 0
+    };
+    if (raw && typeof raw === "object") {
+      if (typeof raw.ease === "number" && raw.ease > 0) c.ease = raw.ease;
+      else if (typeof raw.e === "number" && raw.e > 0) c.ease = raw.e;
+      if (isFinite(+raw.laps)) c.laps = Math.max(0, Math.round(+raw.laps));
+      if (isFinite(+raw.iv)) c.iv = Math.max(0, Math.round(+raw.iv));
+      if (typeof raw.due === "string" && raw.due) c.due = raw.due;
+      if (isFinite(+raw.dueMin)) c.dueMin = Math.max(0, Math.round(+raw.dueMin));
+      if (typeof raw.last === "string") c.last = raw.last;
+      if (isFinite(+raw.reps)) c.reps = Math.max(0, Math.round(+raw.reps));
+      if (typeof raw.st === "string" && /^(new|learning|review|relearning)$/.test(raw.st)) c.st = raw.st;
+      else if (c.laps > 0 || (c.due && c.due <= todayKey(new Date(now)))) c.st = "review";
+      if (isFinite(+raw.step)) c.step = Math.max(0, Math.round(+raw.step));
+    }
+    try { c.miss = Math.max(0, ((store.mistakes && store.mistakes[id] && store.mistakes[id].n) | 0)); } catch (e) {}
+    c.ease = clampEase(c.ease);
+    return c;
+  }
+  function srsIsDue(card, nowMs) {
+    var now = (typeof nowMs === "number" && isFinite(nowMs)) ? nowMs : Date.now();
+    try {
+      if (card && card.dueMin && card.dueMin > now) return false;
+      var d = card && card.due;
+      return !d || d <= todayKey(new Date(now));
+    } catch (e) { return true; }
+  }
+  /* Grade a card (mutates store.srs[id] unless dry=true) and return the new
+     snapshot {st,step,iv,laps,ease,due,dueMin,last,miss,reps,intervalD}.
+     rating: "again"|"hard"|"good"|"easy". */
+  function srsGrade(store, id, rating, nowMs, dry) {
+    var now = (typeof nowMs === "number" && isFinite(nowMs)) ? nowMs : Date.now();
+    var c = srsCard(store, id, now);
+    var ok = (rating === "good" || rating === "easy");
+    var base = nextReview({ laps: c.laps, ease: c.ease, miss: c.miss, ok: ok });
+    var out = { laps: base.laps, ease: clampEase(base.ease), miss: c.miss, reps: (c.reps | 0) + 1, last: todayKey(new Date(now)) };
+    if (rating === "again") {
+      out.laps = 0;
+      out.st = (c.st === "review" || c.st === "relearning") ? "relearning" : "learning";
+      out.step = 0; out.iv = 0;
+      out.dueMin = now + LEARN_STEPS[0] * 60000;
+      out.due = todayKey(new Date(now));
+      out.ease = clampEase(out.ease - 0.2);
+    } else if (rating === "hard") {
+      out.ease = clampEase(out.ease - 0.15);
+      if (c.st === "learning" || c.st === "relearning" || c.st === "new") {
+        out.st = c.st === "new" ? "learning" : c.st;
+        out.step = c.step | 0;
+        out.dueMin = now + (LEARN_STEPS[Math.min(out.step, LEARN_STEPS.length - 1)] || 30) * 60000;
+        out.due = todayKey(new Date(now));
+        out.iv = Math.max(c.iv | 0, 1);
+      } else {
+        out.st = "review"; out.step = 0;
+        out.iv = Math.max(1, Math.round(Math.max(c.iv | 0, base.dueIn, 1) * 1.2));
+        out.dueMin = 0;
+        out.due = todayKey(new Date(now + out.iv * 86400000));
+      }
+    } else if (rating === "good") {
+      if (c.st === "new" || c.st === "learning" || c.st === "relearning") {
+        var need = (c.st === "relearning") ? RELEARN_STEPS.length : LEARN_STEPS.length;
+        var step = (c.step | 0) + 1;
+        if (step >= need) {
+          out.st = "review"; out.step = 0;
+          out.iv = Math.max(1, base.dueIn); out.dueMin = 0;
+          out.due = todayKey(new Date(now + out.iv * 86400000));
+        } else {
+          out.st = c.st === "new" ? "learning" : c.st;
+          out.step = step;
+          out.dueMin = now + (LEARN_STEPS[Math.min(step, LEARN_STEPS.length - 1)] || 30) * 60000;
+          out.due = todayKey(new Date(now));
+          out.iv = 0;
+        }
+      } else {
+        out.st = "review"; out.step = 0;
+        out.iv = Math.max(1, base.dueIn); out.dueMin = 0;
+        out.due = todayKey(new Date(now + out.iv * 86400000));
+      }
+    } else { /* easy */
+      out.st = "review"; out.step = 0;
+      out.ease = clampEase(out.ease + 0.15);
+      out.iv = Math.max(base.dueIn, (c.iv | 0) + 1, 1); out.dueMin = 0;
+      out.due = todayKey(new Date(now + out.iv * 86400000));
+    }
+    if (!dry) {
+      try {
+        if (!store.srs || typeof store.srs !== "object") store.srs = {};
+        store.srs[id] = { st: out.st, step: out.step, iv: out.iv, laps: out.laps, ease: out.ease, e: out.ease, due: out.due, dueMin: out.dueMin, last: out.last, miss: out.miss, reps: out.reps };
+      } catch (e) {}
+    }
+    out.intervalD = (out.st === "review") ? out.iv : 0;
+    return out;
+  }
+
   return {
     SCHEMA_V: SCHEMA_V, MAX_EVENTS: MAX_EVENTS,
     todayKey: todayKey, dayDiff: dayDiff,
     makeAttempt: makeAttempt, logAttempt: logAttempt,
     rebuildTotals: rebuildTotals, migrate: migrate, safeSave: safeSave,
     nextReview: nextReview, buildQueue: buildQueue,
+    LEARN_STEPS: LEARN_STEPS, RELEARN_STEPS: RELEARN_STEPS,
+    srsCard: srsCard, srsIsDue: srsIsDue, srsGrade: srsGrade,
     SKILLS: SKILLS, classifyError: classifyError, skillOfMistake: skillOfMistake,
     continueTarget: continueTarget, weeklySummary: weeklySummary
   };

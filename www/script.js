@@ -2094,11 +2094,81 @@ function renderReview(){
   due.slice(0,9).forEach(w=>g.appendChild(wordCard(w)));
   if(!due.length)g.innerHTML='<div class="muted">ممتاز! لا توجد كلمات تحتاج مراجعة اليوم 🎉</div>';
 }
-let reviewQueue=[],reviewIdx=0,reviewDir="de-ar";
+/* Central review queue (single ordering for every session surface).
+   Buckets, in priority order: relearning (forgotten, most overdue first),
+   learning (intraday steps due), review (overdue then due today, hardest
+   first by mistake count), new (up to newPerDay). Respects S.srsCfg
+   {newPerDay,maxReview} (per identity, Advanced block on Flashcards).
+   Returns {items:[{w,bucket,reason}], counts:{relearning,learning,review,new,total}}.
+   Pure over the passed pool except reading S (no DOM, no writes). */
+function srsCfg(){
+  try{
+    const c=(S&&S.srsCfg)||{};
+    return { newPerDay:Math.min(100,Math.max(0,parseInt(c.newPerDay,10)||20)),
+      maxReview:Math.min(500,Math.max(1,parseInt(c.maxReview,10)||100)) };
+  }catch(e){ return { newPerDay:20, maxReview:100 }; }
+}
+function srsBucketOf(w,nowMs){
+  var card=null;
+  try{
+    if(window.DMProgress&&typeof DMProgress.srsCard==="function") card=DMProgress.srsCard(S,w.id,nowMs);
+  }catch(e){ card=null; }
+  var st=(card&&card.st)||"new";
+  var due=false;
+  try{
+    if(window.DMProgress&&typeof DMProgress.srsIsDue==="function") due=DMProgress.srsIsDue(card,nowMs);
+    else due=!card||!card.due||card.due<=todayStr();
+  }catch(e){ due=true; }
+  return { st:st, due:!!due, card:card };
+}
+function buildReviewQueue(pool,opts){
+  opts=opts||{};
+  var now=(typeof opts.nowMs==="number"&&isFinite(opts.nowMs))?opts.nowMs:Date.now();
+  var cfg=srsCfg();
+  var maxNew=isFinite(+opts.newPerDay)?Math.max(0,+opts.newPerDay):cfg.newPerDay;
+  var maxTotal=isFinite(+opts.maxReview)?Math.max(1,+opts.maxReview):cfg.maxReview;
+  var lists={relearning:[],learning:[],review:[],new:[]};
+  (pool||[]).forEach(function(w){
+    if(!w||!w.id)return;
+    var b=srsBucketOf(w,now);
+    if(b.st==="relearning"&&b.due)lists.relearning.push({w:w,bucket:"relearning"});
+    else if(b.st==="learning"&&b.due)lists.learning.push({w:w,bucket:"learning"});
+    else if(b.st==="review"&&b.due)lists.review.push({w:w,bucket:"review"});
+    else if(b.st==="new")lists.new.push({w:w,bucket:"new"});
+  });
+  function missN(x){ try{return (S.mistakes&&S.mistakes[x.w.id]&&S.mistakes[x.w.id].n)|0;}catch(e){return 0;} }
+  function dueMinOf(x){ try{return (x&&x.w&&S.srs&&S.srs[x.w.id]&&S.srs[x.w.id].dueMin)||0;}catch(e){return 0;} }
+  function byMiss(a,b){ var m=missN(b)-missN(a); if(m!==0)return m; return String(a.w.id)<String(b.w.id)?-1:1; }
+  lists.relearning.sort(function(a,b){ var d=dueMinOf(a)-dueMinOf(b); return d!==0?d:byMiss(a,b); });
+  lists.learning.sort(function(a,b){ var d=dueMinOf(a)-dueMinOf(b); return d!==0?d:byMiss(a,b); });
+  lists.review.sort(byMiss);
+  var items=lists.relearning.concat(lists.learning, lists.review, lists.new.slice(0,maxNew));
+  items=items.slice(0,maxTotal);
+  return { items:items, counts:{ relearning:lists.relearning.length, learning:lists.learning.length,
+    review:lists.review.length, new:lists.new.length, total:items.length } };
+}
+let reviewQueue=[],reviewIdx=0,reviewDir="de-ar",rvReins={};
+/* Interval preview text, always computed from the real scheduler (dry run),
+   so labels can never contradict the schedule. */
+function srsEtaText(id,rating){
+  try{
+    if(!(window.DMProgress&&typeof DMProgress.srsGrade==="function"))return "";
+    var r=DMProgress.srsGrade(S,id,rating,Date.now(),true);
+    var t=window.t||function(k){return k;};
+    if(r.dueMin&&r.dueMin>Date.now()){
+      var mins=Math.max(1,Math.round((r.dueMin-Date.now())/60000));
+      return String(t("rv_inmin")||"").replace("{n}",mins);
+    }
+    var d=Math.max(1,r.intervalD||1);
+    return String(t("rv_indays")||"").replace("{n}",d);
+  }catch(e){ return ""; }
+}
 $("startReview").addEventListener("click",()=>{
-  reviewQueue=dueWords().slice(0,15);
+  var built=null;
+  try{ built=buildReviewQueue(allWords(),{maxReview:15}); }catch(e){ built=null; }
+  reviewQueue=(built&&built.items.length?built.items.map(function(x){return x.w;}):dueWords()).slice(0,15);
   if(!reviewQueue.length){toast("لا توجد كلمات للمراجعة 🎉","ok");return;}
-  reviewIdx=0;renderReviewQ();markStudyDay();
+  reviewIdx=0;rvReins={};renderReviewQ();markStudyDay();
 });
 function renderReviewQ(){
   const box=$("reviewSession");box.classList.remove("hidden");
@@ -2111,51 +2181,123 @@ function renderReviewQ(){
   const back=deFirst
     ?'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-ar" style="font-size:26px">'+escapeHtml(w.ar)+'</div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div></div>'
     :'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-de word-de-ltr" style="font-size:26px">'+escapeHtml(full)+' <button class="mini-btn" id="rvSpeak2">🔊</button></div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div></div>';
+  var t=window.t||function(k){return k;};
+  /* In-session relearning: a card rated Again/Hard while (re)learning with a
+     near-term step returns at the queue tail (max 3 re-inserts per card per
+     session, so sessions always terminate). */
+  function rvAdvance(rating){
+    var again=(rating==="again"||rating==="hard");
+    try{
+      var before=null;
+      try{before=DMProgress.srsCard(S,w.id);}catch(e){}
+      if(rating==="again")bumpReview(w.id,false,-0.15);
+      else if(rating==="hard")bumpReview(w.id,false);
+      else if(rating==="easy")bumpReview(w.id,true,0.15);
+      else bumpReview(w.id,true);
+      var n=(rvReins[w.id]||0);
+      if(again&&n<3){
+        var after=null;
+        try{after=DMProgress.srsCard(S,w.id);}catch(e){}
+        if(after&&(after.st==="learning"||after.st==="relearning")&&after.dueMin&&after.dueMin-Date.now()<45*60000){
+          rvReins[w.id]=n+1;
+          reviewQueue.push(w);
+        }
+      }
+    }catch(e){ try{bumpReview(w.id,rating==="good"||rating==="easy");}catch(e2){} }
+    reviewIdx++;renderReviewQ();
+  }
+  window.__rvAdvance=rvAdvance;
   box.innerHTML='<h3>مراجعة '+(reviewIdx+1)+' / '+reviewQueue.length+'</h3>'+
   '<div class="muted">لماذا الآن؟ '+escapeHtml(srsWhy(w.id))+'</div>'+
   front+
   '<div class="muted">'+(deFirst?"حاول تذكر المعنى ثم أظهر الإجابة":"حاول تذكر الكلمة الألمانية ثم أظهر الإجابة")+'</div>'+
   back+
   '<div class="row-flex"><button class="btn btn-ghost sm" id="rvShow">👁️ إظهار الإجابة</button>'+
-  '<button class="btn btn-ghost sm" id="rvDir">🔄 '+(deFirst?"عربي → ألماني":"ألماني → عربي")+'</button>'+
-  '<button class="btn btn-green sm" id="rvOk">✅ عرفتها</button>'+
-  '<button class="btn btn-red sm" id="rvNo">❌ أخطأت</button></div>';
+  '<button class="btn btn-ghost sm" id="rvDir">🔄 '+(deFirst?"عربي → ألماني":"ألماني → عربي")+'</button></div>'+
+  '<div class="row-flex" style="margin-top:8px">'+
+  '<button class="btn btn-red sm" data-rv-rate="again">'+escapeHtml(t("rate_forgot"))+' <small>'+escapeHtml(srsEtaText(w.id,"again"))+'</small></button>'+
+  '<button class="btn btn-gold sm" data-rv-rate="hard">'+escapeHtml(t("rate_hard"))+' <small>'+escapeHtml(srsEtaText(w.id,"hard"))+'</small></button>'+
+  '<button class="btn btn-green sm" data-rv-rate="good">'+escapeHtml(t("rate_good"))+' <small>'+escapeHtml(srsEtaText(w.id,"good"))+'</small></button>'+
+  '<button class="btn btn-primary sm" data-rv-rate="easy">'+escapeHtml(t("rate_easy"))+' <small>'+escapeHtml(srsEtaText(w.id,"easy"))+'</small></button></div>';
   box.scrollIntoView({behavior:"smooth"});
   const rvSpk=()=>speak(full);
-  if($("rvSpeak"))$("rvSpeak").addEventListener("click",rvSpk);
-  if($("rvSpeak2"))$("rvSpeak2").addEventListener("click",rvSpk);
+  if($("rvSpeak"))$("rvSpeak").addEventListener("click",function(ev){try{ev.stopPropagation();}catch(e){}rvSpk();});
+  if($("rvSpeak2"))$("rvSpeak2").addEventListener("click",function(ev){try{ev.stopPropagation();}catch(e){}rvSpk();});
   $("rvShow").addEventListener("click",()=>$("rvAns").classList.remove("hidden"));
   $("rvDir").addEventListener("click",()=>{reviewDir=deFirst?"ar-de":"de-ar";renderReviewQ();});
-  $("rvOk").addEventListener("click",()=>{bumpReview(w.id,true);reviewIdx++;renderReviewQ();});
-  $("rvNo").addEventListener("click",()=>{bumpReview(w.id,false);reviewIdx++;renderReviewQ();});
+  box.querySelectorAll("[data-rv-rate]").forEach(function(b){
+    b.addEventListener("click",function(){rvAdvance(b.getAttribute("data-rv-rate"));});
+  });
 }
-/* Confidence-graded review: ok=true/false drives the SM-2-lite schedule;
-   optional boost (e.g. +0.15 Easy, -0.15 Forgot) nudges ease inside the same
-   [1.3, 2.8] bounds nextReview enforces, so forgotten items return sooner
-   and mastered items wait longer. */
+/* Keyboard 1-4 for review ratings (never inside typing fields). */
+try{
+  if(!document.__dmRvKeys&&document.addEventListener){
+    document.addEventListener("keydown",function(ev){
+      try{
+        if(ev.defaultPrevented)return;
+        var tag=(ev.target&&ev.target.tagName)||"";
+        if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||(ev.target&&ev.target.isContentEditable))return;
+        var map={"1":"again","2":"hard","3":"good","4":"easy"};
+        var r=map[ev.key];
+        if(!r)return;
+        var box=document.getElementById("reviewSession");
+        if(box&&!box.classList.contains("hidden")&&typeof window.__rvAdvance==="function"){
+          ev.preventDefault();
+          window.__rvAdvance(r);
+          return;
+        }
+        var fp=null;
+        try{fp=document.querySelector("#page-flashcards.active");}catch(e){}
+        if(fp){
+          var order={again:"forgot",hard:"hard",good:"good",easy:"easy"};
+          var btn=document.querySelector('#page-flashcards [data-flash-rate="'+order[r]+'"]');
+          if(btn){ev.preventDefault();btn.click();}
+        }
+      }catch(e){}
+    });
+    document.__dmRvKeys=true;
+  }
+}catch(e){}
+/* Confidence-graded review through the single SRS engine (DMProgress.srsGrade:
+   New/Learning/Review/Relearning states, intraday steps, day intervals).
+   Legacy ok/boost callers map onto Again/Hard/Good/Easy. XP: +2 only for the
+   first successful review of a card per day (forgotten/hard earn nothing and
+   repeats earn nothing, so ratings cannot be farmed). Attempts are logged to
+   the bounded DMProgress event log without double-counting aggregates. */
 function bumpReview(id,ok,boost){
   if(!S.review[id])S.review[id]={c:0,w:0};
+  const prevStatus=getStatus(id);
   if(ok){
     S.review[id].c++;
-    if(getStatus(id)!=="hard")setStatus(id,"known");
+    if(prevStatus!=="hard")setStatus(id,"known");
   }else{
     S.review[id].w++;
     setStatus(id,"hard");
   }
 
-  // Use DMProgress SM-2-lite for proper SRS scheduling
-  if(window.DMProgress){
+  var rating=ok?((typeof boost==="number"&&boost>0)?"easy":"good"):((typeof boost==="number"&&boost<0)?"again":"hard");
+  var prevLast=null;
+  try{prevLast=(S.srs&&S.srs[id]&&S.srs[id].last)||null;}catch(e){}
+  if(window.DMProgress&&typeof DMProgress.srsGrade==="function"){
+    try{DMProgress.srsGrade(S,id,rating);}catch(e){}
+  }else if(window.DMProgress){
     const st=S.srs&&S.srs[id]||{laps:0,ease:2.5,miss:0};
     st.miss=(S.mistakes&&S.mistakes[id]&&S.mistakes[id].n)||0;
     st.ok=ok;
-    if(typeof boost==="number"&&isFinite(boost)){
-      st.ease=Math.min(2.8,Math.max(1.3,(+st.ease||2.5)+boost));
-    }
     const nxt=DMProgress.nextReview(st);
     if(!S.srs)S.srs={};
     S.srs[id]={laps:nxt.laps,ease:nxt.ease,due:DMProgress.todayKey(new Date(Date.now()+nxt.dueIn*86400000)),miss:st.miss};
   }
 
+  if(ok&&prevLast!==todayStr()){
+    try{if(typeof addXP==="function")addXP(2,"review");}catch(e){}
+  }
+  if(window.DMProgress&&typeof DMProgress.logAttempt==="function"){
+    try{
+      S.evSeq=(typeof S.evSeq==="number"?S.evSeq:0)+1;
+      DMProgress.logAttempt(S,DMProgress.makeAttempt({aid:"srs-"+id+"-"+S.evSeq,sec:"review",qtype:"srs-"+rating,ref:id,ok:!!ok}),{counted:true});
+    }catch(e){}
+  }
   S.totalAnswered++;if(ok)S.totalCorrect++;
   markStudyDay();save();renderAll();
 }
@@ -2193,10 +2335,27 @@ function flashEnsureLevel(){
   }catch(e){}
   return false;
 }
+function updateSrsCounts(){
+  try{
+    var cts={new:0,learning:0,review:0,relearning:0};
+    allWords().forEach(function(w){
+      if(!w||!w.id)return;
+      var c=null; try{ if(window.DMProgress&&typeof DMProgress.srsCard==="function") c=DMProgress.srsCard(S,w.id); }catch(e){}
+      if(!c) cts.new++; else if(c.st==="learning"||c.st==="relearning") cts.learning++; else if(c.st==="review") cts.review++; else cts.new++;
+    });
+    var el=$("srsCounts"); if(el){ el.textContent="🆕 "+cts.new+" 📚 "+cts.learning+" 🔁 "+cts.review+" 🔄 "+cts.relearning; }
+  }catch(e){}
+}
+
 function buildFlash(){
   if(flashEnsureLevel())return;
-  flashList=shuffle(getFilteredFlashcards());
-  flashIdx=0;renderFlash();
+  if(S.srsMode==="due"||S.srsMode==="weak"||S.srsMode==="mist"){
+    var built=buildReviewQueue(allWords(),{newPerDay:0,maxReview:srsCfg().maxReview});
+    flashList=built.items.map(function(x){return x.w;});
+  }else{
+    flashList=shuffle(getFilteredFlashcards());
+  }
+  flashIdx=0;renderFlash();updateSrsCounts();
 }
 /* Keep the flashcard deck in sync when vocabulary grows or shrinks (custom
    words, studio import/delete, lazy A2/B1/B2 merge) WITHOUT disturbing the
