@@ -1713,7 +1713,12 @@ $("testVoice").addEventListener("click",()=>speak("Ich lerne Deutsch. Guten Tag!
 /* ============ TYPING ============ */
 const PHRASES=["der Tisch = الطاولة 🍎","احفظ الأداة مع الكلمة دائمًا! der / die / das","Ich lerne Deutsch 🇩🇪","راجع 20 كلمة يوميًا لتصل إلى A1 بسرعة ⚡","Streak اليوم: افتح التطبيق وذاكر 🔥"];
 let phraseI=0,charI=0,del=false;
-function typingLoop(){const el=$("typingText");if(!el)return;const p=PHRASES[phraseI];el.textContent=p.slice(0,charI);if(!del){charI++;if(charI>p.length+8)del=true;}else{charI--;if(charI<=0){del=false;phraseI=(phraseI+1)%PHRASES.length;}}setTimeout(typingLoop,del?35:70);}
+/* Idle guard for the hero typing animation: the loop historically ran its
+   35/70ms DOM-write cadence forever — hidden tab, backgrounded PWA, or any
+   other page open. When nothing is visible we skip the write/advance and
+   re-check once per second; the visible animation keeps its exact timing. */
+function typingIdle(){try{if(typeof document!=="undefined"&&document.hidden)return true;}catch(e){}try{var d=document.querySelector?document.querySelector("#page-dashboard"):null;if(d&&d.classList&&!d.classList.contains("active"))return true;}catch(e){}return false;}
+function typingLoop(){const el=$("typingText");if(!el)return;if(typingIdle()){setTimeout(typingLoop,1000);return;}const p=PHRASES[phraseI];el.textContent=p.slice(0,charI);if(!del){charI++;if(charI>p.length+8)del=true;}else{charI--;if(charI<=0){del=false;phraseI=(phraseI+1)%PHRASES.length;}}setTimeout(typingLoop,del?35:70);}
 
 /* ============ REVEAL ============ */
 let observer=null;
