@@ -307,10 +307,15 @@ function js(sb, expr) { return vm.runInContext(expr, sb); }
   check("Test10: refresh restores filter", js(sb2, "document.getElementById('filterLevel').value==='A1'"));
 })();
 
-/* ---------- 11. history untouched (ignore comments, check real calls) ---------- */
+/* ---------- 11. history: only the fresh-launch transient-hash strip ---------- */
 (function () {
   const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
-  check("Test11: no history manipulation in page-state.js", !/\.pushState\s*\(|\.replaceState\s*\(|onpopstate|addEventListener\s*\(\s*["']popstate/.test(code));
+  check("Test11: no pushState routing in page-state.js", !/\.pushState\s*\(/.test(code));
+  check("Test11: no popstate/hashchange routing in page-state.js", !/onpopstate|onhashchange|addEventListener\s*\(\s*["'](popstate|hashchange)/.test(code));
+  const repl = (code.match(/\.replaceState\s*\(/g) || []).length;
+  check("Test11: at most one replaceState (fresh-launch hash strip)", repl <= 1, "count=" + repl);
+  check("Test11: replaceState guarded by transient-hash check", !/\.replaceState/.test(code) || /isTransientHash/.test(code));
+  check("Test11: no visibility/pageshow reset handlers", !/addEventListener\s*\(\s*["'](visibilitychange|pageshow|pagehide|beforeunload|focus|blur)/.test(code));
 })();
 
 /* ---------- 12. PWA/shell wiring ---------- */

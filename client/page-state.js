@@ -661,8 +661,90 @@ function ensureOutermost() {
   } catch (e) {}
 }
 
+/* ---------------- fresh-launch reset (central, single handler) ----------------
+ * Every new document load is a fresh launch: start at the home page
+ * (dashboard) with default transient UI. Only the transient navigation
+ * store (LS_KEY) plus the transient topic hash (#howto[-id]) are reset.
+ * Durable data is NEVER touched here: deutsch_master_v2 (plus per-uid and
+ * backup snapshots), dm_merge_decision keys, dm_device_id, dm_welcomed, dm_sync_queue,
+ * dm_push_claim and Supabase auth keys are left intact.
+ * Same-session behavior is preserved automatically: in-memory S.mem keeps
+ * working across SPA navigations, and bfcache restores (back/forward) never
+ * re-run this file, so they keep live DOM. Deliberately no
+ * visibilitychange/pageshow/focus/blur/pagehide/beforeunload handlers here:
+ * backgrounding, tab switches or lock/unlock must NOT reset the session.
+ * A full reload re-evaluates this file, which is the fresh-launch signal. */
+S.TRANSIENT_KEYS = [LS_KEY];
+S._freshResetDone = false;
+function isTransientHash(h) {
+  try {
+    var s = String(h == null ? "" : h).replace(/^#/, "");
+    return s === "howto" || s.indexOf("howto-") === 0;
+  } catch (e) { return false; }
+}
+S.isTransientHash = isTransientHash;
+S.resetFreshLaunch = function (reason) {
+  try { S.mem = {}; } catch (e) {}
+  try { S.persisted = {}; } catch (e) {}
+  try { S._explicit = {}; } catch (e) {}
+  try { S._lastExplainId = null; } catch (e) {}
+  try {
+    if (typeof localStorage !== "undefined" && localStorage.removeItem) {
+      localStorage.removeItem(LS_KEY);
+    }
+  } catch (e) {}
+  /* Drop the transient topic deep-link (HW.open was seeded from it at
+     howto.js evaluation). Query (?code=/?error=/push flags) is preserved. */
+  try {
+    if (typeof HW !== "undefined" && HW) { HW.open = null; HW._force = 0; }
+  } catch (e) {}
+  try {
+    if (typeof window !== "undefined" && window.HW) { window.HW.open = null; window.HW._force = 0; }
+  } catch (e) {}
+  var hadHash = false;
+  try {
+    var h = (typeof location !== "undefined" && location.hash) || (typeof window !== "undefined" && window.location && window.location.hash) || "";
+    hadHash = isTransientHash(h);
+    if (hadHash) {
+      var hs = (typeof history !== "undefined" && history) || (typeof window !== "undefined" && window.history) || null;
+      var loc = null;
+      try { loc = (typeof location !== "undefined" && location) ? location : (typeof window !== "undefined" ? window.location : null); } catch (e2) { loc = null; }
+      var base = "";
+      try { base = (loc ? (loc.pathname || "") : "") + (loc && loc.search ? loc.search : ""); } catch (e2) { base = ""; }
+      if (hs && hs.replaceState) hs.replaceState(null, "", base || " ");
+    }
+  } catch (e) {}
+  /* Native scroll restore must not resurrect the old position on reload. */
+  try {
+    if (typeof history !== "undefined" && history.scrollRestoration) history.scrollRestoration = "manual";
+    else if (typeof window !== "undefined" && window.history && window.history.scrollRestoration) window.history.scrollRestoration = "manual";
+  } catch (e) {}
+  /* Force the home page shell (idempotent: index/academy already ship with
+     dashboard active; app-init's later auth/recovery flow may still switch
+     to page-auth when it genuinely must). */
+  try {
+    if (typeof document !== "undefined" && document.querySelectorAll) {
+      var dash = null;
+      try { dash = document.querySelector("#page-dashboard"); } catch (e) {}
+      if (dash) {
+        try { document.querySelectorAll(".page").forEach(function (p) { try { p.classList.toggle("active", p.id === "page-dashboard"); } catch (e2) {} }); } catch (e) {}
+        try { document.querySelectorAll(".nav-item").forEach(function (b) { try { b.classList.toggle("active", b.getAttribute && b.getAttribute("data-page") === "dashboard"); } catch (e2) {} }); } catch (e) {}
+      }
+    }
+  } catch (e) {}
+  try {
+    if (typeof window !== "undefined" && window.scrollTo) window.scrollTo(0, 0);
+  } catch (e) {}
+  try { S.current = "dashboard"; } catch (e) {}
+  S._freshResetDone = true;
+  return { cleared: true, hash: hadHash, reason: reason || "fresh-launch" };
+};
+
 function boot() {
-  try { S.loadPersisted(); } catch (e) {}
+  /* Fresh launch first: wipe transient restore BEFORE any loadPersisted or
+     hash-driven topic open can resurrect the previous screen. Same-session
+     navigation afterwards uses only in-memory S.mem (untouched by this). */
+  try { S.resetFreshLaunch("fresh-launch"); } catch (e) {}
   try { S.detectCurrent(); } catch (e) {}
   try { wrapOpeners(); } catch (e) {}
   /* showPage may be defined already (all modules loaded before us). Retry once if not. */
@@ -680,6 +762,12 @@ function boot() {
       document.addEventListener("DOMContentLoaded", function () {
         try { ensureOutermost(); } catch (e) {}
         try { wrapOpeners(); } catch (e) {}
+        /* Fresh-load scroll guard (scroll only, never a state reset): the
+           browser may re-apply the pre-reload scroll after layout; a fresh
+           launch must stay at the top on the home page. Same-session
+           visibility/focus changes never reach this (DOMContentLoaded fires
+           once per document). */
+        try { if (S._freshResetDone && typeof window !== "undefined" && window.scrollTo) window.scrollTo(0, 0); } catch (e2) {}
       });
     }
   } catch (e) {}
@@ -723,6 +811,13 @@ try {
     };
     window.savePageState = function () { return S.savePageState(); };
     window.clearPageState = function (p) { return S.clearPageState(p); };
+    /* Test seam for fresh-launch vs same-session regression tests. */
+    try {
+      window.DMFreshLaunch = window.DMFreshLaunch || {};
+      window.DMFreshLaunch.reset = S.resetFreshLaunch;
+      window.DMFreshLaunch.TRANSIENT_KEYS = S.TRANSIENT_KEYS;
+      window.DMFreshLaunch.isTransientHash = S.isTransientHash;
+    } catch (e2) {}
   }
 } catch (e) {}
 try { if (typeof module !== "undefined" && module.exports) module.exports = S; } catch (e) {}
