@@ -144,14 +144,42 @@ for (const f of ["client/index.html", "client/academy.html"]) {
 (function () {
   const appInit = RD("client/app-init.js");
   const css = RD("client/style.css");
-  // Email pill is rendered with textContent (never innerHTML): no HTML injection.
+  // Account label is rendered with textContent (never innerHTML): no HTML injection.
   const chipBlock = appInit.slice(appInit.indexOf('getElementById("userEmail")'));
-  check("R37 topbar email pill uses textContent", chipBlock.indexOf("textContent = email") >= 0 && chipBlock.indexOf("innerHTML") < 0);
-  check("R38 topbar email pill cleared on sign-out", /stale\.textContent = ""/.test(appInit) || /chip\.textContent = ""/.test(appInit));
+  check("R37 topbar account label uses textContent", chipBlock.indexOf("chip.textContent = label") >= 0 && chipBlock.indexOf("innerHTML") < 0);
+  check("R38 topbar account label cleared on sign-out", /stale\.textContent = ""/.test(appInit) || /chip\.textContent = ""/.test(appInit));
   check("R39 user-email style defined", css.indexOf(".user-email") >= 0);
   for (const f of ["client/index.html", "client/academy.html"]) {
     check("R40 " + f + " has userMenu host", RD(f).indexOf('id="userMenu"') >= 0);
   }
+  // Logout/state hardening: rendered state derives from the LIVE user (a stale
+  // updateAuthUI(true) after sign-out must render guest), the full email
+  // travels in title/aria-label while the visible chip prefers the display
+  // name, and async account work is generation-guarded against late repaint.
+  check("R41 topbar derives state from live user", appInit.indexOf("AuthModule?.getUser?.() || null") >= 0 && appInit.indexOf("!!isLoggedIn && !!liveUser") >= 0);
+  check("R42 topbar prefers display name, email in title/aria", appInit.indexOf("full_name") >= 0 && chipBlock.indexOf('setAttribute("aria-label", email)') >= 0);
+  check("R43 sign-out clears title + aria-label", chipBlock.indexOf('removeAttribute("aria-label")') >= 0);
+  check("R44 session generation guards async account work", appInit.indexOf("sessionGen") >= 0 && appInit.indexOf("gen !== sessionGen") >= 0);
+  check("R45 single userEmail controller", appInit.split('getElementById("userEmail")').length - 1 === 1);
+  check("R46 account chip responsive + focus-visible", css.indexOf("@media(max-width:360px)") >= 0 && css.indexOf(".user-email{max-width:88px") >= 0 && css.indexOf("focus-visible") >= 0);
+  // R47: style.css brace integrity. A missing "}" once nested ~117 rules
+  // (auth, sync, account chip, profile) inside @media(max-width:380px),
+  // leaving them unstyled on wider viewports. Pin balanced braces and the
+  // mistakes 380px block properly closed.
+  (function () {
+    let depth = 0, inStr = null, inCom = false, bad = 0;
+    for (let i = 0; i < css.length; i++) {
+      const c = css[i], nx = css[i + 1];
+      if (inCom) { if (c === "*" && nx === "/") { inCom = false; i++; } continue; }
+      if (inStr) { if (c === inStr) inStr = null; else if (c === "\\") i++; continue; }
+      if (c === "/" && nx === "*") { inCom = true; i++; continue; }
+      if (c === '"' || c === "'") { inStr = c; continue; }
+      if (c === "{") depth++;
+      if (c === "}") { depth--; if (depth < 0) { bad++; depth = 0; } }
+    }
+    check("R47 style.css braces balanced", depth === 0 && bad === 0 && !inStr && !inCom, "depth=" + depth + " bad=" + bad);
+    check("R47b mistakes 380px block closed", css.indexOf("#page-mistakes .page-head .row-flex{grid-template-columns:repeat(2,1fr)}") >= 0);
+  })();
 })();
 (function () {
   const script = RD("client/script.js");

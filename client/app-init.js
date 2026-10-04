@@ -81,24 +81,45 @@
     }
 
     // Update auth UI in topbar (scope-level so every flow can reach it).
-    // When signed in, the account email is exposed via title attributes plus
-    // a small visible pill, so the current identity is always displayed.
+    // Single canonical external identity element: span#userEmail inside
+    // #userMenu. Signed in it shows a compact account label (display name
+    // when reliably available, otherwise the email); the full account email
+    // is exposed via title/aria-label only, so long Gmail addresses can never
+    // break the topbar layout. Signed out the element is fully cleared and
+    // hidden and the guest login entry point is shown instead.
+    // Stale-call safe: the rendered state is derived from the LIVE Supabase
+    // user, never from the isLoggedIn argument alone, so a late/stale
+    // updateAuthUI(true) after sign-out can never repaint old identity.
     function updateAuthUI(isLoggedIn) {
         var loginBtn = document.getElementById("loginBtn");
         var userMenu = document.getElementById("userMenu");
-        var email = "";
-        if (isLoggedIn) {
+        var liveUser = null;
+        try {
+            liveUser = window.AuthModule?.getUser?.() || null;
+        } catch (e) { liveUser = null; }
+        var loggedIn = !!isLoggedIn && !!liveUser;
+        var email = loggedIn ? ((liveUser && (liveUser.email || liveUser.phone)) || "") : "";
+        var label = "";
+        if (loggedIn && email) {
             try {
-                var u = window.AuthModule?.getUser?.();
-                email = (u && (u.email || u.phone)) || "";
-            } catch (e) {}
+                var meta = liveUser.user_metadata || {};
+                var candidate = meta.full_name || meta.display_name || meta.name || "";
+                if (candidate && String(candidate).trim()) label = String(candidate).trim();
+                else label = email;
+            } catch (e) { label = email; }
         }
-        if (isLoggedIn) {
+        if (loggedIn) {
             if (loginBtn) loginBtn.style.display = "none";
-            if (userMenu) userMenu.classList.remove("hidden");
+            if (userMenu) {
+                userMenu.classList.remove("hidden");
+                try { userMenu.setAttribute("data-signed-in", "true"); } catch (e) {}
+            }
         } else {
             if (loginBtn) loginBtn.style.display = "";
-            if (userMenu) userMenu.classList.add("hidden");
+            if (userMenu) {
+                userMenu.classList.add("hidden");
+                try { userMenu.setAttribute("data-signed-in", "false"); } catch (e) {}
+            }
         }
         try {
             var profileBtn = document.getElementById("profileBtn");
@@ -109,26 +130,39 @@
             if (userMenu) {
                 if (email) userMenu.title = email;
                 else userMenu.removeAttribute("title");
-                // Visible signed-in pill (textContent only, created once):
-                // the topbar must DISPLAY the account, not just tooltip it.
+                // Visible signed-in account label (textContent only, created
+                // once): concise identity, full account in title/aria-label.
                 var chip = document.getElementById("userEmail");
-                if (email) {
+                if (loggedIn && (label || email)) {
                     if (!chip) {
                         chip = document.createElement("span");
                         chip.id = "userEmail";
                         chip.className = "user-email";
+                        try { chip.setAttribute("dir", "auto"); } catch (e2) {}
                         userMenu.insertBefore(chip, userMenu.firstChild);
                     }
-                    chip.textContent = email;
+                    chip.textContent = label || email;
                     try { chip.title = email; } catch (e2) {}
+                    try { chip.setAttribute("aria-label", email); } catch (e2) {}
                     chip.style.display = "";
                 } else if (chip) {
+                    // Signed out: leave zero stale identity behind.
                     chip.textContent = "";
+                    try { chip.removeAttribute("title"); } catch (e2) {}
+                    try { chip.removeAttribute("aria-label"); } catch (e2) {}
                     chip.style.display = "none";
                 }
             }
         } catch (e) {}
     }
+
+    // Test seam (no app logic, no new UI): exposes the existing topbar
+    // renderer so headless regression tests can drive the REAL updateAuthUI
+    // code with a stubbed identity. Never used by production code paths.
+    try {
+        window.__dmTestHooks = window.__dmTestHooks || {};
+        window.__dmTestHooks.updateAuthUI = updateAuthUI;
+    } catch (e) {}
 
     // Password-recovery completion (the reset EMAIL is sent by AuthModule.resetPassword;
     // this wires the landing side: after the user clicks the email link, Supabase
@@ -858,7 +892,14 @@
         // Single session handler for listener + initial restore.
         // No login wall: signed-out users keep learning offline/local-first;
         // signing in happens explicitly via the topbar login button.
+        // Race guard: every session transition stamps a generation. Async
+        // account work (switchToAccount/postSignIn) re-validates it on
+        // completion, so a late callback from a previous account (sign in A
+        // -> immediately sign out, or A -> B) can never repaint UI or start
+        // sync for an identity that is no longer active.
+        var sessionGen = 0;
         function handleSession(session, event) {
+            var gen = ++sessionGen;
             if (event === "SIGNED_OUT") recoveryMode = false;
             // Password-recovery landing must stay on the auth page until the new
             // password is set (otherwise the main app would hide the recovery UI).
@@ -877,8 +918,10 @@
                     try { window.ProfileModule?.clearCache?.(); } catch (e) {}
                     refreshProfileIfVisible();
                     switchToAccount(uid).then(function () {
+                        if (gen !== sessionGen) return;
                         postSignIn(uid);
                     }).catch(function (e) {
+                        if (gen !== sessionGen) return;
                         console.warn("[App] Account switch failed:", e);
                         postSignIn(uid);
                     });

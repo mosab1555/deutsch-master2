@@ -252,6 +252,52 @@ async function partA() {
   fakeAuth._emit("SIGNED_IN", { user: userB });
   const initRes = await AuthModule.initialize();
   ok("A11-restore", initRes && initRes.user && initRes.user.id === "user-B", "initialize returns B");
+
+  // Scenario A: guest -> sign in A -> verify A email -> sign out -> guest UI
+  // state (no account active, account writes refused afterwards).
+  fakeAuth._emit("SIGNED_IN", { user: userA });
+  authedUserId = "user-A";
+  CloudSync.setActiveUser("user-A");
+  const aEmailShown = AuthModule.getUser() && AuthModule.getUser().email === "a@example.com";
+  const signOutRes = await AuthModule.signOut();
+  CloudSync.setActiveUser(null);
+  CloudSync.stopAutoSync();
+  const guestClean = AuthModule.getUser() === null && CloudSync.getActiveUser() === null;
+  const afterOut = await CloudSync.uploadChanges("user-A", { xp: 777 });
+  const aRowAfter = db.user_progress.get("user-A") || {};
+  ok("A12-scenario-A", aEmailShown && !signOutRes.error && guestClean && afterOut.success === false && (aRowAfter.state || {}).xp !== 777, "A email shown, sign-out returns guest, writes refused");
+
+  // Scenario C: A -> sign out -> B signs in -> B sees only B state.
+  fakeAuth._emit("SIGNED_IN", { user: userB });
+  authedUserId = "user-B";
+  CloudSync.setActiveUser("user-B");
+  const rb2 = await CloudSync.uploadChanges("user-B", { xp: 50 });
+  const aRowC = db.user_progress.get("user-A") || {};
+  const bRowC = db.user_progress.get("user-B") || {};
+  ok("A13-scenario-C", rb2.success === true && (bRowC.state || {}).xp === 50 && (aRowC.state || {}).xp !== 50, "B sees only B state");
+
+  // Scenario D: A starts an upload, sign-out lands mid-flight -> the stale
+  // write must abort instead of repainting/persisting under a dead identity.
+  CloudSync.setActiveUser("user-A");
+  authedUserId = "user-A";
+  fakeAuth._emit("SIGNED_IN", { user: userA });
+  const pending = CloudSync.uploadChanges("user-A", { xp: 31337 });
+  CloudSync.setActiveUser(null); // sign-out wins the race synchronously
+  const dRes = await pending;
+  const aRowD = db.user_progress.get("user-A") || {};
+  ok("A14-scenario-D", dRes.success === false && /Superseded/.test(dRes.error || "") && (aRowD.state || {}).xp !== 31337, "late A callback aborted after sign-out");
+
+  // Scenario B (store half): guest-bound offline work is never uploaded as an
+  // account, and re-signing into A restores A's own row untouched.
+  CloudSync.setActiveUser(null);
+  const gq = CloudSync.queueOperation("upsert_progress", { state: { xp: 1 } }, null);
+  CloudSync.setActiveUser("user-A");
+  authedUserId = "user-A";
+  fakeAuth._emit("SIGNED_IN", { user: userA });
+  await CloudSync.processQueue();
+  const aRowB = db.user_progress.get("user-A") || {};
+  const qLeft = JSON.parse(ls.getItem("dm_sync_queue") || "[]");
+  ok("A15-scenario-B", gq.queued === true && (aRowB.state || {}).xp !== 1 && qLeft.length === 1 && (qLeft[0].userId || "guest") === "guest", "guest op held, A row untouched");
 }
 
 /* ---------------- Part B: real-browser DOM/storage seams ----------------
@@ -376,6 +422,80 @@ async function partB() {
       }catch(e){return {err:true};}
     }`, 25000);
     ok("B5-topbar-clean", r && r.menuHidden === true && r.loginVisible === true && r.chipClean === true, "no stale identity in topbar");
+
+    // B6: Scenario A/D topbar UI through the REAL updateAuthUI (test seam):
+    // guest -> A (display name preferred, email in title/aria) -> guest ->
+    // stale updateAuthUI(true) after sign-out must still render guest.
+    r = await cdp.evalJs(`async function(){
+      try{
+        var hook=window.__dmTestHooks&&window.__dmTestHooks.updateAuthUI;
+        if(typeof hook!=="function") return {noHook:true};
+        var real=window.AuthModule.getUser;
+        function snap(){
+          var menu=document.getElementById("userMenu");
+          var login=document.getElementById("loginBtn");
+          var chip=document.getElementById("userEmail");
+          return {menuHidden:!menu||menu.classList.contains("hidden"),
+            loginVisible:!!login&&login.style.display!=="none",
+            chipText:chip?String(chip.textContent||""):"",
+            chipTitle:chip?String(chip.title||""):"",
+            chipAria:chip?String(chip.getAttribute("aria-label")||""):"",
+            chipHidden:!chip||chip.style.display==="none"};
+        }
+        window.AuthModule.getUser=function(){return null;};
+        hook(false);
+        var g0=snap();
+        window.AuthModule.getUser=function(){return {id:"stub-uid-A",email:"VeryLongGmailAddressForLayout@example.com",app_metadata:{provider:"google"},user_metadata:{full_name:"Layla Haddad"}};};
+        hook(true);
+        var a1=snap();
+        window.AuthModule.getUser=function(){return null;};
+        hook(false);
+        var g1=snap();
+        hook(true); // stale signed-in call after sign-out: must stay guest
+        var g2=snap();
+        window.AuthModule.getUser=function(){return {id:"stub-uid-B",email:"b@example.com",app_metadata:{provider:"email"},user_metadata:{}};};
+        hook(true);
+        var b1=snap();
+        window.AuthModule.getUser=real;
+        hook(false);
+        return {g0:g0,a1:a1,g1:g1,g2:g2,b1:b1};
+      }catch(e){return {err:String(e&&e.message||e).slice(0,80)};}
+    }`, 25000);
+    ok("B6-topbar-A-D", r && r.g0 && r.g0.menuHidden === true && r.g0.loginVisible === true &&
+      r.a1 && r.a1.menuHidden === false && r.a1.loginVisible === false && r.a1.chipText === "Layla Haddad" &&
+      r.a1.chipTitle === "VeryLongGmailAddressForLayout@example.com" && r.a1.chipAria === "VeryLongGmailAddressForLayout@example.com" &&
+      r.g1 && r.g1.menuHidden === true && r.g1.chipHidden === true && !r.g1.chipText &&
+      r.g2 && r.g2.menuHidden === true && r.g2.loginVisible === true && !r.g2.chipText &&
+      r.b1 && r.b1.chipText === "b@example.com", "guest->A(name)->guest->stale-true->B via real renderer");
+
+    // B7: Scenario B/C store sequence in the REAL DMIdentity store:
+    // A isolated from B, guest restored byte-identical, no cross-copy.
+    r = await cdp.evalJs(`async function(){
+      try{
+        window.DMIdentity.ensureBackup();
+        window.S.xp=50; window.save();
+        var guestBefore=localStorage.getItem("deutsch_master_v2");
+        window.DMIdentity.activate("test-uid-A");
+        var aLive=window.S.xp;
+        window.S.xp=100; window.save();
+        window.DMIdentity.activate("test-uid-B");
+        var bLive=window.S.xp;
+        window.S.xp=200; window.save();
+        window.DMIdentity.activate("test-uid-A");
+        var aBack=window.S.xp;
+        window.DMIdentity.activate(null);
+        var guestBack=window.S.xp;
+        var guestAfter=localStorage.getItem("deutsch_master_v2");
+        var aSnap=null,bSnap=null;
+        try{aSnap=JSON.parse(localStorage.getItem("deutsch_master_v2:uid:test-uid-A")).xp;}catch(e){}
+        try{bSnap=JSON.parse(localStorage.getItem("deutsch_master_v2:uid:test-uid-B")).xp;}catch(e){}
+        window.S.xp=50; window.save();
+        try{localStorage.removeItem("deutsch_master_v2:uid:test-uid-A");}catch(e){}
+        try{localStorage.removeItem("deutsch_master_v2:uid:test-uid-B");}catch(e){}
+        return {aLive:aLive,bLive:bLive,aBack:aBack,guestBack:guestBack,aSnap:aSnap,bSnap:bSnap,same:guestBefore===guestAfter};
+      }catch(e){return {err:String(e&&e.message||e).slice(0,80)};}
+    }`, 25000);
+    ok("B7-store-B-C", r && r.aLive === 0 && r.bLive === 0 && r.aBack === 100 && r.guestBack === 50 && r.aSnap === 100 && r.bSnap === 200 && r.same === true, "A/B/guest isolated, guest byte-identical");
 
     // B3/B4: snapshot isolation + guest safety in the REAL store
     r = await cdp.evalJs(`async function(){

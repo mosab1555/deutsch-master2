@@ -779,7 +779,7 @@ html[data-theme="light"] .hw-de{background:rgba(0,0,0,.05)}
   #page-mistakes .page-head .btn{width:100%;min-width:0}
 }
 @media(max-width:380px){
-  #page-mistakes .page-head .row-flex{grid-template-columns:repeat(2,1fr)
+  #page-mistakes .page-head .row-flex{grid-template-columns:repeat(2,1fr)}
 }
 
 /* ---------- Premium Auth Experience (scoped to #page-auth + profile identity) ---------- */
@@ -895,11 +895,30 @@ html[data-theme="light"] .sync-indicator{background:rgba(0,0,0,.05)}
 .sync-indicator.idle{color:var(--muted)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 
-/* ---------- Signed-in account email (topbar) ---------- */
-/* Inline pill, no layout influence beyond its own box: keeps topbar tidy on
-   narrow screens via ellipsis. Set/cleared by app-init updateAuthUI(). */
-.user-email{font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 10px;background:rgba(0,0,0,.2);vertical-align:middle}
-html[data-theme="light"] .user-email{background:rgba(0,0,0,.05)}
+/* ---------- Signed-in account status (topbar) ---------- */
+/* One canonical external identity element: span#userEmail.user-email inside
+   #userMenu, set/cleared by app-init updateAuthUI() (textContent only).
+   Compact account chip: presence dot + concise label with ellipsis, full
+   account carried in title/aria-label. Inline-flex so it never disturbs the
+   topbar row; logical properties keep it RTL-safe. */
+.user-menu{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%}
+.user-email{display:inline-flex;align-items:center;gap:7px;min-width:0;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;line-height:1.4;color:var(--text);border:1px solid var(--border);border-radius:999px;padding:5px 11px;background:rgba(34,197,94,.08);vertical-align:middle}
+.user-email::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.7)}
+html[data-theme="light"] .user-email{background:rgba(34,197,94,.1)}
+.top-actions .icon-btn:focus-visible{outline:2px solid var(--violet,#8b5cf6);outline-offset:2px}
+@media(max-width:860px){
+  .user-email{max-width:132px}
+}
+@media(max-width:480px){
+  .user-menu{gap:4px}
+  .user-email{max-width:104px;font-size:11px;padding:4px 9px}
+}
+@media(max-width:360px){
+  .user-email{max-width:88px;font-size:11px;padding:3px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .user-email::before{box-shadow:none}
+}
 
 /* ---------- Profile Page Styles ---------- */
 .profile-header{display:flex;gap:16px;align-items:center;padding:8px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px}
@@ -924,5 +943,4 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 .device-info{display:flex;flex-direction:column;gap:2px}
 .device-platform{font-size:12px;color:var(--muted)}
 .current-badge{font-size:11px;padding:2px 6px;border-radius:6px;background:var(--violet);color:#fff;font-weight:600;display:inline-block;width:fit-content;margin-top:4px}
-.device-meta{font-size:12px;color:var(--muted);text-align:left}}
-}
+.device-meta{font-size:12px;color:var(--muted);text-align:left}
