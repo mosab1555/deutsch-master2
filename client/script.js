@@ -1336,17 +1336,93 @@ function allVerbs(){
 /* ============ STATE ============ */
 const LS_KEY = "deutsch_master_v2";
 function defaultState(){return{customWords:[],status:{},favs:[],quizHistory:[],totalCorrect:0,totalAnswered:0,testsTaken:0,studyDays:{},streak:{count:0,last:"",longest:0},planner:{words:20,sentences:10,minutes:30,day:"",dw:0,ds:0,dm:0},settings:{theme:"dark",speed:1,color:"default"},review:{},xp:0,bestPct:0,maxCombo:0,mistakes:{},lastQuiz:null};}
+function normalizeState(p){
+  const base=defaultState();
+  const src=(p&&typeof p==="object"&&!Array.isArray(p))?p:{};
+  const st=Object.assign(base,src);
+  // Shape coercion: a corrupted store (bad localStorage edit, partial cloud
+  // merge with explicit nulls) must never leave readers with a wrong-typed
+  // field. Every known key is forced back to its default type; unknown keys
+  // (srs, events, flashDir, ...) pass through untouched (never deleted).
+  // NOTE: `shape` must be a PRISTINE defaultState() — `base` above is already
+  // polluted by Object.assign, so it cannot serve as the type reference.
+  const shape=defaultState();
+  Object.keys(shape).forEach(function(k){
+    var b=shape[k], v=st[k];
+    if(Array.isArray(b)){ if(!Array.isArray(v)) st[k]=b; }
+    else if(b&&typeof b==="object"){ if(!v||typeof v!=="object"||Array.isArray(v)) st[k]=b; }
+    else if(typeof b==="number"){ if(typeof v!=="number"||isNaN(v)) st[k]=b; }
+  });
+  var _st=(st.streak&&typeof st.streak==="object"&&!Array.isArray(st.streak))?st.streak:{};
+  st.streak=Object.assign({count:0,last:"",longest:0},_st);
+  var _pl=(st.planner&&typeof st.planner==="object"&&!Array.isArray(st.planner))?st.planner:{};
+  st.planner=Object.assign(defaultState().planner,_pl);
+  var _se=(st.settings&&typeof st.settings==="object"&&!Array.isArray(st.settings))?st.settings:{};
+  st.settings=Object.assign({theme:"dark",speed:1,color:"default"},_se);
+  return st;
+}
 let S = defaultState();
-try{const raw=localStorage.getItem(LS_KEY);if(raw){const p=JSON.parse(raw);S=Object.assign(defaultState(),p);S.streak=Object.assign({count:0,last:"",longest:0},p.streak||{});S.planner=Object.assign(defaultState().planner,p.planner||{});S.settings=Object.assign({theme:"dark",speed:1,color:"default"},p.settings||{});}}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);if(raw){S=normalizeState(JSON.parse(raw));}}catch(e){}
 try{const old=localStorage.getItem("deutsch_master_v1");if(old&&!localStorage.getItem(LS_KEY)){const p=JSON.parse(old);if(p.streak)S.streak=p.streak;if(p.studyDays)S.studyDays=p.studyDays;if(p.settings)S.settings=Object.assign({theme:"dark",speed:1},p.settings);if(p.planner)S.planner=p.planner;if(p.customWords)S.customWords=p.customWords;save();}}catch(e){}
-function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
+/* ============ IDENTITY-SCOPED STATE ============
+   Guest/offline progress lives in LS_KEY (unchanged key, unchanged behavior).
+   Each signed-in account additionally keeps its own snapshot at
+   LS_KEY + ":uid:" + <Supabase user id> (never the email address).
+   The auth layer (app-init) drives DMIdentity; learning code keeps calling
+   save()/S exactly as before — save() always targets the ACTIVE identity key.
+   Switching identities never deletes anything: the outgoing live state is
+   snapshotted first, and a one-time backup preserves pre-identity data. */
+var DM_ACTIVE_UID = null;
+function dmStateKey(uid){ return uid ? (LS_KEY + ":uid:" + uid) : LS_KEY; }
+function activeStateKey(){ return dmStateKey(DM_ACTIVE_UID); }
+function save(){try{localStorage.setItem(activeStateKey(),JSON.stringify(S));}catch(e){}}
+function setActiveIdentityOnly(uid){ DM_ACTIVE_UID = uid || null; }
+function loadIdentitySnapshot(uid){
+  var raw=null;
+  try{ raw=localStorage.getItem(dmStateKey(uid)); }catch(e){ raw=null; }
+  var parsed=null;
+  try{ parsed=raw?JSON.parse(raw):null; }catch(e){ parsed=null; }
+  S = parsed ? normalizeState(parsed) : defaultState();
+  save();
+  return S;
+}
+try{
+  window.DMIdentity = {
+    activeUid: function(){ return DM_ACTIVE_UID; },
+    activeKey: activeStateKey,
+    stateKey: dmStateKey,
+    // Persist live S under the CURRENT active key (call BEFORE switching).
+    snapshot: function(){ try{ save(); }catch(e){} },
+    // One-time safety backup of pre-identity local progress (never overwrites).
+    ensureBackup: function(){
+      try{
+        var bk=LS_KEY+":backup:pre-identity";
+        if(!localStorage.getItem(bk)){
+          var raw=localStorage.getItem(LS_KEY);
+          if(raw) localStorage.setItem(bk,raw);
+        }
+      }catch(e){}
+    },
+    // Point future save() calls at uid WITHOUT replacing live S (continuity
+    // path: the caller keeps the current live state, then snapshots it).
+    setActiveOnly: function(uid){ setActiveIdentityOnly(uid); },
+    // Full switch: point at uid AND replace live S with its snapshot/defaults.
+    activate: function(uid){
+      setActiveIdentityOnly(uid);
+      loadIdentitySnapshot(uid);
+      try{ applyAll(); }catch(e){}
+      return S;
+    },
+    hasSnapshot: function(uid){ try{ return !!localStorage.getItem(dmStateKey(uid)); }catch(e){ return false; } }
+  };
+}catch(e){}
 /* Live bridge for optional integrations (auth/cloud-sync read window.S).
    A getter is used so it stays correct across S reassignments (import/wipe). */
 try{Object.defineProperty(window,"S",{configurable:true,get:function(){return S;}});}catch(e){try{window.S=S;}catch(e2){}}
 function todayStr(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
 function allWords(){return VOCAB.concat(S.customWords||[]);}
-function getStatus(id){return S.status[id]||"new";}
-function setStatus(id,st){S.status[id]=st;save();}
+function getStatus(id){try{return ((S&&S.status)||{})[id]||"new";}catch(e){return "new";}}
+function setStatus(id,st){try{if(!S.status||typeof S.status!=="object")S.status={};S.status[id]=st;save();}catch(e){}}
 const STATUS_AR={new:"🆕 جديدة",review:"🔁 مراجعة",hard:"🔴 صعبة",known:"✅ محفوظة",later:"⏳ لاحقًا"};
 
 /* ============ HELPERS ============ */

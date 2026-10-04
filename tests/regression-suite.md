@@ -19,6 +19,9 @@ node tools/test-career.js          # NAV-005 DATA-003
 node tools/test-sw-update.js       # PWA-001 PWA-002 PWA-003
 node tools/check-testplan.js       # catalog validity
 node tools/test-howto.js           # GUIDE-001..006 (study methodology guide)
+node tools/test-auth-identity.js     # AUTH/DATA isolation: sign-out, A/B separation, queue binding, snapshots (node part)
+node tools/test-auth-identity.js --cdp  # + real-browser DOM/storage seams (needs Chrome; ~1 min)
+node tools/test-auth-dom.js          # auth-screen DOM wiring: tabs/toggles/recovery/validation, zero errors (needs Chrome; ~1 min)
 node tools/runtime-qa.js           # 66 headless-Chrome runtime checks (needs Chrome; ~6 min)
 ```
 

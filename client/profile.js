@@ -7,6 +7,14 @@ const ProfileModule = (function () {
     "use strict";
 
     let profileCache = null;
+    let cachedUserId = null;
+
+    // Drop cached profile data. Called on sign-out and whenever the active
+    // user id changes, so one account's profile can never render as another's.
+    function clearCache() {
+        profileCache = null;
+        cachedUserId = null;
+    }
 
     // Shared client: app-init publishes the single AuthModule-owned instance on
     // window.supabaseClient; fall back to AuthModule directly (init race).
@@ -28,7 +36,12 @@ const ProfileModule = (function () {
                 .single();
 
             if (error) throw error;
+            // Only cache for the user we actually queried: a sign-out or
+            // account switch mid-flight must not poison the cache.
+            const current = window.AuthModule?.getUser?.();
+            if (!current || current.id !== user.id) return data;
             profileCache = data;
+            cachedUserId = user.id;
             return data;
         } catch (e) {
             console.warn("[Profile] Get profile failed:", e);
@@ -131,19 +144,38 @@ const ProfileModule = (function () {
     // Render profile page
     function renderProfilePage() {
         const user = window.AuthModule?.getUser?.();
-        if (!user) return;
-
         const box = document.getElementById("profileBox");
         if (!box) return;
 
-        const profile = profileCache || user;
+        const L = window.S?.uiLang || "ar";
+        const t = window.t || ((k) => k);
+
+        // Signed out: never leave a previous account's DOM behind. Show an
+        // explicit guest status instead.
+        if (!user) {
+            box.innerHTML = `
+            <div class="profile-header glass">
+                <div class="profile-avatar"><div class="avatar-placeholder">?</div></div>
+                <div class="profile-info">
+                    <h3>${t("guest_mode") || "وضع الضيف"}</h3>
+                    <div class="profile-meta">
+                        <span class="provider-badge status-signed-out">${t("signed_out") || "غير مسجل الدخول"}</span>
+                    </div>
+                    <p class="muted">${t("guest_profile_hint") || "سجل الدخول لحفظ تقدمك في السحابة."}</p>
+                </div>
+            </div>`;
+            return;
+        }
+
+        // Guard against a cache that belongs to a different account.
+        var profile = (profileCache && cachedUserId === user.id) ? profileCache : null;
+        profile = profile || user;
         const provider = user.app_metadata?.provider || user.user_metadata?.provider || "email";
         const providerName = getProviderDisplayName(provider);
         const avatar = profile?.avatar_url || user.user_metadata?.avatar_url || "";
         const displayName = profile?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
-
-        const L = window.S?.uiLang || "ar";
-        const t = window.t || ((k) => k);
+        const accountEmail = user.email || user.phone || "";
+        const signedInLabel = t("signed_in_as") || "مسجل الدخول باسم";
 
         box.innerHTML = `
             <div class="profile-header glass">
@@ -153,8 +185,9 @@ const ProfileModule = (function () {
                 <div class="profile-info">
                     <h3>${escapeHtml(displayName)}</h3>
                     <div class="profile-meta">
+                        <span class="provider-badge status-signed-in">${escapeHtml(signedInLabel)}</span>
                         <span class="provider-badge">${escapeHtml(providerName)}</span>
-                        <span class="email">${escapeHtml(user.email || user.phone || "")}</span>
+                        <span class="email" id="profileEmail">${escapeHtml(accountEmail)}</span>
                     </div>
                 </div>
             </div>
@@ -208,8 +241,14 @@ const ProfileModule = (function () {
         });
 
         signOutBtn?.addEventListener("click", async () => {
-            if (confirm(t("confirm_signout") || "\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062E\u0631\u0648\u062C\u063F")) {
-                await window.AuthModule?.signOut?.();
+            if (confirm(t("confirm_signout") || "تسجيل الخروج؟")) {
+                var res = null;
+                try { res = await window.AuthModule?.signOut?.(); } catch (e) {
+                    res = { error: e && e.message ? e.message : String(e) };
+                }
+                if (res && res.error) {
+                    try { window.toast?.(window.AuthModule?.translateError?.({ message: res.error }) || "تعذر تسجيل الخروج. حاول مرة أخرى.", "err"); } catch (e) {}
+                }
             }
         });
 
@@ -304,17 +343,33 @@ const ProfileModule = (function () {
         return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) { return map[c]; });
     }
 
-    // Initialize profile page when shown
+    // Initialize profile page when shown. Always refreshes for the CURRENT
+    // user (never serves another account's cache), then re-renders with fresh
+    // data if the user hasn't changed meanwhile.
     function initProfilePage() {
         const user = window.AuthModule?.getUser?.();
-        if (user && !profileCache) {
-            getProfile();
+        if (!user) {
+            clearCache();
+            renderProfilePage();
+            return;
+        }
+        if (!profileCache || cachedUserId !== user.id) {
+            renderProfilePage();
+            const uid = user.id;
+            getProfile().then(function () {
+                try {
+                    const now = window.AuthModule?.getUser?.();
+                    if (now && now.id === uid) renderProfilePage();
+                } catch (e) {}
+            });
+            return;
         }
         renderProfilePage();
     }
 
     return {
         getProfile,
+        clearCache,
         updateProfile,
         updateDisplayName,
         updateAvatar,

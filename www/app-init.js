@@ -80,10 +80,19 @@
         updateAuthUI(true);
     }
 
-    // Update auth UI in topbar (scope-level so every flow can reach it)
+    // Update auth UI in topbar (scope-level so every flow can reach it).
+    // When signed in, the account email is exposed via title attributes plus
+    // a small visible pill, so the current identity is always displayed.
     function updateAuthUI(isLoggedIn) {
         var loginBtn = document.getElementById("loginBtn");
         var userMenu = document.getElementById("userMenu");
+        var email = "";
+        if (isLoggedIn) {
+            try {
+                var u = window.AuthModule?.getUser?.();
+                email = (u && (u.email || u.phone)) || "";
+            } catch (e) {}
+        }
         if (isLoggedIn) {
             if (loginBtn) loginBtn.style.display = "none";
             if (userMenu) userMenu.classList.remove("hidden");
@@ -91,6 +100,34 @@
             if (loginBtn) loginBtn.style.display = "";
             if (userMenu) userMenu.classList.add("hidden");
         }
+        try {
+            var profileBtn = document.getElementById("profileBtn");
+            if (profileBtn) {
+                if (email) profileBtn.title = email;
+                else profileBtn.removeAttribute("title");
+            }
+            if (userMenu) {
+                if (email) userMenu.title = email;
+                else userMenu.removeAttribute("title");
+                // Visible signed-in pill (textContent only, created once):
+                // the topbar must DISPLAY the account, not just tooltip it.
+                var chip = document.getElementById("userEmail");
+                if (email) {
+                    if (!chip) {
+                        chip = document.createElement("span");
+                        chip.id = "userEmail";
+                        chip.className = "user-email";
+                        userMenu.insertBefore(chip, userMenu.firstChild);
+                    }
+                    chip.textContent = email;
+                    try { chip.title = email; } catch (e2) {}
+                    chip.style.display = "";
+                } else if (chip) {
+                    chip.textContent = "";
+                    chip.style.display = "none";
+                }
+            }
+        } catch (e) {}
     }
 
     // Password-recovery completion (the reset EMAIL is sent by AuthModule.resetPassword;
@@ -101,6 +138,7 @@
     function handlePasswordRecovery() {
         recoveryMode = true;
         showAuthPage();
+        try { setAuthMode("signin"); } catch (e) {}
         showAuthMessage("أدخل كلمة المرور الجديدة في حقل كلمة المرور ثم اضغط زر التعيين.", false);
         var form = document.getElementById("emailForm");
         if (form && !document.getElementById("btnUpdatePassword")) {
@@ -135,26 +173,219 @@
         }
     }
 
-    // Show auth message
-    function showAuthMessage(message, isError) {
-        var el = document.getElementById("authMessage");
+    // Show auth message (status region per visible pane)
+    var authMsgTimer = null;
+    function showAuthMessage(message, isError, targetId) {
+        var el = document.getElementById(targetId || (
+            document.getElementById("authPaneRecovery") &&
+            !document.getElementById("authPaneRecovery").classList.contains("hidden")
+        ) ? "recoveryMessage" : "authMessage");
         if (!el) return;
+        if (authMsgTimer) { try { clearTimeout(authMsgTimer); } catch (e) {} authMsgTimer = null; }
         el.textContent = message;
-        el.className = "auth-message " + (isError ? "error" : "success");
-        setTimeout(function() { el.textContent = ""; el.className = "auth-message"; }, 8000);
+        el.className = "auth-message " + (!message ? "" : (isError ? "error" : "success"));
+        try { el.setAttribute("role", isError ? "alert" : "status"); } catch (e) {}
+        if (message) {
+            authMsgTimer = setTimeout(function() {
+                el.textContent = ""; el.className = "auth-message";
+                try { el.setAttribute("role", "status"); } catch (e) {}
+            }, 8000);
+        }
     }
 
     // Set loading state on button
     function setButtonLoading(btn, loading, originalText) {
         if (!btn) return;
-        if (loading) {
-            btn.disabled = true;
-            btn.dataset.originalText = btn.textContent;
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.busy = "1";
+                try { btn.classList.add("is-loading"); btn.setAttribute("aria-busy", "true"); } catch (e) {}
+                btn.dataset.originalText = btn.textContent;
             btn.textContent = window.t?.("loading") || "\u062C\u0627\u0631\u064A \u0627\u0644\u062A\u062D\u0645\u064A\u0644...";
-        } else {
-            btn.disabled = false;
-            btn.textContent = btn.dataset.originalText || originalText || "";
+            } else {
+                btn.disabled = false;
+                try { delete btn.dataset.busy; } catch (e) {}
+                try { btn.classList.remove("is-loading"); btn.removeAttribute("aria-busy"); } catch (e) {}
+                btn.textContent = btn.dataset.originalText || originalText || "";
+            }
+    }
+
+    function isBusy(btn) {
+        try { return !!btn && (btn.dataset.busy === "1" || btn.disabled); } catch (e) { return false; }
+    }
+
+    function isValidEmail(v) {
+        return !!v && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim());
+    }
+
+    // Per-field validation feedback (beside the field, not color-alone).
+    function setFieldError(inputId, errorId, message) {
+        var input = document.getElementById(inputId);
+        var err = document.getElementById(errorId);
+        if (err) {
+            err.textContent = message || "";
+            err.classList.toggle("hidden", !message);
         }
+        if (input) {
+            try {
+                if (message) input.setAttribute("aria-invalid", "true");
+                else input.removeAttribute("aria-invalid");
+            } catch (e) {}
+        }
+    }
+
+    // Auth view modes: "signin" | "signup" | "recovery". Tabs switch between
+    // sign-in and registration (same inputs, same validation and handlers);
+    // recovery is a dedicated pane reusing the same Supabase reset flow.
+    var authMode = "signin";
+    function applyModeTexts() {
+        var title = document.getElementById("authTitle");
+        var sub = document.getElementById("authSub");
+        var t = window.t || (function (k) { return k; });
+        if (authMode === "signup") {
+            if (title) title.textContent = t("auth_signup_title");
+            if (sub) sub.textContent = t("auth_signup_sub");
+        } else {
+            if (title) title.textContent = t("auth_welcome_title");
+            if (sub) sub.textContent = t("auth_continue_hint");
+        }
+        refreshPwToggleLabel();
+    }
+    function setAuthMode(mode) {
+        if (mode !== "signin" && mode !== "signup" && mode !== "recovery") return;
+        authMode = mode;
+        var card = document.getElementById("authCard");
+        var main = document.getElementById("authPaneMain");
+        var rec = document.getElementById("authPaneRecovery");
+        var tabs = document.querySelector("#page-auth .auth-tabs");
+        var btnSignIn = document.getElementById("btnSignIn");
+        var btnCreate = document.getElementById("btnCreateAccount");
+        var pwInput = document.getElementById("authPassword");
+        if (card) { try { card.setAttribute("data-auth-mode", mode); } catch (e) {} }
+        if (main) main.classList.toggle("hidden", mode === "recovery");
+        if (rec) rec.classList.toggle("hidden", mode !== "recovery");
+        if (tabs) tabs.style.display = mode === "recovery" ? "none" : "";
+        var tabIn = document.getElementById("tabSignIn");
+        var tabUp = document.getElementById("tabSignUp");
+        var inUp = mode === "signup";
+        if (tabIn) { tabIn.classList.toggle("is-active", !inUp && mode !== "recovery"); tabIn.setAttribute("aria-selected", (!inUp) ? "true" : "false"); }
+        if (tabUp) { tabUp.classList.toggle("is-active", inUp); tabUp.setAttribute("aria-selected", inUp ? "true" : "false"); }
+        if (btnSignIn) btnSignIn.classList.toggle("hidden", inUp);
+        if (btnCreate) btnCreate.classList.toggle("hidden", !inUp);
+        if (pwInput) {
+            try { pwInput.setAttribute("autocomplete", inUp ? "new-password" : "current-password"); } catch (e) {}
+        }
+        setFieldError("authEmail", "emailError", "");
+        setFieldError("authPassword", "passwordError", "");
+        setFieldError("recoveryEmail", "recoveryEmailError", "");
+        applyModeTexts();
+        try {
+            var h = mode === "recovery"
+                ? (rec ? rec.querySelector(".auth-title") : null)
+                : (main ? main.querySelector(".auth-title") : null);
+            if (h) { if (!h.hasAttribute("tabindex")) h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
+        } catch (e) {}
+    }
+
+    function refreshPwToggleLabel() {
+        var tog = document.getElementById("pwToggle");
+        var pw = document.getElementById("authPassword");
+        if (!tog || !pw) return;
+        var t = window.t || (function (k) { return k; });
+        var hidden = pw.type === "password";
+        var label = hidden ? t("show_password") : t("hide_password");
+        try {
+            tog.setAttribute("aria-label", label);
+            tog.setAttribute("title", label);
+            tog.setAttribute("aria-pressed", hidden ? "false" : "true");
+        } catch (e) {}
+    }
+
+    // Wire the premium auth views: tabs, password toggle, phone toggle,
+    // recovery form. All AuthModule calls stay identical (UI-only wiring).
+    function initAuthViews() {
+        document.getElementById("tabSignIn")?.addEventListener("click", function() { setAuthMode("signin"); });
+        document.getElementById("tabSignUp")?.addEventListener("click", function() { setAuthMode("signup"); });
+        document.getElementById("btnBackToSignIn")?.addEventListener("click", function() { setAuthMode("signin"); });
+
+        document.getElementById("pwToggle")?.addEventListener("click", function() {
+            var pw = document.getElementById("authPassword");
+            var tog = document.getElementById("pwToggle");
+            if (!pw || !tog) return;
+            try { pw.type = pw.type === "password" ? "text" : "password"; } catch (e) { return; }
+            refreshPwToggleLabel();
+            try { pw.focus({ preventScroll: true }); } catch (e3) {}
+        });
+        refreshPwToggleLabel();
+
+        document.getElementById("btnPhoneToggle")?.addEventListener("click", function() {
+            var sec = document.getElementById("phoneSection");
+            var tog = document.getElementById("btnPhoneToggle");
+            if (!sec || !tog) return;
+            var open = sec.classList.contains("hidden");
+            sec.classList.toggle("hidden", !open);
+            try { tog.setAttribute("aria-expanded", open ? "true" : "false"); } catch (e) {}
+            if (open) {
+                document.getElementById("otpForm")?.classList.add("hidden");
+                document.getElementById("phoneForm")?.classList.remove("hidden");
+                try { document.getElementById("authPhone")?.focus({ preventScroll: true }); } catch (e2) {}
+            }
+        });
+
+        // Recovery form: same Supabase resetPassword flow + redirect config.
+        document.getElementById("recoveryForm")?.addEventListener("submit", function(e) {
+            e.preventDefault();
+            var email = document.getElementById("recoveryEmail")?.value?.trim();
+            var btn = document.getElementById("btnSendRecovery");
+            if (!email) {
+                setFieldError("recoveryEmail", "recoveryEmailError", window.t?.("enter_email_first") || "Enter your email first");
+                return;
+            }
+            if (!isValidEmail(email)) {
+                setFieldError("recoveryEmail", "recoveryEmailError", window.t?.("auth_email_invalid") || "Invalid email format");
+                return;
+            }
+            setFieldError("recoveryEmail", "recoveryEmailError", "");
+            if (!btn || isBusy(btn)) return;
+            setButtonLoading(btn, true);
+            var promise = window.AuthModule?.resetPassword?.(email);
+            if (!promise || typeof promise.then !== "function") { setButtonLoading(btn, false, window.t?.("auth_recovery_send") || "Send"); return; }
+            promise.then(function(result) {
+                setButtonLoading(btn, false, window.t?.("auth_recovery_send") || "Send");
+                if (result?.error) {
+                    showAuthMessage(window.AuthModule?.translateError?.(result.error) || result.error, true, "recoveryMessage");
+                } else {
+                    showAuthMessage(window.t?.("reset_email_sent") || "Reset link sent", false, "recoveryMessage");
+                    var inp = document.getElementById("recoveryEmail");
+                    if (inp) { try { inp.value = ""; } catch (e2) {} }
+                }
+            });
+        });
+
+        // Clear per-field errors while typing (keeps aria-invalid accurate).
+        ["authEmail|emailError", "authPassword|passwordError", "recoveryEmail|recoveryEmailError"].forEach(function(pair) {
+            var parts = pair.split("|");
+            var inp = document.getElementById(parts[0]);
+            if (inp && !inp._authClearWired) {
+                inp._authClearWired = true;
+                inp.addEventListener("input", function() { setFieldError(parts[0], parts[1], ""); });
+            }
+        });
+
+        // Keep dynamic auth strings (mode title/subtitle, pw toggle label)
+        // correct across language switches. Same wrap pattern as showPage.
+        try {
+            if (typeof window.applyLang === "function" && !window.applyLang.__authWrapped) {
+                var _origApplyLang = window.applyLang;
+                window.applyLang = function() {
+                    var out = _origApplyLang.apply(this, arguments);
+                    try { applyModeTexts(); } catch (e) {}
+                    return out;
+                };
+                window.applyLang.__authWrapped = true;
+            }
+        } catch (e) {}
+        applyModeTexts();
     }
 
     // Initialize auth UI handlers
@@ -162,6 +393,7 @@
         // Google Sign In
         document.getElementById("btnGoogle")?.addEventListener("click", function() {
             var btn = document.getElementById("btnGoogle");
+            if (isBusy(btn)) return;
             setButtonLoading(btn, true);
             var promise = window.AuthModule?.signInWithGoogle?.();
             promise?.then(function(result) {
@@ -175,6 +407,7 @@
         // Facebook Sign In
         document.getElementById("btnFacebook")?.addEventListener("click", function() {
             var btn = document.getElementById("btnFacebook");
+            if (isBusy(btn)) return;
             setButtonLoading(btn, true);
             var promise = window.AuthModule?.signInWithFacebook?.();
             promise?.then(function(result) {
@@ -188,11 +421,23 @@
         // Email Sign In
         document.getElementById("emailForm")?.addEventListener("submit", function(e) {
             e.preventDefault();
+            if (authMode === "recovery") return;
+            if (authMode === "signup") { try { document.getElementById("btnCreateAccount")?.click(); } catch (e2) {} return; }
             var email = document.getElementById("authEmail")?.value?.trim();
             var password = document.getElementById("authPassword")?.value;
             var btn = document.getElementById("btnSignIn");
 
-            if (!email || !password) return;
+            if (!isValidEmail(email)) {
+                setFieldError("authEmail", "emailError", window.t?.("auth_email_invalid") || "Invalid email");
+                return;
+            }
+            if (!password) {
+                setFieldError("authPassword", "passwordError", window.t?.("enter_email_password") || "Enter password");
+                return;
+            }
+            setFieldError("authEmail", "emailError", "");
+            setFieldError("authPassword", "passwordError", "");
+            if (!btn || isBusy(btn)) return;
 
             setButtonLoading(btn, true);
             var promise = window.AuthModule?.signInWithEmail?.(email, password);
@@ -211,6 +456,7 @@
             var email = document.getElementById("authEmail")?.value?.trim();
             var password = document.getElementById("authPassword")?.value;
             var btn = document.getElementById("btnCreateAccount");
+            if (isBusy(btn)) return;
 
             if (!email || !password) {
                 showAuthMessage(window.t?.("enter_email_password") || "\u0623\u062F\u062E\u0644 \u0627\u0644\u0628\u0631\u064A\u062F \u0627\u0644\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A \u0648\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631");
@@ -235,31 +481,22 @@
             });
         });
 
-        // Forgot Password
+        // Forgot password: open the dedicated recovery pane (same reset flow).
         document.getElementById("btnForgotPassword")?.addEventListener("click", function() {
-            var email = document.getElementById("authEmail")?.value?.trim();
-            if (!email) {
-                showAuthMessage(window.t?.("enter_email_first") || "\u0623\u062F\u062E\u0644 \u0628\u0631\u064A\u062F\u0643 \u0627\u0644\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A \u0623\u0648\u0644\u0627");
-                return;
-            }
-
-            var btn = document.getElementById("btnForgotPassword");
-            setButtonLoading(btn, true);
-            var promise = window.AuthModule?.resetPassword?.(email);
-            promise?.then(function(result) {
-                setButtonLoading(btn, false, window.t?.("forgot_password") || "\u0646\u0633\u064A\u062A \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631\u063F");
-                if (result?.error) {
-                    showAuthMessage(window.AuthModule?.translateError?.(result.error) || result.error);
-                } else {
-                    showAuthMessage(window.t?.("reset_email_sent") || "\u062A\u0645 \u0625\u0631\u0633\u0627\u0644 \u0631\u0627\u0628\u0637 \u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u0625\u0644\u0649 \u0628\u0631\u064A\u062F\u0643 \u0627\u0644\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A", false);
-                }
-            });
+            setAuthMode("recovery");
+            try {
+                var cur = document.getElementById("authEmail")?.value || "";
+                var rec = document.getElementById("recoveryEmail");
+                if (rec && !rec.value && cur) rec.value = cur;
+                if (rec) rec.focus({ preventScroll: true });
+            } catch (e) {}
         });
 
         // Send OTP
         document.getElementById("btnSendOTP")?.addEventListener("click", function() {
             var phone = document.getElementById("authPhone")?.value?.trim();
             var btn = document.getElementById("btnSendOTP");
+            if (isBusy(btn)) return;
 
             if (!phone) {
                 showAuthMessage(window.t?.("enter_phone") || "\u0623\u062F\u062E\u0644 \u0631\u0642\u0645 \u0627\u0644\u0647\u0627\u062A\u0641");
@@ -286,6 +523,7 @@
             var phone = document.getElementById("authPhone")?.value?.trim();
             var token = document.getElementById("authOTP")?.value?.trim();
             var btn = document.getElementById("btnVerifyOTP");
+            if (isBusy(btn)) return;
 
             if (!token || token.length !== 6) {
                 showAuthMessage(window.t?.("enter_otp") || "\u0623\u062F\u062E\u0644 \u0631\u0645\u0632 \u0627\u0644\u062A\u062D\u0642\u0642 \u0627\u0644\u0645\u0643\u0648\u0646 \u0645\u0646 6 \u0623\u0631\u0642\u0627\u0645");
@@ -312,6 +550,10 @@
             if (otpInput) otpInput.value = "";
         });
 
+        // Premium auth views (tabs, password toggle, phone toggle, recovery).
+        // Guarded: auth forms exist on index.html only.
+        try { initAuthViews(); } catch (e) { console.warn("[App] Auth views init failed:", e); }
+
         // Topbar login button
         document.getElementById("loginBtn")?.addEventListener("click", function() {
             showAuthPage();
@@ -325,7 +567,18 @@
         // Topbar logout button
         document.getElementById("logoutBtn")?.addEventListener("click", function() {
             if (window.AuthModule && typeof window.AuthModule.signOut === "function") {
-                window.AuthModule.signOut();
+                var p = null;
+                try { p = window.AuthModule.signOut(); } catch (e) {
+                    try { window.toast?.("تعذر تسجيل الخروج. حاول مرة أخرى.", "err"); } catch (e2) {}
+                    return;
+                }
+                if (p && typeof p.then === "function") {
+                    p.then(function (res) {
+                        if (res && res.error) {
+                            try { window.toast?.(window.AuthModule?.translateError?.({ message: res.error }) || "تعذر تسجيل الخروج. حاول مرة أخرى.", "err"); } catch (e) {}
+                        }
+                    });
+                }
             }
         });
     }
@@ -340,6 +593,10 @@
     // Main initialization
     async function initializeApp() {
         console.log("[App] Initializing Deutsch Master with Auth & Sync...");
+
+        // One-time safety backup of pre-identity local progress (never
+        // overwrites an existing backup, never deletes anything).
+        try { window.DMIdentity?.ensureBackup?.(); } catch (e) {}
 
         // Check config first - do not load Supabase if not configured
         if (!checkConfig()) {
@@ -432,6 +689,172 @@
             console.warn("[App] Cloud save hook install failed:", e);
         }
 
+        // Identity tracking: the Supabase user id (never the email address) is
+        // the stable identity. null = guest/offline mode.
+        var lastUid = null;
+
+        function currentUidOf(session) {
+            try { return (session && session.user && session.user.id) || null; }
+            catch (e) { return null; }
+        }
+
+        function currentLiveUid() {
+            try {
+                var u = window.AuthModule?.getUser?.();
+                return (u && u.id) || null;
+            } catch (e) { return null; }
+        }
+
+        // True when the live store holds real learning progress (not defaults).
+        function isProgressMeaningful(st) {
+            try {
+                if (!st || typeof st !== "object") return false;
+                if ((st.totalAnswered || 0) > 0 || (st.testsTaken || 0) > 0 || (st.xp || 0) > 0) return true;
+                if (Array.isArray(st.quizHistory) && st.quizHistory.length) return true;
+                if (Array.isArray(st.customWords) && st.customWords.length) return true;
+                if (st.status && typeof st.status === "object" && Object.keys(st.status).length) return true;
+                if (st.mistakes && typeof st.mistakes === "object" && Object.keys(st.mistakes).length) return true;
+                return false;
+            } catch (e) { return false; }
+        }
+
+        function mergeDecisionKey(uid) { return "dm_merge_decision:" + uid; }
+        function mergeDecision(uid) {
+            try { return localStorage.getItem(mergeDecisionKey(uid)); }
+            catch (e) { return null; }
+        }
+        function recordMergeDecision(uid, v) {
+            try { localStorage.setItem(mergeDecisionKey(uid), v); } catch (e) {}
+        }
+
+        // Re-render the profile page only when it is the visible page.
+        function refreshProfileIfVisible() {
+            try {
+                var page = document.getElementById("page-profile");
+                if (page && page.classList.contains("active") &&
+                    window.ProfileModule && typeof window.ProfileModule.initProfilePage === "function") {
+                    window.ProfileModule.initProfilePage();
+                }
+            } catch (e) {}
+        }
+
+        // Post-login per-account work that must run AFTER the identity switch
+        // (correct snapshot loaded). Guarded so a stale completion cannot act
+        // for an account that is no longer active.
+        function postSignIn(uid) {
+            if (currentLiveUid() !== uid) return;
+            if (window.CloudSync && typeof window.CloudSync.startAutoSync === "function") {
+                try { window.CloudSync.startAutoSync(60000); } catch (e) {}
+            }
+            if (window.AuthModule && typeof window.AuthModule.registerDevice === "function") {
+                try { window.AuthModule.registerDevice(); } catch (e) {}
+            }
+            if (window.ProfileModule && typeof window.ProfileModule.getProfile === "function") {
+                try {
+                    var gp = window.ProfileModule.getProfile();
+                    if (gp && typeof gp.then === "function") {
+                        gp.then(function () { refreshProfileIfVisible(); });
+                    }
+                } catch (e) {}
+            }
+            refreshProfileIfVisible();
+        }
+
+        // Switch live state to the incoming account. Snapshots the outgoing
+        // identity first (never deletes), then loads the incoming account's
+        // own snapshot/cloud state before any write is allowed. First login
+        // with progress on both sides asks explicitly (merge vs cloud-only)
+        // instead of silently overwriting newer cloud data.
+        async function switchToAccount(uid) {
+            var CS = window.CloudSync;
+            try { window.DMIdentity?.snapshot?.(); } catch (e) {}
+            try { CS?.setActiveUser?.(uid); } catch (e) {}
+            try { CS?.stopAutoSync?.(); } catch (e) {}
+            var hadSnapshot = false;
+            try { hadSnapshot = !!window.DMIdentity?.hasSnapshot?.(uid); } catch (e) {}
+            var meaningful = isProgressMeaningful(window.S);
+            if (!hadSnapshot && meaningful) {
+                // Continuity path: live S holds real progress but this account
+                // has no snapshot on this device yet. Keep live S, decide
+                // explicitly against cloud, then snapshot the outcome.
+                try { window.DMIdentity?.setActiveOnly?.(uid); } catch (e) {}
+                var cloudHasData = false;
+                try {
+                    var client = (window.AuthModule && typeof window.AuthModule.getClient === "function")
+                        ? window.AuthModule.getClient() : null;
+                    if (client) {
+                        var res = await client.from("user_progress").select("state, version").eq("user_id", uid).single();
+                        if (!res.error && res.data && res.data.state && Object.keys(res.data.state).length) {
+                            cloudHasData = true;
+                        }
+                    }
+                } catch (e) {}
+                if (cloudHasData && !mergeDecision(uid)) {
+                    var merge = false;
+                    try {
+                        merge = confirm("تم العثور على تقدم محفوظ في السحابة وآخر على هذا الجهاز. دمج تقدم الجهاز مع السحابة؟ (موافق = دمج، إلغاء = استخدام السحابة فقط)");
+                    } catch (e) { merge = false; }
+                    try { recordMergeDecision(uid, merge ? "merged" : "cloud"); } catch (e2) {}
+                    try {
+                        if (!merge && CS && typeof CS.downloadState === "function") {
+                            await CS.downloadState(uid);
+                        } else if (merge && CS && typeof CS.fullSync === "function") {
+                            await CS.fullSync(uid, window.S);
+                        }
+                    } catch (e) {
+                        console.warn("[App] First-login cloud decision failed:", e);
+                    }
+                } else if (cloudHasData) {
+                    try {
+                        if (CS && typeof CS.fullSync === "function") await CS.fullSync(uid, window.S);
+                    } catch (e) {
+                        console.warn("[App] Account sync failed:", e);
+                    }
+                } else {
+                    // Cloud empty: upload local as the base version. Never destructive.
+                    try {
+                        if (CS && typeof CS.migrateLocalToCloud === "function") {
+                            var mig = CS.migrateLocalToCloud(uid, window.S);
+                            if (mig && typeof mig.then === "function") await mig;
+                        }
+                    } catch (e) {
+                        console.warn("[App] First-login migration failed:", e);
+                    }
+                }
+                try { window.DMIdentity?.snapshot?.(); } catch (e) {}
+            } else {
+                // Returning account (own snapshot exists) or trivial local
+                // state: load the account snapshot, then deterministic sync.
+                try { window.DMIdentity?.activate?.(uid); } catch (e) {}
+                try {
+                    if (CS && typeof CS.fullSync === "function") await CS.fullSync(uid, window.S);
+                } catch (e) {
+                    console.warn("[App] Account sync failed:", e);
+                }
+            }
+            try { CS?.refreshPendingCount?.(); } catch (e) {}
+        }
+
+        // Sign-out: preserve the outgoing account's live state under its own
+        // snapshot, detach sync so nothing else can write for it, restore the
+        // guest snapshot, and refresh identity UI. Cloud data is untouched.
+        function signOutIdentity() {
+            try { window.DMIdentity?.snapshot?.(); } catch (e) {}
+            try { window.CloudSync?.setActiveUser?.(null); } catch (e) {}
+            try { window.CloudSync?.stopAutoSync?.(); } catch (e) {}
+            try { window.CloudSync?.refreshPendingCount?.(); } catch (e) {}
+            try { window.DMIdentity?.activate?.(null); } catch (e) {}
+            try { window.ProfileModule?.clearCache?.(); } catch (e) {}
+            showMainApp();
+            updateAuthUI(false);
+            refreshProfileIfVisible();
+            try {
+                if (window.AuthModule?.getUser?.()) {
+                    console.warn("[App] Sign-out handled but an account is still active");
+                }
+            } catch (e) {}
+        }
+
         // Single session handler for listener + initial restore.
         // No login wall: signed-out users keep learning offline/local-first;
         // signing in happens explicitly via the topbar login button.
@@ -443,41 +866,36 @@
                 handlePasswordRecovery();
                 return;
             }
-            if (session && session.user) {
-                // User signed in
+            var uid = currentUidOf(session);
+            if (session && session.user && uid) {
+                // User signed in: responsive UI first, identity work async.
                 showMainApp();
                 updateAuthUI(true);
-                var state = window.S;
-                if (!state) {
-                    console.warn("[App] Local store unavailable, skipping cloud sync");
-                } else if (window.CloudSync && typeof window.CloudSync.migrateLocalToCloud === "function") {
-                    try {
-                        var mig = window.CloudSync.migrateLocalToCloud(session.user.id, state);
-                        if (mig && typeof mig.catch === "function") {
-                            mig.catch(function (e) { console.warn("[App] First-login migration failed:", e); });
-                        }
-                    } catch (e) {
-                        console.warn("[App] First-login migration failed:", e);
-                    }
-                }
-                // Start auto sync
-                if (window.CloudSync && typeof window.CloudSync.startAutoSync === "function") {
-                    window.CloudSync.startAutoSync(60000);
-                }
-                // Register device
-                if (window.AuthModule && typeof window.AuthModule.registerDevice === "function") {
-                    window.AuthModule.registerDevice();
-                }
-                // Load profile
-                if (window.ProfileModule && typeof window.ProfileModule.getProfile === "function") {
-                    window.ProfileModule.getProfile();
+                if (uid !== lastUid) {
+                    var prev = lastUid;
+                    lastUid = uid;
+                    try { window.ProfileModule?.clearCache?.(); } catch (e) {}
+                    refreshProfileIfVisible();
+                    switchToAccount(uid).then(function () {
+                        postSignIn(uid);
+                    }).catch(function (e) {
+                        console.warn("[App] Account switch failed:", e);
+                        postSignIn(uid);
+                    });
+                } else {
+                    postSignIn(uid);
                 }
             } else {
                 // Signed out (or no previous session) - stay in the app, offline-first
-                showMainApp();
-                updateAuthUI(false);
-                if (window.CloudSync && typeof window.CloudSync.stopAutoSync === "function") {
-                    window.CloudSync.stopAutoSync();
+                if (lastUid !== null) {
+                    lastUid = null;
+                    signOutIdentity();
+                } else {
+                    showMainApp();
+                    updateAuthUI(false);
+                    if (window.CloudSync && typeof window.CloudSync.stopAutoSync === "function") {
+                        try { window.CloudSync.stopAutoSync(); } catch (e) {}
+                    }
                 }
             }
         }

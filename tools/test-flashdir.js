@@ -110,7 +110,11 @@ try {
 } catch (e) { check("script.js loads under stubs", false, e.message); }
 try {
   act(`
+    // Fresh-user slate: production NEVER has a key-less S (boot, identity
+    // switch, import, wipe and cloud-apply all normalize or preserve shapes),
+    // so reset via defaultState() — the real clean slate — not bare deletes.
     Object.keys(S).forEach(function(k){ delete S[k]; });
+    Object.assign(S, defaultState());
     VOCAB.length = 0;
     VOCAB.push(
       {id:"w1",de:"Tisch",art:"der",ar:"الطاولة",pron:"تيش",type:"اسم",cat:"Home",ex:"Der Tisch ist neu.",exAr:"الطاولة جديدة.",kap:"K5",level:"A1",plural:"die Tische",img:""},
@@ -262,6 +266,17 @@ try {
   check("G plain click flips", sim.flippedAfterPlain === "CHANGED", JSON.stringify(sim));
   check("G delegated word speaks face word (ar-de front)", JSON.stringify(sim.wordUtt) === JSON.stringify([{ text: "ضوء", lang: "ar" }]), JSON.stringify(sim.wordUtt));
 } catch (e) { check("audio setup", false, e.message); }
+
+/* ---------- H. normalizeState shape coercion (corrupt store tolerance) ---------- */
+try {
+  const norm = (js) => act("JSON.stringify(normalizeState(" + js + "))");
+  const n1 = JSON.parse(norm('{review:null,status:"x",favs:{},customWords:"no",totalCorrect:"5",streak:null,settings:null,planner:null,extraKept:7}'));
+  check("H null/wrong-typed maps reset to shapes", n1.review && typeof n1.review === "object" && !Array.isArray(n1.review) && n1.status && typeof n1.status === "object" && Array.isArray(n1.favs) && Array.isArray(n1.customWords), JSON.stringify(n1).slice(0, 160));
+  check("H numbers coerced, extras preserved", n1.totalCorrect === 0 && n1.extraKept === 7, "totalCorrect=" + n1.totalCorrect);
+  check("H nested prefs defaulted", n1.streak && n1.streak.count === 0 && n1.settings && n1.settings.theme === "dark" && n1.planner && n1.planner.words === 20);
+  const n2 = JSON.parse(norm('null'));
+  check("H null store gives defaults", n2.status && typeof n2.status === "object" && n2.totalAnswered === 0, JSON.stringify(n2).slice(0, 120));
+} catch (e) { check("normalize coercion", false, e.message); }
 const css = RD("client/style.css");
 check("row-flex wraps (no h-scroll)", /\.row-flex\{[^}]*flex-wrap:\s*wrap/.test(css));
 check("flash-controls wraps", /\.flash-controls\{[^}]*flex-wrap:\s*wrap/.test(css));

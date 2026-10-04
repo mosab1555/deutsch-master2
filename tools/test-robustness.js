@@ -132,13 +132,27 @@ for (const f of ["client/index.html", "client/academy.html"]) {
 /* ---------- PWA-005: SW precache coverage ---------- */
 (function () {
   const sw = RD("client/sw.js");
-  const jsFiles = fs.readdirSync(path.join(root, "client")).filter(f => /\.js$/.test(f) && f !== "sw.js");
+  // *.example.js templates are docs, not app scripts: never loaded by HTML
+  // (R25 proves it) and must NOT be precached (they hold placeholder keys).
+  const jsFiles = fs.readdirSync(path.join(root, "client")).filter(f => /\.js$/.test(f) && f !== "sw.js" && !/\.example\.js$/.test(f));
   const missing = jsFiles.filter(f => sw.indexOf('"./' + f + '"') < 0);
   check("R28 sw precaches all app scripts (" + jsFiles.length + ")", missing.length === 0, missing.join(","));
   check("R29 sw cache version current", /german-academy-v(3[3-9]|[4-9][0-9])/.test(sw));
 })();
 
-/* ---------- quiz answer-path guards (static pins for runtime-verified behavior) ---------- */
+/* ---------- topbar identity display (static pins for runtime-verified behavior) ---------- */
+(function () {
+  const appInit = RD("client/app-init.js");
+  const css = RD("client/style.css");
+  // Email pill is rendered with textContent (never innerHTML): no HTML injection.
+  const chipBlock = appInit.slice(appInit.indexOf('getElementById("userEmail")'));
+  check("R37 topbar email pill uses textContent", chipBlock.indexOf("textContent = email") >= 0 && chipBlock.indexOf("innerHTML") < 0);
+  check("R38 topbar email pill cleared on sign-out", /stale\.textContent = ""/.test(appInit) || /chip\.textContent = ""/.test(appInit));
+  check("R39 user-email style defined", css.indexOf(".user-email") >= 0);
+  for (const f of ["client/index.html", "client/academy.html"]) {
+    check("R40 " + f + " has userMenu host", RD(f).indexOf('id="userMenu"') >= 0);
+  }
+})();
 (function () {
   const script = RD("client/script.js");
   const orderBranch = script.slice(script.indexOf("if(q.kind===\"order\"){"), script.indexOf("if(q.kind===\"write\"){"));

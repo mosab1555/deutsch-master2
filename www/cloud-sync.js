@@ -20,6 +20,24 @@ const CloudSync = (function () {
     let syncInterval = null;
     let currentVersion = 0;
 
+    // Active-account binding: every cloud read/write is stamped with the user
+    // id that was active when it started, and re-validated after each await.
+    // app-init sets this on every auth transition (including sign-out -> null).
+    // A stale in-flight operation (sign-out / account switch mid-flight) aborts
+    // instead of writing one account's data under another account.
+    let activeUserId = null;
+    let syncGeneration = 0;
+    function setActiveUser(userId) {
+        activeUserId = userId || null;
+        syncGeneration++;
+        return syncGeneration;
+    }
+    function getActiveUser() { return activeUserId; }
+    function checkActive(userId, generation) {
+        return !!userId && userId === activeUserId &&
+            (generation === undefined || generation === syncGeneration);
+    }
+
     // Sync status constants
     const SYNC_STATUS = {
         IDLE: "idle",
@@ -107,10 +125,21 @@ const CloudSync = (function () {
 
     // ==================== VERSION & STATE ====================
 
+    // Local state version travels with the ACTIVE identity snapshot
+    // (guest key or per-account key via DMIdentity), never a global counter.
+    function activeStoreKey() {
+        try {
+            if (window.DMIdentity && typeof window.DMIdentity.activeKey === "function") {
+                return window.DMIdentity.activeKey();
+            }
+        } catch (e) {}
+        return "deutsch_master_v2";
+    }
+
     // Get local state version
     function getLocalVersion() {
         try {
-            const raw = localStorage.getItem("deutsch_master_v2");
+            const raw = localStorage.getItem(activeStoreKey());
             if (raw) {
                 const parsed = JSON.parse(raw);
                 return parsed._syncVersion || 0;
@@ -122,11 +151,11 @@ const CloudSync = (function () {
     // Set local state version
     function setLocalVersion(version) {
         try {
-            const raw = localStorage.getItem("deutsch_master_v2");
+            const raw = localStorage.getItem(activeStoreKey());
             if (raw) {
                 const parsed = JSON.parse(raw);
                 parsed._syncVersion = version;
-                localStorage.setItem("deutsch_master_v2", JSON.stringify(parsed));
+                localStorage.setItem(activeStoreKey(), JSON.stringify(parsed));
             }
         } catch (e) {}
     }
@@ -156,12 +185,16 @@ const CloudSync = (function () {
         if (!supabaseClient || !userId) {
             return { success: false, error: "Not initialized" };
         }
+        if (!checkActive(userId)) {
+            return { success: false, error: "Superseded: account changed" };
+        }
 
         if (!isOnline) {
             return { success: false, error: "Offline", queued: true };
         }
 
         setStatus(SYNC_STATUS.SYNCING);
+        const generation = syncGeneration;
 
         try {
             // 1. Get cloud state
@@ -170,6 +203,10 @@ const CloudSync = (function () {
                 .select("state, version, updated_at")
                 .eq("user_id", userId)
                 .single();
+
+            if (!checkActive(userId, generation)) {
+                return { success: false, error: "Superseded: account changed" };
+            }
 
             if (fetchError && fetchError.code !== "PGRST116") {
                 throw fetchError;
@@ -204,6 +241,9 @@ const CloudSync = (function () {
             }
 
             // 3. Upload merged state
+            if (!checkActive(userId, generation)) {
+                return { success: false, error: "Superseded: account changed" };
+            }
             const { error: upsertError } = await supabaseClient
                 .from("user_progress")
                 .upsert({
@@ -216,6 +256,9 @@ const CloudSync = (function () {
 
             if (upsertError) throw upsertError;
 
+            if (!checkActive(userId, generation)) {
+                return { success: false, error: "Superseded: account changed" };
+            }
             // 4. Apply merged state locally
             applyMergedState(mergedState);
             setLocalVersion(newVersion);
@@ -241,8 +284,12 @@ const CloudSync = (function () {
     // merge first so we never silently overwrite newer progress with older data.
     async function uploadChanges(userId, localState) {
         if (!supabaseClient || !userId || !isOnline) {
-            return queueOperation("upsert_progress", { state: localState });
+            return queueOperation("upsert_progress", { state: localState }, userId || null);
         }
+        if (!checkActive(userId)) {
+            return { success: false, error: "Superseded: account changed" };
+        }
+        const generation = syncGeneration;
 
         try {
             const localVersion = getLocalVersion();
@@ -255,6 +302,9 @@ const CloudSync = (function () {
                     .select("state, version")
                     .eq("user_id", userId)
                     .single();
+                if (!checkActive(userId, generation)) {
+                    return { success: false, error: "Superseded: account changed" };
+                }
                 if (!cloudError && cloudRow && (cloudRow.version || 0) > localVersion) {
                     // Cloud is newer - deterministic merge, then upload merged state
                     const merged = mergeStates(localState, cloudRow.state || {}, localVersion, cloudRow.version || 0);
@@ -263,10 +313,16 @@ const CloudSync = (function () {
                     applyMergedState(stateToUpload);
                 }
             } catch (e) {
+                if (e && e.message === "Superseded: account changed") {
+                    return { success: false, error: e.message };
+                }
                 // Version pre-check is best-effort; fall through to plain upload
                 console.warn("[Sync] Cloud version pre-check failed, uploading local:", e);
             }
 
+            if (!checkActive(userId, generation)) {
+                return { success: false, error: "Superseded: account changed" };
+            }
             const { error } = await supabaseClient
                 .from("user_progress")
                 .upsert({
@@ -279,6 +335,9 @@ const CloudSync = (function () {
 
             if (error) throw error;
 
+            if (!checkActive(userId, generation)) {
+                return { success: false, error: "Superseded: account changed" };
+            }
             setLocalVersion(version);
             currentVersion = version;
             setStatus(SYNC_STATUS.ONLINE, { lastSync: new Date().toISOString() });
@@ -286,7 +345,7 @@ const CloudSync = (function () {
 
         } catch (e) {
             console.warn("[Sync] Upload failed, queuing:", e);
-            return queueOperation("upsert_progress", { state: localState });
+            return queueOperation("upsert_progress", { state: localState }, userId || null);
         }
     }
 
@@ -294,6 +353,9 @@ const CloudSync = (function () {
     async function downloadState(userId) {
         if (!supabaseClient || !userId || !isOnline) {
             return { success: false, error: "Offline or not initialized" };
+        }
+        if (!checkActive(userId)) {
+            return { success: false, error: "Superseded: account changed" };
         }
 
         try {
@@ -504,13 +566,19 @@ const CloudSync = (function () {
     function applyMergedState(mergedState) {
         if (!window.S) return;
 
+        // Normalize first: cloud data may carry explicit nulls / wrong types
+        // (older clients, partial writes). normalizeState coerces known fields
+        // back to their shapes and never deletes unknown keys.
+        var incoming = mergedState;
+        try { if (typeof normalizeState === "function") incoming = normalizeState(mergedState); } catch (e) {}
+
         // Preserve certain local-only fields
         const preservedFields = ["uiLang", "flashDir", "notifRead"];
         const preserved = {};
         preservedFields.forEach(f => { if (window.S[f] !== undefined) preserved[f] = window.S[f]; });
 
         // Merge into S
-        Object.assign(window.S, mergedState);
+        Object.assign(window.S, incoming);
 
         // Restore preserved
         Object.assign(window.S, preserved);
@@ -557,13 +625,16 @@ const CloudSync = (function () {
         }
     }
 
-    // Queue an operation for later sync
-    function queueOperation(type, payload) {
+    // Queue an operation for later sync. Operations are bound to the user id
+    // that was active when they were created ("guest" while signed out) so an
+    // offline write can never be uploaded under a different account later.
+    function queueOperation(type, payload, userId) {
         const queue = getPendingQueue();
         queue.push({
             id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
             type,
             payload,
+            userId: userId || "guest",
             createdAt: new Date().toISOString(),
             retries: 0
         });
@@ -571,6 +642,22 @@ const CloudSync = (function () {
         setStatus(syncState.status, { pendingCount: queue.length });
         console.log("[Sync] Queued operation:", type);
         return { success: false, queued: true };
+    }
+
+    // Recompute the visible pending count for the ACTIVE identity only, so one
+    // account never appears to carry another account's queued work.
+    function refreshPendingCount() {
+        try {
+            const queue = getPendingQueue();
+            const active = activeUserId;
+            const mine = queue.filter(function (op) {
+                return (op.userId || "guest") === (active || "guest");
+            });
+            syncState.pendingCount = mine.length;
+            notifyStatusChange();
+            updateSyncIndicator();
+        } catch (e) {}
+        return syncState.pendingCount;
     }
 
     // Process the offline queue
@@ -585,6 +672,21 @@ const CloudSync = (function () {
         const remaining = [];
 
         for (const op of queue) {
+            const owner = op.userId || "guest";
+            const active = activeUserId || "guest";
+            if (owner !== active) {
+                // Belongs to a different identity: keep queued WITHOUT counting
+                // it as a failure, so it can still upload under its own account.
+                remaining.push(op);
+                continue;
+            }
+            if (owner === "guest") {
+                // Guest-bound work is adopted explicitly at sign-in (merged into
+                // the account flow), never uploaded on its own: hold it here
+                // without burning retries.
+                remaining.push(op);
+                continue;
+            }
             try {
                 await executeOperation(op);
                 console.log("[Sync] Processed queued operation:", op.type);
@@ -600,7 +702,8 @@ const CloudSync = (function () {
         }
 
         savePendingQueue(remaining);
-        setStatus(SYNC_STATUS.ONLINE, { pendingCount: remaining.length });
+        refreshPendingCount();
+        setStatus(SYNC_STATUS.ONLINE, { pendingCount: syncState.pendingCount });
     }
 
     // Execute a queued operation
@@ -609,6 +712,10 @@ const CloudSync = (function () {
     async function executeOperation(op) {
         const user = window.AuthModule?.getUser?.();
         if (!user) throw new Error("No user");
+        const owner = op.userId || "guest";
+        if (owner !== user.id || !checkActive(user.id)) {
+            throw new Error("Superseded: account changed");
+        }
 
         switch (op.type) {
             case "upsert_progress": {
@@ -755,6 +862,9 @@ const CloudSync = (function () {
         init,
         onStatusChange,
         getStatus: () => syncState,
+        setActiveUser,
+        getActiveUser,
+        refreshPendingCount,
         fullSync,
         uploadChanges,
         downloadState,

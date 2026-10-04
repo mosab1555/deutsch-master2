@@ -68,12 +68,35 @@ rec("w2"); okA("w2"); rec("w2");
 check("mastery: re-error resets okn/done", S.mistakes["w2"].okn === 0 && !S.mistakes["w2"].done && S.mistakes["w2"].n === 2);
 
 // 5. No duplicate globals introduced (allowed intentional overrides)
-const files = fs.readdirSync(path.join(root, "client")).filter(f => f.endsWith(".js"));
+// Scope-aware: only TOP-LEVEL `function name(` declarations create globals in
+// these classic scripts. Same-named functions nested inside module IIFEs
+// (AuthModule/CloudSync/ProfileModule/app-init closures) are private and must
+// not be reported as collisions.
+function topLevelFunctions(src) {
+  src = String(src).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^\:"'`])\/\/[^\n]*/g, "$1");
+  const names = [];
+  let depth = 0, instr = null;
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (instr) {
+      if (c === "\\") { i++; continue; }
+      if (c === instr) instr = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") { instr = c; continue; }
+    if (c === "{") { depth++; continue; }
+    if (c === "}") { depth = Math.max(0, depth - 1); continue; }
+    if (depth === 0) {
+      const m = /^(?:async\s+)?function\s+([A-Za-z0-9_$]+)\s*\(/.exec(src.slice(i, i + 64));
+      if (m) { names.push(m[1]); i += m[0].length - 1; }
+    }
+  }
+  return names;
+}
+const files = fs.readdirSync(path.join(root, "client")).filter(f => f.endsWith(".js") && !/\.example\.js$/.test(f));
 const map = {};
 files.forEach(f => {
-  const s = SRC(f);
-  const re = /function\s+([A-Za-z0-9_$]+)\s*\(/g; let m;
-  while ((m = re.exec(s))) { const n = m[1]; map[n] = map[n] || []; map[n].push(f); }
+  topLevelFunctions(SRC(f)).forEach(n => { map[n] = map[n] || []; map[n].push(f); });
 });
 const allowed = new Set(["renderMistakes", "showPage", "renderDashboard", "renderJourney", "renderTutor", "q", "answer", "done", "next", "render", "step", "esc", "finish", "fin", "fb", "renderQ"]);
 const bad = Object.keys(map).filter(k => map[k].length > 1 && !allowed.has(k));

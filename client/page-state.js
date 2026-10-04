@@ -88,7 +88,11 @@ var S = {
 };
 
 /* ---------------- DOM helpers (all guarded) ---------------- */
-function $(id) { try { return document.getElementById(id) || null; } catch (e) { return null; } }
+/* NOTE: `$` reuses the shared global helper from script.js when it is already
+   loaded (all classic scripts share one global scope, so a second top-level
+   `function $` here would be a real duplicate global). Standalone (tests or a
+   future load order without script.js) it falls back to the guarded lookup. */
+var $ = (typeof $ === "function") ? $ : function(id) { try { return document.getElementById(id) || null; } catch (e) { return null; } };
 function pageEl(name) { try { return document.querySelector("#page-" + name) || null; } catch (e) { return null; } }
 function validPage(name) {
   if (!name || typeof name !== "string") return false;
