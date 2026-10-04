@@ -114,19 +114,24 @@
                 userMenu.classList.remove("hidden");
                 try { userMenu.setAttribute("data-signed-in", "true"); } catch (e) {}
             }
+            /* Sidebar logout action is signed-in only (same as the old topbar
+               user menu): guests must not see a logout entry. */
+            try {
+                var sideOut = document.getElementById("logoutBtn");
+                if (sideOut) sideOut.classList.remove("hidden");
+            } catch (e) {}
         } else {
             if (loginBtn) loginBtn.style.display = "";
             if (userMenu) {
                 userMenu.classList.add("hidden");
                 try { userMenu.setAttribute("data-signed-in", "false"); } catch (e) {}
             }
+            try {
+                var sideOutG = document.getElementById("logoutBtn");
+                if (sideOutG) sideOutG.classList.add("hidden");
+            } catch (e) {}
         }
         try {
-            var profileBtn = document.getElementById("profileBtn");
-            if (profileBtn) {
-                if (email) profileBtn.title = email;
-                else profileBtn.removeAttribute("title");
-            }
             if (userMenu) {
                 if (email) userMenu.title = email;
                 else userMenu.removeAttribute("title");
@@ -593,13 +598,12 @@
             showAuthPage();
         });
 
-        // Topbar profile button
-        document.getElementById("profileBtn")?.addEventListener("click", function() {
-            if (typeof showPage === "function") showPage("profile");
-        });
-
-        // Topbar logout button
+        // Sidebar logout action (single handler, bound by id; the sidebar
+        // account entry is the existing data-page="profile" nav item).
+        // Closes the sidebar so the resulting guest UI is fully visible.
         document.getElementById("logoutBtn")?.addEventListener("click", function() {
+            try { document.getElementById("sidebar")?.classList.remove("open"); } catch (e) {}
+            try { document.getElementById("sidebarOverlay")?.classList.remove("show"); } catch (e) {}
             if (window.AuthModule && typeof window.AuthModule.signOut === "function") {
                 var p = null;
                 try { p = window.AuthModule.signOut(); } catch (e) {

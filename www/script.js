@@ -1629,7 +1629,7 @@ function showPage(name){
   }
   requestAnimationFrame(observeReveals);
 }
-document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+document.querySelectorAll(".nav-item").forEach(b=>{if(b.hasAttribute("data-action"))return;b.addEventListener("click",()=>showPage(b.dataset.page));});
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-goto"))));
 $("menuBtn").addEventListener("click",()=>{$("sidebar").classList.add("open");$("sidebarOverlay").classList.add("show");});
 $("sidebarOverlay").addEventListener("click",()=>{$("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");});

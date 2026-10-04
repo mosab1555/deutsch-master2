@@ -152,6 +152,26 @@ for (const f of ["client/index.html", "client/academy.html"]) {
   for (const f of ["client/index.html", "client/academy.html"]) {
     check("R40 " + f + " has userMenu host", RD(f).indexOf('id="userMenu"') >= 0);
   }
+  // R48: account/logout live in the sidebar, not the topbar. Exactly one
+  // logoutBtn per page (kept id = single existing handler), placed in the
+  // sidebar nav; profileBtn removed; sidebar keeps data-page="profile".
+  for (const f of ["client/index.html", "client/academy.html"]) {
+    const html = RD(f);
+    const topbar = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
+    check("R48a " + f + " topbar has no account/logout buttons",
+      topbar.indexOf('id="profileBtn"') < 0 && topbar.indexOf('id="logoutBtn"') < 0);
+    check("R48b " + f + " exactly one logoutBtn", html.split('id="logoutBtn"').length - 1 === 1);
+    const at = html.indexOf('id="logoutBtn"');
+    const side = html.slice(Math.max(0, at - 200), at + 200);
+    check("R48c " + f + " logoutBtn is a sidebar nav-item",
+      side.indexOf("nav-item") >= 0 && side.indexOf("data-action") >= 0);
+    check("R48d " + f + " sidebar has profile nav", html.indexOf('data-page="profile"') >= 0);
+    check("R48e " + f + " no profileBtn anywhere", html.indexOf("profileBtn") < 0);
+  }
+  check("R48f nav binding skips data-action buttons",
+    RD("client/script.js").indexOf('hasAttribute("data-action")') >= 0);
+  check("R48g sidebar logout hidden for guests",
+    appInit.indexOf('getElementById("logoutBtn")') >= 0 && appInit.indexOf('sideOutG') >= 0);
   // Logout/state hardening: rendered state derives from the LIVE user (a stale
   // updateAuthUI(true) after sign-out must render guest), the full email
   // travels in title/aria-label while the visible chip prefers the display

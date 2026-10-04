@@ -497,6 +497,60 @@ async function partB() {
     }`, 25000);
     ok("B7-store-B-C", r && r.aLive === 0 && r.bLive === 0 && r.aBack === 100 && r.guestBack === 50 && r.aSnap === 100 && r.bSnap === 200 && r.same === true, "A/B/guest isolated, guest byte-identical");
 
+    // B8: sidebar account/logout placement through the REAL page wiring:
+    // header carries no account/logout buttons; sidebar holds the profile
+    // nav entry + logout action; profile nav opens the profile page;
+    // logout click invokes the single AuthModule.signOut flow, closes the
+    // sidebar, and the UI settles into the guest state.
+    r = await cdp.evalJs(`async function(){
+      try{
+        var hook=window.__dmTestHooks&&window.__dmTestHooks.updateAuthUI;
+        if(typeof hook!=="function") return {noHook:true};
+        var realGet=window.AuthModule.getUser;
+        var realOut=window.AuthModule.signOut;
+        var out={};
+        var top=document.querySelector(".topbar")||document.body;
+        out.topHasProfile=!!top.querySelector("#profileBtn");
+        out.topHasLogout=!!top.querySelector(".top-actions #logoutBtn, header #logoutBtn");
+        var side=document.getElementById("sidebar");
+        var profBtn=side?side.querySelector('[data-page="profile"]'):null;
+        var outBtn=document.getElementById("logoutBtn");
+        out.sideHasProfile=!!profBtn;
+        out.sideHasLogout=!!outBtn&&!!(side&&side.contains(outBtn));
+        // signed-in: sidebar logout visible
+        window.AuthModule.getUser=function(){return {id:"stub-uid-A",email:"a@example.com",app_metadata:{provider:"google"},user_metadata:{full_name:"Layla"}};};
+        hook(true);
+        out.logoutVisibleWhenIn=!!outBtn&&!outBtn.classList.contains("hidden");
+        // profile nav opens the profile interface
+        if(profBtn)profBtn.click();
+        await new Promise(function(r){setTimeout(r,600);});
+        var pg=document.getElementById("page-profile");
+        out.profileOpened=!!pg&&pg.classList.contains("active");
+        // logout click uses the single signOut flow + closes sidebar
+        var signOutCalls=0;
+        window.AuthModule.signOut=function(){signOutCalls++;return Promise.resolve({error:null});};
+        try{side.classList.add("open");}catch(e){}
+        outBtn.click();
+        await new Promise(function(r){setTimeout(r,400);});
+        out.signOutCalls=signOutCalls;
+        out.sidebarClosed=!side.classList.contains("open");
+        // auth event settles to guest UI (driven here via the real renderer)
+        window.AuthModule.getUser=function(){return null;};
+        hook(false);
+        await new Promise(function(r){setTimeout(r,300);});
+        var login=document.getElementById("loginBtn");
+        out.guestUI=!!login&&login.style.display!=="none"&&outBtn.classList.contains("hidden");
+        window.AuthModule.getUser=realGet;
+        window.AuthModule.signOut=realOut;
+        hook(false);
+        return out;
+      }catch(e){return {err:String(e&&e.message||e).slice(0,100)};}
+    }`, 25000);
+    ok("B8-sidebar-account-logout", r && r.topHasProfile === false && r.topHasLogout === false &&
+      r.sideHasProfile === true && r.sideHasLogout === true && r.logoutVisibleWhenIn === true &&
+      r.profileOpened === true && r.signOutCalls === 1 && r.sidebarClosed === true && r.guestUI === true,
+      "header clean, sidebar entries work, logout wired, guest settles");
+
     // B3/B4: snapshot isolation + guest safety in the REAL store
     r = await cdp.evalJs(`async function(){
       try{
