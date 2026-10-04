@@ -632,6 +632,16 @@
     async function initializeApp() {
         console.log("[App] Initializing Deutsch Master with Auth & Sync...");
 
+        // Test seam (same precedent as updateAuthUI): exposes the REAL login /
+        // logout transition handlers so headless regression tests can drive
+        // account isolation without a network session. Never used by prod code.
+        try {
+            window.__dmTestHooks = window.__dmTestHooks || {};
+            window.__dmTestHooks.switchToAccount = switchToAccount;
+            window.__dmTestHooks.signOutIdentity = signOutIdentity;
+            window.__dmTestHooks.handleSession = handleSession;
+        } catch (e) {}
+
         // One-time safety backup of pre-identity local progress (never
         // overwrites an existing backup, never deletes anything).
         try { window.DMIdentity?.ensureBackup?.(); } catch (e) {}
@@ -743,28 +753,6 @@
             } catch (e) { return null; }
         }
 
-        // True when the live store holds real learning progress (not defaults).
-        function isProgressMeaningful(st) {
-            try {
-                if (!st || typeof st !== "object") return false;
-                if ((st.totalAnswered || 0) > 0 || (st.testsTaken || 0) > 0 || (st.xp || 0) > 0) return true;
-                if (Array.isArray(st.quizHistory) && st.quizHistory.length) return true;
-                if (Array.isArray(st.customWords) && st.customWords.length) return true;
-                if (st.status && typeof st.status === "object" && Object.keys(st.status).length) return true;
-                if (st.mistakes && typeof st.mistakes === "object" && Object.keys(st.mistakes).length) return true;
-                return false;
-            } catch (e) { return false; }
-        }
-
-        function mergeDecisionKey(uid) { return "dm_merge_decision:" + uid; }
-        function mergeDecision(uid) {
-            try { return localStorage.getItem(mergeDecisionKey(uid)); }
-            catch (e) { return null; }
-        }
-        function recordMergeDecision(uid, v) {
-            try { localStorage.setItem(mergeDecisionKey(uid), v); } catch (e) {}
-        }
-
         // Re-render the profile page only when it is the visible page.
         function refreshProfileIfVisible() {
             try {
@@ -798,11 +786,16 @@
             refreshProfileIfVisible();
         }
 
-        // Switch live state to the incoming account. Snapshots the outgoing
-        // identity first (never deletes), then loads the incoming account's
-        // own snapshot/cloud state before any write is allowed. First login
-        // with progress on both sides asks explicitly (merge vs cloud-only)
-        // instead of silently overwriting newer cloud data.
+        // Switch live state to the incoming account under STRICT identity
+        // isolation: Guest progress must NEVER become an account's progress.
+        // The outgoing identity (Guest or previous account) is snapshotted
+        // first and never deleted. Then exactly one rule applies:
+        //  - account seen on this device before (own snapshot exists):
+        //    load its snapshot, then deterministic same-owner sync.
+        //  - first time on this device: ask the CLOUD only. Cloud data ->
+        //    restore exactly that (never mixed with local state). No cloud
+        //    data -> clean default state (never Guest state). Live Guest
+        //    state stays in the Guest snapshot, untouched either way.
         async function switchToAccount(uid) {
             var CS = window.CloudSync;
             try { window.DMIdentity?.snapshot?.(); } catch (e) {}
@@ -810,12 +803,7 @@
             try { CS?.stopAutoSync?.(); } catch (e) {}
             var hadSnapshot = false;
             try { hadSnapshot = !!window.DMIdentity?.hasSnapshot?.(uid); } catch (e) {}
-            var meaningful = isProgressMeaningful(window.S);
-            if (!hadSnapshot && meaningful) {
-                // Continuity path: live S holds real progress but this account
-                // has no snapshot on this device yet. Keep live S, decide
-                // explicitly against cloud, then snapshot the outcome.
-                try { window.DMIdentity?.setActiveOnly?.(uid); } catch (e) {}
+            if (!hadSnapshot) {
                 var cloudHasData = false;
                 try {
                     var client = (window.AuthModule && typeof window.AuthModule.getClient === "function")
@@ -827,42 +815,45 @@
                         }
                     }
                 } catch (e) {}
-                if (cloudHasData && !mergeDecision(uid)) {
-                    var merge = false;
+                if (cloudHasData) {
+                    // Existing account: restore ONLY its cloud progress.
+                    try { window.DMIdentity?.setActiveOnly?.(uid); } catch (e) {}
+                    var restored = false;
                     try {
-                        merge = confirm("تم العثور على تقدم محفوظ في السحابة وآخر على هذا الجهاز. دمج تقدم الجهاز مع السحابة؟ (موافق = دمج، إلغاء = استخدام السحابة فقط)");
-                    } catch (e) { merge = false; }
-                    try { recordMergeDecision(uid, merge ? "merged" : "cloud"); } catch (e2) {}
-                    try {
-                        if (!merge && CS && typeof CS.downloadState === "function") {
-                            await CS.downloadState(uid);
-                        } else if (merge && CS && typeof CS.fullSync === "function") {
-                            await CS.fullSync(uid, window.S);
+                        if (CS && typeof CS.downloadState === "function") {
+                            var dl = await CS.downloadState(uid);
+                            restored = !!(dl && dl.success);
                         }
                     } catch (e) {
-                        console.warn("[App] First-login cloud decision failed:", e);
+                        console.warn("[App] Account restore failed:", e);
                     }
-                } else if (cloudHasData) {
-                    try {
-                        if (CS && typeof CS.fullSync === "function") await CS.fullSync(uid, window.S);
-                    } catch (e) {
-                        console.warn("[App] Account sync failed:", e);
+                    if (!restored) {
+                        // Cloud unreachable right now: start clean rather than
+                        // exposing Guest state under this account. Later syncs
+                        // reconcile; nothing Guest-owned is ever uploaded.
+                        try { window.DMIdentity?.activate?.(uid); } catch (e2) {}
                     }
                 } else {
-                    // Cloud empty: upload local as the base version. Never destructive.
+                    // Brand-new account: clean default state, never Guest data.
+                    // activate() with no snapshot loads defaults, saves them
+                    // under this account's key, and re-renders.
+                    try { window.DMIdentity?.activate?.(uid); } catch (e) {}
+                    // Create the account's cloud record from its own clean
+                    // state (never Guest state). Fails silently offline; the
+                    // normal sync path creates it on reconnect.
                     try {
                         if (CS && typeof CS.migrateLocalToCloud === "function") {
                             var mig = CS.migrateLocalToCloud(uid, window.S);
                             if (mig && typeof mig.then === "function") await mig;
                         }
                     } catch (e) {
-                        console.warn("[App] First-login migration failed:", e);
+                        console.warn("[App] New-account cloud init failed:", e);
                     }
                 }
                 try { window.DMIdentity?.snapshot?.(); } catch (e) {}
             } else {
-                // Returning account (own snapshot exists) or trivial local
-                // state: load the account snapshot, then deterministic sync.
+                // Returning account: load its own snapshot, then deterministic
+                // same-owner sync (snapshot and cloud both belong to uid).
                 try { window.DMIdentity?.activate?.(uid); } catch (e) {}
                 try {
                     if (CS && typeof CS.fullSync === "function") await CS.fullSync(uid, window.S);
