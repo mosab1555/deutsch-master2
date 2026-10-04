@@ -68,13 +68,23 @@ setInterval(function(){
     if(c>=14&&!S.rewards.f14){S.rewards.f14=1;S.freeze.n++;save();}
   }catch(e){}
 })();
-/* SRS lite (SM-2 style): {e:ease, due:date, laps} — additive, old {c,w} kept */
+/* SRS scheduling is owned by DMProgress.nextReview (SM-2-lite, documented in
+   progress.js). This wrapper keeps the legacy {e,due,laps} shape readable by
+   older code (srsGet/srsOverdue) while writing the canonical schedule. */
 function srsGet(id){ensurePlay();if(!S.srs[id])S.srs[id]={e:2.5,due:todayStr(),laps:0};return S.srs[id];}
 function srsBump(id,ok){
   try{
     const s=srsGet(id);
-    if(ok){s.laps++;s.e=Math.min(3,s.e+0.15);const gap=s.laps===1?1:s.laps===2?3:Math.round((s.laps-1)*s.e*2);const d=new Date();d.setDate(d.getDate()+gap);s.due=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-    else{s.laps=0;s.e=Math.max(1.3,s.e-0.3);s.due=todayStr();}
+    if(typeof DMProgress!=="undefined"&&DMProgress&&typeof DMProgress.nextReview==="function"){
+      const st={laps:Math.max(0,s.laps|0),ease:(typeof s.ease==="number"&&s.ease>0)?s.ease:(+s.e||2.5),
+        miss:Math.max(0,((S.mistakes&&S.mistakes[id]&&S.mistakes[id].n)|0)),ok:ok===true};
+      const nxt=DMProgress.nextReview(st);
+      s.laps=nxt.laps;s.ease=nxt.ease;s.e=nxt.ease;s.miss=st.miss;
+      s.due=DMProgress.todayKey(new Date(Date.now()+nxt.dueIn*86400000));
+    }else{
+      if(ok){s.laps++;s.e=Math.min(3,s.e+0.15);const gap=s.laps===1?1:s.laps===2?3:Math.round((s.laps-1)*s.e*2);const d=new Date();d.setDate(d.getDate()+gap);s.due=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+      else{s.laps=0;s.e=Math.max(1.3,s.e-0.3);s.due=todayStr();}
+    }
     save();
   }catch(e){}
 }

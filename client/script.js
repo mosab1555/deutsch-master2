@@ -2129,7 +2129,11 @@ function renderReviewQ(){
   $("rvOk").addEventListener("click",()=>{bumpReview(w.id,true);reviewIdx++;renderReviewQ();});
   $("rvNo").addEventListener("click",()=>{bumpReview(w.id,false);reviewIdx++;renderReviewQ();});
 }
-function bumpReview(id,ok){
+/* Confidence-graded review: ok=true/false drives the SM-2-lite schedule;
+   optional boost (e.g. +0.15 Easy, -0.15 Forgot) nudges ease inside the same
+   [1.3, 2.8] bounds nextReview enforces, so forgotten items return sooner
+   and mastered items wait longer. */
+function bumpReview(id,ok,boost){
   if(!S.review[id])S.review[id]={c:0,w:0};
   if(ok){
     S.review[id].c++;
@@ -2144,6 +2148,9 @@ function bumpReview(id,ok){
     const st=S.srs&&S.srs[id]||{laps:0,ease:2.5,miss:0};
     st.miss=(S.mistakes&&S.mistakes[id]&&S.mistakes[id].n)||0;
     st.ok=ok;
+    if(typeof boost==="number"&&isFinite(boost)){
+      st.ease=Math.min(2.8,Math.max(1.3,(+st.ease||2.5)+boost));
+    }
     const nxt=DMProgress.nextReview(st);
     if(!S.srs)S.srs={};
     S.srs[id]={laps:nxt.laps,ease:nxt.ease,due:DMProgress.todayKey(new Date(Date.now()+nxt.dueIn*86400000)),miss:st.miss};
@@ -2383,11 +2390,17 @@ $("flashDir").addEventListener("click",e=>{e.stopPropagation();toggleFlashDir();
 function resetFlashFilters(){["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.value="";});buildFlash();}
 try{const fr=$("flashReset");if(fr)fr.addEventListener("click",resetFlashFilters);}catch(e){}
 try{const fre=$("flashResetEmpty");if(fre)fre.addEventListener("click",resetFlashFilters);}catch(e){}
+/* Four-level confidence: Forgot/Hard fail (Forgot penalizes ease harder),
+   Good/Easy pass (Easy rewards ease). Legacy values kept as aliases. */
 document.querySelectorAll("[data-flash-rate]").forEach(b=>b.addEventListener("click",()=>{
   if(!flashList.length)return;
   const w=flashList[flashIdx%flashList.length];if(!w)return;
   const r=b.getAttribute("data-flash-rate");
-  if(r==="known"){bumpReview(w.id,true);}else if(r==="hard"){bumpReview(w.id,false);}else{setStatus(w.id,"review");markStudyDay();save();}
+  if(r==="forgot"){bumpReview(w.id,false,-0.15);}
+  else if(r==="hard"){bumpReview(w.id,false);}
+  else if(r==="good"||r==="known"){bumpReview(w.id,true);}
+  else if(r==="easy"){bumpReview(w.id,true,0.15);}
+  else{setStatus(w.id,"review");markStudyDay();save();}
   flashIdx++;renderFlash();renderAll();
 }));
 
