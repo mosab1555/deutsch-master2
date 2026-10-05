@@ -553,6 +553,7 @@ const CloudSync = (function () {
             "journey",
             "dlife",
             "myg",
+            "sim",
             "writing",
             "speaking"
         ];
