@@ -682,6 +682,292 @@ async function main() {
   ok("offline-merge-keeps", O.mergeKeepsOffline === true, JSON.stringify(O));
   ok("offline-reload-found", O.reloadFound === true, JSON.stringify(O));
 
+  /* ---- P. required regression flows A-G: deck/note/card visibility ----
+   * Each scenario resets the collection first so it is independent of order:
+   *  A. existing deck: add -> bound to DeckA -> counts/browser/study
+   *  B. new deck: create -> live + listed -> select -> add -> counts/browser/study
+   *  C. reload after B: deck + card + browser + study survive activate()
+   *  D. offline: create + add -> visible -> reload -> reconnect w/o dup/move
+   *  E. multiple decks: per-deck isolation incl. browser filter + study queue
+   *  F. stale UI: explicit DeckB destination survives a re-render
+   *  G. persistence failure: no phantom deck/note/card, retry works
+   *  H. deck-ID browser filter: exact ID + parent-subtree, paths unaffected */
+
+  const SCEN_AB = `
+(() => {
+  const A = window.AnkiDroid;
+  const out = {};
+  const reset = () => {
+    const SA = A.store();
+    ["decks","notes","cards"].forEach(k => Object.keys(SA[k]).forEach(x => delete SA[k][x]));
+    SA.media = SA.media || {}; SA.log = []; SA.days = {}; SA.undo = null; SA.settings.defaultDeck = null;
+    return SA;
+  };
+  // A: existing deck
+  let SA = reset();
+  const dA = A.createDeck(SA, "DeckA", null);
+  out.aDeck = !!(dA.id && SA.decks[dA.id]);
+  const c0 = A.deckCounts(SA, dA.id, Date.now()).total;
+  const ra = A.addNote(SA, { type: "basic", deck: dA.id, fields: { Front: "AlphaFrontA", Back: "AlphaBackA" }, tags: "" });
+  out.aErr = ra.error || null;
+  out.aNote = !!(ra.note && SA.notes[ra.note]);
+  out.aCard = !!(ra.cards && ra.cards[0] && SA.cards[ra.cards[0]]);
+  out.aBound = !!(ra.cards && ra.cards[0] && SA.cards[ra.cards[0]].deck === dA.id);
+  out.aCount = A.deckCounts(SA, dA.id, Date.now()).total === c0 + 1;
+  out.aBrowserFront = A.searchCards(SA, "AlphaFrontA", Date.now()).length === 1;
+  out.aBrowserBack = A.searchCards(SA, "AlphaBackA", Date.now()).length === 1;
+  out.aBrowserDeck = A.searchCards(SA, "deck:DeckA", Date.now()).length >= 1;
+  out.aBrowserId = A.searchCards(SA, String((ra.cards || [])[0]), Date.now()).length === 1;
+  out.aStudy = A.buildQueue(SA, dA.id, {}).items.some(c => c.id === (ra.cards || [])[0]);
+  // B: new deck
+  SA = reset();
+  const dB = A.createDeck(SA, "DeckB", null);
+  out.bLive = !!(dB.id && A.store().decks[dB.id]);
+  out.bListed = Object.keys(SA.decks).indexOf(dB.id) >= 0;
+  out.bSelect = A.resolveDeckId(SA, dB.id) === dB.id;
+  const rb = A.addNote(SA, { type: "basic", deck: dB.id, fields: { Front: "BetaFrontB", Back: "BetaBackB" }, tags: "" });
+  out.bBound = !!(rb.cards && rb.cards[0] && SA.cards[rb.cards[0]].deck === dB.id);
+  const bc = A.deckCounts(SA, dB.id, Date.now());
+  out.bCounts = bc.total >= 1 && bc.new >= 1;
+  out.bBrowser = A.searchCards(SA, "BetaFrontB", Date.now()).length === 1;
+  out.bStudy = A.buildQueue(SA, dB.id, {}).items.some(c => c.id === (rb.cards || [])[0]);
+  out.bDeckId = dB.id; out.bCard = (rb.cards || [])[0];
+  return JSON.stringify(out);
+})()
+  `;
+
+  const SCEN_C = `
+(() => {
+  const A = window.AnkiDroid;
+  const SA = A.store();
+  ["decks","notes","cards"].forEach(k => Object.keys(SA[k]).forEach(x => delete SA[k][x]));
+  SA.media = SA.media || {}; SA.log = []; SA.days = {}; SA.undo = null; SA.settings.defaultDeck = null;
+  const out = {};
+  const d = A.createDeck(SA, "DeckBReload", null);
+  const r = A.addNote(SA, { type: "basic", deck: d.id, fields: { Front: "GammaFrontC", Back: "GammaBackC" }, tags: "" });
+  out.cid = (r.cards || [])[0] || null; out.did = d.id;
+  window.DMIdentity.activate(null);
+  const SA2 = A.store();
+  out.cDeck = !!(d.id && SA2.decks[d.id]);
+  const c = out.cid && SA2.cards[out.cid];
+  out.cBound = !!(c && c.deck === d.id);
+  out.cBrowser = A.searchCards(SA2, "GammaFrontC", Date.now()).length === 1;
+  out.cStudy = SA2.decks[d.id] ? A.buildQueue(SA2, d.id, {}).items.some(x => x.id === out.cid) : false;
+  return JSON.stringify(out);
+})()
+  `;
+
+  const SCEN_D = `
+(() => {
+  const A = window.AnkiDroid;
+  const SA = A.store();
+  ["decks","notes","cards"].forEach(k => Object.keys(SA[k]).forEach(x => delete SA[k][x]));
+  SA.media = SA.media || {}; SA.log = []; SA.days = {}; SA.undo = null; SA.settings.defaultDeck = null;
+  const out = {};
+  const d = A.createDeck(SA, "DeckC", null);
+  const r = A.addNote(SA, { type: "basic", deck: d.id, fields: { Front: "DeltaFrontD", Back: "DeltaBackD" }, tags: "" });
+  const cid = (r.cards || [])[0];
+  out.dDeckListed = !!SA.decks[d.id];
+  out.dCardInDeck = !!(cid && SA.cards[cid] && SA.cards[cid].deck === d.id);
+  out.dBrowser = A.searchCards(SA, "DeltaFrontD", Date.now()).length === 1;
+  out.dStudy = A.buildQueue(SA, d.id, {}).items.some(c => c.id === cid);
+  window.DMIdentity.activate(null);
+  const SA2 = A.store();
+  out.dReloadDeck = !!SA2.decks[d.id];
+  out.dReloadCard = !!(cid && SA2.cards[cid] && SA2.cards[cid].deck === d.id);
+  // reconnect: stale empty-cloud merge must not duplicate or move the card
+  const CS = window.CloudSync;
+  const before = Object.keys(SA2.cards).length;
+  const m = CS.mergeStates(window.S, { anki: { decks: {}, notes: {}, cards: {}, types: {}, media: {}, settings: {}, days: {}, log: [], lastDay: "2020-01-01", undo: null } }, 1, 2).state;
+  const afterCards = m.anki && m.anki.cards ? Object.keys(m.anki.cards).length : -1;
+  out.dNoDup = afterCards === before;
+  out.dSameDeck = !!(m.anki && m.anki.cards && m.anki.cards[cid] && m.anki.cards[cid].deck === d.id);
+  return JSON.stringify(out);
+})()
+  `;
+
+  const SCEN_E = `
+(() => {
+  const A = window.AnkiDroid;
+  const SA = A.store();
+  ["decks","notes","cards"].forEach(k => Object.keys(SA[k]).forEach(x => delete SA[k][x]));
+  SA.media = SA.media || {}; SA.log = []; SA.days = {}; SA.undo = null; SA.settings.defaultDeck = null;
+  const out = {};
+  const da = A.createDeck(SA, "IsoA", null), db = A.createDeck(SA, "IsoB", null), dc = A.createDeck(SA, "IsoC", null);
+  const ra = A.addNote(SA, { type: "basic", deck: da.id, fields: { Front: "IsoFrontA", Back: "b" }, tags: "" });
+  const rb = A.addNote(SA, { type: "basic", deck: db.id, fields: { Front: "IsoFrontB", Back: "b" }, tags: "" });
+  const rc = A.addNote(SA, { type: "basic", deck: dc.id, fields: { Front: "IsoFrontC", Back: "b" }, tags: "" });
+  const qa = A.buildQueue(SA, da.id, {}).items.map(c => c.id);
+  const qb = A.buildQueue(SA, db.id, {}).items.map(c => c.id);
+  const qc = A.buildQueue(SA, dc.id, {}).items.map(c => c.id);
+  out.eBound = SA.cards[ra.cards[0]].deck === da.id && SA.cards[rb.cards[0]].deck === db.id && SA.cards[rc.cards[0]].deck === dc.id;
+  out.eQa = qa.indexOf(ra.cards[0]) >= 0 && qa.indexOf(rb.cards[0]) < 0 && qa.indexOf(rc.cards[0]) < 0;
+  out.eQb = qb.indexOf(rb.cards[0]) >= 0 && qb.indexOf(ra.cards[0]) < 0 && qb.indexOf(rc.cards[0]) < 0;
+  out.eQc = qc.indexOf(rc.cards[0]) >= 0 && qc.indexOf(ra.cards[0]) < 0 && qc.indexOf(rb.cards[0]) < 0;
+  out.eFa = A.searchCards(SA, "deck:IsoA", Date.now()).every(c => c.deck === da.id);
+  out.eFb = A.searchCards(SA, "deck:IsoB", Date.now()).every(c => c.deck === db.id);
+  out.eFc = A.searchCards(SA, "deck:IsoC", Date.now()).every(c => c.deck === dc.id);
+  out.eCounts = A.searchCards(SA, "deck:IsoA", Date.now()).length === 1 && A.searchCards(SA, "deck:IsoB", Date.now()).length === 1 && A.searchCards(SA, "deck:IsoC", Date.now()).length === 1;
+  return JSON.stringify(out);
+})()
+  `;
+
+  const SCEN_F = `
+(() => {
+  const A = window.AnkiDroid;
+  const SA = A.store();
+  ["decks","notes","cards"].forEach(k => Object.keys(SA[k]).forEach(x => delete SA[k][x]));
+  SA.media = SA.media || {}; SA.log = []; SA.days = {}; SA.undo = null; SA.settings.defaultDeck = null;
+  const out = {};
+  const da = A.createDeck(SA, "StaleA", null);
+  const db = A.createDeck(SA, "StaleB", null);
+  // open Deck A, then create/open Deck B (explicit destination = Deck B)
+  A.view().deck = da.id; A.view().name = "overview";
+  A.view().deck = db.id; A.view().name = "overview";
+  // add a card while Deck B is selected, then trigger a re-render
+  const r = A.addNote(A.store(), { type: "basic", deck: A.view().deck, fields: { Front: "StaleFrontB", Back: "b" }, tags: "" });
+  try { A.render(); } catch (e) { out.renderThrow = String(e && e.message || e).slice(0, 120); }
+  out.fStays = A.view().deck === db.id && A.view().name === "overview";
+  out.fBound = !!(r.cards && r.cards[0] && A.store().cards[r.cards[0]].deck === db.id);
+  out.fOverviewLive = A.deckCounts(A.store(), db.id, Date.now()).total >= 1;
+  return JSON.stringify(out);
+})()
+  `;
+
+  const SCEN_G = `
+(() => {
+  const A = window.AnkiDroid;
+  const SA = A.store();
+  ["decks","notes","cards"].forEach(k => Object.keys(SA[k]).forEach(x => delete SA[k][x]));
+  SA.media = SA.media || {}; SA.log = []; SA.days = {}; SA.undo = null; SA.settings.defaultDeck = null;
+  const out = {};
+  const base = A.createDeck(SA, "BaseG", null);
+  out.gBase = !!base.id;
+  const decks0 = Object.keys(SA.decks).length, notes0 = Object.keys(SA.notes).length, cards0 = Object.keys(SA.cards).length;
+  const _sv = window.save;
+  window.save = function () { return false; };
+  const fd = A.createDeck(SA, "PhantomDeck", null);
+  out.gDeckErr = fd.error || null;
+  out.gNoPhantomDeck = !Object.keys(SA.decks).some(k => SA.decks[k] && SA.decks[k].name === "PhantomDeck") && Object.keys(SA.decks).length === decks0;
+  const fr = A.addNote(SA, { type: "basic", deck: base.id, fields: { Front: "PhantomFront", Back: "b" }, tags: "" });
+  out.gNoteErr = fr.error || null;
+  out.gNoPhantomCard = Object.keys(SA.notes).length === notes0 && Object.keys(SA.cards).length === cards0 && A.searchCards(SA, "PhantomFront", Date.now()).length === 0;
+  window.save = _sv;
+  const rr = A.addNote(A.store(), { type: "basic", deck: base.id, fields: { Front: "RetryFront", Back: "b" }, tags: "" });
+  out.gRetry = !rr.error && !!(rr.cards && A.store().cards[rr.cards[0]]);
+  try { window.DMIdentity.snapshot(); } catch (e) {}
+  return JSON.stringify(out);
+})()
+  `;
+
+  const SCEN_H = `
+(() => {
+  const A = window.AnkiDroid;
+  const SA = A.store();
+  ["decks","notes","cards"].forEach(k => Object.keys(SA[k]).forEach(x => delete SA[k][x]));
+  SA.media = SA.media || {}; SA.log = []; SA.days = {}; SA.undo = null; SA.settings.defaultDeck = null;
+  const out = {};
+  const par = A.createDeck(SA, "PidParent", null);
+  const kid = A.createDeck(SA, "PidParent::PidKid", null);
+  const rk = A.addNote(SA, { type: "basic", deck: kid.id, fields: { Front: "PidKidFront", Back: "b" }, tags: "" });
+  const rp = A.addNote(SA, { type: "basic", deck: par.id, fields: { Front: "PidParFront", Back: "b" }, tags: "" });
+  const qKid = A.searchCards(SA, "deck:" + kid.id, Date.now()).map(c => c.id);
+  const qPar = A.searchCards(SA, "deck:" + par.id, Date.now()).map(c => c.id);
+  out.hKidExact = qKid.length === 1 && qKid[0] === rk.cards[0];
+  out.hParSubtree = qPar.length === 2 && qPar.indexOf(rk.cards[0]) >= 0 && qPar.indexOf(rp.cards[0]) >= 0;
+  out.hParPathStillWorks = A.searchCards(SA, "deck:PidParent", Date.now()).length === 2;
+  out.hKidPathStillWorks = A.searchCards(SA, "deck:PidKid", Date.now()).length === 1;
+  out.hUnknownIdEmpty = A.searchCards(SA, "deck:d0000000000", Date.now()).length === 0;
+  return JSON.stringify(out);
+})()
+  `;
+
+  let R2 = {};
+  try { R2 = JSON.parse(js(SCEN_AB)); }
+  catch (e) { ok("flowsAB-runs", false, String(e && e.message || e).slice(0, 300)); R2 = null; }
+  if (R2) {
+    ok("flowsAB-runs", true);
+    ok("A-deck-exists", R2.aDeck === true, JSON.stringify(R2));
+    ok("A-note-exists", R2.aNote === true, JSON.stringify(R2));
+    ok("A-card-exists", R2.aCard === true, JSON.stringify(R2));
+    ok("A-card-deckId", R2.aBound === true, JSON.stringify(R2));
+    ok("A-count-increased", R2.aCount === true, JSON.stringify(R2));
+    ok("A-browser-front", R2.aBrowserFront === true, JSON.stringify(R2));
+    ok("A-browser-back", R2.aBrowserBack === true, JSON.stringify(R2));
+    ok("A-browser-deck", R2.aBrowserDeck === true, JSON.stringify(R2));
+    ok("A-browser-id", R2.aBrowserId === true, JSON.stringify(R2));
+    ok("A-study-queue", R2.aStudy === true, JSON.stringify(R2));
+    ok("B-deck-live", R2.bLive === true, JSON.stringify(R2));
+    ok("B-deck-listed", R2.bListed === true, JSON.stringify(R2));
+    ok("B-auto-select", R2.bSelect === true, JSON.stringify(R2));
+    ok("B-card-deckId", R2.bBound === true, JSON.stringify(R2));
+    ok("B-counts", R2.bCounts === true, JSON.stringify(R2));
+    ok("B-browser", R2.bBrowser === true, JSON.stringify(R2));
+    ok("B-study-queue", R2.bStudy === true, JSON.stringify(R2));
+  }
+  let R3 = null;
+  try { R3 = JSON.parse(js(SCEN_C)); ok("C-runs", true); }
+  catch (e) { ok("C-runs", false, String(e && e.message || e).slice(0, 300)); }
+  if (R3) {
+    ok("C-deck-survives", R3.cDeck === true, JSON.stringify(R3));
+    ok("C-card-deck", R3.cBound === true, JSON.stringify(R3));
+    ok("C-browser", R3.cBrowser === true, JSON.stringify(R3));
+    ok("C-study", R3.cStudy === true, JSON.stringify(R3));
+  }
+  let R4 = null;
+  try { R4 = JSON.parse(js(SCEN_D)); ok("D-runs", true); }
+  catch (e) { ok("D-runs", false, String(e && e.message || e).slice(0, 300)); }
+  if (R4) {
+    ok("D-deck-immediate", R4.dDeckListed === true, JSON.stringify(R4));
+    ok("D-card-deck", R4.dCardInDeck === true, JSON.stringify(R4));
+    ok("D-browser", R4.dBrowser === true, JSON.stringify(R4));
+    ok("D-study", R4.dStudy === true, JSON.stringify(R4));
+    ok("D-reload-deck", R4.dReloadDeck === true, JSON.stringify(R4));
+    ok("D-reload-card", R4.dReloadCard === true, JSON.stringify(R4));
+    ok("D-reconnect-no-dup", R4.dNoDup === true, JSON.stringify(R4));
+    ok("D-reconnect-same-deck", R4.dSameDeck === true, JSON.stringify(R4));
+  }
+  let R5 = null;
+  try { R5 = JSON.parse(js(SCEN_E)); ok("E-runs", true); }
+  catch (e) { ok("E-runs", false, String(e && e.message || e).slice(0, 300)); }
+  if (R5) {
+    ok("E-bound", R5.eBound === true, JSON.stringify(R5));
+    ok("E-queue-A", R5.eQa === true, JSON.stringify(R5));
+    ok("E-queue-B", R5.eQb === true, JSON.stringify(R5));
+    ok("E-queue-C", R5.eQc === true, JSON.stringify(R5));
+    ok("E-filter-A", R5.eFa === true, JSON.stringify(R5));
+    ok("E-filter-B", R5.eFb === true, JSON.stringify(R5));
+    ok("E-filter-C", R5.eFc === true, JSON.stringify(R5));
+    ok("E-filter-counts", R5.eCounts === true, JSON.stringify(R5));
+  }
+  let R6 = null;
+  try { R6 = JSON.parse(js(SCEN_F)); ok("F-runs", true); }
+  catch (e) { ok("F-runs", false, String(e && e.message || e).slice(0, 300)); }
+  if (R6) {
+    ok("F-stays-on-B", R6.fStays === true, JSON.stringify(R6));
+    ok("F-card-on-B", R6.fBound === true, JSON.stringify(R6));
+    ok("F-overview-live", R6.fOverviewLive === true, JSON.stringify(R6));
+  }
+  let R7 = null;
+  try { R7 = JSON.parse(js(SCEN_G)); ok("G-runs", true); }
+  catch (e) { ok("G-runs", false, String(e && e.message || e).slice(0, 300)); }
+  if (R7) {
+    ok("G-deck-err", R7.gDeckErr === "persist-failed", JSON.stringify(R7));
+    ok("G-no-phantom-deck", R7.gNoPhantomDeck === true, JSON.stringify(R7));
+    ok("G-note-err", R7.gNoteErr === "persist-failed", JSON.stringify(R7));
+    ok("G-no-phantom-card", R7.gNoPhantomCard === true, JSON.stringify(R7));
+    ok("G-retry-works", R7.gRetry === true, JSON.stringify(R7));
+  }
+  let R8 = null;
+  try { R8 = JSON.parse(js(SCEN_H)); ok("H-runs", true); }
+  catch (e) { ok("H-runs", false, String(e && e.message || e).slice(0, 300)); }
+  if (R8) {
+    ok("H-deckid-exact", R8.hKidExact === true, JSON.stringify(R8));
+    ok("H-deckid-subtree", R8.hParSubtree === true, JSON.stringify(R8));
+    ok("H-deckpath-still-works", R8.hParPathStillWorks === true && R8.hKidPathStillWorks === true, JSON.stringify(R8));
+    ok("H-unknown-deckid-empty", R8.hUnknownIdEmpty === true, JSON.stringify(R8));
+  }
+
   console.log("----");
   if (fail) { console.log("RESULT: FAIL (" + fail + ")"); process.exit(1); }
   console.log("RESULT: PASS (" + pass + ")");

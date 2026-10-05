@@ -252,22 +252,48 @@ function deckCounts(a, id, nowMs) {
   });
   return c;
 }
+/* Single authoritative deck collection: every deck op works on the live
+ * S.anki object (via A()) and verifies persistence. On storage failure the
+ * in-memory change is rolled back so no phantom deck can appear in the UI. */
+function resolveDeckId(a, wantId) {
+  if (wantId && a.decks[wantId]) return wantId;
+  if (a.settings.defaultDeck && a.decks[a.settings.defaultDeck]) return a.settings.defaultDeck;
+  var keys = Object.keys(a.decks);
+  return keys.length ? keys[0] : null;
+}
 function createDeck(a, fullName, opts) {
   fullName = String(fullName || "").trim().replace(/\s*::\s*/g, "::").replace(/^:+|:+$/g, "");
   if (!fullName) return { error: "empty" };
   var parts = fullName.split("::").map(function (p) { return p.trim(); }).filter(Boolean);
   if (!parts.length) return { error: "empty" };
-  var parentId = null, leafId = null;
+  if (parts.some(function (p) { return p.length > 80; })) return { error: "too-long" };
+  var parentId = null, leafId = null, created = [];
+  var prevDef = a.settings.defaultDeck;
   for (var i = 0; i < parts.length; i++) {
     var sib = childrenOf(a, parentId).filter(function (k) { return a.decks[k].name === parts[i]; })[0];
     if (sib) { parentId = sib; leafId = sib; continue; }
     var id = uid("d");
     a.decks[id] = { id: id, name: parts[i].slice(0, 80), parent: parentId, opts: {}, collapsed: false, created: Date.now() };
+    created.push(id);
     parentId = id; leafId = id;
   }
   if (opts && leafId) a.decks[leafId].opts = opts;
   if (!a.settings.defaultDeck) a.settings.defaultDeck = leafId;
-  commit();
+  if (!created.length) return { id: leafId };
+  /* Never claim success when the snapshot did not reach storage: roll the
+   * new deck(s) back so the deck list cannot show a phantom deck. */
+  if (!commit()) {
+    created.forEach(function (id) { delete a.decks[id]; });
+    a.settings.defaultDeck = prevDef;
+    return { error: "persist-failed" };
+  }
+  /* Verify the deck really is in the live collection (guards against a
+   * detached/stale collection object). */
+  if (!leafId || !a.decks[leafId]) {
+    created.forEach(function (id) { delete a.decks[id]; });
+    a.settings.defaultDeck = prevDef;
+    return { error: "persist-failed" };
+  }
   return { id: leafId };
 }
 function renameDeck(a, id, newLeafName) {
@@ -376,9 +402,15 @@ function addNote(a, spec) {
   var fields = {};
   (type.fields || []).forEach(function (f) { fields[f] = String(spec.fields && spec.fields[f] != null ? spec.fields[f] : "").slice(0, 4000); });
   if (!String(fields[type.fields[0]] || "").trim() && !spec.ref) return { error: "empty-front" };
-  var deckId = spec.deck && a.decks[spec.deck] ? spec.deck : a.settings.defaultDeck;
-  if (!deckId || !a.decks[deckId]) {
+  /* Bind to the exact selected deck ID, resolved against the LIVE
+   * collection. Never rely on a name/index/stale object: if the requested
+   * deck is gone, fall back to a valid existing deck; never create a
+   * deckless/hidden card and never silently use an unrelated deck when a
+   * valid fallback exists (defaultDeck first, then any live deck). */
+  var deckId = resolveDeckId(a, spec.deck);
+  if (!deckId) {
     var r = createDeck(a, "Deutsch", null);
+    if (r.error || !r.id || !a.decks[r.id]) return { error: r.error || "persist-failed" };
     deckId = r.id;
   }
   var tags = Array.isArray(spec.tags) ? spec.tags : String(spec.tags || "").split(/[,،\s]+/).map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
@@ -473,6 +505,7 @@ function seedFromContent(a, scope) {
   var made = { decks: 0, cards: 0 };
   Object.keys(groups).sort().forEach(function (g) {
     var r = createDeck(a, scope === "kapitel" ? ("Deutsch::Kapitel::" + g) : ("Deutsch::" + g), null);
+    if (r.error || !r.id) return;
     var deckId = r.id;
     made.decks++;
     groups[g].forEach(function (w) {
@@ -491,6 +524,7 @@ function seedFromContent(a, scope) {
   var verbs = words.filter(function (w) { return w && w.type === "فعل"; });
   if (verbs.length && scope === "levels") {
     var rv = createDeck(a, "Deutsch::Verbs", null);
+    if (rv.error || !rv.id) { commit(); return made; }
     made.decks++;
     verbs.forEach(function (w) {
       var res = addNote(a, { type: "verb", deck: rv.id, ref: { kind: "vocab", id: w.id }, tags: ["verb", String(w.level || "a1").toLowerCase()] });
@@ -567,10 +601,23 @@ function cardMatches(a, card, note, F, conds, nowMs) {
   for (var i = 0; i < conds.length; i++) {
     var cd = conds[i], hit = false;
     if (cd.kind === "text") {
-      var hay = norm([F.Front, F.Back, F.Example, F.Word, F.Sentence, F.Meaning, (note.tags || []).join(" "), deckPath(a, card.deck)].join(" "));
-      hit = hay.indexOf(cd.v) >= 0;
+      /* Browser finds a card by Front/Back text, deck, or exact note/card ID
+       * (IDs are matched verbatim so a freshly created card is findable by
+       * the ID the save result returned). */
+      var raw = String(cd.v || "");
+      if (raw && (raw === norm(card.id) || raw === norm(note.id))) { hit = true; }
+      else {
+        var hay = norm([F.Front, F.Back, F.Example, F.Word, F.Sentence, F.Meaning, (note.tags || []).join(" "), deckPath(a, card.deck)].join(" "));
+        hit = hay.indexOf(cd.v) >= 0;
+      }
     } else if (cd.kind === "deck") {
-      hit = norm(deckPath(a, card.deck)).indexOf(cd.v) === 0 || norm(deckPath(a, card.deck)).indexOf(cd.v) >= 0;
+      /* Deck filter accepts a stable deck ID (exact, subtree included) or a
+       * deck path (prefix/substring, children included). IDs survive norm()
+       * (lowercase alnum), so a freshly created card is findable by the
+       * deck ID the creation result returned. */
+      var rawId = String(cd.v || "");
+      if (rawId && a.decks[rawId]) { hit = descendants(a, rawId).indexOf(card.deck) >= 0; }
+      else hit = norm(deckPath(a, card.deck)).indexOf(cd.v) === 0 || norm(deckPath(a, card.deck)).indexOf(cd.v) >= 0;
     } else if (cd.kind === "tag") {
       hit = (note.tags || []).some(function (t) { return norm(t) === cd.v || norm(t).indexOf(cd.v) >= 0; });
     } else if (cd.kind === "is") {
@@ -652,6 +699,7 @@ function importRows(a, rows, opts) {
     if (!front || !back) { report.skipped++; report.errors.push("row " + (r + 1) + ": empty front/back"); continue; }
     var deckName = idx.deck >= 0 && row[idx.deck] ? String(row[idx.deck]).trim() : (opts.deck || "Deutsch");
     var dr = createDeck(a, deckName, null);
+    if (dr.error || !dr.id) { report.skipped++; report.errors.push("row " + (r + 1) + ": " + (dr.error || "persist-failed")); continue; }
     var dup = Object.keys(a.cards).some(function (k) {
       var c = a.cards[k];
       if (!c || c.deck !== dr.id) return false;
@@ -1169,6 +1217,7 @@ function homeHTML(a) {
   var s = computeStats(a, Date.now());
   var h = toolbarHTML("home") +
     '<div class="anki-home-actions">' +
+    '<button class="btn btn-ghost sm" data-anewdeck="1">＋ ' + esc(T("anki_deck")) + '</button>' +
     '<button class="btn btn-ghost sm" data-aview="add">＋ ' + esc(T("anki_add")) + '</button>' +
     '<button class="btn btn-ghost sm" data-aseed="1">⚡ ' + esc(T("anki_generate")) + '</button>' +
     '<button class="btn btn-ghost sm" data-aview="io">⇅ CSV</button>' +
@@ -1178,8 +1227,13 @@ function homeHTML(a) {
   return h;
 }
 function overviewHTML(a) {
-  var id = V.deck;
-  if (!id || !a.decks[id]) { V.name = "home"; return homeHTML(a); }
+  /* Live deck overview: counts are always computed from the current S.anki
+   * state. If the selected deck vanished, repair the selection to a valid
+   * live deck and stay on the overview (never silently drop to home during
+   * a post-save render). Only with zero decks do we fall back to home. */
+  var id = V.deck && a.decks[V.deck] ? V.deck : resolveDeckId(a, V.deck);
+  if (!id) return toolbarHTML("home") + '<div class="anki-empty">' + esc(T("anki_empty_state")) + '</div>';
+  if (V.deck !== id) V.deck = id;
   var c = deckCounts(a, id, Date.now());
   var o = deckOpts(a, id);
   var nn = Math.min(c.new, o.newPerDay), rv = Math.min(c.learning + c.review + c.relearning, o.maxReview);
@@ -1191,8 +1245,9 @@ function overviewHTML(a) {
     '<div class="anki-ov-card"><div class="anki-ov-num learning">' + (c.learning + c.relearning) + '</div><div class="anki-ov-lab">' + esc(T("anki_learning")) + '</div></div>' +
     '<div class="anki-ov-card"><div class="anki-ov-num review">' + c.review + '</div><div class="anki-ov-lab">' + esc(T("anki_due")) + '</div></div>' +
     '</div>' +
-    '<p class="muted">📝 ' + nn + ' · 🔁 ' + rv + ' · ⏸️ ' + c.suspended + ' · 📥 ' + c.buried + '</p>' +
+    '<p class="muted">🗂️ ' + c.total + ' · 📝 ' + nn + ' · 🔁 ' + rv + ' · ⏸️ ' + c.suspended + ' · 📥 ' + c.buried + '</p>' +
     '<div class="row-flex"><button class="btn btn-primary" data-astudy="' + esc(id) + '">📖 ' + esc(T("anki_study")) + ' (' + (nn + rv) + ')</button>' +
+    '<button class="btn btn-ghost" data-abrowse="' + esc(id) + '">🔍 ' + esc(T("anki_browse")) + '</button>' +
     '<button class="btn btn-ghost" data-aview="custom">🎯 ' + esc(T("anki_custom_study")) + '</button>' +
     '<button class="btn btn-ghost" data-aopts="' + esc(id) + '">⚙️ ' + esc(T("anki_deck_options")) + '</button></div>' +
     '</div>';
@@ -1407,7 +1462,9 @@ function editorHTML(a) {
   if (isEdit && !note) { V.name = "browse"; return browseHTML(a); }
   var typeId = (isEdit ? note.type : (V.editType || "basic"));
   var type = a.types[typeId] || a.types.basic;
-  var deckId = isEdit ? note.deck : (V.deck && a.decks[V.deck] ? V.deck : a.settings.defaultDeck);
+  /* The editor always offers the exact selected deck (live-resolved); a
+   * stale V.deck or defaultDeck never produces a deckless selector. */
+  var deckId = isEdit ? (a.decks[note.deck] ? note.deck : resolveDeckId(a, note.deck)) : (V.deck && a.decks[V.deck] ? V.deck : resolveDeckId(a, a.settings.defaultDeck));
   /* Prefer the live draft (typed text + chosen deck/tags) when this render
    * was triggered from inside the editor (image attach/remove/replace, note
    * type switch); otherwise a re-render would wipe the user's input. */
@@ -1646,9 +1703,12 @@ function openDeckMenu(a, deckId, anchor) {
     else if (k === "browse") { V.deck = deckId; setView({ name: "browse", q: "deck:" + deckPath(A(), deckId), page: 0 }); }
     else if (k === "overview") { setView({ name: "overview", deck: deckId }); }
     else if (k === "sub") {
-      var res = createDeck(A(), deckPath(A(), deckId) + "::New deck", null);
-      if (res.id) { renameFlow(A(), res.id); }
-      render();
+      var liveSub = A();
+      if (!liveSub.decks[deckId]) { toastM("✖", "err"); render(); return; }
+      var res = createDeck(liveSub, deckPath(liveSub, deckId) + "::New deck", null);
+      if (res.error || !res.id || !liveSub.decks[res.id]) { toastM("✖ " + (res.error || ""), "err"); render(); return; }
+      setView({ name: "overview", deck: res.id });
+      renameFlow(A(), res.id);
     }
     else if (k === "opts") { setView({ name: "settings", deck: deckId }); }
     else if (k === "custom") { setView({ name: "custom", deck: deckId }); }
@@ -1714,9 +1774,11 @@ function bulkOp(a, op) {
   render();
 }
 function bindRoot(r, a) {
-  if (!r || r._ankiBound) { drawChart(a); return; }
+  /* drawChart must always read the live collection: `a` is the render-time
+   * snapshot and goes stale across identity switches / persistence rolls. */
+  if (!r || r._ankiBound) { drawChart(A()); return; }
   r._ankiBound = true;
-  drawChart(a);
+  drawChart(A());
   r.addEventListener("click", function (ev) {
     var q = function (sel) { return ev.target.closest ? ev.target.closest(sel) : null; };
     var b;
@@ -1727,6 +1789,8 @@ function bindRoot(r, a) {
      * change is then lost by persist()). All other branches already do. */
     if ((b = q("[data-atoggle]"))) { var sa = A(); var d = sa.decks[b.getAttribute("data-atoggle")]; if (d) { d.collapsed = !d.collapsed; commit(false); render(); } return; }
     if ((b = q("[data-aoverview]"))) { SESS = null; setView({ name: "overview", deck: b.getAttribute("data-aoverview") }); return; }
+    if ((b = q("[data-anewdeck]"))) { SESS = null; createDeckFlow(null); return; }
+    if ((b = q("[data-abrowse]"))) { SESS = null; var bid = b.getAttribute("data-abrowse"); var Abe = A(); if (Abe.decks[bid]) V.deck = bid; setView({ name: "browse", q: "deck:" + deckPath(A(), bid), page: 0 }); return; }
     if ((b = q("[data-amenu]"))) { ev.stopPropagation(); openDeckMenu(A(), b.getAttribute("data-amenu"), b); return; }
     if ((b = q("[data-astudy]"))) { V.deck = b.getAttribute("data-astudy"); startSession(A(), V.deck, {}); return; }
     if ((b = q("[data-aopts]"))) { setView({ name: "settings", deck: b.getAttribute("data-aopts") }); return; }
@@ -1756,7 +1820,18 @@ function bindRoot(r, a) {
       toastM(res.error ? "✖" : "⚡ " + (res.cards || 0), res.error ? "err" : "ok");
       render(); return;
     }
-    if ((b = q("[data-asave]"))) { saveEditor(A(), b.getAttribute("data-asave")); return; }
+    if ((b = q("[data-asave]"))) {
+      /* Double-submit guard (double-click / double-tap): the save is
+       * synchronous and a success unmounts the editor, so a second event
+       * must never create a second note. While handling, the button is
+       * disabled; if the editor is still mounted afterwards (save failed
+       * and the user must retry), it is re-enabled. */
+      if (b.disabled) return;
+      b.disabled = true;
+      try { saveEditor(A(), b.getAttribute("data-asave")); }
+      finally { try { if (document.getElementById("ankiEdDeck")) b.disabled = false; } catch (e) {} }
+      return;
+    }
     if ((b = q("[data-abFloyd]"))) { bulkOp(A(), b.getAttribute("data-abFloyd")); return; }
     if ((b = q("[data-apage]"))) { V.page = Math.max(0, (V.page | 0) + parseInt(b.getAttribute("data-apage"), 10)); render(); return; }
     if ((b = q("[data-atype-new]"))) { typeEditor(A(), null); return; }
@@ -1934,11 +2009,45 @@ function bindLightbox() {
 }
 /* ================= O. mutations from UI ================= */
 function val(id) { try { var e = document.getElementById(id); return e ? e.value : ""; } catch (e) { return ""; } }
+/* Create Deck/Section from the UI: validate -> persist -> verify ->
+ * re-render from live S.anki -> auto-select -> open its overview. On
+ * persistence failure roll back (createDeck already did), show the real
+ * error, and never display a phantom deck. */
+function createDeckFlow(preset) {
+  var live = A();
+  var v = preset != null ? String(preset) : null;
+  if (v === null) {
+    try { v = window.prompt(T("anki_deck") + " (+):", ""); } catch (e) { v = null; }
+  }
+  if (v === null || v === undefined) return;
+  v = String(v).trim().replace(/\s*::\s*/g, "::").replace(/^:+|:+$/g, "");
+  if (!v) { toastM("✖ " + T("anki_deck"), "err"); return; }
+  var res = createDeck(live, v, null);
+  if (res.error || !res.id || !live.decks[res.id]) {
+    toastM("✖ " + (res.error || T("anki_deck")), "err");
+    return;
+  }
+  /* Verify against the LIVE collection, then select + open the overview so
+   * the new deck is discoverable without any manual refresh. */
+  var check = A();
+  if (!check.decks[res.id]) { toastM("✖ " + T("anki_deck"), "err"); return; }
+  toastM("✅ " + deckPath(check, res.id), "ok");
+  setView({ name: "overview", deck: res.id });
+}
 function saveEditor(a, mode) {
+  /* Always operate on the live identity-scoped collection: the `a` argument
+   * is the render-time snapshot and may be stale after an identity switch. */
+  var live = A();
   var isEdit = mode === "edit";
   var typeId = val("ankiEdType") || "basic";
-  var type = a.types[typeId] || a.types.basic;
-  var deck = val("ankiEdDeck") || a.settings.defaultDeck;
+  if (!live.types[typeId]) typeId = live.types.basic ? "basic" : Object.keys(live.types)[0];
+  var type = live.types[typeId] || live.types.basic;
+  /* Bind the note to the exact selected deck ID (live-resolved). A stale
+   * selector value or a deleted deck falls back to a valid live deck inside
+   * addNote/editNote; the card can never end up deckless or hidden. */
+  var selDeck = val("ankiEdDeck");
+  var deck = (selDeck && live.decks[selDeck]) ? selDeck : resolveDeckId(live, live.settings.defaultDeck);
+  if (!isEdit && V.deck && live.decks[V.deck] && (!selDeck || !live.decks[selDeck])) deck = V.deck;
   var fields = {};
   (type.fields || []).forEach(function (f) { fields[f] = String(val("ankiEdF_" + f)).slice(0, 4000); });
   var tags = val("ankiEdTags");
@@ -1956,26 +2065,32 @@ function saveEditor(a, mode) {
   }
   if (isEdit) {
     var nid = V.editNote;
-    var res = editNote(a, nid, { fields: fields, tags: tags, deck: deck });
+    if (!nid || !live.notes[nid]) { toastM("✖", "err"); return; }
+    var res = editNote(live, nid, { fields: fields, tags: tags, deck: deck });
     /* Never report success before persistence actually succeeds; on failure
      * stay on the editor so the user's data (DOM + draft) is preserved. */
     if (res.error) { toastM("✖ " + res.error, "err"); return; }
     EM = null; EMR = []; ED = null;
-    pruneMedia(a);
+    pruneMedia(live);
     setView({ name: "browse" });
   } else {
-    var r = addNote(a, { type: typeId, deck: deck, fields: fields, tags: tags });
+    /* The save() result controls UI success: addNote rolls back on
+     * persistence failure, so only a real saved card reaches the overview. */
+    var r = addNote(live, { type: typeId, deck: deck, fields: fields, tags: tags });
     if (r.error) { toastM("✖ " + r.error, "err"); return; }
     EM = null; EMR = []; ED = null;
     toastM("✅", "ok");
     /* Close the Add screen and return to the deck the card actually landed
      * in (addNote may have fallen back when the selection was stale), so
-     * counts/overview/study show the new card immediately. */
+     * counts/overview/study show the new card immediately. Never drop to a
+     * generic home screen or an unrelated deck. */
     var landed = null;
     try {
-      var saved = A().notes[r.note];
-      if (saved && saved.deck && A().decks[saved.deck]) landed = saved.deck;
+      var fresh = A();
+      var saved = fresh.notes[r.note];
+      if (saved && saved.deck && fresh.decks[saved.deck]) landed = saved.deck;
     } catch (e) {}
+    if (!landed) landed = resolveDeckId(A(), deck);
     if (landed) setView({ name: "overview", deck: landed });
     else setView({ name: "home", page: 0 });
   }
@@ -2297,7 +2412,7 @@ function boot() {
 /* ================= Q. public API (UI + tests) ================= */
 var API = {
   render: render, startSession: startSession, rateCurrent: rateCurrent,
-  store: A, createDeck: createDeck, renameDeck: renameDeck, deleteDeck: deleteDeck,
+  store: A, createDeck: createDeck, resolveDeckId: resolveDeckId, createDeckFlow: createDeckFlow, renameDeck: renameDeck, deleteDeck: deleteDeck,
   deckPath: deckPath, childrenOf: childrenOf, descendants: descendants, deckCounts: deckCounts, deckOpts: deckOpts,
   addNote: addNote, editNote: editNote, deleteNote: deleteNote, changeNoteType: changeNoteType,
   resolveFields: resolveFields, applyTemplate: applyTemplate, cardSides: cardSides,

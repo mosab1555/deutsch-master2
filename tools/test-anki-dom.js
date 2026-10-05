@@ -258,6 +258,137 @@ function buildPng() {
   ok("uiadd-reload-persists", afterUi && afterUi.cards === 4, JSON.stringify(afterUi));
   ok("uiadd-reload-found", afterUi && afterUi.found === 1, JSON.stringify(afterUi));
 
+  // 10c. CREATE-DECK FLOW via the real UI: new deck appears immediately,
+  // becomes selected, overview opens; empty/cancel create nothing.
+  ok("newdeck-btn", await cdp.ev(`!!document.querySelector('#ankiRoot [data-anewdeck]')`));
+  const decksBefore = await cdp.ev(`Object.keys(window.AnkiDroid.store().decks).length`);
+  await cdp.ev(`window.__realPrompt = window.prompt; window.prompt = () => ""; document.querySelector('#ankiRoot [data-anewdeck]').click()`);
+  await sleep(500);
+  const emptyNoDeck = await cdp.ev(`({ n: Object.keys(window.AnkiDroid.store().decks).length, ov: !!document.querySelector("#ankiRoot .anki-overview") })`);
+  ok("newdeck-empty-rejected", emptyNoDeck.n === decksBefore, JSON.stringify(emptyNoDeck));
+  await cdp.ev(`window.prompt = () => null; document.querySelector('#ankiRoot [data-anewdeck]').click()`);
+  await sleep(400);
+  ok("newdeck-cancel-safe", await cdp.ev(`Object.keys(window.AnkiDroid.store().decks).length === ` + decksBefore));
+  await cdp.ev(`window.prompt = () => "FlowDeckB"; document.querySelector('#ankiRoot [data-anewdeck]').click()`);
+  await sleep(600);
+  await cdp.ev(`window.prompt = window.__realPrompt;`);
+  const newdeck = await cdp.ev(`(() => { const A = window.AnkiDroid, SA = A.store();
+    const id = Object.keys(SA.decks).find(k => A.deckPath(SA, k) === "FlowDeckB");
+    const v = A.view();
+    return { id: id || null, selected: v.deck === id, overview: !!document.querySelector("#ankiRoot .anki-overview"),
+      title: (document.querySelector("#ankiRoot .anki-overview h3") || {}).textContent || "" }; })()`);
+  ok("newdeck-appears", !!(newdeck && newdeck.id), JSON.stringify(newdeck));
+  ok("newdeck-selected", !!(newdeck && newdeck.selected), JSON.stringify(newdeck));
+  ok("newdeck-overview", !!(newdeck && newdeck.overview && /FlowDeckB/.test(newdeck.title)), JSON.stringify(newdeck));
+  await cdp.ev(`[...document.querySelectorAll("#ankiRoot [data-aview]")].find(b => b.getAttribute("data-aview") === "home").click()`);
+  await sleep(500);
+  ok("newdeck-listed", /FlowDeckB/.test(await cdp.ev(`document.querySelector("#ankiRoot").textContent`)), "deck list shows new deck");
+  // add a card to the new deck via the real Add UI -> same-deck overview
+  await cdp.ev(`document.querySelector('#ankiRoot [data-aoverview="${newdeck.id}"]') ? document.querySelectorAll('#ankiRoot [data-aoverview="${newdeck.id}"]')[0].click() : 0`);
+  await sleep(500);
+  await cdp.ev(`[...document.querySelectorAll("#ankiRoot [data-aview]")].find(b => b.getAttribute("data-aview") === "add").click()`);
+  await sleep(500);
+  const addDeckSel = await cdp.ev(`(() => { const s = document.querySelector("#ankiRoot #ankiEdDeck"); return s ? s.value : null; })()`);
+  ok("add-bound-to-newdeck", addDeckSel === newdeck.id, String(addDeckSel) + " vs " + newdeck.id);
+  await cdp.ev(`(() => { document.querySelector("#ankiRoot #ankiEdF_Front").value = "FlowFrontB1"; document.querySelector("#ankiRoot #ankiEdF_Back").value = "FlowBackB1"; document.querySelector('#ankiRoot [data-asave="add"]').click(); })()`);
+  await sleep(600);
+  const flowCard = await cdp.ev(`(() => { const A = window.AnkiDroid, SA = A.store();
+    const found = A.searchCards(SA, "FlowFrontB1", Date.now());
+    const v = A.view();
+    return { n: found.length, deck: found[0] && found[0].deck, card: found[0] && found[0].id,
+      viewDeck: v.deck, overview: !!document.querySelector("#ankiRoot .anki-overview"),
+      counts: found[0] ? A.deckCounts(SA, found[0].deck, Date.now()) : null }; })()`);
+  ok("flow-card-saved", flowCard && flowCard.n === 1, JSON.stringify(flowCard));
+  ok("flow-card-deck", flowCard && flowCard.deck === newdeck.id, JSON.stringify(flowCard));
+  ok("flow-stays-on-deck", flowCard && flowCard.viewDeck === newdeck.id && flowCard.overview, JSON.stringify(flowCard));
+  ok("flow-counts", !!(flowCard && flowCard.counts && flowCard.counts.total >= 1 && flowCard.counts.new >= 1), JSON.stringify(flowCard && flowCard.counts));
+  // browser finds it by front + by card id + by deck filter
+  await cdp.ev(`[...document.querySelectorAll("#ankiRoot [data-aview]")].find(b => b.getAttribute("data-aview") === "browse").click()`);
+  await sleep(500);
+  await cdp.ev(`(() => { const i = document.querySelector("#ankiRoot #ankiSearch"); i.value = "FlowFrontB1"; i.dispatchEvent(new Event("input", { bubbles: true })); })()`);
+  await sleep(900);
+  ok("flow-browser-front", /FlowFrontB1/.test(await cdp.ev(`document.querySelector("#ankiRoot").textContent`)), "browser shows new card");
+  await cdp.ev(`(() => { const i = document.querySelector("#ankiRoot #ankiSearch"); i.value = "deck:FlowDeckB"; i.dispatchEvent(new Event("input", { bubbles: true })); })()`);
+  await sleep(900);
+  ok("flow-browser-deck", /FlowFrontB1/.test(await cdp.ev(`document.querySelector("#ankiRoot").textContent`)), "deck filter shows new card");
+  const flowById = await cdp.ev(`(() => { const A = window.AnkiDroid; return A.searchCards(A.store(), "${flowCard.card}", Date.now()).length; })()`);
+  ok("flow-browser-id", flowById === 1, String(flowById));
+  // browser finds the new card by stable deck ID via the real search box
+  await cdp.ev(`(() => { const i = document.querySelector("#ankiRoot #ankiSearch"); i.value = "deck:${newdeck.id}"; i.dispatchEvent(new Event("input", { bubbles: true })); })()`);
+  await sleep(900);
+  ok("flow-browser-deckid", /FlowFrontB1/.test(await cdp.ev(`document.querySelector("#ankiRoot").textContent`)), "deck:ID filter shows new card");
+  // double-submit guard: two rapid save clicks create exactly one note
+  await cdp.ev(`[...document.querySelectorAll("#ankiRoot [data-aview]")].find(b => b.getAttribute("data-aview") === "add").click()`);
+  await sleep(500);
+  const dblSave = await cdp.ev(`(() => { const A = window.AnkiDroid;
+    document.querySelector("#ankiRoot #ankiEdF_Front").value = "DblFrontX1";
+    document.querySelector("#ankiRoot #ankiEdF_Back").value = "DblBackX1";
+    const btn = document.querySelector('#ankiRoot [data-asave="add"]');
+    const n0 = Object.keys(A.store().notes).length;
+    btn.click(); btn.click();
+    const notes = Object.keys(A.store().notes).map(k => A.store().notes[k]);
+    return { added: notes.length - n0,
+      dups: notes.filter(n => ((n.fields || {}).Front) === "DblFrontX1").length }; })()`);
+  ok("flow-double-save-once", dblSave.added === 1 && dblSave.dups === 1, JSON.stringify(dblSave));
+  // study from the deck overview contains the new card
+  await cdp.ev(`[...document.querySelectorAll("#ankiRoot [data-aview]")].find(b => b.getAttribute("data-aview") === "home").click()`);
+  await sleep(500);
+  await cdp.ev(`(() => { const b = document.querySelectorAll('#ankiRoot [data-aoverview="${newdeck.id}"]')[0]; if (b) b.click(); })()`);
+  await sleep(500);
+  await cdp.ev(`(() => { const b = document.querySelector('#ankiRoot [data-astudy]'); if (b) b.click(); })()`);
+  await sleep(600);
+  ok("flow-study", /FlowFrontB1/.test(await cdp.ev(`document.querySelector("#ankiRoot").textContent`)), "study shows new card");
+  // reload: deck + card persist, browser + study still find it
+  await cdp.send("Page.navigate", { url: base + "/index.html" });
+  await sleep(4500);
+  await cdp.ev(`document.querySelector('[data-page="ankidroid"]').click()`);
+  await sleep(800);
+  const flowReload = await cdp.ev(`(() => { const A = window.AnkiDroid, SA = A.store();
+    const found = A.searchCards(SA, "FlowFrontB1", Date.now());
+    return { decks: Object.keys(SA.decks).length, n: found.length, deckOk: !!(found[0] && found[0].deck && SA.decks[found[0].deck]),
+      inQueue: found[0] ? A.buildQueue(SA, found[0].deck, {}).items.some(c => c.id === found[0].id) : false }; })()`);
+  ok("flow-reload-deck", flowReload.decks >= 4 && flowReload.n === 1 && flowReload.deckOk, JSON.stringify(flowReload));
+  ok("flow-reload-study", flowReload.inQueue === true, JSON.stringify(flowReload));
+
+  // 10d. multi-deck isolation + stale-render protection + persistence failure
+  await cdp.ev(`(() => { const A = window.AnkiDroid, SA = A.store();
+    ["IsoA","IsoB","IsoC"].forEach(nm => { const r = A.createDeck(SA, nm, null);
+      A.addNote(SA, { type: "basic", deck: r.id, fields: { Front: "IsoDomFront" + nm.slice(-1), Back: "b" }, tags: "" }); });
+    A.render(); })()`);
+  await sleep(500);
+  const isoUi = await cdp.ev(`(() => { const A = window.AnkiDroid, SA = A.store();
+    const fa = A.searchCards(SA, "deck:IsoA", Date.now()), fb = A.searchCards(SA, "deck:IsoB", Date.now()), fc = A.searchCards(SA, "deck:IsoC", Date.now());
+    const qa = A.buildQueue(SA, fa[0].deck, {}).items.map(c => c.id);
+    return { a: fa.length === 1 && /IsoDomFrontA/.test(JSON.stringify(A.resolveFields(SA.notes[fa[0].note]))),
+      b: fb.length === 1, c: fc.length === 1, qIso: qa.indexOf(fa[0].id) >= 0 && qa.indexOf(fb[0].id) < 0 }; })()`);
+  ok("iso-ui-filters", isoUi.a && isoUi.b && isoUi.c && isoUi.qIso, JSON.stringify(isoUi));
+  const stale = await cdp.ev(`(() => { const A = window.AnkiDroid, SA = A.store();
+    const idA = Object.keys(SA.decks).find(k => A.deckPath(SA, k) === "IsoA");
+    const idB = Object.keys(SA.decks).find(k => A.deckPath(SA, k) === "IsoB");
+    A.view().deck = idA; A.view().name = "overview"; A.render();
+    A.view().deck = idB; A.view().name = "overview"; A.render();
+    const r = A.addNote(A.store(), { type: "basic", deck: A.view().deck, fields: { Front: "StaleDomFront", Back: "b" }, tags: "" });
+    A.render();
+    const v = A.view();
+    return { stays: v.deck === idB && v.name === "overview",
+      bound: !!(r.cards && A.store().cards[r.cards[0]].deck === idB) }; })()`);
+  ok("stale-render-stays", stale.stays === true, JSON.stringify(stale));
+  ok("stale-render-bound", stale.bound === true, JSON.stringify(stale));
+  const persistFail = await cdp.ev(`(() => {
+    const A = window.AnkiDroid;
+    const before = Object.keys(A.store().cards).length;
+    window.__sv = window.save; window.save = () => false;
+    const SA = A.store();
+    const dd = Object.keys(SA.decks)[0];
+    const r = A.addNote(SA, { type: "basic", deck: dd, fields: { Front: "PhantomDomFront", Back: "b" }, tags: "" });
+    const after = Object.keys(A.store().cards).length;
+    window.save = window.__sv;
+    const retry = A.addNote(A.store(), { type: "basic", deck: dd, fields: { Front: "RetryDomFront", Back: "b" }, tags: "" });
+    return { err: r.error || null, clean: after === before, retry: !retry.error };
+  })()`);
+  ok("persistfail-no-phantom", persistFail.err === "persist-failed" && persistFail.clean === true, JSON.stringify(persistFail));
+  ok("persistfail-retry", persistFail.retry === true, JSON.stringify(persistFail));
+
   // 11. flashcards untouched: 3-state only
   await cdp.ev(`document.querySelector('[data-page="flashcards"]').click()`);
   await sleep(600);
