@@ -1,13 +1,17 @@
-/* Deutsch Master - SRS/confidence regression tests.
- * Proves against the REAL modules (progress.js DMProgress, script.js
- * bumpReview, play.js srsBump) in a stubbed-DOM vm context:
- *  1. single scheduling engine (play.js delegates to DMProgress.nextReview)
+/* Deutsch Master - Flashcards restoration regression tests.
+ * Proves against the REAL modules in a stubbed-DOM vm context that the normal
+ * Flashcards experience is back to its pre-Anki state (b4af954 behavior) and
+ * that NO Anki machinery leaks into normal flows:
+ *  1. play.js delegates scheduling to DMProgress.nextReview (single engine)
  *  2. fail schedules sooner than success; ease stays within [1.3, 2.8]
- *  3. flash confidence mapping: forgot/hard fail, good/easy pass,
- *     forgot penalizes ease harder, easy rewards ease
+ *  3. bumpReview is the original 2-state (ok true/false) behavior
  *  4. legacy {e,due,laps} shape stays readable after unified writes
- *  5. both HTML shells expose exactly the 4 rating buttons with i18n keys
- *     present in ar/en/de dictionaries
+ *  5. both HTML shells expose ONLY the original 3 flash ratings
+ *     (known/review/hard) and no SRS deck panel on the Flashcards page
+ *  6. script.js normal flows never call the Anki scheduler (srsGrade) and
+ *     carry no review-rating (data-rv-rate) or queue (buildReviewQueue) code
+ *  7. i18n: rate_easy/rate_mid/rate_hard + Anki rate_forgot/rate_good each x3,
+ *     no srs_* keys, no stray CJK
  * Usage: node tools/test-srs.js  (exit 0 = PASS, 1 = FAIL)
  */
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -66,10 +70,9 @@ function boot() {
 function main() {
   const { js } = boot();
 
-  /* ---- 1. single engine: static proof + behavioral proof ---- */
+  /* ---- 1. single normal engine: static proof + behavioral proof ---- */
   const playSrc = RD("client/play.js");
-  ok("S1-single-engine", /DMProgress\s*&&\s*DMProgress\s*&&\s*typeof DMProgress\.nextReview/.test(playSrc) ||
-    /DMProgress\.nextReview/.test(playSrc), "play.js delegates to DMProgress.nextReview");
+  ok("S1-single-engine", /DMProgress\.nextReview/.test(playSrc), "play.js delegates to DMProgress.nextReview");
   const r1 = js("DMProgress.nextReview({laps:0,ease:2.5,miss:0,ok:false})");
   const r2 = js("DMProgress.nextReview({laps:2,ease:2.5,miss:0,ok:true})");
   ok("S2-fail-sooner", r1.dueIn < r2.dueIn, "fail=" + r1.dueIn + " pass=" + r2.dueIn);
@@ -77,43 +80,56 @@ function main() {
   const ep = js("(()=>{let e=2.5;for(let i=0;i<60;i++){e=DMProgress.nextReview({laps:5,ease:e,miss:0,ok:true}).ease;}return e;})()");
   ok("S3-ease-bounds", ef >= 1.3 && ep <= 2.8, "failFloor=" + ef + " passCap=" + ep);
 
-  /* ---- 2. confidence mapping through the real bumpReview ---- */
+  /* ---- 2. original 2-state bumpReview through the real function ---- */
   js("S.srs={}; S.review={}; S.mistakes={}; S.status={};");
-  js("bumpReview('wF',false,-0.15); bumpReview('wH',false); bumpReview('wG',true); bumpReview('wE',true,0.15);");
-  const states = js("JSON.stringify({F:S.srs.wF,H:S.srs.wH,G:S.srs.wG,E:S.srs.wE})");
-  const P = JSON.parse(states);
-  ok("S4-forgot-fails", P.F.laps === 0, "laps=" + P.F.laps);
-  ok("S4-hard-fails", P.H.laps === 0, "laps=" + P.H.laps);
-  ok("S4-good-passes", P.G.laps >= 1, "laps=" + P.G.laps);
-  ok("S4-easy-passes", P.E.laps >= 1, "laps=" + P.E.laps);
-  ok("S5-forgot-harsher-than-hard", P.F.ease < P.H.ease, "forgot=" + P.F.ease + " hard=" + P.H.ease);
-  ok("S5-easy-kinder-than-good", P.E.ease > P.G.ease, "easy=" + P.E.ease + " good=" + P.G.ease);
-  ok("S5-due-order", P.F.due <= P.H.due && P.H.due <= P.G.due && P.G.due <= P.E.due,
-    [P.F.due, P.H.due, P.G.due, P.E.due].join(","));
-  const st = js("JSON.stringify({F:S.status.wF,H:S.status.wH,G:S.status.wG,E:S.status.wE})");
-  ok("S6-statuses", st === '{"F":"hard","H":"hard","G":"known","E":"known"}', st);
+  ok("S4-fn-arity", js("bumpReview.length") === 2, "arity=" + js("bumpReview.length"));
+  js("bumpReview('wK',true); bumpReview('wH',false);");
+  const st = js("JSON.stringify({K:S.status.wK,H:S.status.wH})");
+  ok("S4-statuses", st === '{"K":"known","H":"hard"}', st);
+  ok("S4-review-counts", js("S.review.wK.c===1 && S.review.wH.w===1"), "counts");
 
   /* ---- 3. unified srsBump keeps legacy shape readable ---- */
   js("S.srs={};");
   js("srsBump('wX',true); srsBump('wX',false);");
   const wx = js("JSON.stringify(S.srs.wX)");
   const W = JSON.parse(wx);
-  ok("S7-legacy-shape", typeof W.e === "number" && typeof W.ease === "number" && typeof W.due === "string" && typeof W.laps === "number", wx);
+  ok("S5-legacy-shape", typeof W.e === "number" && typeof W.ease === "number" && typeof W.due === "string" && typeof W.laps === "number", wx);
   const tomorrow = js("DMProgress.todayKey(new Date(Date.now()+86400000))");
-  ok("S7-fail-due-tomorrow", W.due === tomorrow && W.laps === 0, "due=" + W.due);
+  ok("S5-fail-due-tomorrow", W.due === tomorrow && W.laps === 0, "due=" + W.due);
 
-  /* ---- 4. shells expose exactly the 4 rating buttons ---- */
+  /* ---- 4. Anki scheduler still exists for the AnkiDroid section only ---- */
+  ok("S6-srsGrade-present", js("typeof DMProgress.srsGrade")==="function" && js("typeof DMProgress.srsCard")==="function" && js("typeof DMProgress.srsIsDue")==="function", "DMProgress keeps srsGrade/srsCard/srsIsDue");
+
+  /* ---- 5. shells: flashcards 3-state only, no SRS panel, AnkiDroid separate ---- */
   for (const f of ["client/index.html", "client/academy.html"]) {
     const h = RD(f);
-    const vals = [...h.matchAll(/data-flash-rate="([^"]+)"/g)].map(m => m[1]);
-    ok(f + " four ratings", JSON.stringify(vals) === JSON.stringify(["forgot", "hard", "good", "easy"]), vals.join(","));
+    const flashSeg = h.slice(h.indexOf("page-flashcards"), h.indexOf("page-ankidroid"));
+    const vals = [...flashSeg.matchAll(/data-flash-rate="([^"]+)"/g)].map(m => m[1]);
+    ok(f + " flashcards 3-state", JSON.stringify(vals) === JSON.stringify(["known", "review", "hard"]), vals.join(","));
+    ok(f + " no srsPanel", !/srsPanel|id="flashDeck"|id="flashMode"|id="flashCount"|srsNewPerDay|srsMaxReview|srsCounts/.test(flashSeg), "panel leaked");
+    ok(f + " no Anki ratings in flashcards", !/forgot|data-rv-rate/.test(flashSeg), "anki leaked");
+    ok(f + " has AnkiDroid page", h.includes('id="page-ankidroid"') && h.includes('id="ankiRoot"'), "missing mount");
+    ok(f + " nav distinguishes", /data-page="flashcards"[\s\S]*?فلاش كارد/.test(h) && /data-page="ankidroid"[\s\S]*?AnkiDroid/.test(h), "nav");
   }
+
+  /* ---- 6. normal flows never touch the Anki scheduler ---- */
+  const sc = RD("client/script.js");
+  ok("S7-no-srsGrade-in-script", !/srsGrade|srsCard|srsIsDue|buildReviewQueue|data-rv-rate|__rvAdvance/.test(sc), "anki scheduler in normal flows");
+  const fh = sc.slice(sc.indexOf('document.querySelectorAll("[data-flash-rate]")'), sc.indexOf("/* ============ SENTENCES"));
+  ok("S7-flash-handler-3state", /r==="known"/.test(fh) && /r==="hard"/.test(fh) && !/forgot|good|easy/.test(fh), fh.slice(0, 120));
+
+  /* ---- 7. i18n separation ---- */
   const dict = RD("client/study.js");
-  for (const k of ["rate_forgot", "rate_hard", "rate_good", "rate_easy"]) {
-    const n = (dict.match(new RegExp(k + ":", "g")) || []).length;
+  for (const k of ["rate_forgot", "rate_hard", "rate_good", "rate_easy", "rate_mid"]) {
+    const n = (dict.match(new RegExp(k + ':"', "g")) || []).length;
     ok("i18n " + k + " x3", n === 3, "n=" + n);
   }
-  ok("i18n no stale rating keys", !/rate_mid/.test(dict), "rate_mid removed");
+  ok("i18n no srs keys", !/srs_deck:|srs_mode:|srs_count:|srs_adv:|srs_newperday:|srs_maxreview:/.test(dict), "dead srs keys");
+  ok("i18n no CJK", !/[一-鿿]/.test(dict), "stray CJK");
+  for (const k of ["title_ankidroid", "anki_study", "anki_add", "anki_browse", "anki_stats", "anki_show_answer"]) {
+    const n = (dict.match(new RegExp(k + ':"', "g")) || []).length;
+    ok("i18n " + k + " x3", n === 3, "n=" + n);
+  }
 
   console.log("----");
   if (fail) { console.log("RESULT: FAIL (" + fail + ")"); process.exit(1); }

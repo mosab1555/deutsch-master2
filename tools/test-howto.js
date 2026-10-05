@@ -11,9 +11,11 @@ let pass = 0, fail = 0;
 function check(n, c, x) { if (c) { pass++; console.log("PASS " + n); } else { fail++; console.log("FAIL " + n + (x ? "  [" + x + "]" : "")); } }
 
 /* ---------- 1. sidebar + shells ---------- */
-/* Required sidebar head order: dashboard, vocab, sentences, flashcards, explain,
-   verbs, grammar, reference, howto, career — everything else keeps its order after. */
-const EXPECT_HEAD = ["dashboard", "vocab", "sentences", "flashcards", "explain", "verbs", "grammar", "reference", "howto", "career"];
+/* Required sidebar head order: dashboard, vocab, sentences, flashcards, ankidroid,
+   explain, verbs, grammar, reference, howto — everything else keeps its order
+   after. (ankidroid sits directly after flashcards: the two card systems must
+   be visually adjacent yet separate entries.) */
+const EXPECT_HEAD = ["dashboard", "vocab", "sentences", "flashcards", "ankidroid", "explain", "verbs", "grammar", "reference", "howto"];
 for (const f of ["client/index.html", "client/academy.html"]) {
   const h = RD(f);
   const navCount = (h.match(/data-page="howto"/g) || []).length;

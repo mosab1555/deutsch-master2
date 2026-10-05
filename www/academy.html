@@ -44,11 +44,12 @@
       <button class="nav-item" data-page="vocab"><span class="nav-ico">📚</span> الكلمات</button>
       <button class="nav-item" data-page="sentences"><span class="nav-ico">💬</span> الجمل</button>
       <button class="nav-item" data-page="flashcards"><span class="nav-ico">🃏</span> فلاش كارد</button>
+      <button class="nav-item" data-page="ankidroid"><span class="nav-ico">🧠</span> AnkiDroid</button>
       <button class="nav-item" data-page="explain"><span class="nav-ico">📄</span> الشرح</button>
       <button class="nav-item" data-page="verbs"><span class="nav-ico">⚡</span> الأفعال</button>
       <button class="nav-item" data-page="grammar"><span class="nav-ico">📐</span> القواعد</button>
       <button class="nav-item" data-page="reference"><span class="nav-ico">🏛️</span> <span data-i18n="reference">المرجع الألماني الشامل</span></button>
-      <button class="nav-item" data-page="howto"><span class="nav-ico">🎓</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
+      <button class="nav-item" data-page="howto"><span class="nav-ico">🧭</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
       <button class="nav-item" data-page="career"><span class="nav-ico">🧭</span> المسار المهني</button>
       <button class="nav-item" data-page="sentex"><span class="nav-ico">✏️</span> تدريبات الجمل</button>
       <button class="nav-item" data-page="quiz"><span class="nav-ico">📝</span> الاختبارات</button>
@@ -403,13 +404,20 @@
           </div>
           <div class="flash-controls">
             <button class="btn btn-ghost" id="flashPrev" data-i18n="flash_prev">⏮ السابق</button>
-            <button class="btn btn-red" data-flash-rate="forgot" data-i18n="rate_forgot">😵 نسيت</button>
-            <button class="btn btn-gold" data-flash-rate="hard" data-i18n="rate_hard">😐 صعب</button>
-            <button class="btn btn-green" data-flash-rate="good" data-i18n="rate_good">🙂 جيد</button>
-            <button class="btn btn-primary" data-flash-rate="easy" data-i18n="rate_easy">🔥 سهل</button>
+            <button class="btn btn-green" data-flash-rate="known" data-i18n="rate_easy">😊 سهل</button>
+            <button class="btn btn-gold" data-flash-rate="review" data-i18n="rate_mid">😐 متوسط</button>
+            <button class="btn btn-red" data-flash-rate="hard" data-i18n="rate_hard">😟 صعب</button>
             <button class="btn btn-ghost" id="flashNext" data-i18n="quiz_next">التالي ⏭</button>
           </div>
         </div>
+      </section>
+
+            <!-- ANKIDROID (dedicated advanced SRS section; UI rendered by ankidroid.js into #ankiRoot) -->
+      <section class="page" id="page-ankidroid">
+        <div class="page-head">
+          <h2 data-i18n="title_ankidroid">🧠 AnkiDroid</h2>
+        </div>
+        <div id="ankiRoot"></div>
       </section>
 
       <!-- HOWTO (study methodology guide) -->
@@ -860,6 +868,7 @@
     <script src="cloud-sync.js"></script>
     <script src="profile.js"></script>
     <script src="app-init.js"></script>
+    <script src="ankidroid.js"></script>
     <script src="page-state.js"></script>
 </body>
 </html>

@@ -12,7 +12,7 @@ var DM_FILES = [
   "./curr-a2.js", "./curr-a1x.js", "./curr-a2b.js",
   "./curr-b1.js", "./curr-b1b.js", "./curr-b2.js", "./curr-b2b.js",
   "./curriculum.js",
-  "./progress.js", "./career.js", "./home.js", "./page-state.js",
+  "./progress.js", "./career.js", "./home.js", "./page-state.js", "./ankidroid.js",
   "./auth.js", "./cloud-sync.js", "./profile.js", "./app-init.js",
   "./supabase-config.js",
   "./push.js",

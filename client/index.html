@@ -44,11 +44,12 @@
       <button class="nav-item" data-page="vocab"><span class="nav-ico">📚</span> الكلمات</button>
       <button class="nav-item" data-page="sentences"><span class="nav-ico">💬</span> الجمل</button>
       <button class="nav-item" data-page="flashcards"><span class="nav-ico">🃏</span> فلاش كارد</button>
+      <button class="nav-item" data-page="ankidroid"><span class="nav-ico">🧠</span> AnkiDroid</button>
       <button class="nav-item" data-page="explain"><span class="nav-ico">📄</span> الشرح</button>
       <button class="nav-item" data-page="verbs"><span class="nav-ico">⚡</span> الأفعال</button>
       <button class="nav-item" data-page="grammar"><span class="nav-ico">📐</span> القواعد</button>
       <button class="nav-item" data-page="reference"><span class="nav-ico">🏛️</span> <span data-i18n="reference">المرجع الألماني الشامل</span></button>
-      <button class="nav-item" data-page="howto"><span class="nav-ico">🎓</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
+      <button class="nav-item" data-page="howto"><span class="nav-ico">🧭</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
       <button class="nav-item" data-page="career"><span class="nav-ico">🧭</span> المسار المهني</button>
       <button class="nav-item" data-page="sentex"><span class="nav-ico">✏️</span> تدريبات الجمل</button>
       <button class="nav-item" data-page="quiz"><span class="nav-ico">📝</span> الاختبارات</button>
@@ -391,20 +392,6 @@
             <button class="btn btn-ghost sm" id="flashDir" data-i18n="flash_dir_de_ar">🔄 ألماني → عربي</button>
             <button class="btn btn-ghost sm" id="flashReset" data-i18n="flash_reset">↺ إعادة تعيين الفلاتر</button>
           </div>
-          <div class="panel glass" id="srsPanel">
-            <div class="muted" id="srsCounts"></div>
-            <div class="row-flex">
-              <label class="flash-filter"><span data-i18n="srs_deck">المجموعة</span><select id="flashDeck"><option value="all" data-i18n="srs_deck_all">الكل</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="verbs" data-i18n="srs_deck_verbs">الأفعال</option></select></label>
-              <label class="flash-filter"><span data-i18n="srs_mode">الجلسة</span><select id="flashMode"><option value="all" data-i18n="srs_mode_all">كل البطاقات</option><option value="due" data-i18n="srs_mode_due">المستحقة اليوم</option><option value="weak" data-i18n="srs_mode_weak">الكلمات الضعيفة</option><option value="mist" data-i18n="srs_mode_mist">أخطائي</option></select></label>
-              <label class="flash-filter"><span data-i18n="srs_count">العدد</span><select id="flashCount"><option>10</option><option selected>20</option><option>30</option><option>50</option></select></label>
-            </div>
-            <details id="srsAdv"><summary data-i18n="srs_adv">إعدادات متقدمة</summary>
-              <div class="row-flex">
-                <label class="flash-filter"><span data-i18n="srs_newperday">جديدة/يوم</span><input type="number" id="srsNewPerDay" min="0" max="100" step="1"></label>
-                <label class="flash-filter"><span data-i18n="srs_maxreview">أقصى مراجعة/يوم</span><input type="number" id="srsMaxReview" min="1" max="500" step="1"></label>
-              </div>
-            </details>
-          </div>
         </div>
         <div class="flash-wrap">
           <div class="flash-progress"><span id="flashCounter">1 / 1</span><div class="progress"><div class="progress-fill" id="flashBar"></div></div></div>
@@ -417,10 +404,9 @@
           </div>
 <div class="flash-controls">
             <button class="btn btn-ghost" id="flashPrev" data-i18n="flash_prev">⏮ السابق</button>
-            <button class="btn btn-red" data-flash-rate="forgot" data-i18n="rate_forgot">😵 نسيت</button>
-            <button class="btn btn-gold" data-flash-rate="hard" data-i18n="rate_hard">😐 صعب</button>
-            <button class="btn btn-green" data-flash-rate="good" data-i18n="rate_good">🙂 جيد</button>
-            <button class="btn btn-primary" data-flash-rate="easy" data-i18n="rate_easy">🔥 سهل</button>
+            <button class="btn btn-green" data-flash-rate="known" data-i18n="rate_easy">😊 سهل</button>
+            <button class="btn btn-gold" data-flash-rate="review" data-i18n="rate_mid">😐 متوسط</button>
+            <button class="btn btn-red" data-flash-rate="hard" data-i18n="rate_hard">😟 صعب</button>
             <button class="btn btn-ghost" id="flashNext" data-i18n="quiz_next">التالي ⏭</button>
           </div>
           <div class="flash-connections glass hidden" id="flashConnections" style="margin-top:12px;padding:12px;border-radius:12px;display:none">
@@ -428,6 +414,14 @@
             <div class="row-flex" style="flex-wrap:wrap;gap:8px" id="flashConnButtons"></div>
           </div>
         </div>
+      </section>
+
+            <!-- ANKIDROID (dedicated advanced SRS section; UI rendered by ankidroid.js into #ankiRoot) -->
+      <section class="page" id="page-ankidroid">
+        <div class="page-head">
+          <h2 data-i18n="title_ankidroid">🧠 AnkiDroid</h2>
+        </div>
+        <div id="ankiRoot"></div>
       </section>
 
       <!-- HOWTO (study methodology guide) -->
@@ -997,6 +991,7 @@
     <script src="cloud-sync.js"></script>
     <script src="profile.js"></script>
     <script src="app-init.js"></script>
+    <script src="ankidroid.js"></script>
     <script src="page-state.js"></script>
 </body>
 </html>
