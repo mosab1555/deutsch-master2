@@ -1410,7 +1410,11 @@ try{const old=localStorage.getItem("deutsch_master_v1");if(old&&!localStorage.ge
 var DM_ACTIVE_UID = null;
 function dmStateKey(uid){ return uid ? (LS_KEY + ":uid:" + uid) : LS_KEY; }
 function activeStateKey(){ return dmStateKey(DM_ACTIVE_UID); }
-function save(){try{localStorage.setItem(activeStateKey(),JSON.stringify(S));}catch(e){}}
+/* Returns true when the snapshot reached storage. Callers (e.g. the
+   AnkiDroid editor) must not report "saved" when this is false, e.g. on
+   quota exhaustion where setItem throws. Backward compatible: previous
+   callers ignore the return value. */
+function save(){try{localStorage.setItem(activeStateKey(),JSON.stringify(S));return true;}catch(e){return false;}}
 function setActiveIdentityOnly(uid){ DM_ACTIVE_UID = uid || null; }
 function loadIdentitySnapshot(uid){
   var raw=null;

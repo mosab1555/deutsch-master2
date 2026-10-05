@@ -817,7 +817,12 @@
                 } catch (e) {}
                 if (cloudHasData) {
                     // Existing account: restore ONLY its cloud progress.
-                    try { window.DMIdentity?.setActiveOnly?.(uid); } catch (e) {}
+                    // Activate FIRST so live state is this account's own
+                    // (clean defaults when first seen on this device):
+                    // downloading over a stale identity's live state would
+                    // merge-keep its unknown keys (e.g. guest S.anki) and
+                    // leak them into this account under its own key.
+                    try { window.DMIdentity?.activate?.(uid); } catch (e) {}
                     var restored = false;
                     try {
                         if (CS && typeof CS.downloadState === "function") {

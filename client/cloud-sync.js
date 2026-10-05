@@ -458,6 +458,70 @@ const CloudSync = (function () {
 
     // ==================== MERGE LOGIC ====================
 
+    // Deterministic union merge for the AnkiDroid collection (S.anki).
+    // ROOT-CAUSE FIX: mergeStates used to ignore `anki` entirely, so whenever
+    // the cloud copy was newer (login, reload-with-session, second device,
+    // reconnect), the merged state carried the STALE cloud collection:
+    // locally added notes/cards vanished from the device, applyMergedState +
+    // save() made the loss permanent, and the wiped state was then uploaded.
+    // Union-by-id never drops objects from either side; same-id conflicts
+    // resolve local-wins (the callers only merge when the local device just
+    // wrote, so local is the fresher edit). The merge is idempotent and
+    // order-independent for distinct ids.
+    // Known limitation: deletions do not propagate through a merge (a deleted
+    // object is resurrected by union with a stale copy); wholesale paths
+    // (first-upload, cloud restore, download) still converge deletes.
+    function mergeAnki(localAnki, cloudAnki) {
+        function isMap(v) { return v && typeof v === "object" && !Array.isArray(v); }
+        var L = isMap(localAnki) ? localAnki : null;
+        var C = isMap(cloudAnki) ? cloudAnki : null;
+        if (!L && !C) return undefined;
+        function mapOf(v) { return isMap(v) ? v : {}; }
+        function unionMaps(cMap, lMap) {
+            var out = {};
+            Object.keys(cMap).forEach(function (k) { out[k] = cMap[k]; });
+            Object.keys(lMap).forEach(function (k) { out[k] = lMap[k]; }); // local wins
+            return out;
+        }
+        var out = {
+            v: Math.max(+((L && L.v) || 0), +((C && C.v) || 0), 2),
+            seq: Math.max(+((L && L.seq) || 0), +((C && C.seq) || 0)),
+            decks: unionMaps(mapOf(C && C.decks), mapOf(L && L.decks)),
+            notes: unionMaps(mapOf(C && C.notes), mapOf(L && L.notes)),
+            cards: unionMaps(mapOf(C && C.cards), mapOf(L && L.cards)),
+            types: unionMaps(mapOf(C && C.types), mapOf(L && L.types)),
+            media: unionMaps(mapOf(C && C.media), mapOf(L && L.media)),
+            settings: Object.assign({}, (C && C.settings) || {}, (L && L.settings) || {}),
+            days: {},
+            log: [],
+            lastDay: String((L && L.lastDay) || "") >= String((C && C.lastDay) || "") ? ((L && L.lastDay) || (C && C.lastDay) || "") : ((C && C.lastDay) || ""),
+            undo: (L && L.undo) || (C && C.undo) || null
+        };
+        // Day counters: per-counter MAX (idempotent; a sum would double-count
+        // on every repeated merge of the same states).
+        var cDays = mapOf(C && C.days), lDays = mapOf(L && L.days);
+        Object.keys(cDays).forEach(function (k) { out.days[k] = cDays[k]; });
+        Object.keys(lDays).forEach(function (k) {
+            if (!out.days[k] || typeof out.days[k] !== "object") { out.days[k] = lDays[k]; return; }
+            var a = out.days[k], b = lDays[k], o = {};
+            ["rev", "ok", "new", "again"].forEach(function (f) { o[f] = Math.max(+a[f] || 0, +b[f] || 0); });
+            out.days[k] = o;
+        });
+        // Review log: union deduplicated by (time|card|rating), newest 500 kept.
+        var seen = {};
+        var both = [];
+        if (Array.isArray(C && C.log)) both = both.concat(C.log);
+        if (Array.isArray(L && L.log)) both = both.concat(L.log);
+        both.forEach(function (e) {
+            if (!e || typeof e !== "object") return;
+            var k = String(e.t) + "|" + String(e.c) + "|" + String(e.r);
+            if (!seen[k]) { seen[k] = 1; out.log.push(e); }
+        });
+        out.log.sort(function (x, y) { return (+x.t || 0) - (+y.t || 0); });
+        while (out.log.length > 500) out.log.shift();
+        return out;
+    }
+
     // Deterministic merge of local and cloud states
     function mergeStates(localState, cloudState, localVersion, cloudVersion) {
         console.log("[Sync] Merging states - local v" + localVersion + ", cloud v" + cloudVersion);
@@ -591,6 +655,11 @@ const CloudSync = (function () {
         if (local.status || cloud.status) {
             merged.status = mergeStatus(local.status, cloud.status);
         }
+
+        // AnkiDroid collection (S.anki): deterministic union so locally added
+        // notes/cards are never dropped when the cloud copy is newer.
+        var mergedAnki = mergeAnki(local.anki, cloud.anki);
+        if (mergedAnki !== undefined) merged.anki = mergedAnki;
 
         return { state: merged };
     }
@@ -996,6 +1065,7 @@ const CloudSync = (function () {
         getLocalVersion,
         getCloudVersion,
         mergeStates,
+        mergeAnki,
         classifySyncError,
         SYNC_STATUS
     };

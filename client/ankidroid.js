@@ -23,7 +23,16 @@ function esc(s) {
 function T(k) { try { return (typeof window.t === "function" ? window.t(k) : k) || k; } catch (e) { return k; } }
 function toastM(m, cls) { try { if (typeof window.toast === "function") window.toast(m, cls); } catch (e) {} }
 function liveS() { try { return window.S || null; } catch (e) { return null; } }
-function persist() { try { if (typeof window.save === "function") window.save(); } catch (e) {} }
+/* Returns true when the collection snapshot reached storage. window.save
+ * reports quota/private-mode failures (false) instead of throwing; older or
+ * foreign save() implementations return undefined, which counts as success
+ * so behavior never regresses where no status is available. */
+function persist() {
+  try {
+    if (typeof window.save === "function") return window.save() !== false;
+  } catch (e) { return false; }
+  return true;
+}
 function uid(prefix) {
   return (prefix || "a") + Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
 }
@@ -84,8 +93,8 @@ function defaultTypes() {
 }
 function blankAnki() {
   return {
-    v: 1, seq: 0,
-    decks: {}, notes: {}, cards: {}, types: defaultTypes(),
+    v: 2, seq: 0,
+    decks: {}, notes: {}, cards: {}, types: defaultTypes(), media: {},
     settings: { defaultDeck: null, newOrder: "level", reviewOrder: "overdue", autoplay: false, shortcuts: true, learnSteps: [10, 30], relearnSteps: [10], buryRollover: true },
     days: {}, log: [], lastDay: todayKey(), undo: null
   };
@@ -105,6 +114,10 @@ function A() {
   if (!a.days || typeof a.days !== "object") a.days = {};
   if (!Array.isArray(a.log)) a.log = [];
   if (!a.lastDay) a.lastDay = todayKey();
+  /* v2 migration: media asset store. Everything else (notes, cards, decks,
+     review history, settings) is preserved untouched. */
+  if (!a.media || typeof a.media !== "object" || Array.isArray(a.media)) a.media = {};
+  if (!a.v || a.v < 2) a.v = 2;
   /* day rollover: buried cards become available again (Anki bury rule) */
   try {
     var tk = todayKey();
@@ -116,7 +129,12 @@ function A() {
   } catch (e) {}
   return a;
 }
-function commit(cloud) { if (cloud === false) persist(); else scheduleCloud(); }
+function commit(cloud) {
+  if (cloud === false) return persist();
+  var ok = persist();
+  scheduleCloud();
+  return ok;
+}
 
 /* ================= C. scheduler (DMProgress.srsGrade, namespaced) ================= */
 function schedOf(card) {
@@ -291,22 +309,50 @@ function vocabById(id) {
   } catch (e) {}
   return null;
 }
-/* Notes either carry inline fields or reference app content (no duplication). */
+/* Notes either carry inline fields or reference app content (no duplication).
+ * Image tokens ([[m:<mid>]]) stored in note.fields are merged into resolved
+ * fields too, so generated (vocab-ref) cards keep their attached images. */
 function resolveFields(note) {
   if (!note) return {};
   if (note.ref && note.ref.kind === "vocab") {
     var w = vocabById(note.ref.id);
     if (w) {
       var de = ((w.art && w.art !== "-") ? w.art + " " : "") + (w.de || "");
-      return { Front: de, Back: w.ar || "", Example: w.ex || "", Pronunciation: w.pron || "", Extra: w.exAr || "", Word: w.de || "", Article: w.art || "-", Plural: "", Arabic: w.ar || "", Sentence: w.ex || "", Translation: w.exAr || "", Infinitive: w.de || "", Meaning: w.ar || "", Conjugation: "", Rule: "", Explanation: "", Prompt: de, Transcript: de, _level: w.level || "", _kapitel: w.kap || "", _cat: w.cat || "" };
+      var F = { Front: de, Back: w.ar || "", Example: w.ex || "", Pronunciation: w.pron || "", Extra: w.exAr || "", Word: w.de || "", Article: w.art || "-", Plural: "", Arabic: w.ar || "", Sentence: w.ex || "", Translation: w.exAr || "", Infinitive: w.de || "", Meaning: w.ar || "", Conjugation: "", Rule: "", Explanation: "", Prompt: de, Transcript: de, _level: w.level || "", _kapitel: w.kap || "", _cat: w.cat || "" };
+      try {
+        Object.keys(note.fields || {}).forEach(function (f) {
+          var toks = extractMids(String(note.fields[f] || ""));
+          if (toks.length && F[f] !== undefined) F[f] = String(F[f] || "") + " " + toks.map(function (m) { return "[[m:" + m + "]]"; }).join(" ");
+        });
+      } catch (e) {}
+      return F;
     }
   }
   return Object.assign({}, note.fields || {});
 }
-function applyTemplate(fmt, fields) {
+/* Render a field value: escape everything, then expand KNOWN media tokens
+ * into <img> tags (unknown/missing assets render nothing, never raw HTML). */
+function renderFieldHTML(a, text, thumb) {
+  var parts = String(text == null ? "" : text).split(/\[\[m:([A-Za-z0-9]+)\]\]/g);
+  var out = "";
+  for (var i = 0; i < parts.length; i += 2) {
+    out += esc(parts[i]).replace(/\n/g, "<br>");
+    var mid = parts[i + 1];
+    if (mid !== undefined) {
+      var m = a && a.media ? a.media[mid] : null;
+      if (m && m.data) {
+        var src = (thumb && m.thumb) ? m.thumb : m.data;
+        out += '<img class="anki-img" loading="lazy" decoding="async" src="' + esc(src) + '" alt="" data-amedia="' + esc(mid) + '">';
+      }
+    }
+  }
+  return out;
+}
+function applyTemplate(fmt, fields, a, thumb) {
   return String(fmt == null ? "" : fmt).replace(/\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g, function (m, name) {
     var v = fields[name];
     if (v == null) return "";
+    if (a) return renderFieldHTML(a, String(v), thumb);
     return esc(String(v)).replace(/\n/g, "<br>");
   });
 }
@@ -318,19 +364,23 @@ function cardSides(a, card) {
   var F = resolveFields(note);
   /* reversed cards swap Front/Back before templating */
   if (card.dir === "rev") { var t = F.Front; F.Front = F.Back; F.Back = t; }
-  return { front: applyTemplate(tmpl.q, F), back: applyTemplate(tmpl.a, F), fields: F, tmplName: tmpl.name || "" };
+  return { front: applyTemplate(tmpl.q, F, a, false), back: applyTemplate(tmpl.a, F, a, false), fields: F, tmplName: tmpl.name || "" };
 }
 function addNote(a, spec) {
   spec = spec || {};
   var type = a.types[spec.type] || a.types.basic;
+  /* Validate BEFORE touching decks/notes: a note type with zero templates
+   * would produce an unreviewable phantom note, and an empty front must not
+   * leave behind an auto-created empty deck either. */
+  if (!type.templates || !type.templates.length) return { error: "empty-templates" };
+  var fields = {};
+  (type.fields || []).forEach(function (f) { fields[f] = String(spec.fields && spec.fields[f] != null ? spec.fields[f] : "").slice(0, 4000); });
+  if (!String(fields[type.fields[0]] || "").trim() && !spec.ref) return { error: "empty-front" };
   var deckId = spec.deck && a.decks[spec.deck] ? spec.deck : a.settings.defaultDeck;
   if (!deckId || !a.decks[deckId]) {
     var r = createDeck(a, "Deutsch", null);
     deckId = r.id;
   }
-  var fields = {};
-  (type.fields || []).forEach(function (f) { fields[f] = String(spec.fields && spec.fields[f] != null ? spec.fields[f] : "").slice(0, 4000); });
-  if (!String(fields[type.fields[0]] || "").trim() && !spec.ref) return { error: "empty-front" };
   var tags = Array.isArray(spec.tags) ? spec.tags : String(spec.tags || "").split(/[,،\s]+/).map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
   tags = tags.filter(function (t, i) { return tags.indexOf(t) === i; }).slice(0, 20);
   var nid = uid("n");
@@ -343,7 +393,14 @@ function addNote(a, spec) {
     a.cards[cid] = { id: cid, note: nid, deck: deckId, tmpl: idx, dir: /rev/i.test(tm.name || "") ? "rev" : "fwd", sched: { st: "new", step: 0, iv: 0, laps: 0, ease: 2.5, e: 2.5, due: todayKey(), dueMin: 0, last: null, miss: 0, reps: 0 }, susp: false, buried: 0, created: Date.now() };
     made.push(cid);
   });
-  commit();
+  /* Never claim success when the snapshot did not reach storage (quota /
+   * private mode): roll the in-memory objects back so browser/counts/queue
+   * cannot show a phantom card, and report the real failure. */
+  if (!commit()) {
+    made.forEach(function (cid) { delete a.cards[cid]; });
+    delete a.notes[nid];
+    return { error: "persist-failed" };
+  }
   return { note: nid, cards: made };
 }
 function editNote(a, nid, patch) {
@@ -367,14 +424,15 @@ function editNote(a, nid, patch) {
     Object.keys(a.cards).forEach(function (k) { var c = a.cards[k]; if (c && c.note === nid) c.deck = patch.deck; });
     note.modified = Date.now();
   }
-  commit();
-  return { ok: true };
+  var pok = commit();
+  return pok ? { ok: true } : { error: "persist-failed" };
 }
 function deleteNote(a, nid) {
   if (!a.notes[nid]) return false;
   Object.keys(a.cards).forEach(function (k) { if (a.cards[k] && a.cards[k].note === nid) delete a.cards[k]; });
   delete a.notes[nid];
   commit();
+  pruneMedia(a);
   return true;
 }
 /* Change note type: keep shared field names, warn (caller confirms) when cards change count. */
@@ -626,6 +684,263 @@ function exportCSV(a, cardIds) {
   return lines.join("\n");
 }
 
+/* ================= I2. media assets (images attached to notes) =============
+ * Architecture: Note/Card field text --contains--> token [[m:<mid>],
+ * media store a.media --holds--> one optimized asset per hash. Shared images
+ * are stored once and reused (dedup by content hash). Assets are data URLs,
+ * so cards render offline; the collection syncs through the existing
+ * identity-scoped S.anki snapshot (no second sync engine, no extra keys).
+ * Security: only raster formats (jpeg/png/webp/gif-first-frame); SVG is
+ * rejected (scriptable). Every asset is re-encoded through canvas, which
+ * neutralizes embedded payloads. Remote URLs are never hot-linked: the
+ * bytes are imported locally or the import fails with a clear error.
+ * GIF note: canvas captures the first frame, so animated GIFs become stills.
+ */
+var MEDIA_MAX_FILE = 8 * 1024 * 1024;    /* upload input cap */
+var MEDIA_MAX_DIM = 1280;                /* longest stored edge (px) */
+var MEDIA_MAX_BYTES = 500 * 1024;        /* stored asset cap */
+var MEDIA_BUDGET = 3 * 1024 * 1024;      /* whole-collection media cap */
+var MEDIA_FETCH_TIMEOUT = 30000;
+var MEDIA_MIME = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+var MEDIA_EXT = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif" };
+function mediaHash(s) {
+  var h1 = 0x811c9dc5, h2 = 0x01000193;
+  s = String(s || "");
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 16777619) >>> 0;
+    h2 = Math.imul(h2 + c, 31) >>> 0;
+  }
+  return h1.toString(36) + h2.toString(36);
+}
+function extOf(name) {
+  var m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)(?:[?#].*)?$/);
+  return m ? m[1] : "";
+}
+/* Pure validators (DOM-free, unit-tested). Decode is always the final proof. */
+function validateImageFile(file) {
+  if (!file) return { error: "bad-file" };
+  var name = String(file.name || ""), type = String(file.type || "").toLowerCase().split(";")[0].trim();
+  var size = +file.size;
+  if (!(size > 0)) return { error: "bad-file" };
+  if (size > MEDIA_MAX_FILE) return { error: "too-large" };
+  var ext = extOf(name);
+  if (ext === "svg" || type === "image/svg+xml") return { error: "svg" };
+  if (MEDIA_MIME[type]) return { ok: true, mime: type };
+  /* Never trust the extension alone: an empty/generic MIME is only a hint;
+     the magic-byte sniff + real decode decide. Anything else is rejected. */
+  if ((type === "" || type === "application/octet-stream") && MEDIA_EXT[ext]) return { ok: true, mime: MEDIA_EXT[ext], provisional: true };
+  return { error: "bad-type" };
+}
+function validateImageURL(url) {
+  var raw = String(url || "").trim().slice(0, 2000);
+  if (!raw) return { error: "bad-url" };
+  var u;
+  try { u = new URL(raw); } catch (e) { return { error: "bad-url" }; }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return { error: "bad-url" };
+  if (!u.hostname) return { error: "bad-url" };
+  if (/\.svg(?:[?#]|$)/i.test(u.pathname)) return { error: "svg" };
+  return { ok: true, url: u.href };
+}
+/* Magic-byte sniff on the first bytes (pure, unit-tested). Rejects SVG/unknown. */
+function sniffImageKind(bytes) {
+  try {
+    var b = bytes;
+    if (typeof b === "string") {
+      var s = b;
+      if (/^\s*</.test(s.slice(0, 512))) return "svg";
+      return null;
+    }
+    var arr = b instanceof Uint8Array ? b : new Uint8Array(b);
+    if (arr.length < 4) return null;
+    var head = "";
+    for (var i = 0; i < Math.min(arr.length, 512); i++) head += String.fromCharCode(arr[i]);
+    if (/^\s*</.test(head)) return "svg";
+    if (arr[0] === 0xFF && arr[1] === 0xD8) return "jpeg";
+    if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4E && arr[3] === 0x47) return "png";
+    if (arr[0] === 0x47 && arr[1] === 0x49 && arr[2] === 0x46) return "gif";
+    if (arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46 &&
+        arr.length > 11 && arr[8] === 0x57 && arr[9] === 0x45 && arr[10] === 0x42 && arr[11] === 0x50) return "webp";
+    return null;
+  } catch (e) { return null; }
+}
+function extractMids(text) {
+  var out = [], m, re = /\[\[m:([A-Za-z0-9]+)\]\]/g;
+  while ((m = re.exec(String(text || "")))) { if (out.indexOf(m[1]) < 0) out.push(m[1]); }
+  return out;
+}
+function mediaRefCounts(a) {
+  var counts = {};
+  try {
+    Object.keys(a.notes || {}).forEach(function (k) {
+      var n = a.notes[k];
+      if (!n) return;
+      Object.keys(n.fields || {}).forEach(function (f) {
+        extractMids(n.fields[f]).forEach(function (mid) { counts[mid] = (counts[mid] || 0) + 1; });
+      });
+    });
+  } catch (e) {}
+  return counts;
+}
+function noteHasMedia(a, note) {
+  if (!note) return false;
+  try {
+    return Object.keys(note.fields || {}).some(function (f) { return extractMids(note.fields[f]).length > 0; });
+  } catch (e) { return false; }
+}
+function unusedMedia(a) {
+  var counts = mediaRefCounts(a), out = [];
+  Object.keys(a.media || {}).forEach(function (mid) { if (!counts[mid]) out.push(mid); });
+  return out;
+}
+function mediaBytes(a) {
+  var n = 0;
+  try { Object.keys(a.media || {}).forEach(function (mid) { n += (a.media[mid] && a.media[mid].bytes) | 0; }); } catch (e) {}
+  return n;
+}
+/* Remove assets referenced by no note. Never touches referenced media. */
+function pruneMedia(a) {
+  var counts = mediaRefCounts(a), dropped = 0;
+  Object.keys(a.media || {}).forEach(function (mid) {
+    if (!counts[mid]) { delete a.media[mid]; dropped++; }
+  });
+  if (dropped) commit();
+  return dropped;
+}
+function storeMediaAsset(a, asset) {
+  if (!asset || !asset.data) return { error: "bad-file" };
+  var hash = mediaHash(asset.data);
+  var ids = Object.keys(a.media || {});
+  for (var i = 0; i < ids.length; i++) {
+    if (a.media[ids[i]] && a.media[ids[i]].hash === hash) return { id: ids[i], reused: true };
+  }
+  if (mediaBytes(a) + (asset.bytes | 0) > MEDIA_BUDGET) return { error: "budget" };
+  try {
+    var approx = 0;
+    try { approx = JSON.stringify(liveS()).length + (asset.bytes | 0); } catch (e) {}
+    if (approx > 4500000) return { error: "budget" };
+  } catch (e) {}
+  var id = uid("m");
+  a.media[id] = { id: id, hash: hash, mime: asset.mime, w: asset.w | 0, h: asset.h | 0, bytes: asset.bytes | 0, data: asset.data, thumb: asset.thumb || null, src: asset.src || "device", created: Date.now() };
+  commit();
+  return { id: id, reused: false };
+}
+/* Browser pipeline: Blob -> sniff -> decode -> resize/re-encode -> store. */
+function decodeBlob(blob) {
+  return new Promise(function (resolve, reject) {
+    try {
+      var url = URL.createObjectURL(blob);
+      var img = new Image();
+      var done = false;
+      img.onload = function () {
+        if (done) return; done = true;
+        try { URL.revokeObjectURL(url); } catch (e) {}
+        if (!(img.naturalWidth > 0 && img.naturalHeight > 0)) { reject(new Error("decode")); return; }
+        resolve(img);
+      };
+      img.onerror = function () {
+        if (done) return; done = true;
+        try { URL.revokeObjectURL(url); } catch (e) {}
+        reject(new Error("decode"));
+      };
+      img.src = url;
+      setTimeout(function () { if (!done) { done = true; try { URL.revokeObjectURL(url); } catch (e) {} reject(new Error("timeout")); } }, MEDIA_FETCH_TIMEOUT);
+    } catch (e) { reject(e); }
+  });
+}
+function canvasAsset(img, src) {
+  var nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
+  if (!(nw > 0 && nh > 0) || nw > 12000 || nh > 12000) return { error: "bad-file" };
+  var scale = Math.min(1, MEDIA_MAX_DIM / Math.max(nw, nh));
+  var w = Math.max(1, Math.round(nw * scale)), h = Math.max(1, Math.round(nh * scale));
+  var cv, ctx;
+  try {
+    cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    ctx = cv.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+  } catch (e) { return { error: "bad-file" }; }
+  var opaque = true;
+  try {
+    var d = ctx.getImageData(0, 0, w, h).data;
+    for (var i = 3; i < d.length; i += 64) { if (d[i] < 255) { opaque = false; break; } }
+  } catch (e) { opaque = true; }
+  function encode(mime, q) { try { return cv.toDataURL(mime, q); } catch (e) { return null; } }
+  var outMime = opaque ? "image/jpeg" : "image/png";
+  var data = opaque ? (encode("image/jpeg", 0.82) || encode("image/png")) : encode("image/png");
+  if (!data) return { error: "bad-file" };
+  if (data.length > MEDIA_MAX_BYTES * 1.37 && opaque) {
+    var retry = encode("image/jpeg", 0.68);
+    if (retry) data = retry;
+  }
+  var bytes = Math.round(data.length * 0.75);
+  if (bytes > MEDIA_MAX_BYTES) return { error: "too-large" };
+  var thumb = null;
+  try {
+    var tw = Math.min(w, 96), th = Math.max(1, Math.round(h * (tw / w)));
+    var tc = document.createElement("canvas");
+    tc.width = tw; tc.height = th;
+    tc.getContext("2d").drawImage(cv, 0, 0, tw, th);
+    thumb = tc.toDataURL("image/jpeg", 0.6);
+  } catch (e) { thumb = null; }
+  return { mime: outMime, w: w, h: h, bytes: bytes, data: data, thumb: thumb, src: src || "device" };
+}
+function blobHead(blob, n) {
+  return blob.slice(0, n || 16).arrayBuffer().then(function (ab) { return new Uint8Array(ab); });
+}
+function importFileAsset(a, file) {
+  var v = validateImageFile(file);
+  if (!v.error && !v.ok) v = { error: "bad-file" };
+  if (v.error) return Promise.resolve({ error: v.error });
+  return blobHead(file, 16).then(function (head) {
+    var kind = sniffImageKind(head);
+    if (kind === "svg") return { error: "svg" };
+    if (!kind) return { error: "bad-file" };
+    return decodeBlob(file).then(function (img) {
+      var asset = canvasAsset(img, "device");
+      if (asset.error) return asset;
+      return storeMediaAsset(a, asset);
+    }, function () { return { error: "bad-file" }; });
+  }, function () { return { error: "bad-file" }; });
+}
+function importURLAsset(a, url) {
+  var v = validateImageURL(url);
+  if (v.error) return Promise.resolve({ error: v.error });
+  var ctrl = null;
+  try { ctrl = new AbortController(); } catch (e) {}
+  var timer = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) {} }, MEDIA_FETCH_TIMEOUT);
+  var p;
+  try {
+    p = fetch(v.url, { headers: { Accept: "image/*" }, signal: ctrl ? ctrl.signal : undefined, redirect: "follow" });
+  } catch (e) { clearTimeout(timer); return Promise.resolve({ error: "unreachable" }); }
+  return p.then(function (res) {
+    clearTimeout(timer);
+    if (!res || !res.ok) return { error: "unreachable" };
+    var ct = "";
+    try { ct = String(res.headers.get("content-type") || "").toLowerCase().split(";")[0].trim(); } catch (e) {}
+    if (ct === "image/svg+xml") return { error: "svg" };
+    if (ct && ct.indexOf("image/") !== 0 && ct !== "application/octet-stream" && ct !== "binary/octet-stream") return { error: "non-image" };
+    return res.blob().then(function (blob) {
+      if (!blob || !(blob.size > 0)) return { error: "bad-file" };
+      if (blob.size > MEDIA_MAX_FILE) return { error: "too-large" };
+      return blobHead(blob, 16).then(function (head) {
+        var kind = sniffImageKind(head);
+        if (kind === "svg") return { error: "svg" };
+        if (!kind) return { error: "non-image" };
+        return decodeBlob(blob).then(function (img) {
+          var asset = canvasAsset(img, "url");
+          if (asset.error) return asset;
+          return storeMediaAsset(a, asset);
+        }, function () { return { error: "bad-file" }; });
+      });
+    });
+  }, function (err) {
+    clearTimeout(timer);
+    if (err && err.name === "AbortError") return { error: "too-large" };
+    return { error: "unreachable" };
+  });
+}
+
 /* ================= J. review logging, day stats, undo ================= */
 function logGrade(a, cardId, rating, prev, next) {
   var tk = todayKey();
@@ -739,9 +1054,45 @@ function downloadFile(name, content, mime) {
 /* ================= M. view framework ================= */
 var V = { name: "home", deck: null, q: "", page: 0, sel: {}, editNote: null, editType: null, custom: null, statsTab: "today" };
 var SESS = null; /* active study session */
+/* Editor image staging (reset on entering add/edit): EM = pending {field,mid},
+ * EMR = removals [{field,mid}] applied on save. Assets commit to the store at
+ * import time so previews render; save/cancel orphans are reclaimed by the
+ * Unused-Media cleanup (never auto-deleted while referenced). */
+var EM = null, EMR = [];
+/* Editor draft (typed-but-unsaved values). Attaching/removing an image,
+ * replacing media, or switching note type re-renders the editor; without a
+ * draft those re-renders wipe what the user typed (the inputs are rebuilt
+ * from the note/empty defaults). captureDraft() snapshots the live DOM
+ * before every editor render so nothing is lost; entering add/edit starts
+ * with a clean draft, a successful save clears it. */
+var ED = null;
+function captureDraft() {
+  try {
+    if (V.name !== "add" && V.name !== "edit") return;
+    var typeEl = null;
+    try { typeEl = document.getElementById("ankiEdType"); } catch (e) { typeEl = null; }
+    if (!typeEl) return; /* editor not mounted yet */
+    var a = A();
+    var typeId = typeEl.value || "basic";
+    var type = a.types[typeId] || a.types.basic;
+    var fields = {};
+    (type.fields || []).forEach(function (f) {
+      try {
+        var el = document.getElementById("ankiEdF_" + f);
+        fields[f] = el ? String(el.value).slice(0, 4000) : "";
+      } catch (e) { fields[f] = ""; }
+    });
+    ED = {
+      noteId: V.name === "edit" ? V.editNote : null,
+      type: typeId, deck: val("ankiEdDeck"),
+      fields: fields, tags: val("ankiEdTags")
+    };
+  } catch (e) {}
+}
 function root() { try { return document.getElementById("ankiRoot"); } catch (e) { return null; } }
 function setView(patch) {
   Object.keys(patch || {}).forEach(function (k) { V[k] = patch[k]; });
+  if (patch && (patch.name === "add" || patch.name === "edit")) { EM = null; EMR = []; ED = null; }
   render();
 }
 function ratingLabel(r) {
@@ -793,9 +1144,13 @@ function deckTreeHTML(a) {
 function render() {
   var r = root();
   if (!r) return;
+  try { captureDraft(); } catch (e) {}
   var a = A();
   var html = "";
-  if (V.name === "study" || SESS) html = studyHTML(a);
+  /* Explicit navigation always wins: an in-progress session (SESS) must not
+   * hijack the editor (e.g. study -> edit note would otherwise keep showing
+   * the study screen). In-session re-renders keep V.name === "study". */
+  if (V.name === "study") html = studyHTML(a);
   else if (V.name === "overview") html = overviewHTML(a);
   else if (V.name === "browse") html = browseHTML(a);
   else if (V.name === "add" || V.name === "edit") html = editorHTML(a);
@@ -959,23 +1314,90 @@ function browseHTML(a) {
       var n = a.notes[c.note] || {};
       var F = resolveFields(n);
       var s = schedOf(c);
+      var hasM = noteHasMedia(a, n);
       return '<label class="anki-bcard"><input type="checkbox" data-asel="' + esc(c.id) + '"' + (V.sel[c.id] ? " checked" : "") + '>' +
-        '<span class="anki-bcard-main"><b dir="auto">' + esc(String(F.Front || "").slice(0, 80)) + '</b><small dir="auto">' + esc(String(F.Back || "").slice(0, 80)) + '</small>' +
+        '<span class="anki-bcard-main"><b dir="auto">' + (hasM ? "📷 " : "") + esc(String(F.Front || "").slice(0, 80)) + '</b><small dir="auto">' + esc(String(F.Back || "").slice(0, 80)) + '</small>' +
         '<small class="muted">' + esc(deckPath(a, c.deck)) + ' · ' + esc(s.st) + ' · ' + esc(s.due || "") + ' · ' + (s.iv | 0) + 'd</small></span></label>';
     }).join("") + '</div>';
   } else {
-    h += '<div class="anki-table-wrap"><table class="anki-browser-table"><thead><tr><th></th><th>' + esc(T("anki_front")) + '</th><th>' + esc(T("anki_back")) + '</th><th>Deck</th><th>State</th><th>Due</th><th>IV</th><th>' + esc(T("anki_tags")) + '</th></tr></thead><tbody>' +
+    h += '<div class="anki-table-wrap"><table class="anki-browser-table"><thead><tr><th></th><th></th><th>' + esc(T("anki_front")) + '</th><th>' + esc(T("anki_back")) + '</th><th>Deck</th><th>State</th><th>Due</th><th>IV</th><th>' + esc(T("anki_tags")) + '</th></tr></thead><tbody>' +
       slice.map(function (c) {
         var n = a.notes[c.note] || {};
         var F = resolveFields(n);
         var s = schedOf(c);
-        return '<tr><td><input type="checkbox" data-asel="' + esc(c.id) + '"' + (V.sel[c.id] ? " checked" : "") + '></td>' +
+        var thumb = "";
+        if (noteHasMedia(a, n)) {
+          var mids = [];
+          try { Object.keys(n.fields || {}).forEach(function (f) { extractMids(n.fields[f]).forEach(function (m) { if (mids.indexOf(m) < 0) mids.push(m); }); }); } catch (e) {}
+          var mm = mids.length && a.media ? a.media[mids[0]] : null;
+          if (mm && (mm.thumb || mm.data)) thumb = '<img class="anki-thumb" loading="lazy" decoding="async" src="' + esc(mm.thumb || mm.data) + '" alt="" data-amedia="' + esc(mids[0]) + '">';
+        }
+        return '<tr><td><input type="checkbox" data-asel="' + esc(c.id) + '"' + (V.sel[c.id] ? " checked" : "") + '></td><td>' + thumb + '</td>' +
           '<td dir="auto">' + esc(String(F.Front || "").slice(0, 60)) + '</td><td dir="auto">' + esc(String(F.Back || "").slice(0, 60)) + '</td>' +
           '<td dir="auto">' + esc(deckPath(a, c.deck)) + '</td><td>' + esc(s.st) + (c.susp ? " ⏸️" : "") + (c.buried ? " 📥" : "") + '</td>' +
           '<td dir="ltr">' + esc(s.due || "") + '</td><td>' + (s.iv | 0) + 'd</td><td dir="auto">' + esc((n.tags || []).join(", ")) + '</td></tr>';
       }).join("") + '</tbody></table></div>';
   }
   h += '<div class="anki-pager"><button class="btn btn-ghost sm" data-apage="-1" ' + (page <= 0 ? "disabled" : "") + '>‹</button><span class="muted">' + (page + 1) + ' / ' + pages + '</span><button class="btn btn-ghost sm" data-apage="1" ' + (page + 1 >= pages ? "disabled" : "") + '>›</button></div>';
+  return h;
+}
+/* ---- note images (editor staging UI) ---- */
+function textFieldsOf(type) {
+  return (type.fields || []).filter(function (f) { return !/^_/.test(f); });
+}
+function editorMediaHTML(a, note, type, isEdit) {
+  var fields = textFieldsOf(type);
+  var defField = fields[0] || "Front";
+  var cur = {};
+  if (isEdit && note && !note.ref) {
+    fields.forEach(function (f) {
+      extractMids(note.fields[f]).forEach(function (mid) {
+        if (a.media && a.media[mid]) { cur[f] = cur[f] || []; cur[f].push(mid); }
+      });
+    });
+  }
+  if (isEdit && note && note.ref) {
+    try {
+      var F = resolveFields(note);
+      fields.forEach(function (f) {
+        extractMids(F[f]).forEach(function (mid) {
+          if (a.media && a.media[mid]) { cur[f] = cur[f] || []; if (cur[f].indexOf(mid) < 0) cur[f].push(mid); }
+        });
+      });
+    } catch (e) {}
+  }
+  (EMR || []).forEach(function (r) {
+    if (cur[r.field]) cur[r.field] = cur[r.field].filter(function (m) { return m !== r.mid; });
+  });
+  var h = '<div class="form-group"><label>🖼️ ' + esc(T("anki_add_image")) + '</label>';
+  h += '<select id="ankiImgField">' + fields.map(function (f) {
+    return '<option value="' + esc(f) + '"' + ((EM && EM.field === f ? f : defField) === f ? " selected" : "") + '>' + esc(f) + '</option>';
+  }).join("") + '</select>';
+  h += '<div class="row-flex" style="margin-top:8px"><button class="btn btn-ghost sm" data-amedia-file="1">📁 ' + esc(T("anki_from_device")) + '</button>' +
+    '<button class="btn btn-ghost sm" data-amedia-url="1">🌐 ' + esc(T("anki_from_internet")) + '</button></div>';
+  h += '<input type="file" id="ankiImgFile" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" class="hidden">';
+  h += '<div id="ankiImgUrlRow" class="hidden" style="margin-top:8px"><input id="ankiImgUrl" dir="ltr" placeholder="https://…" style="width:100%;margin-bottom:6px">' +
+    '<div class="row-flex"><button class="btn btn-primary sm" data-amedia-fetch="1">⬇ ' + esc(T("anki_fetch_attach")) + '</button></div>' +
+    '<div id="ankiImgUrlMsg" class="muted" dir="auto" style="margin-top:4px"></div></div>';
+  h += '<div id="ankiImgPrev">';
+  if (EM && EM.mid && a.media && a.media[EM.mid]) {
+    var pm = a.media[EM.mid];
+    h += '<div class="anki-imgstage"><img class="anki-thumb-lg" loading="lazy" src="' + esc(pm.thumb || pm.data) + '" alt="">' +
+      '<span class="muted">✓ ' + esc(EM.field) + ' · ' + Math.round((pm.bytes || 0) / 1024) + ' KB</span></div>';
+  }
+  h += '</div><div id="ankiImgList">';
+  Object.keys(cur).forEach(function (f) {
+    cur[f].forEach(function (mid) {
+      var m = a.media[mid];
+      if (!m) return;
+      h += '<div class="anki-imgrow"><img class="anki-thumb" loading="lazy" src="' + esc(m.thumb || m.data) + '" alt="">' +
+        '<span class="muted" dir="auto">' + esc(f) + '</span>' +
+        '<button class="btn btn-ghost sm" data-amedia-full="' + esc(mid) + '">👁️</button>' +
+        '<button class="btn btn-ghost sm" data-amedia-rep="' + esc(f + ":" + mid) + '">🔄 ' + esc(T("anki_replace")) + '</button>' +
+        '<button class="btn btn-ghost sm" data-amedia-rm="' + esc(f + ":" + mid) + '">🗑️ ' + esc(T("anki_remove")) + '</button></div>';
+    });
+  });
+  h += '</div><p class="muted">GIF → ' + esc(T("anki_gif_static")) + '</p></div>';
   return h;
 }
 /* ---- add / edit note ---- */
@@ -986,6 +1408,11 @@ function editorHTML(a) {
   var typeId = (isEdit ? note.type : (V.editType || "basic"));
   var type = a.types[typeId] || a.types.basic;
   var deckId = isEdit ? note.deck : (V.deck && a.decks[V.deck] ? V.deck : a.settings.defaultDeck);
+  /* Prefer the live draft (typed text + chosen deck/tags) when this render
+   * was triggered from inside the editor (image attach/remove/replace, note
+   * type switch); otherwise a re-render would wipe the user's input. */
+  var draft = (ED && (isEdit ? ED.noteId === V.editNote : ED.noteId === null)) ? ED : null;
+  if (draft && draft.deck && a.decks[draft.deck]) deckId = draft.deck;
   var h = toolbarHTML("add") +
     '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="' + (isEdit ? "browse" : "home") + '">' + esc(T("anki_cancel")) + '</button>' +
     '<b>' + (isEdit ? "✏️" : "➕") + ' ' + esc(type.name) + '</b></div>' +
@@ -996,11 +1423,14 @@ function editorHTML(a) {
   (type.fields || []).forEach(function (f) {
     var v = isEdit && !note.ref ? (note.fields[f] || "") : "";
     if (isEdit && note.ref) { var F = resolveFields(note); v = F[f] || ""; }
+    if (draft && draft.fields && draft.fields[f] !== undefined) v = draft.fields[f];
     var big = /example|explanation|conjugation|transcript|meaning/i.test(f);
     h += '<div class="form-group"><label dir="auto">' + esc(f) + '</label>' +
       (big ? '<textarea id="ankiEdF_' + esc(f) + '" dir="auto">' + esc(v) + '</textarea>' : '<input id="ankiEdF_' + esc(f) + '" dir="auto" value="' + esc(v) + '">') + '</div>';
   });
   var tags = isEdit ? (note.tags || []).join(", ") : "";
+  if (draft && typeof draft.tags === "string") tags = draft.tags;
+  h += editorMediaHTML(a, note, type, isEdit);
   h += '<div class="form-group"><label>' + esc(T("anki_tags")) + '</label><input id="ankiEdTags" dir="auto" value="' + esc(tags) + '"></div>' +
     (isEdit && note.ref ? '<p class="muted">🔗 vocab:' + esc(note.ref.id) + '</p>' : '') +
     '<div class="row-flex"><button class="btn btn-primary" data-asave="' + (isEdit ? "edit" : "add") + '">' + esc(T("anki_save")) + '</button>' +
@@ -1106,15 +1536,25 @@ function settingsHTML(a) {
 /* ---- collection ---- */
 function collectionHTML(a) {
   var problems = checkDB(a);
+  var mkeys = Object.keys(a.media || {});
+  var mbytes = mediaBytes(a);
+  var unused = unusedMedia(a);
   var h = toolbarHTML("collection") +
     '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="home">' + esc(T("anki_back_decks")) + '</button></div>' +
     '<div class="anki-editor glass"><h4>🗄️ ' + esc(T("anki_collection")) + '</h4>' +
-    '<p class="muted">' + problems.length + ' issues · media: TTS only (no local files)</p>' +
+    '<p class="muted">' + problems.length + ' issues</p>' +
     '<div class="row-flex"><button class="btn btn-ghost sm" data-acoll="check">✓ check database</button>' +
     '<button class="btn btn-ghost sm" data-acoll="empty">∅ empty cards</button>' +
     '<button class="btn btn-ghost sm" data-acoll="unbury">📤 unbury all</button>' +
     '<button class="btn btn-ghost sm" data-aview="io">⇅ backup / CSV</button></div>' +
-    '<div id="ankiCollBox">' + (problems.length ? '<ul>' + problems.slice(0, 20).map(function (p) { return '<li class="muted" dir="auto">' + esc(p) + '</li>'; }).join("") + '</ul>' : '<p class="muted">✓ OK</p>') + '</div></div>';
+    '<div id="ankiCollBox">' + (problems.length ? '<ul>' + problems.slice(0, 20).map(function (p) { return '<li class="muted" dir="auto">' + esc(p) + '</li>'; }).join("") + '</ul>' : '<p class="muted">✓ OK</p>') + '</div></div>' +
+    '<div class="anki-editor glass"><h4>🖼️ ' + esc(T("anki_media")) + ' · ' + mkeys.length + ' · ' + Math.round(mbytes / 1024) + ' KB</h4>' +
+    '<p class="muted">' + esc(T("anki_unused_media")) + ': ' + unused.length + '</p>' +
+    '<div class="row-flex"><button class="btn btn-ghost sm" data-acoll="media-clean">🧹 ' + esc(T("anki_cleanup")) + '</button></div>' +
+    '<div id="ankiMediaBox">' + (unused.length ? '<div class="anki-thumbs">' + unused.slice(0, 24).map(function (mid) {
+      var m = a.media[mid];
+      return m ? '<img class="anki-thumb" loading="lazy" src="' + esc(m.thumb || m.data) + '" alt="" data-amedia="' + esc(mid) + '">' : "";
+    }).join("") + '</div>' : '<p class="muted">✓ ' + esc(T("anki_no_unused")) + '</p>') + '</div></div>';
   return h;
 }
 function checkDB(a) {
@@ -1131,6 +1571,13 @@ function checkDB(a) {
     var has = Object.keys(a.cards).some(function (x) { return a.cards[x] && a.cards[x].note === k; });
     if (!has) out.push("empty note " + k + " (" + (n.type || "?") + ")");
     if (!a.decks[n.deck]) out.push("note with missing deck " + k);
+    try {
+      Object.keys(n.fields || {}).forEach(function (f) {
+        extractMids(n.fields[f]).forEach(function (mid) {
+          if (!a.media || !a.media[mid]) out.push("broken media ref in note " + k + " (" + f + ")");
+        });
+      });
+    } catch (e) {}
   });
   return out;
 }
@@ -1156,7 +1603,7 @@ function ioHTML(a) {
     '<div class="row-flex"><button class="btn btn-ghost sm" data-aexport="csv">CSV (all)</button>' +
     '<button class="btn btn-ghost sm" data-aexport="json">JSON backup</button></div>' +
     '<h4 style="margin-top:12px">📥 ' + esc(T("anki_import")) + '</h4>' +
-    '<p class="muted">CSV: Front,Back,Deck,Tags[,Type,Extra] · .apkg is NOT supported</p>' +
+    '<p class="muted">CSV: Front,Back,Deck,Tags[,Type,Extra] · .apkg is NOT supported<br>' + esc(T("anki_csv_media_note")) + '</p>' +
     '<div class="form-group"><label>CSV file</label><input type="file" id="ankiCsvFile" accept=".csv,text/csv"></div>' +
     '<div class="form-group"><label>paste CSV</label><textarea id="ankiCsvText" dir="auto" placeholder="Front,Back,Deck,Tags"></textarea></div>' +
     '<div class="row-flex"><button class="btn btn-primary" data-aimport="1">' + esc(T("anki_import")) + '</button></div><div id="ankiIoBox"></div>' +
@@ -1263,6 +1710,7 @@ function bulkOp(a, op) {
   });
   V.sel = {};
   commit();
+  if (op === "del") pruneMedia(a);
   render();
 }
 function bindRoot(r, a) {
@@ -1273,7 +1721,11 @@ function bindRoot(r, a) {
     var q = function (sel) { return ev.target.closest ? ev.target.closest(sel) : null; };
     var b;
     if ((b = q("[data-aview]"))) { SESS = null; setView({ name: b.getAttribute("data-aview"), page: 0 }); return; }
-    if ((b = q("[data-atoggle]"))) { var d = a.decks[b.getAttribute("data-atoggle")]; if (d) { d.collapsed = !d.collapsed; commit(false); render(); } return; }
+    /* NOTE: this click handler is bound once; always re-read the live
+     * identity-scoped collection via A() here (the `a` closure goes stale
+     * across identity switches and would mutate a detached object whose
+     * change is then lost by persist()). All other branches already do. */
+    if ((b = q("[data-atoggle]"))) { var sa = A(); var d = sa.decks[b.getAttribute("data-atoggle")]; if (d) { d.collapsed = !d.collapsed; commit(false); render(); } return; }
     if ((b = q("[data-aoverview]"))) { SESS = null; setView({ name: "overview", deck: b.getAttribute("data-aoverview") }); return; }
     if ((b = q("[data-amenu]"))) { ev.stopPropagation(); openDeckMenu(A(), b.getAttribute("data-amenu"), b); return; }
     if ((b = q("[data-astudy]"))) { V.deck = b.getAttribute("data-astudy"); startSession(A(), V.deck, {}); return; }
@@ -1315,7 +1767,11 @@ function bindRoot(r, a) {
     if ((b = q("[data-atpreview]"))) { previewTemplate(A(), b.getAttribute("data-atpreview")); return; }
     if ((b = q("[data-aset-save]"))) { saveSettings(A()); return; }
     if ((b = q("[data-adeck-save]"))) { saveDeckOpts(A(), b.getAttribute("data-adeck-save")); return; }
-    if ((b = q("[data-acoll]"))) { collAction(A(), b.getAttribute("data-acoll")); return; }
+    if ((b = q("[data-acoll]"))) {
+      var ck = b.getAttribute("data-acoll");
+      if (ck === "media-clean") { collMediaClean(A()); return; }
+      collAction(A(), ck); return;
+    }
     if ((b = q("[data-acustom-go]"))) { customGo(A()); return; }
     if ((b = q("[data-aexport]"))) {
       var kind = b.getAttribute("data-aexport");
@@ -1324,6 +1780,30 @@ function bindRoot(r, a) {
       return;
     }
     if ((b = q("[data-aimport]"))) { csvImportFlow(A()); return; }
+    if ((b = q("[data-amedia-file]"))) { var fi = document.getElementById("ankiImgFile"); if (fi) fi.click(); return; }
+    if ((b = q("[data-amedia-url]"))) { var ur = document.getElementById("ankiImgUrlRow"); if (ur) ur.classList.toggle("hidden"); var ui = document.getElementById("ankiImgUrl"); if (ui && !ur.classList.contains("hidden")) ui.focus(); return; }
+    if ((b = q("[data-amedia-fetch]"))) { mediaFetchFlow(); return; }
+    if ((b = q("[data-amedia-rm]"))) {
+      var parts = String(b.getAttribute("data-amedia-rm")).split(":");
+      EMR.push({ field: parts[0], mid: parts[1] });
+      if (EM && EM.field === parts[0] && EM.mid === parts[1]) EM = null;
+      render(); return;
+    }
+    if ((b = q("[data-amedia-rep]"))) {
+      var pr = String(b.getAttribute("data-amedia-rep")).split(":");
+      EMR.push({ field: pr[0], mid: pr[1] });
+      EM = { field: pr[0], mid: null };
+      var fi2 = document.getElementById("ankiImgFile");
+      if (fi2) fi2.click(); else render();
+      return;
+    }
+    if ((b = q("[data-amedia-full]"))) { openLightbox(A(), b.getAttribute("data-amedia-full")); return; }
+    if ((b = q("[data-amedia]"))) {
+      try { ev.stopImmediatePropagation(); } catch (e) {}
+      openLightbox(A(), b.getAttribute("data-amedia"));
+      return;
+    }
+    if ((b = q("[data-amedialightbox]"))) { closeLightbox(); return; }
   });
   r.addEventListener("change", function (ev) {
     var t = ev.target;
@@ -1346,6 +1826,8 @@ function bindRoot(r, a) {
     else if (t.id === "ankiEdType") { V.editType = t.value; if (V.name === "add") render(); }
     else if (t.id === "ankiCsvFile" && t.files && t.files[0]) { readCSVFile(A(), t.files[0]); }
     else if (t.id === "ankiJsonFile" && t.files && t.files[0]) { readJSONFile(A(), t.files[0]); }
+    else if (t.id === "ankiImgFile" && t.files && t.files[0]) { mediaFileFlow(t.files[0]); }
+    else if (t.id === "ankiImgField" && EM) { EM.field = t.value || EM.field; }
   });
   r.addEventListener("input", function (ev) {
     var t = ev.target;
@@ -1367,6 +1849,89 @@ function bindRoot(r, a) {
     if (c && SESS && !SESS.revealed && !ev.target.closest("button")) { SESS.revealed = true; render(); }
   });
 }
+/* ---- note images: import flows + lightbox ---- */
+function mediaErrMsg(code) {
+  return code === "too-large" ? T("anki_img_too_large")
+    : code === "bad-type" ? T("anki_img_bad_type")
+    : code === "svg" ? T("anki_img_svg")
+    : code === "bad-url" ? T("anki_img_bad_url")
+    : code === "unreachable" ? T("anki_img_load_fail")
+    : code === "non-image" ? T("anki_img_load_fail")
+    : code === "budget" ? T("anki_img_budget")
+    : T("anki_img_bad_file");
+}
+function mediaFieldSel() {
+  var s = null;
+  try { s = document.getElementById("ankiImgField"); } catch (e) {}
+  return s && s.value ? s.value : "Front";
+}
+function mediaFileFlow(file) {
+  var a = A();
+  var field = mediaFieldSel();
+  var msg = null;
+  try { msg = document.getElementById("ankiImgUrlMsg"); } catch (e) {}
+  importFileAsset(a, file).then(function (res) {
+    if (res.error) {
+      if (msg) { msg.textContent = mediaErrMsg(res.error); }
+      else toastM(mediaErrMsg(res.error), "err");
+      try { var fi = document.getElementById("ankiImgFile"); if (fi) fi.value = ""; } catch (e) {}
+      return;
+    }
+    EM = { field: field, mid: res.id };
+    toastM(T("anki_img_saved"), "ok");
+    render();
+  });
+}
+function mediaFetchFlow() {
+  var a = A();
+  var field = mediaFieldSel();
+  var url = val("ankiImgUrl");
+  var msg = null;
+  try { msg = document.getElementById("ankiImgUrlMsg"); } catch (e) {}
+  var v = validateImageURL(url);
+  if (v.error) { if (msg) msg.textContent = mediaErrMsg(v.error); return; }
+  if (msg) msg.textContent = "…";
+  importURLAsset(a, url).then(function (res) {
+    if (res.error) {
+      if (msg) msg.textContent = mediaErrMsg(res.error);
+      else toastM(mediaErrMsg(res.error), "err");
+      return;
+    }
+    EM = { field: field, mid: res.id };
+    toastM(T("anki_img_saved"), "ok");
+    render();
+  });
+}
+function openLightbox(a, mid) {
+  try {
+    closeLightbox();
+    var m = a && a.media ? a.media[mid] : null;
+    if (!m || !m.data) return;
+    var ov = document.createElement("div");
+    ov.id = "ankiLightbox";
+    ov.className = "anki-lightbox";
+    ov.setAttribute("data-amedialightbox", "1");
+    ov.innerHTML = '<img class="anki-lightbox-img" src="' + esc(m.data) + '" alt="">' +
+      '<div class="anki-lightbox-cap muted">' + (m.w | 0) + '×' + (m.h | 0) + ' · ' + Math.round((m.bytes | 0) / 1024) + ' KB · ✖</div>';
+    document.body.appendChild(ov);
+  } catch (e) {}
+}
+function closeLightbox() { try { var ov = document.getElementById("ankiLightbox"); if (ov) ov.remove(); } catch (e) {} }
+function bindLightbox() {
+  /* The lightbox overlay is appended to <body> (outside #ankiRoot) so it
+   * always covers the viewport; its clicks never reach bindRoot's delegated
+   * handler, hence this separate document-level closer (registered once). */
+  try {
+    if (document._ankiLB) return;
+    document._ankiLB = true;
+    document.addEventListener("click", function (ev) {
+      try {
+        var t = ev.target && ev.target.closest ? ev.target.closest("[data-amedialightbox]") : null;
+        if (t) closeLightbox();
+      } catch (e) {}
+    });
+  } catch (e) {}
+}
 /* ================= O. mutations from UI ================= */
 function val(id) { try { var e = document.getElementById(id); return e ? e.value : ""; } catch (e) { return ""; } }
 function saveEditor(a, mode) {
@@ -1377,15 +1942,42 @@ function saveEditor(a, mode) {
   var fields = {};
   (type.fields || []).forEach(function (f) { fields[f] = String(val("ankiEdF_" + f)).slice(0, 4000); });
   var tags = val("ankiEdTags");
+  /* merge staged image edits: removals first, then the pending attachment */
+  (EMR || []).forEach(function (r) {
+    if (fields[r.field] !== undefined && r.mid) {
+      var re = new RegExp("\\[\\[m:" + String(r.mid).replace(/[^A-Za-z0-9]/g, "") + "\\]\\]", "g");
+      fields[r.field] = String(fields[r.field] || "").replace(re, "").replace(/[ \t]{2,}/g, " ").trim();
+    }
+  });
+  if (EM && EM.mid && EM.field && fields[EM.field] !== undefined && a.media && a.media[EM.mid]) {
+    if (extractMids(fields[EM.field]).indexOf(EM.mid) < 0) {
+      fields[EM.field] = (String(fields[EM.field] || "").trim() + " [[m:" + EM.mid + "]]").trim();
+    }
+  }
   if (isEdit) {
-    var res = editNote(a, V.editNote, { fields: fields, tags: tags, deck: deck });
-    if (res.error) { toastM("✖", "err"); return; }
+    var nid = V.editNote;
+    var res = editNote(a, nid, { fields: fields, tags: tags, deck: deck });
+    /* Never report success before persistence actually succeeds; on failure
+     * stay on the editor so the user's data (DOM + draft) is preserved. */
+    if (res.error) { toastM("✖ " + res.error, "err"); return; }
+    EM = null; EMR = []; ED = null;
+    pruneMedia(a);
     setView({ name: "browse" });
   } else {
     var r = addNote(a, { type: typeId, deck: deck, fields: fields, tags: tags });
     if (r.error) { toastM("✖ " + r.error, "err"); return; }
+    EM = null; EMR = []; ED = null;
     toastM("✅", "ok");
-    render();
+    /* Close the Add screen and return to the deck the card actually landed
+     * in (addNote may have fallen back when the selection was stale), so
+     * counts/overview/study show the new card immediately. */
+    var landed = null;
+    try {
+      var saved = A().notes[r.note];
+      if (saved && saved.deck && A().decks[saved.deck]) landed = saved.deck;
+    } catch (e) {}
+    if (landed) setView({ name: "overview", deck: landed });
+    else setView({ name: "home", page: 0 });
   }
 }
 function typeEditor(a, tid) {
@@ -1486,6 +2078,15 @@ function collAction(a, kind) {
   }
   var p = checkDB(a);
   if (box) box.innerHTML = p.length ? "<ul>" + p.slice(0, 20).map(function (x) { return '<li class="muted" dir="auto">' + esc(x) + "</li>"; }).join("") + "</ul>" : '<p class="muted">✓ OK</p>';
+}
+function collMediaClean(a) {
+  var unused = unusedMedia(a);
+  if (!unused.length) { toastM("✓ " + T("anki_no_unused"), "ok"); return; }
+  var ok = false;
+  try { ok = window.confirm(T("anki_cleanup") + " (" + unused.length + ")?"); } catch (e) {}
+  if (!ok) return;
+  pruneMedia(a);
+  render();
 }
 function customGo(a) {
   var deck = val("ankiCuDeck") || null;
@@ -1669,6 +2270,7 @@ function renderIfVisible() { try { if (ankiVisible()) render(); } catch (e) {} }
 function boot() {
   if (typeof document === "undefined" || !document.getElementById) return;
   bindKeys();
+  bindLightbox();
   function hookNav() {
     try {
       document.querySelectorAll('[data-page="ankidroid"]').forEach(function (b) {
@@ -1703,6 +2305,11 @@ var API = {
   gradeCard: gradeCard, previewInterval: previewInterval, logGrade: logGrade, undoLast: undoLast,
   parseSearch: parseSearch, searchCards: searchCards, parseCSV: parseCSV, exportCSV: exportCSV, importRows: importRows,
   computeStats: computeStats, checkDB: checkDB,
+  validateImageFile: validateImageFile, validateImageURL: validateImageURL, sniffImageKind: sniffImageKind,
+  extractMids: extractMids, renderFieldHTML: renderFieldHTML, mediaRefCounts: mediaRefCounts,
+  noteHasMedia: noteHasMedia, unusedMedia: unusedMedia, mediaBytes: mediaBytes, pruneMedia: pruneMedia,
+  storeMediaAsset: storeMediaAsset, mediaHash: mediaHash,
+  importFileAsset: importFileAsset, importURLAsset: importURLAsset,
   view: function () { return V; }
 };
 try {
