@@ -1,0 +1,267 @@
+/* ==========================================================================
+   Deutsch Master — BOLD NEXT-GENERATION IDENTITY ("Signal" layer)
+   Sits AFTER premium.css. Presentation only: no IDs/classes/data-attrs
+   consumed by JS are renamed; no storage, data or logic touched.
+   Editorial German display words are CSS-generated (language-neutral).
+   --------------------------------------------------------------------------
+   D1 domain color system   D2 background (no blobs)   D3 hero impact
+   D4 editorial page headers  D5 sidebar power  D6 orbit engine
+   D7 mission + next-action  D8 journey  D9 surfaces/buttons/borders
+   D10 vocab/sentences/flash/anki/grammar/verbs/reference/guide/career
+   D11 speak/listen/quiz/smart/stats  D12 motion/mobile/desktop/light/RTL
+   ========================================================================== */
+
+/* ---------- D1 · DOMAIN COLOR SYSTEM ---------- */
+body{
+  --dm-domain:#2e6bff; --dm-domain-2:#22d3ee;
+  --dm-d-ink:#fff;
+}
+body[data-dmpage="dashboard"]{--dm-domain:#2e6bff;--dm-domain-2:#22d3ee}
+body[data-dmpage="vocab"]{--dm-domain:#2563eb;--dm-domain-2:#14b8a6}
+body[data-dmpage="flashcards"]{--dm-domain:#d946ef;--dm-domain-2:#8b5cf6}
+body[data-dmpage="sentences"],body[data-dmpage="sentex"]{--dm-domain:#8b5cf6;--dm-domain-2:#3b82f6}
+body[data-dmpage="grammar"]{--dm-domain:#f59e0b;--dm-domain-2:#ef4444}
+body[data-dmpage="verbs"]{--dm-domain:#22c55e;--dm-domain-2:#22d3ee}
+body[data-dmpage="listen"],body[data-dmpage="lislab"],body[data-dmpage="dictation"]{--dm-domain:#22d3ee;--dm-domain-2:#8b5cf6}
+body[data-dmpage="speak"],body[data-dmpage="shadowing"],body[data-dmpage="talk"]{--dm-domain:#ec4899;--dm-domain-2:#8b5cf6}
+body[data-dmpage="practice"],body[data-dmpage="review"],body[data-dmpage="mistakes"],body[data-dmpage="erreplay"]{--dm-domain:#ef4444;--dm-domain-2:#f59e0b}
+body[data-dmpage="quiz"],body[data-dmpage="challenge"],body[data-dmpage="chall"]{--dm-domain:#f97316;--dm-domain-2:#ef4444}
+body[data-dmpage="career"],body[data-dmpage="job"]{--dm-domain:#f2c14e;--dm-domain-2:#ef4444}
+body[data-dmpage="reference"]{--dm-domain:#facc15;--dm-domain-2:#f97316}
+body[data-dmpage="howto"]{--dm-domain:#2dd4bf;--dm-domain-2:#2563eb}
+body[data-dmpage="ankidroid"]{--dm-domain:#38bdf8;--dm-domain-2:#6366f1}
+body[data-dmpage="explain"]{--dm-domain:#a78bfa;--dm-domain-2:#22d3ee}
+body[data-dmpage="journey"],body[data-dmpage="roadmap"],body[data-dmpage="world"]{--dm-domain:#22d3ee;--dm-domain-2:#22c55e}
+body[data-dmpage="life"],body[data-dmpage="dlife"],body[data-dmpage="real"],body[data-dmpage="situations"],body[data-dmpage="simulator"],body[data-dmpage="mygermany"],body[data-dmpage="exp"],body[data-dmpage="survive"]{--dm-domain:#fb7185;--dm-domain-2:#f59e0b}
+body[data-dmpage="games"],body[data-dmpage="labs"],body[data-dmpage="writing"],body[data-dmpage="fixsent"],body[data-dmpage="finderr"],body[data-dmpage="tutor"]{--dm-domain:#a3e635;--dm-domain-2:#22d3ee}
+body[data-dmpage="stats"],body[data-dmpage="analytics"],body[data-dmpage="planner"],body[data-dmpage="ach"],body[data-dmpage="me"],body[data-dmpage="favorites"]{--dm-domain:#f2c14e;--dm-domain-2:#2e6bff}
+body[data-dmpage="profile"],body[data-dmpage="settings"],body[data-dmpage="auth"]{--dm-domain:#94a3b8;--dm-domain-2:#2e6bff}
+
+/* ---------- D2 · BACKGROUND: structure, not blobs ---------- */
+.blob{display:none!important}
+.cmd-ambient{display:none!important}
+.bg-animated{background:
+  radial-gradient(1000px 480px at 50% -10%,rgba(46,107,255,.14),transparent 65%),
+  var(--dm-bg)}
+.grid-overlay{background-image:linear-gradient(rgba(148,178,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(148,178,255,.07) 1px,transparent 1px);
+  background-size:40px 40px;opacity:.7;
+  mask-image:radial-gradient(900px 520px at 50% 0%,#000 20%,transparent 80%)}
+/* domain atmosphere: thin top signal line on content */
+.content{position:relative}
+.content::before{content:"";display:block;height:4px;border-radius:0 0 6px 6px;margin-bottom:16px;
+  background:linear-gradient(90deg,var(--dm-domain),var(--dm-domain-2),transparent 85%)}
+
+/* ---------- D3 · HERO: massive typographic impact ---------- */
+.cmd-hero{border:1px solid var(--dm-line);border-top:4px solid var(--dm-accent);border-radius:20px;overflow:hidden}
+.cmd-hero::before{background:linear-gradient(120deg,rgba(46,107,255,.22),rgba(46,107,255,.04) 60%,transparent)}
+/* giant backdrop wordmark */
+.cmd-hero::after{content:"DEUTSCH MASTER";position:absolute;top:8px;inset-inline:0;text-align:center;
+  font-weight:900;font-size:clamp(44px,9vw,124px);letter-spacing:.02em;line-height:1;pointer-events:none;user-select:none;
+  color:transparent;-webkit-text-stroke:1.5px rgba(148,178,255,.22);white-space:nowrap}
+.cmd-hero>*{position:relative;z-index:1}
+.cmd-hero h1{font-size:clamp(34px,5.6vw,60px);font-weight:900;letter-spacing:-.025em;line-height:1.15}
+.cmd-hero h1 .grad-text{background:linear-gradient(92deg,#60a5fa,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hm-eyebrow{font-size:14px;font-weight:900;letter-spacing:.06em;border-width:2px}
+/* hero stat strip: big numbers */
+.cmd-trust{font-size:14px}
+.cmd-trust b{font-size:22px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums}
+html[data-theme="light"] .cmd-trust b{color:#0e1628}
+.cmd-cta .btn{border-radius:12px;min-height:58px;font-size:18px;font-weight:900;letter-spacing:.01em}
+.cmd-cta .btn-primary{background:linear-gradient(135deg,#2e6bff,#1d46c2);border-bottom:3px solid #122a7d}
+.cmd-cta .btn-ghost{border:2px solid var(--dm-line);background:rgba(148,178,255,.06)}
+/* onboarding steps become a strip, not cards */
+.cmd-steps{grid-template-columns:repeat(3,1fr)}
+.cmd-stepbtn{border-radius:12px;border:1px solid var(--dm-line)}
+.cmd-stepbtn .n{border-radius:8px}
+
+/* ---------- D4 · EDITORIAL PAGE HEADERS ---------- */
+.page-head{display:block;border-bottom:none;margin-bottom:20px;position:relative;padding-top:6px}
+.page-head::before{content:"";position:absolute;top:0;inset-inline-start:0;width:72px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,var(--dm-domain),var(--dm-domain-2))}
+.page-head h2{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.02em}
+/* giant German display word above the (translated) title — decorative layer */
+.page-head h2::before{display:block;font-weight:900;line-height:.95;letter-spacing:-.02em;
+  font-size:clamp(42px,7.5vw,88px);margin:10px 0 2px;
+  background:linear-gradient(100deg,var(--dm-domain),var(--dm-domain-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+#page-vocab .page-head h2::before{content:"WÖRTER"}
+#page-sentences .page-head h2::before{content:"SÄTZE"}
+#page-flashcards .page-head h2::before{content:"KARTEN"}
+#page-grammar .page-head h2::before{content:"GRAMMATIK"}
+#page-verbs .page-head h2::before{content:"VERBEN"}
+#page-listen .page-head h2::before{content:"HÖREN"}
+#page-speak .page-head h2::before{content:"SPRECHEN"}
+#page-practice .page-head h2::before{content:"TRAINING"}
+#page-review .page-head h2::before{content:"REVIEW"}
+#page-mistakes .page-head h2::before{content:"FEHLER"}
+#page-quiz .page-head h2::before{content:"PRÜFUNG"}
+#page-career .page-head h2::before{content:"KARRIERE"}
+#page-reference .page-head h2::before{content:"LEXIKON"}
+#page-howto .page-head h2::before{content:"METHODE"}
+#page-ankidroid .page-head h2::before{content:"STAPEL"}
+#page-explain .page-head h2::before{content:"REGELN"}
+#page-stats .page-head h2::before{content:"DATEN"}
+#page-journey .page-head h2::before{content:"REISE"}
+#page-talk .page-head h2::before{content:"DIALOG"}
+#page-challenge .page-head h2::before{content:"DUELL"}
+.count-pill{border-radius:8px;font-weight:900}
+
+/* ---------- D5 · SIDEBAR: power navigation ---------- */
+.sidebar{border-inline-start:none;border-inline-end:1px solid var(--dm-line);background:linear-gradient(180deg,#0c142e,#070b16)}
+html[data-theme="light"] .sidebar{background:#fff}
+.logo-mark{border-radius:12px;background:linear-gradient(140deg,#2e6bff,#122a7d);border:1px solid rgba(63,216,242,.5)}
+.nav-item{border-radius:10px;font-weight:700}
+.nav-item:hover{background:rgba(46,107,255,.14);color:var(--dm-text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(46,107,255,.32),rgba(34,211,238,.12));
+  border:1px solid rgba(63,216,242,.45);color:#fff;font-weight:900;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 18px rgba(46,107,255,.25)}
+html[data-theme="light"] .nav-item.active{color:#0e1628}
+.nav-item.active::before{inset-inline-start:-12px;width:4px;top:7px;bottom:7px;
+  background:linear-gradient(var(--dm-cyan),var(--dm-accent));box-shadow:0 0 12px rgba(63,216,242,.9)}
+.nav-ico{border-radius:9px;background:rgba(148,178,255,.08)}
+.nav-item.active .nav-ico{background:rgba(63,216,242,.16);border-color:rgba(63,216,242,.55);
+  box-shadow:0 0 14px rgba(63,216,242,.45)}
+.nav-sec-label{color:var(--dm-faint);border-bottom:1px solid var(--dm-line-soft);padding-bottom:6px;margin-top:6px}
+.side-footer{border-top:2px solid var(--dm-line)}
+.streak-mini{border-radius:10px}
+
+/* ---------- D6 · ORBIT ENGINE: color-coded domains ---------- */
+.cmd-orbit{width:min(460px,100%)}
+.orbit-ring.r1{border:2px dashed rgba(63,216,242,.5)}
+.orbit-core{box-shadow:0 0 0 2px rgba(63,216,242,.35),0 0 60px rgba(46,107,255,.4)}
+.orbit-pct{font-size:clamp(34px,5vw,46px)}
+.orbit-node{border-width:2px;border-radius:16px}
+.orbit-node .ico{font-size:26px}
+.orbit-node .v{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
+/* six domain colors around the engine */
+.orbit-node.n0{border-color:#2563eb}.orbit-node.n0 .v{color:#60a5fa}
+.orbit-node.n1{border-color:#8b5cf6}.orbit-node.n1 .v{color:#a78bfa}
+.orbit-node.n2{border-color:#22d3ee}.orbit-node.n2 .v{color:#22d3ee}
+.orbit-node.n3{border-color:#ec4899}.orbit-node.n3 .v{color:#f472b6}
+.orbit-node.n4{border-color:#22c55e}.orbit-node.n4 .v{color:#4ade80}
+.orbit-node.n5{border-color:#ef4444}.orbit-node.n5 .v{color:#f87171}
+.orbit-node.active{transform:scale(1.14);box-shadow:0 0 26px currentColor}
+.orbit-detail{border-inline-start:4px solid var(--dm-accent);border-radius:12px}
+
+/* ---------- D7 · MISSION + NEXT ACTION: impossible to miss ---------- */
+.cmd-mission{border-radius:20px;border:1px solid var(--dm-line);border-inline-start:5px solid var(--dm-ok);grid-template-columns:auto 1fr}
+.cmd-arc{width:170px;height:170px}
+.cmd-arc b{font-size:34px;font-variant-numeric:tabular-nums}
+.cmd-m-tile{border-radius:12px;border:1px solid var(--dm-line);text-align:center}
+.cmd-m-tile b{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.cmd-m-tile span{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+.cmd-next{border-radius:20px;border:2px solid rgba(242,193,78,.55);padding:clamp(24px,3.5vw,36px)}
+.cmd-next-ico{width:76px;height:76px;border-radius:18px}
+.cmd-next h3{font-size:clamp(22px,3vw,30px)}
+.cmd-next .btn{min-height:58px;font-size:18px;font-weight:900;border-radius:12px;padding:14px 34px}
+
+/* ---------- D8 · JOURNEY roadmap ---------- */
+.cmd-stop-card{border-radius:14px}
+.cmd-stop.is-current .cmd-stop-card{border:2px solid rgba(63,216,242,.6)}
+.cmd-stop-body b{font-size:19px}
+.cmd-pill{border-radius:8px;font-size:12px}
+
+/* ---------- D9 · SURFACES + BUTTONS: distinct, rectangular, bold ---------- */
+.btn{border-radius:10px}
+.btn-primary{border-bottom:3px solid rgba(0,0,0,.35)}
+.btn-ghost{border-width:1.5px}
+.btn-gold{border-bottom:3px solid rgba(0,0,0,.3)}
+.btn-green{border-bottom:3px solid rgba(0,0,0,.3)}
+.btn-red{border-bottom:3px solid rgba(0,0,0,.3)}
+/* purposeful surfaces */
+.panel{border-radius:16px}
+.cmd-spot{border-inline-start:5px solid var(--dm-violet);border-radius:20px}
+.cmd-pgrid{border-top:4px solid var(--dm-accent);border-radius:20px}
+.cmd-big-ring{width:190px;height:190px}
+.cmd-big-ring b{font-size:42px;font-variant-numeric:tabular-nums}
+.cmd-pstat{border-radius:12px;border-top:3px solid var(--dm-line)}
+.cmd-pstat b{font-size:30px;font-variant-numeric:tabular-nums}
+.cmd-why-card{border-radius:14px;border-top:3px solid var(--dm-accent)}
+.cmd-final{border-top:4px solid transparent;border-image:linear-gradient(90deg,#2e6bff,#22d3ee,#f2c14e) 1}
+.quiz-opt{border-radius:10px;border-width:1.5px}
+.quiz-opt:hover:not(:disabled){border-color:var(--dm-domain)}
+.modal{border-radius:16px}
+.toast{border-radius:12px;border-width:2px}
+
+/* ---------- D10 · LEARNING PAGES ---------- */
+/* vocab: strong database rows */
+.word-card{border-radius:12px;border-inline-start:4px solid var(--dm-domain)}
+.word-de{font-size:29px}
+.article{border-radius:6px;font-size:13px}
+.word-ar{font-size:18px}
+.filters{border-radius:14px;border:1.5px solid var(--dm-line)}
+/* sentences: editorial quote objects, alternating rhythm */
+.sent-card{border-radius:4px 14px 14px 4px;border-inline-start:5px solid var(--dm-domain)}
+[dir="ltr"] .sent-card{border-radius:14px 4px 4px 14px}
+.sent-card:nth-child(even){background:rgba(148,178,255,.045)}
+.sent-de{font-size:20px}
+.sent-num{border-radius:8px}
+/* flashcards: physical study object, magenta/violet aura */
+.flash-face{border-radius:20px;border-width:2px}
+.flash-word{font-size:52px}
+.flash-ar{font-size:38px}
+/* anki: productivity table */
+.anki-deck-row{border-radius:12px;border-inline-start:4px solid var(--dm-domain)}
+.anki-count{border-radius:8px;font-weight:800}
+/* grammar: editorial, no card-soup */
+.grammar-card{border:none;border-top:4px solid var(--dm-domain);border-radius:0 0 16px 16px;background:transparent;padding-inline:4px}
+.grammar-card h3{font-size:24px}
+.grammar-ex{border-radius:6px;border-inline-start-width:4px}
+/* verbs: database */
+.conj-table td{padding:10px}
+.verb-de{font-size:28px}
+/* reference: black/yellow library identity */
+#page-reference .page-head::before{background:linear-gradient(90deg,#facc15,#f97316)}
+#refBox .ref-side{border-radius:12px;border-width:1.5px}
+#refBox .ref-cat.active{background:rgba(250,204,21,.14);border-color:#facc15;color:var(--dm-text)}
+#refBox .ref-article h2{border-inline-start:5px solid #facc15;padding-inline-start:12px}
+/* study guide + career */
+.hw-mod{border-top:4px solid var(--dm-domain)}
+#careerBox .career-stage{border-radius:12px;border-width:1.5px}
+#careerBox .career-stage.current{border:2px solid rgba(242,193,78,.65);background:linear-gradient(135deg,rgba(242,193,78,.12),transparent)}
+
+/* ---------- D11 · SKILL PAGES ---------- */
+/* speaking: dramatic mic stage */
+.mic-btn{border-radius:16px;font-weight:900}
+.mic-btn.live{box-shadow:0 0 0 4px rgba(239,68,68,.3),0 0 40px rgba(239,68,68,.5)}
+/* listening: actual-state bars */
+#listenBox .panel{border-inline-start:5px solid var(--dm-domain)}
+/* tests: focused, high-contrast */
+#quizPlay{border-top:4px solid var(--dm-domain)}
+.quiz-top{font-size:17px;font-weight:900}
+.quiz-opt{min-height:60px;font-size:18px}
+.quiz-opt.correct{border:2px solid #22c55e}
+.quiz-opt.wrong{border:2px solid #ef4444}
+/* smart training: coach strip */
+.sm-scene{border-radius:12px;border-width:2px}
+/* stats: big truthful numbers */
+.stat-num{font-size:36px}
+.donut{width:170px;height:170px}
+/* gamification stays premium */
+.lvl-badge{border-radius:14px}
+
+/* ---------- D12 · COMMAND PALETTE: bolder ---------- */
+.dm-pal{border-radius:14px;border:2px solid rgba(63,216,242,.5)}
+.dm-pal-item{border-radius:10px}
+.dm-pal-input{font-size:18px;font-weight:700}
+
+/* ---------- responsive ---------- */
+@media(max-width:860px){
+  .cmd-hero::after{font-size:clamp(38px,13vw,64px)}
+  .page-head h2::before{font-size:clamp(36px,12vw,56px)}
+  .cmd-next .btn{width:100%}
+  .flash-word{font-size:36px}
+  .sent-de{font-size:18px}
+  .word-de{font-size:25px}
+  .cmd-mission{grid-template-columns:1fr}
+  #refBox .ref-article h2{font-size:19px}
+}
+@media(min-width:1281px){
+  .cmd-hero h1{font-size:clamp(40px,4.5vw,64px)}
+}
+/* light theme: keep giant type readable */
+html[data-theme="light"] .cmd-hero::after{-webkit-text-stroke:1.5px rgba(23,32,51,.25)}
+html[data-theme="light"] .sent-card:nth-child(even){background:rgba(23,32,51,.035)}
+/* reduced motion: everything still */
+@media (prefers-reduced-motion:reduce){
+  .cmd-hero::after{content:"DEUTSCH MASTER"}
+}

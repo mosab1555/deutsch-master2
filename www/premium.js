@@ -136,3 +136,27 @@
     pal.addEventListener("click", function (ev) { if (ev.target === pal) close(); });
   } catch (e) {}
 })();
+
+/* Deutsch Master — domain flag (additive): mirrors the active page into
+   body[data-dmpage] so CSS can color-code each section. Read-only;
+   never calls showPage, never touches storage. */
+(function () {
+  "use strict";
+  function sync() {
+    try {
+      var active = document.querySelector(".page.active");
+      var page = active ? (active.id || "").replace(/^page-/, "") : "dashboard";
+      if (document.body.getAttribute("data-dmpage") !== page) {
+        document.body.setAttribute("data-dmpage", page);
+      }
+    } catch (e) {}
+  }
+  try {
+    sync();
+    var content = document.querySelector(".content");
+    if ("MutationObserver" in window && content) {
+      new MutationObserver(sync).observe(content, { subtree: true, attributes: true, attributeFilter: ["class"] });
+    }
+    document.addEventListener("click", function () { setTimeout(sync, 60); }, true);
+  } catch (e) {}
+})();
