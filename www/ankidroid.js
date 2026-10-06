@@ -467,6 +467,51 @@ function deleteNote(a, nid) {
   pruneMedia(a);
   return true;
 }
+/* Duplicate a note (new identity, same deck/type/fields/tags/media tokens).
+ * Reference (vocab-linked) notes are duplicated as references, not copies. */
+function duplicateNote(a, nid) {
+  var note = a.notes[nid];
+  if (!note) return { error: "missing" };
+  if (!a.types[note.type]) return { error: "missing" };
+  if (note.ref && note.ref.kind === "vocab" && note.ref.id) {
+    return addNote(a, { type: note.type, deck: note.deck, ref: { kind: "vocab", id: String(note.ref.id) }, tags: (note.tags || []).slice() });
+  }
+  return addNote(a, { type: note.type, deck: note.deck, fields: Object.assign({}, note.fields), tags: (note.tags || []).slice() });
+}
+/* Dashboard helpers (pure reads, never write storage). */
+function deckDueTotal(a, id, nowMs) {
+  var c = deckCounts(a, id, Date.now());
+  if (typeof nowMs === "number" && isFinite(nowMs) && nowMs !== Date.now()) c = deckCounts(a, id, nowMs);
+  return { due: c.new + c.learning + c.review + c.relearning, total: c.total };
+}
+function deckProgress(a, id, nowMs) {
+  var d = deckDueTotal(a, id, nowMs);
+  if (!d.total) return 0;
+  return Math.max(0, Math.min(100, Math.round((d.total - d.due) / d.total * 100)));
+}
+/* Last review timestamp for a deck subtree (0 = never). Derived from the
+ * review log so no schema change or migration is ever needed. */
+function deckLastStudied(a, id) {
+  var ids = {};
+  try { descendants(a, id).forEach(function (x) { ids[x] = 1; }); } catch (e) { return 0; }
+  var best = 0;
+  try {
+    (a.log || []).forEach(function (e) {
+      var c = e && a.cards[e.c];
+      if (c && ids[c.deck] && e.t > best) best = e.t;
+    });
+  } catch (e2) {}
+  return best;
+}
+function fmtLast(ts) {
+  if (!ts) return T("anki_never");
+  try {
+    if (todayKey(new Date(ts)) === todayKey()) return T("anki_today");
+    var d = new Date(ts);
+    if (d && typeof d.toLocaleDateString === "function") return d.toLocaleDateString();
+  } catch (e) {}
+  return T("anki_never");
+}
 /* Change note type: keep shared field names, warn (caller confirms) when cards change count. */
 function changeNoteType(a, nid, newTypeId) {
   var note = a.notes[nid];
@@ -1100,7 +1145,7 @@ function downloadFile(name, content, mime) {
 }
 
 /* ================= M. view framework ================= */
-var V = { name: "home", deck: null, q: "", page: 0, sel: {}, editNote: null, editType: null, custom: null, statsTab: "today" };
+var V = { name: "home", deck: null, q: "", page: 0, sel: {}, editNote: null, editType: null, custom: null, statsTab: "today", deckF: "", typeF: "" };
 var SESS = null; /* active study session */
 /* Editor image staging (reset on entering add/edit): EM = pending {field,mid},
  * EMR = removals [{field,mid}] applied on save. Assets commit to the store at
@@ -1141,6 +1186,8 @@ function root() { try { return document.getElementById("ankiRoot"); } catch (e) 
 function setView(patch) {
   Object.keys(patch || {}).forEach(function (k) { V[k] = patch[k]; });
   if (patch && (patch.name === "add" || patch.name === "edit")) { EM = null; EMR = []; ED = null; }
+  try { closeCardPreview(); } catch (e) {}
+  try { closeMenu(); } catch (e2) {}
   render();
 }
 function ratingLabel(r) {
@@ -1153,41 +1200,87 @@ function chipCounts(c) {
 }
 function toolbarHTML(active) {
   function b(id, key, view) {
-    return '<button class="btn ' + (active === view ? "btn-primary" : "btn-ghost") + ' sm" data-aview="' + view + '" id="' + id + '">' + esc(T(key)) + '</button>';
+    var on = active === view;
+    return '<button class="btn ' + (on ? "btn-primary" : "btn-ghost") + ' sm anki-tab" data-aview="' + view + '" id="' + id + '"' + (on ? ' aria-current="page"' : "") + '>' + esc(T(key)) + '</button>';
   }
-  return '<div class="anki-toolbar" role="toolbar">' +
-    b("ankiStudyBtn", "anki_study", "study") + b("ankiAddBtn", "anki_add", "add") +
+  return '<nav class="anki-toolbar" role="navigation" aria-label="AnkiDroid">' +
+    b("ankiHomeBtn", "anki_my_decks", "home") + b("ankiStudyBtn", "anki_study", "study") + b("ankiAddBtn", "anki_add", "add") +
     b("ankiBrowseBtn", "anki_browse", "browse") + b("ankiStatsBtn", "anki_stats", "stats") +
     '<span class="anki-toolbar-sp"></span>' +
-    '<button class="btn btn-ghost sm" data-aview="types">' + esc(T("anki_note_type")) + '</button>' +
-    '<button class="btn btn-ghost sm" data-aview="collection">' + esc(T("anki_collection")) + '</button>' +
-    '<button class="btn btn-ghost sm" data-aview="settings">' + esc(T("anki_settings")) + '</button>' +
+    '<button class="btn btn-ghost sm anki-tab" data-aview="types">' + esc(T("anki_note_type")) + '</button>' +
+    '<button class="btn btn-ghost sm anki-tab" data-aview="collection">' + esc(T("anki_collection")) + '</button>' +
+    '<button class="btn btn-ghost sm anki-tab" data-aview="settings">' + esc(T("anki_settings")) + '</button>' +
+    '</nav>';
+}
+/* Deck dashboard: every deck is a scannable card (name, counts, due,
+ * progress, last studied, study action). Nested decks render as compact
+ * sub-rows inside their parent card. Hook contract preserved for tests and
+ * event delegation: .anki-deck-row, [data-atoggle], [data-aoverview] x2,
+ * [data-astudy], [data-abrowse], [data-amenu], .anki-kids(.hidden). */
+function deckSubRowHTML(a, id, depth) {
+  var d = a.decks[id];
+  if (!d || depth > 8) return "";
+  var kids = childrenOf(a, id);
+  var c = deckCounts(a, id, Date.now());
+  var open = !d.collapsed;
+  var h = '<div class="anki-deck" data-deck="' + esc(id) + '">' +
+    '<div class="anki-deck-row anki-sub">' +
+    (kids.length ? '<button class="anki-toggle" data-atoggle="' + esc(id) + '" aria-expanded="' + (open ? "true" : "false") + '" aria-label="expand">' + (open ? "▾" : "▸") + '</button>' : '<span class="anki-toggle-sp"></span>') +
+    '<button class="anki-deck-name" data-aoverview="' + esc(id) + '" title="' + esc(deckPath(a, id)) + '">↳ ' + esc(d.name) + '</button>' +
+    '<button class="anki-deck-go" data-aoverview="' + esc(id) + '" aria-label="' + esc(T("anki_overview")) + '">' + chipCounts(c) + '</button>' +
+    '<button class="mini-btn" data-astudy="' + esc(id) + '" aria-label="' + esc(T("anki_study_now")) + '">▶</button>' +
+    '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions">⋮</button>' +
     '</div>';
+  if (kids.length) {
+    h += '<div class="anki-kids' + (open ? "" : " hidden") + '">';
+    if (open) kids.forEach(function (k) { h += deckSubRowHTML(a, k, depth + 1); });
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+function deckCardHTML(a, id) {
+  var d = a.decks[id];
+  if (!d) return "";
+  var kids = childrenOf(a, id);
+  var c = deckCounts(a, id, Date.now());
+  var dt = deckDueTotal(a, id, Date.now());
+  var prog = deckProgress(a, id, Date.now());
+  var last = fmtLast(deckLastStudied(a, id));
+  var open = !d.collapsed;
+  var h = '<article class="anki-deck-card" data-deck="' + esc(id) + '">' +
+    '<div class="anki-deck-row">' +
+    (kids.length ? '<button class="anki-toggle" data-atoggle="' + esc(id) + '" aria-expanded="' + (open ? "true" : "false") + '" aria-label="expand">' + (open ? "▾" : "▸") + '</button>' : '<span class="anki-toggle-sp"></span>') +
+    '<button class="anki-deck-name" data-aoverview="' + esc(id) + '" title="' + esc(deckPath(a, id)) + '">' + esc(d.name) + '</button>' +
+    '<button class="anki-deck-go" data-aoverview="' + esc(id) + '" aria-label="' + esc(T("anki_overview")) + '">' + chipCounts(c) + '</button>' +
+    '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions" aria-haspopup="menu">⋮</button>' +
+    '</div>' +
+    '<div class="anki-deck-sub" dir="auto">' + esc(deckPath(a, id)) + ' · ' + c.total + ' ' + esc(T("anki_total")) + ' · ' + dt.due + ' ' + esc(T("anki_due_now")) + '</div>' +
+    '<div class="anki-progress" role="img" aria-label="' + esc(T("anki_progress")) + ' ' + prog + '%"><div class="progress"><div class="progress-fill" style="width:' + prog + '%"></div></div><span class="anki-prog-num">' + prog + '%</span></div>' +
+    '<div class="anki-deck-last muted">' + esc(T("anki_last_studied")) + ': ' + esc(last) + (kids.length ? ' · ' + kids.length + ' sub' : '') + '</div>' +
+    '<div class="anki-deck-actions"><button class="btn btn-primary sm" data-astudy="' + esc(id) + '">' + esc(T("anki_study_now")) + ' (' + dt.due + ')</button>' +
+    '<button class="btn btn-ghost sm" data-abrowse="' + esc(id) + '">' + esc(T("anki_browse")) + '</button></div>';
+  if (kids.length) {
+    h += '<div class="anki-kids' + (open ? "" : " hidden") + '">';
+    if (open) kids.forEach(function (k) { h += deckSubRowHTML(a, k, 1); });
+    h += '</div>';
+  }
+  return h + '</article>';
 }
 function deckTreeHTML(a) {
   var ids = Object.keys(a.decks);
-  if (!ids.length) return '<div class="anki-empty">' + esc(T("anki_empty_state")) + '</div>';
+  if (!ids.length) return deckEmptyHTML();
   var roots = childrenOf(a, null);
   Object.keys(a.decks).forEach(function (k) { if (!a.decks[k].parent || !a.decks[a.decks[k].parent]) { if (roots.indexOf(k) < 0) roots.push(k); } });
-  var html = "";
-  function row(id, depth) {
-    var d = a.decks[id];
-    if (!d) return;
-    var kids = childrenOf(a, id);
-    var c = deckCounts(a, id, Date.now());
-    var open = !d.collapsed;
-    html += '<div class="anki-deck" data-deck="' + esc(id) + '">' +
-      '<div class="anki-deck-row" style="padding-inline-start:' + (8 + depth * 18) + 'px">' +
-      (kids.length ? '<button class="anki-toggle" data-atoggle="' + esc(id) + '" aria-expanded="' + (open ? "true" : "false") + '" aria-label="expand">' + (open ? "▾" : "▸") + '</button>' : '<span class="anki-toggle-sp"></span>') +
-      '<button class="anki-deck-name" data-aoverview="' + esc(id) + '" title="' + esc(deckPath(a, id)) + '">' + esc(d.name) + '</button>' +
-      '<button class="anki-deck-go" data-aoverview="' + esc(id) + '">' + chipCounts(c) + '</button>' +
-      '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions">⋮</button>' +
-      '</div><div class="anki-kids' + (open ? "" : " hidden") + '">';
-    if (open) kids.forEach(function (k) { row(k, depth + 1); });
-    html += "</div></div>";
-  }
-  roots.forEach(function (k) { row(k, 0); });
-  return html;
+  roots.sort(function (x, y) { return String((a.decks[x] || {}).name || "").localeCompare(String((a.decks[y] || {}).name || "")); });
+  return '<div class="anki-deck-grid">' + roots.map(function (k) { return deckCardHTML(a, k); }).join("") + '</div>';
+}
+/* Polished empty state (never a blank area). Keeps data-anewdeck hook. */
+function deckEmptyHTML() {
+  return '<div class="anki-empty"><div class="anki-empty-ico" aria-hidden="true">🇩🇪</div>' +
+    '<h3>' + esc(T("anki_empty_title")) + '</h3>' +
+    '<p class="muted">' + esc(T("anki_empty_state")) + '</p>' +
+    '<div class="row-flex anki-empty-cta"><button class="btn btn-primary" data-anewdeck="1">' + esc(T("anki_create_deck")) + '</button>' +
+    '<button class="btn btn-ghost" data-aview="io">' + esc(T("anki_import_deck")) + '</button></div></div>';
 }
 function render() {
   var r = root();
@@ -1215,15 +1308,31 @@ function render() {
 }
 function homeHTML(a) {
   var s = computeStats(a, Date.now());
+  var reviewed = Math.max(0, s.total - s.due);
   var h = toolbarHTML("home") +
-    '<div class="anki-home-actions">' +
-    '<button class="btn btn-ghost sm" data-anewdeck="1">＋ ' + esc(T("anki_deck")) + '</button>' +
-    '<button class="btn btn-ghost sm" data-aview="add">＋ ' + esc(T("anki_add")) + '</button>' +
-    '<button class="btn btn-ghost sm" data-aseed="1">⚡ ' + esc(T("anki_generate")) + '</button>' +
-    '<button class="btn btn-ghost sm" data-aview="io">⇅ CSV</button>' +
-    '<span class="muted"> · ' + s.total + ' / ' + s.decks + ' / ' + s.notes + '</span>' +
-    '</div>' +
-    '<div class="anki-deck-list">' + deckTreeHTML(a) + '</div>';
+    '<section class="anki-hero" aria-label="AnkiDroid">' +
+    '<div class="anki-hero-flag" aria-hidden="true"><span class="anki-flag-de"></span><span class="anki-flag-dm">DM</span></div>' +
+    '<div class="anki-hero-body"><h2 class="anki-hero-title">AnkiDroid</h2>' +
+    '<p class="anki-hero-sub">' + esc(T("anki_hero_sub")) + '</p>' +
+    '<p class="anki-hero-note muted">' + esc(T("anki_hero_note")) + '</p>' +
+    '<div class="anki-hero-cta"><button class="btn btn-primary anki-cta-main" data-aview="add">' + esc(T("anki_create_card")) + '</button>' +
+    '<button class="btn btn-ghost anki-cta-sub" data-anewdeck="1">' + esc(T("anki_create_deck")) + '</button></div>' +
+    '</div></section>' +
+    '<section class="anki-stats" aria-label="overview">' +
+    '<div class="anki-stat"><div class="anki-stat-n">' + s.decks + '</div><div class="anki-stat-l">' + esc(T("anki_stat_decks")) + '</div></div>' +
+    '<div class="anki-stat"><div class="anki-stat-n">' + s.total + '</div><div class="anki-stat-l">' + esc(T("anki_stat_cards")) + '</div></div>' +
+    '<div class="anki-stat hot"><div class="anki-stat-n">' + s.due + '</div><div class="anki-stat-l">' + esc(T("anki_stat_due")) + '</div></div>' +
+    '<div class="anki-stat ok"><div class="anki-stat-n">' + reviewed + '</div><div class="anki-stat-l">' + esc(T("anki_stat_done")) + '</div></div>' +
+    '</section>' +
+    '<section class="anki-next"><h3 class="anki-sec-t">' + esc(T("anki_what_next")) + '</h3><div class="anki-next-grid">' +
+    '<button class="anki-act primary" data-aquickstudy="1"><span class="anki-act-ico" aria-hidden="true">📚</span><span class="anki-act-t">' + esc(T("anki_study")) + '</span><span class="anki-act-d">' + esc(T("anki_act_study_d")) + '</span></button>' +
+    '<button class="anki-act" data-aview="add"><span class="anki-act-ico" aria-hidden="true">＋</span><span class="anki-act-t">' + esc(T("anki_add")) + '</span><span class="anki-act-d">' + esc(T("anki_act_card_d")) + '</span></button>' +
+    '<button class="anki-act" data-anewdeck="1"><span class="anki-act-ico" aria-hidden="true">📁</span><span class="anki-act-t">' + esc(T("anki_deck")) + '</span><span class="anki-act-d">' + esc(T("anki_act_deck_d")) + '</span></button>' +
+    '<button class="anki-act" data-aview="io"><span class="anki-act-ico" aria-hidden="true">↥</span><span class="anki-act-t">' + esc(T("anki_import")) + '</span><span class="anki-act-d">' + esc(T("anki_act_import_d")) + '</span></button>' +
+    '</div></section>' +
+    '<section class="anki-decks-sec" aria-label="' + esc(T("anki_my_decks")) + '"><div class="anki-sec-head"><h3 class="anki-sec-t">' + esc(T("anki_my_decks")) + '</h3>' +
+    '<button class="btn btn-ghost sm" data-aseed="1">⚡ ' + esc(T("anki_generate")) + '</button></div>' +
+    '<div class="anki-deck-list">' + deckTreeHTML(a) + '</div></section>';
   return h;
 }
 function overviewHTML(a) {
@@ -1237,19 +1346,26 @@ function overviewHTML(a) {
   var c = deckCounts(a, id, Date.now());
   var o = deckOpts(a, id);
   var nn = Math.min(c.new, o.newPerDay), rv = Math.min(c.learning + c.review + c.relearning, o.maxReview);
+  var due = c.new + c.learning + c.relearning + c.review;
+  var reviewed = Math.max(0, c.total - due - c.suspended - c.buried);
+  var pct = c.total ? Math.round(reviewed / c.total * 100) : 0;
   var h = toolbarHTML("study") +
     '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="home">' + esc(T("anki_back_decks")) + '</button></div>' +
-    '<div class="anki-overview glass"><h3 dir="auto">' + esc(deckPath(a, id)) + '</h3>' +
+    '<div class="anki-overview glass"><p class="anki-eyebrow muted">🇩🇪 AnkiDroid</p><h3 dir="auto">' + esc(deckPath(a, id)) + '</h3>' +
+    '<div class="anki-deck-bar big" aria-hidden="true"><div class="anki-deck-fill" style="width:' + pct + '%"></div></div>' +
     '<div class="anki-ov-grid">' +
+    '<div class="anki-ov-card"><div class="anki-ov-num">' + c.total + '</div><div class="anki-ov-lab">' + esc(T("anki_stat_cards")) + '</div></div>' +
     '<div class="anki-ov-card"><div class="anki-ov-num new">' + c.new + '</div><div class="anki-ov-lab">' + esc(T("anki_new")) + '</div></div>' +
-    '<div class="anki-ov-card"><div class="anki-ov-num learning">' + (c.learning + c.relearning) + '</div><div class="anki-ov-lab">' + esc(T("anki_learning")) + '</div></div>' +
-    '<div class="anki-ov-card"><div class="anki-ov-num review">' + c.review + '</div><div class="anki-ov-lab">' + esc(T("anki_due")) + '</div></div>' +
+    '<div class="anki-ov-card"><div class="anki-ov-num review">' + due + '</div><div class="anki-ov-lab">' + esc(T("anki_stat_due")) + '</div></div>' +
+    '<div class="anki-ov-card"><div class="anki-ov-num ok">' + reviewed + '</div><div class="anki-ov-lab">' + esc(T("anki_stat_done")) + '</div></div>' +
     '</div>' +
-    '<p class="muted">🗂️ ' + c.total + ' · 📝 ' + nn + ' · 🔁 ' + rv + ' · ⏸️ ' + c.suspended + ' · 📥 ' + c.buried + '</p>' +
-    '<div class="row-flex"><button class="btn btn-primary" data-astudy="' + esc(id) + '">📖 ' + esc(T("anki_study")) + ' (' + (nn + rv) + ')</button>' +
-    '<button class="btn btn-ghost" data-abrowse="' + esc(id) + '">🔍 ' + esc(T("anki_browse")) + '</button>' +
-    '<button class="btn btn-ghost" data-aview="custom">🎯 ' + esc(T("anki_custom_study")) + '</button>' +
-    '<button class="btn btn-ghost" data-aopts="' + esc(id) + '">⚙️ ' + esc(T("anki_deck_options")) + '</button></div>' +
+    '<p class="muted anki-ov-sub">📝 ' + nn + ' · 🔁 ' + rv + ' · ⏸️ ' + c.suspended + ' · 📥 ' + c.buried + '</p>' +
+    '<button class="btn btn-primary anki-study-hero" data-astudy="' + esc(id) + '">📖 ' + esc(T("anki_start_study")) + (due ? ' · ' + due : '') + '</button>' +
+    '<div class="row-flex anki-ov-tools"><button class="btn btn-ghost sm" data-aview="add">＋ ' + esc(T("anki_add")) + '</button>' +
+    '<button class="btn btn-ghost sm" data-abrowse="' + esc(id) + '">📋 ' + esc(T("anki_manage_cards")) + '</button>' +
+    '<button class="btn btn-ghost sm" data-aview="custom">🎯 ' + esc(T("anki_custom_study")) + '</button>' +
+    '<button class="btn btn-ghost sm" data-aexport-deck="' + esc(id) + '">📤 ' + esc(T("anki_export")) + '</button>' +
+    '<button class="btn btn-ghost sm" data-aopts="' + esc(id) + '" aria-label="' + esc(T("anki_deck_options")) + '">⚙️</button></div>' +
     '</div>';
   return h;
 }
@@ -1291,32 +1407,36 @@ function studyHTML(a) {
   var bucket = bucketOf(card, Date.now());
   var bucketAr = bucket === "new" ? T("anki_new") : bucket === "learning" ? T("anki_learning") : bucket === "relearning" ? T("anki_learning") : T("anki_due");
   var prog = (SESS.idx + 1) + " / " + SESS.queue.length;
+  var deckName = "";
+  try { deckName = SESS.deck && a.decks[SESS.deck] ? deckPath(a, SESS.deck) : ""; } catch (e) {}
   var h = toolbarHTML("study") +
     '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="home">' + esc(T("anki_back_decks")) + '</button>' +
     '<span class="muted">' + esc(prog) + ' · <span class="anki-bucket-badge">' + esc(bucketAr) + '</span>' + (sched.st !== "new" ? ' · ⏱ ' + (sched.iv | 0) + 'd' : '') + '</span></div>' +
-    '<div class="anki-card" id="ankiCard" tabindex="0"><div class="anki-card-inner' + (SESS.revealed ? " flipped" : "") + '" id="ankiCardInner">' +
-    '<div class="anki-card-front" dir="auto">' + sides.front +
+    '<section class="anki-study" aria-label="' + esc(deckName || T("anki_study")) + '">' +
+    (deckName ? '<h3 class="anki-study-deck" dir="auto">' + esc(deckName) + '</h3>' : '') +
+    '<div class="anki-card" id="ankiCard" tabindex="0" role="button" aria-label="' + esc(T("anki_show_answer")) + '"><div class="anki-card-inner' + (SESS.revealed ? " flipped" : "") + '" id="ankiCardInner">' +
+    '<div class="anki-card-front" dir="auto"><div class="anki-say-line"><button class="mini-btn anki-say" data-asay="front" aria-label="play front">🔊</button></div>' + sides.front +
     '<div class="anki-hint muted">' + esc(T("anki_show_answer")) + ' ⏎</div></div>' +
-    '<div class="anki-card-back' + (SESS.revealed ? "" : " hidden") + '" dir="auto">' + sides.back + '</div>' +
+    '<div class="anki-card-back' + (SESS.revealed ? "" : " hidden") + '" dir="auto">' +
+    (SESS.revealed ? '<div class="anki-say-line"><button class="mini-btn anki-say" data-asay="back" aria-label="play back">🔊</button></div>' : '') + sides.back + '</div>' +
     '</div></div>' +
-    '<div class="anki-audio-row"><button class="mini-btn" data-asay="front" aria-label="play front">🔊</button>' +
-    (SESS.revealed ? '<button class="mini-btn" data-asay="back" aria-label="play back">🔊</button>' : '') +
+    '<div class="anki-audio-row">' +
     (SESS.revealed ? '<button class="btn btn-ghost sm" data-apron="1">🎤 ' + esc(T("anki_check_pron")) + '</button>' : '') + '</div>' +
     '<div id="ankiPronBox"></div>' +
     '<div class="anki-study-controls">';
   if (!SESS.revealed) {
     h += '<button class="btn btn-primary big-touch" id="ankiShowAns" data-ashow="1">👁️ ' + esc(T("anki_show_answer")) + '</button>';
   } else {
-    h += '<div class="anki-ratings" id="ankiRatings">' +
+    h += '<div class="anki-ratings" id="ankiRatings" role="group" aria-label="' + esc(T("anki_study")) + '">' +
       ["again", "hard", "good", "easy"].map(function (r, i) {
-        return '<button class="btn big-touch ' + (r === "again" ? "btn-red" : r === "hard" ? "btn-gold" : r === "good" ? "btn-green" : "btn-primary") + '" data-arate="' + r + '"><b>' + (i + 1) + '</b> ' + esc(ratingLabel(r)) + ' <small>' + esc(previewInterval(a, card.id, r)) + '</small></button>';
+        return '<button class="btn big-touch anki-rate-' + r + ' ' + (r === "again" ? "btn-red" : r === "hard" ? "btn-gold" : r === "good" ? "btn-green" : "btn-primary") + '" data-arate="' + r + '"><b>' + (i + 1) + '</b> ' + esc(ratingLabel(r)) + ' <small>' + esc(previewInterval(a, card.id, r)) + '</small></button>';
       }).join("") + '</div>' +
-      '<div class="row-flex"><button class="btn btn-ghost sm" data-aeditnote="' + esc(card.note) + '">✏️ e</button>' +
+      '<div class="row-flex anki-study-tools"><button class="btn btn-ghost sm" data-aeditnote="' + esc(card.note) + '">✏️ e</button>' +
       '<button class="btn btn-ghost sm" data-asuspend="1">⏸️</button>' +
       '<button class="btn btn-ghost sm" data-abury="1">📥</button>' +
       (a.undo || SESS.undoStack.length ? '<button class="btn btn-ghost sm" data-aundo="1">↩️ ' + esc(T("anki_undo")) + '</button>' : '') + '</div>';
   }
-  h += '</div><div class="anki-progress"><div class="progress"><div class="progress-fill" style="width:' + Math.round((SESS.idx) / Math.max(1, SESS.queue.length) * 100) + '%"></div></div></div>';
+  h += '</div><div class="anki-progress"><div class="progress"><div class="progress-fill" style="width:' + Math.round((SESS.idx) / Math.max(1, SESS.queue.length) * 100) + '%"></div></div></div></section>';
   return h;
 }
 function rateCurrent(rating) {
@@ -1350,11 +1470,20 @@ function browseHTML(a) {
   var page = Math.max(0, V.page | 0);
   var slice = res.slice(page * BROWSE_PAGE, page * BROWSE_PAGE + BROWSE_PAGE);
   var pages = Math.max(1, Math.ceil(total / BROWSE_PAGE));
+  function chip(key, label, active) {
+    return '<button class="anki-fchip' + (active ? " on" : "") + '" data-afilter="' + key + '" aria-pressed="' + (active ? "true" : "false") + '">' + esc(label) + '</button>';
+  }
+  var ql = String(q || "").trim().toLowerCase();
   var h = toolbarHTML("browse") +
     '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="home">' + esc(T("anki_back_decks")) + '</button>' +
     '<span class="muted">' + total + ' · ' + esc(T("anki_browser")) + '</span></div>' +
-    '<div class="anki-browser-toolbar"><input id="ankiSearch" class="full-input" dir="auto" placeholder="' + esc(T("anki_search_ph")) + '" value="' + esc(q) + '">' +
-    '<select id="ankiSort"><option value="due"' + (sortK === "due" ? " selected" : "") + '>Due</option><option value="deck"' + (sortK === "deck" ? " selected" : "") + '>Deck</option><option value="state"' + (sortK === "state" ? " selected" : "") + '>State</option><option value="iv"' + (sortK === "iv" ? " selected" : "") + '>Interval</option></select></div>' +
+    '<h3 class="anki-sec-t">' + esc(T("anki_manage_cards")) + '</h3>' +
+    '<div class="anki-browser-toolbar"><input id="ankiSearch" class="full-input" dir="auto" placeholder="' + esc(T("anki_search_ph")) + '" value="' + esc(q) + '" aria-label="' + esc(T("anki_search_ph")) + '">' +
+    '<select id="ankiSort" aria-label="sort"><option value="due"' + (sortK === "due" ? " selected" : "") + '>Due</option><option value="deck"' + (sortK === "deck" ? " selected" : "") + '>Deck</option><option value="state"' + (sortK === "state" ? " selected" : "") + '>State</option><option value="iv"' + (sortK === "iv" ? " selected" : "") + '>Interval</option></select></div>' +
+    '<div class="anki-fchips" role="group">' +
+    chip("", T("anki_filter_all"), !ql) + chip("is:new", T("anki_filter_new") + " " + T("anki_new"), ql === "is:new") +
+    chip("is:due", T("anki_filter_due") + " " + T("anki_stat_due"), ql === "is:due") + chip("has:media", T("anki_filter_media"), ql === "has:media") +
+    '</div>' +
     '<div class="anki-bulk"><button class="btn btn-ghost sm" data-abFloyd="sus">⏸️ ' + esc(T("anki_suspend")) + '</button>' +
     '<button class="btn btn-ghost sm" data-abFloyd="bury">📥 ' + esc(T("anki_bury")) + '</button>' +
     '<button class="btn btn-ghost sm" data-abFloyd="unsus">▶️ ' + esc(T("anki_unsuspend")) + '</button>' +
@@ -1473,25 +1602,42 @@ function editorHTML(a) {
   var h = toolbarHTML("add") +
     '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="' + (isEdit ? "browse" : "home") + '">' + esc(T("anki_cancel")) + '</button>' +
     '<b>' + (isEdit ? "✏️" : "➕") + ' ' + esc(type.name) + '</b></div>' +
-    '<div class="anki-editor glass"><div class="form-group"><label>' + esc(T("anki_note_type")) + '</label><select id="ankiEdType">' +
-    Object.keys(a.types).map(function (k) { return '<option value="' + esc(k) + '"' + (k === type.id ? " selected" : "") + '>' + esc(a.types[k].name) + '</option>'; }).join("") + '</select></div>' +
-    '<div class="form-group"><label>' + esc(T("anki_deck")) + '</label><select id="ankiEdDeck">' +
-    Object.keys(a.decks).map(function (k) { return '<option value="' + esc(k) + '"' + (k === deckId ? " selected" : "") + '>' + esc(deckPath(a, k)) + '</option>'; }).join("") + '</select></div>';
-  (type.fields || []).forEach(function (f) {
+    '<div class="anki-editor glass anki-steps-form">' +
+    '<section class="anki-step-sec" aria-label="' + esc(T("anki_step_deck")) + '"><h4 class="anki-step-h"><span class="anki-step-num">1</span> ' + esc(T("anki_step_deck")) + '</h4>' +
+    '<div class="form-group"><select id="ankiEdDeck" aria-label="' + esc(T("anki_deck")) + '">' +
+    Object.keys(a.decks).map(function (k) { return '<option value="' + esc(k) + '"' + (k === deckId ? " selected" : "") + '>' + esc(deckPath(a, k)) + '</option>'; }).join("") + '</select>' +
+    '<button class="btn btn-ghost sm" data-anewdeck="1" style="margin-top:6px">' + esc(T("anki_new_deck")) + '</button></div></section>' +
+    '<section class="anki-step-sec" aria-label="' + esc(T("anki_step_type")) + '"><h4 class="anki-step-h"><span class="anki-step-num">2</span> ' + esc(T("anki_step_type")) + '</h4>' +
+    '<div class="form-group"><select id="ankiEdType" aria-label="' + esc(T("anki_note_type")) + '">' +
+    Object.keys(a.types).map(function (k) { return '<option value="' + esc(k) + '"' + (k === type.id ? " selected" : "") + '>' + esc(a.types[k].name) + '</option>'; }).join("") + '</select></div></section>' +
+    '<section class="anki-step-sec" aria-label="' + esc(T("anki_step_front")) + '"><h4 class="anki-step-h"><span class="anki-step-num">3</span> ' + esc(T("anki_step_front")) + '</h4>';
+  (type.fields || []).slice(0, 1).forEach(function (f) {
     var v = isEdit && !note.ref ? (note.fields[f] || "") : "";
     if (isEdit && note.ref) { var F = resolveFields(note); v = F[f] || ""; }
     if (draft && draft.fields && draft.fields[f] !== undefined) v = draft.fields[f];
     var big = /example|explanation|conjugation|transcript|meaning/i.test(f);
     h += '<div class="form-group"><label dir="auto">' + esc(f) + '</label>' +
-      (big ? '<textarea id="ankiEdF_' + esc(f) + '" dir="auto">' + esc(v) + '</textarea>' : '<input id="ankiEdF_' + esc(f) + '" dir="auto" value="' + esc(v) + '">') + '</div>';
+      (big ? '<textarea id="ankiEdF_' + esc(f) + '" dir="auto" placeholder="' + esc(T("anki_front_ph")) + '">' + esc(v) + '</textarea>' : '<input id="ankiEdF_' + esc(f) + '" dir="auto" placeholder="' + esc(T("anki_front_ph")) + '" value="' + esc(v) + '">') + '</div>';
   });
+  h += '</section><section class="anki-step-sec" aria-label="' + esc(T("anki_step_back")) + '"><h4 class="anki-step-h"><span class="anki-step-num">4</span> ' + esc(T("anki_step_back")) + '</h4>';
+  (type.fields || []).slice(1).forEach(function (f) {
+    var v = isEdit && !note.ref ? (note.fields[f] || "") : "";
+    if (isEdit && note.ref) { var F = resolveFields(note); v = F[f] || ""; }
+    if (draft && draft.fields && draft.fields[f] !== undefined) v = draft.fields[f];
+    var big = /example|explanation|conjugation|transcript|meaning/i.test(f);
+    var ph = (f === "Back" || f === (type.fields || [])[1]) ? T("anki_back_ph") : f;
+    h += '<div class="form-group"><label dir="auto">' + esc(f) + '</label>' +
+      (big ? '<textarea id="ankiEdF_' + esc(f) + '" dir="auto" placeholder="' + esc(ph) + '">' + esc(v) + '</textarea>' : '<input id="ankiEdF_' + esc(f) + '" dir="auto" placeholder="' + esc(ph) + '" value="' + esc(v) + '">') + '</div>';
+  });
+  h += '</section>';
   var tags = isEdit ? (note.tags || []).join(", ") : "";
   if (draft && typeof draft.tags === "string") tags = draft.tags;
-  h += editorMediaHTML(a, note, type, isEdit);
-  h += '<div class="form-group"><label>' + esc(T("anki_tags")) + '</label><input id="ankiEdTags" dir="auto" value="' + esc(tags) + '"></div>' +
+  h += '<section class="anki-step-sec" aria-label="' + esc(T("anki_live_preview")) + '"><h4 class="anki-step-h"><span class="anki-step-num">5</span> ' + esc(T("anki_live_preview")) + '</h4>' +
+    editorMediaHTML(a, note, type, isEdit) +
+    '<div class="form-group"><label>' + esc(T("anki_tags")) + '</label><input id="ankiEdTags" dir="auto" value="' + esc(tags) + '"></div>' +
     (isEdit && note.ref ? '<p class="muted">🔗 vocab:' + esc(note.ref.id) + '</p>' : '') +
     '<div class="row-flex"><button class="btn btn-primary" data-asave="' + (isEdit ? "edit" : "add") + '">' + esc(T("anki_save")) + '</button>' +
-    '<button class="btn btn-ghost" data-aview="' + (isEdit ? "browse" : "home") + '">' + esc(T("anki_cancel")) + '</button></div></div>';
+    '<button class="btn btn-ghost" data-aview="' + (isEdit ? "browse" : "home") + '">' + esc(T("anki_cancel")) + '</button></div></section></div>';
   return h;
 }
 /* ---- note types + templates ---- */
@@ -1858,6 +2004,12 @@ function bindRoot(r, a) {
     if ((b = q("[data-amedia-file]"))) { var fi = document.getElementById("ankiImgFile"); if (fi) fi.click(); return; }
     if ((b = q("[data-amedia-url]"))) { var ur = document.getElementById("ankiImgUrlRow"); if (ur) ur.classList.toggle("hidden"); var ui = document.getElementById("ankiImgUrl"); if (ui && !ur.classList.contains("hidden")) ui.focus(); return; }
     if ((b = q("[data-amedia-fetch]"))) { mediaFetchFlow(); return; }
+    if ((b = q("[data-editor-next]"))) { V.editorStep = Math.min(5, (V.editorStep || 1) + 1); render(); return; }
+    if ((b = q("[data-editor-prev]"))) { V.editorStep = Math.max(1, (V.editorStep || 1) - 1); render(); return; }
+    if ((b = q("[data-aquickstudy]"))) { var d = a.settings.defaultDeck && a.decks[a.settings.defaultDeck] ? a.settings.defaultDeck : Object.keys(a.decks)[0]; if (d) startSession(A(), d, {}); return; }
+    if ((b = q("[data-preview-flip]"))) { V.previewRevealed = !V.previewRevealed; var pc = document.getElementById("ankiPreviewInner"); if (pc) pc.classList.toggle("flipped"); return; }
+    if ((b = q("[data-aexport-deck]"))) { var ids = Object.keys(A().cards).filter(function (x) { return descendants(A(), b.getAttribute("data-aexport-deck")).indexOf(A().cards[x].deck) >= 0; }); downloadFile("ankidroid-" + deckPath(A(), b.getAttribute("data-aexport-deck")).replace(/::/g, "-") + ".csv", exportCSV(A(), ids), "text/csv;charset=utf-8"); return; }
+    if ((b = q("[data-afilter]"))) { var filter = b.getAttribute("data-afilter"); setView({ name: "browse", q: filter, page: 0 }); return; }
     if ((b = q("[data-amedia-rm]"))) {
       var parts = String(b.getAttribute("data-amedia-rm")).split(":");
       EMR.push({ field: parts[0], mid: parts[1] });
@@ -2410,11 +2562,13 @@ function boot() {
 }
 
 /* ================= Q. public API (UI + tests) ================= */
+function closeCardPreview() { try { var p = document.getElementById("ankiPreview"); if (p) p.remove(); } catch (e) {} }
 var API = {
   render: render, startSession: startSession, rateCurrent: rateCurrent,
   store: A, createDeck: createDeck, resolveDeckId: resolveDeckId, createDeckFlow: createDeckFlow, renameDeck: renameDeck, deleteDeck: deleteDeck,
   deckPath: deckPath, childrenOf: childrenOf, descendants: descendants, deckCounts: deckCounts, deckOpts: deckOpts,
-  addNote: addNote, editNote: editNote, deleteNote: deleteNote, changeNoteType: changeNoteType,
+  deckDueTotal: deckDueTotal, deckProgress: deckProgress, deckLastStudied: deckLastStudied, fmtLast: fmtLast,
+  addNote: addNote, editNote: editNote, deleteNote: deleteNote, duplicateNote: duplicateNote, changeNoteType: changeNoteType,
   resolveFields: resolveFields, applyTemplate: applyTemplate, cardSides: cardSides,
   seedFromContent: seedFromContent, buildQueue: buildQueue, bucketOf: bucketOf, cardDue: cardDue,
   gradeCard: gradeCard, previewInterval: previewInterval, logGrade: logGrade, undoLast: undoLast,

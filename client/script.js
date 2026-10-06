@@ -1370,7 +1370,7 @@ function allVerbs(){
 }
 /* ============ STATE ============ */
 const LS_KEY = "deutsch_master_v2";
-function defaultState(){return{customWords:[],status:{},favs:[],quizHistory:[],totalCorrect:0,totalAnswered:0,testsTaken:0,studyDays:{},streak:{count:0,last:"",longest:0},planner:{words:20,sentences:10,minutes:30,day:"",dw:0,ds:0,dm:0},settings:{theme:"dark",speed:1,color:"default"},review:{},xp:0,bestPct:0,maxCombo:0,mistakes:{},lastQuiz:null};}
+function defaultState(){return{customWords:[],status:{},favs:[],quizHistory:[],totalCorrect:0,totalAnswered:0,testsTaken:0,studyDays:{},streak:{count:0,last:"",longest:0},planner:{words:20,sentences:10,minutes:30,day:"",dw:0,ds:0,dm:0},settings:{theme:"dark",speed:1,color:"default",germanVoiceURI:""},review:{},xp:0,bestPct:0,maxCombo:0,mistakes:{},lastQuiz:null};}
 function normalizeState(p){
   const base=defaultState();
   const src=(p&&typeof p==="object"&&!Array.isArray(p))?p:{};
@@ -1393,7 +1393,7 @@ function normalizeState(p){
   var _pl=(st.planner&&typeof st.planner==="object"&&!Array.isArray(st.planner))?st.planner:{};
   st.planner=Object.assign(defaultState().planner,_pl);
   var _se=(st.settings&&typeof st.settings==="object"&&!Array.isArray(st.settings))?st.settings:{};
-  st.settings=Object.assign({theme:"dark",speed:1,color:"default"},_se);
+  st.settings=Object.assign({theme:"dark",speed:1,color:"default",germanVoiceURI:""},_se);
   return st;
 }
 let S = defaultState();
@@ -1481,17 +1481,196 @@ function loadGermanVoice(){
     if(!("speechSynthesis" in window)||!window.speechSynthesis)return null;
     const vs=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
     if(!vs||!vs.length)return _deVoice;
-    let gv=vs.find(v=>v.lang&&v.lang.toLowerCase()==="de-de")||vs.find(v=>v.lang&&v.lang.toLowerCase().indexOf("de")===0)||null;
-    if(gv)_deVoice=gv;
+    const german=getGermanVoices(vs);
+    if(german.length)_deVoice=german[0];
     return _deVoice;
   }catch(e){return _deVoice;}
 }
+/* German voice discovery: normalize BCP-47 (de, de-DE, de-AT, de-CH, de_DE), dedup by voiceURI. Never invents voices. */
+function isGermanLang(lang){
+  try{
+    const l=String(lang||"").trim().toLowerCase().replace(/_/g,"-");
+    return l==="de"||l.indexOf("de-")===0;
+  }catch(e){return false;}
+}
+function getGermanVoices(vs){
+  try{
+    const list=vs||((("speechSynthesis" in window)&&window.speechSynthesis&&window.speechSynthesis.getVoices)?window.speechSynthesis.getVoices():[]);
+    const seen={};
+    const out=[];
+    (list||[]).forEach(function(v){
+      try{
+        if(!v||!isGermanLang(v.lang))return;
+        const key=v.voiceURI||(v.name+"|"+v.lang);
+        if(seen[key])return;
+        seen[key]=1;
+        out.push(v);
+      }catch(e){}
+    });
+    const rank=function(v){
+      const l=String((v&&v.lang)||"").toLowerCase().replace(/_/g,"-");
+      if(l==="de-de")return 0;
+      if(l==="de-at")return 1;
+      if(l==="de-ch")return 2;
+      if(l==="de")return 3;
+      return 4;
+    };
+    out.sort(function(a,b){return rank(a)-rank(b);});
+    return out;
+  }catch(e){return [];}
+}
+/* Central voice resolver: persisted voiceURI -> ranked German voice -> cached -> null. */
+function getPreferredGermanVoice(){
+  try{
+    const uri=(S&&S.settings&&S.settings.germanVoiceURI)||"";
+    const german=getGermanVoices();
+    if(uri){
+      const found=german.find(function(v){return v.voiceURI===uri;});
+      if(found){_deVoice=found;return found;}
+    }
+    if(german.length){_deVoice=german[0];return german[0];}
+    return _deVoice||loadGermanVoice();
+  }catch(e){return _deVoice||loadGermanVoice();}
+}
+function setGermanVoiceURI(uri){
+  try{
+    if(!S.settings||typeof S.settings!=="object")S.settings={};
+    S.settings.germanVoiceURI=uri||"";
+    save();
+  }catch(e){}
+}
+/* Voice loading lifecycle: idle | loading | loaded | failed. Chrome/Android/WebView
+   often return [] on first getVoices(); voices arrive later via onvoiceschanged. */
+var _voiceLoadingState="idle";
+var _voiceLoadRetryCount=0;
+var _voiceLoadMaxRetries=5;
+var _voiceLoadRetryDelay=300;
+function setVoiceLoadingState(state){
+  _voiceLoadingState=state;
+  try{
+    const select=$("germanVoiceSelect");
+    if(select&&state==="loading"&&!select.options.length){
+      const opt=document.createElement("option");
+      opt.value="";
+      opt.textContent=(typeof t==="function"?t("set_voice_loading"):null)||"Loading voices…";
+      select.appendChild(opt);
+    }
+  }catch(e){}
+}
+function scheduleVoiceLoadRetry(){
+  if(_voiceLoadRetryCount>=_voiceLoadMaxRetries)return;
+  _voiceLoadRetryCount++;
+  setTimeout(function(){
+    try{
+      if(("speechSynthesis" in window)&&window.speechSynthesis){
+        const vs=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
+        if(vs&&vs.length){
+          populateGermanVoiceSelect();
+        }else{
+          scheduleVoiceLoadRetry();
+        }
+      }
+    }catch(e){}
+  },_voiceLoadRetryDelay*_voiceLoadRetryCount);
+}
 try{
   if("speechSynthesis" in window&&window.speechSynthesis){
-    try{loadGermanVoice();}catch(e){}
-    try{window.speechSynthesis.onvoiceschanged=function(){try{loadGermanVoice();}catch(e){}};}catch(e){}
+    try{
+      const initial=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
+      if(initial&&initial.length){
+        loadGermanVoice();
+        populateGermanVoiceSelect();
+      }else{
+        setVoiceLoadingState("loading");
+        scheduleVoiceLoadRetry();
+      }
+    }catch(e){}
+    try{
+      window.speechSynthesis.onvoiceschanged=function(){
+        try{
+          loadGermanVoice();
+          populateGermanVoiceSelect();
+        }catch(e){}
+      };
+    }catch(e){}
   }
 }catch(e){}
+function populateGermanVoiceSelect(){
+  try{
+    const select=$("germanVoiceSelect");
+    if(!select)return;
+    const german=getGermanVoices();
+    if(!german.length){
+      if(_voiceLoadingState==="loading"&&_voiceLoadRetryCount<_voiceLoadMaxRetries){
+        select.innerHTML="";
+        const opt=document.createElement("option");
+        opt.value="";
+        opt.textContent=(typeof t==="function"?t("set_voice_loading"):null)||"Loading voices…";
+        select.appendChild(opt);
+        scheduleVoiceLoadRetry();
+        return;
+      }
+      _voiceLoadingState="failed";
+      select.innerHTML="";
+      const opt=document.createElement("option");
+      opt.value="";
+      opt.textContent=(typeof t==="function"?t("set_voice_none"):null)||"No German voices are currently available";
+      select.appendChild(opt);
+      return;
+    }
+    _voiceLoadingState="loaded";
+    const currentURI=(S&&S.settings&&S.settings.germanVoiceURI)||"";
+    select.innerHTML="";
+    const defaultOpt=document.createElement("option");
+    defaultOpt.value="";
+    defaultOpt.textContent=(typeof t==="function"?t("set_voice_default"):null)||"Default voice";
+    if(!currentURI)defaultOpt.selected=true;
+    select.appendChild(defaultOpt);
+    german.forEach(function(v){
+      const opt=document.createElement("option");
+      opt.value=v.voiceURI||v.name;
+      let label=v.name||v.voiceURI||v.lang;
+      if(v.lang)label+=" ("+v.lang+")";
+      if(v.localService)label+=" "+((typeof t==="function"?t("set_voice_local"):null)||"(local)");
+      opt.textContent=label;
+      if(currentURI&&v.voiceURI===currentURI)opt.selected=true;
+      select.appendChild(opt);
+    });
+  }catch(e){}
+}
+function refreshGermanVoices(){
+  try{
+    _voiceLoadRetryCount=0;
+    _voiceLoadingState="idle";
+    if(("speechSynthesis" in window)&&window.speechSynthesis){
+      try{window.speechSynthesis.getVoices();}catch(e){}
+      const vs=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
+      if(vs&&vs.length){
+        loadGermanVoice();
+        populateGermanVoiceSelect();
+      }else{
+        setVoiceLoadingState("loading");
+        scheduleVoiceLoadRetry();
+        populateGermanVoiceSelect();
+      }
+    }else{
+      populateGermanVoiceSelect();
+    }
+    toast((typeof t==="function"?t("set_voice_refreshed"):null)||"Voice list refreshed","ok");
+  }catch(e){}
+}
+function getVoiceDiagnostics(){
+  try{
+    const all=(("speechSynthesis" in window)&&window.speechSynthesis&&window.speechSynthesis.getVoices)?window.speechSynthesis.getVoices():[];
+    return{
+      supported:("speechSynthesis" in window),
+      totalVoices:all?all.length:0,
+      germanVoices:getGermanVoices(all).map(function(v){return{name:v.name,lang:v.lang,voiceURI:v.voiceURI,localService:!!v.localService};}),
+      selectedURI:(S&&S.settings&&S.settings.germanVoiceURI)||"",
+      loadingState:_voiceLoadingState
+    };
+  }catch(e){return{supported:false,totalVoices:0,germanVoices:[],selectedURI:"",loadingState:_voiceLoadingState};}
+}
 var _fallbackAudio=null;
 function stopFallbackAudio(){try{if(_fallbackAudio){_fallbackAudio.pause();try{_fallbackAudio.currentTime=0;}catch(e){}}}catch(e){}}
 function hasNativeTTS(){try{return (typeof window.AndroidTTS!=="undefined")&&window.AndroidTTS&&typeof window.AndroidTTS.speak==="function";}catch(e){return false;}}
@@ -1510,15 +1689,8 @@ function speakWithWeb(text,rate){
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang="de-DE";u.rate=rate;
-  const gv=_deVoice||loadGermanVoice();
+  const gv=getPreferredGermanVoice();
   if(gv)u.voice=gv;
-  else{
-    try{
-      const vs=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
-      const f=vs.find(v=>v.lang&&v.lang.toLowerCase().indexOf("de")===0);
-      if(f)u.voice=f;
-    }catch(e){}
-  }
   window.speechSynthesis.speak(u);
   return true;
 }
@@ -1713,6 +1885,14 @@ function syncSpeed(v){S.settings.speed=parseFloat(v);$("speedSelect").value=Stri
 $("speedSelect").addEventListener("change",e=>syncSpeed(e.target.value));
 $("speedSelect2").addEventListener("change",e=>syncSpeed(e.target.value));
 $("testVoice").addEventListener("click",()=>speak("Ich lerne Deutsch. Guten Tag!"));
+try{
+  const gvs=$("germanVoiceSelect");
+  if(gvs)gvs.addEventListener("change",e=>{setGermanVoiceURI(e.target.value);speak("Ich lerne Deutsch. Guten Tag!");});
+}catch(e){}
+try{
+  const gvr=$("refreshVoices");
+  if(gvr)gvr.addEventListener("click",refreshGermanVoices);
+}catch(e){}
 
 /* ============ TYPING ============ */
 const PHRASES=["der Tisch = الطاولة 🍎","احفظ الأداة مع الكلمة دائمًا! der / die / das","Ich lerne Deutsch 🇩🇪","راجع 20 كلمة يوميًا لتصل إلى A1 بسرعة ⚡","Streak اليوم: افتح التطبيق وذاكر 🔥"];
@@ -3624,7 +3804,7 @@ applyTheme();
 try{renderThemes();}catch(e){}
 $("speedSelect").value=String(S.settings.speed||1);
 $("speedSelect2").value=String(S.settings.speed||1);
-if("speechSynthesis" in window){try{window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){};}catch(e){}}
+try{populateGermanVoiceSelect();}catch(e){}
 renderAll();
 buildFlash();
 typingLoop();
