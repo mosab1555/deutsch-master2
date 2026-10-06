@@ -171,18 +171,12 @@ ok("games:all-24-dispatched", ["rush","battle","builder","memory","missing","tf"
   ok("i18n:nav-loop-dedupes", /icons\[0\]\|\|null/.test(study) || /for\(let k=1;k<icons\.length/.test(study));
 })();
 // ---- 11. Sidebar test-cluster icons are unique (no repeated icon) ----
-// Supports both legacy text/emoji icons and SVG icons: compares the normalized
-// inner markup of each .nav-ico (whitespace-collapsed).
 (function () {
   const htmlSrc = fs.readFileSync(path.join(__dirname, "..", "client", "index.html"), "utf8");
   const cluster = ["quiz", "challenge", "practice", "chall", "lislab"];
   const icons = cluster.map(p => {
-    const m = htmlSrc.match(new RegExp('data-page="' + p + '"><span class="nav-ico">([\\s\\S]*?)</span>'));
-    const norm = m ? m[1].replace(/\s+/g, " ").trim() : "?";
-    // short fingerprint of the FULL markup (prefixes are identical across SVGs)
-    let h = 0;
-    for (let i = 0; i < norm.length; i++) { h = ((h * 31) + norm.charCodeAt(i)) >>> 0; }
-    return p + "=" + (norm === "?" ? "?" : "svg#" + h.toString(36));
+    const m = htmlSrc.match(new RegExp('data-page="' + p + '"><span class="nav-ico">([^<]*)<'));
+    return p + "=" + (m ? m[1] : "?");
   });
   const vals = icons.map(s => s.split("=")[1]);
   ok("sidebar:test-cluster-icons-unique", new Set(vals).size === vals.length && !vals.includes("?"), icons.join(" "));
