@@ -1508,14 +1508,20 @@ function getGermanVoices(vs){
       }catch(e){}
     });
     const rank=function(v){
-      const l=String((v&&v.lang)||"").toLowerCase().replace(/_/g,"-");
+      const l=String((v&&v.lang)||"").trim().toLowerCase().replace(/_/g,"-");
       if(l==="de-de")return 0;
-      if(l==="de-at")return 1;
-      if(l==="de-ch")return 2;
-      if(l==="de")return 3;
+      if(l==="de")return 1;
+      if(l==="de-at")return 2;
+      if(l==="de-ch")return 3;
       return 4;
     };
-    out.sort(function(a,b){return rank(a)-rank(b);});
+    out.sort(function(a,b){
+      const r=rank(a)-rank(b);
+      if(r!==0)return r;
+      const al=a&&a.localService?0:1;
+      const bl=b&&b.localService?0:1;
+      return al-bl;
+    });
     return out;
   }catch(e){return [];}
 }
@@ -1524,13 +1530,20 @@ function getPreferredGermanVoice(){
   try{
     const uri=(S&&S.settings&&S.settings.germanVoiceURI)||"";
     const german=getGermanVoices();
+    if(!german.length)return null;
     if(uri){
       const found=german.find(function(v){return v.voiceURI===uri;});
       if(found){_deVoice=found;return found;}
     }
-    if(german.length){_deVoice=german[0];return german[0];}
-    return _deVoice||loadGermanVoice();
-  }catch(e){return _deVoice||loadGermanVoice();}
+    _deVoice=german[0];
+    return german[0];
+  }catch(e){
+    try{
+      const german=getGermanVoices();
+      if(german.length){_deVoice=german[0];return german[0];}
+    }catch(e2){}
+    return null;
+  }
 }
 function setGermanVoiceURI(uri){
   try{
@@ -1539,8 +1552,10 @@ function setGermanVoiceURI(uri){
     save();
   }catch(e){}
 }
-/* Voice loading lifecycle: idle | loading | loaded | failed. Chrome/Android/WebView
-   often return [] on first getVoices(); voices arrive later via onvoiceschanged. */
+/* Voice loading lifecycle: idle | loading | loaded | empty | unavailable. Chrome/Android/WebView
+   often return [] on first getVoices(); voices arrive later via onvoiceschanged. [] at boot
+   never means "no voices" until bounded retries are exhausted (empty) or Web Speech is
+   missing entirely (unavailable). */
 var _voiceLoadingState="idle";
 var _voiceLoadRetryCount=0;
 var _voiceLoadMaxRetries=5;
@@ -1598,24 +1613,42 @@ try{
 function populateGermanVoiceSelect(){
   try{
     const select=$("germanVoiceSelect");
-    if(!select)return;
+    if(!select){updateVoiceStatus();return;}
+    if(!hasWebSpeech()){
+      _voiceLoadingState="unavailable";
+      select.innerHTML="";
+      const opt=document.createElement("option");
+      opt.value="";
+      opt.disabled=true;
+      opt.textContent=(typeof t==="function"?t("set_voice_unavailable"):null)||"System speech is unavailable in this browser";
+      select.appendChild(opt);
+      select.disabled=true;
+      updateVoiceStatus();
+      return;
+    }
+    select.disabled=false;
     const german=getGermanVoices();
     if(!german.length){
       if(_voiceLoadingState==="loading"&&_voiceLoadRetryCount<_voiceLoadMaxRetries){
         select.innerHTML="";
         const opt=document.createElement("option");
         opt.value="";
+        opt.disabled=true;
         opt.textContent=(typeof t==="function"?t("set_voice_loading"):null)||"Loading voices…";
         select.appendChild(opt);
+        select.disabled=true;
         scheduleVoiceLoadRetry();
+        updateVoiceStatus();
         return;
       }
-      _voiceLoadingState="failed";
+      _voiceLoadingState="empty";
       select.innerHTML="";
       const opt=document.createElement("option");
       opt.value="";
+      opt.disabled=true;
       opt.textContent=(typeof t==="function"?t("set_voice_none"):null)||"No German voices are currently available";
       select.appendChild(opt);
+      updateVoiceStatus();
       return;
     }
     _voiceLoadingState="loaded";
@@ -1636,6 +1669,28 @@ function populateGermanVoiceSelect(){
       if(currentURI&&v.voiceURI===currentURI)opt.selected=true;
       select.appendChild(opt);
     });
+    updateVoiceStatus();
+  }catch(e){}
+}
+/* Settings status line: mirrors selector state, never blocks the app. */
+function updateVoiceStatus(){
+  try{
+    const el=$("voiceStatus");
+    if(!el)return;
+    const hint=$("voiceHint");
+    if(_voiceLoadingState==="loaded"){
+      el.textContent=(typeof t==="function"?t("set_voice_ok"):null)||"✓ German voice available";
+      if(hint)hint.textContent="";
+    }else if(_voiceLoadingState==="loading"){
+      el.textContent=(typeof t==="function"?t("set_voice_loading"):null)||"Loading voices…";
+      if(hint)hint.textContent="";
+    }else if(_voiceLoadingState==="unavailable"){
+      el.textContent="⚠ "+((typeof t==="function"?t("set_voice_unavailable"):null)||"System speech is unavailable in this browser");
+      if(hint)hint.textContent=(typeof t==="function"?t("set_voice_hint"):null)||"";
+    }else{
+      el.textContent="⚠ "+((typeof t==="function"?t("set_voice_none"):null)||"No German voices are currently available");
+      if(hint)hint.textContent=(typeof t==="function"?t("set_voice_hint"):null)||"";
+    }
   }catch(e){}
 }
 function refreshGermanVoices(){
@@ -1686,13 +1741,24 @@ function hasWebSpeech(){
   }catch(e){return false;}
 }
 function speakWithWeb(text,rate){
-  window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang="de-DE";u.rate=rate;
-  const gv=getPreferredGermanVoice();
-  if(gv)u.voice=gv;
-  window.speechSynthesis.speak(u);
-  return true;
+  try{
+    if(!text)return false;
+    const r=(typeof rate==="number"&&isFinite(rate)&&rate>0&&rate<=2)?rate:1;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="de-DE";u.rate=r;
+    const gv=getPreferredGermanVoice();
+    if(!gv)return false;
+    try{
+      const live=getGermanVoices();
+      const stillThere=live.some(function(v){return (v.voiceURI&&v.voiceURI===gv.voiceURI)||(v.name===gv.name&&v.lang===gv.lang);});
+      if(!stillThere||!isGermanLang(gv.lang))return false;
+    }catch(e){return false;}
+    u.voice=gv;
+    try{u.onerror=function(){try{window.speechSynthesis.cancel();}catch(e){}};}catch(e){}
+    window.speechSynthesis.speak(u);
+    return true;
+  }catch(e){return false;}
 }
 function speakWithAudioUrl(text,rate,tl){
   try{
@@ -1884,10 +1950,17 @@ $("themeBtn2").addEventListener("click",()=>{S.settings.theme=S.settings.theme==
 function syncSpeed(v){S.settings.speed=parseFloat(v);$("speedSelect").value=String(S.settings.speed);$("speedSelect2").value=String(S.settings.speed);save();}
 $("speedSelect").addEventListener("change",e=>syncSpeed(e.target.value));
 $("speedSelect2").addEventListener("change",e=>syncSpeed(e.target.value));
-$("testVoice").addEventListener("click",()=>speak("Ich lerne Deutsch. Guten Tag!"));
+$("testVoice").addEventListener("click",()=>{
+  try{
+    speak("Ich lerne Deutsch. Guten Tag!");
+    const gv=getPreferredGermanVoice();
+    if(gv)toast((gv.name||gv.voiceURI||"")+" 🔊","ok");
+    else toast((typeof t==="function"?t("set_voice_none"):null)||"No German voices are currently available","");
+  }catch(e){try{speak("Ich lerne Deutsch. Guten Tag!");}catch(e2){}}
+});
 try{
   const gvs=$("germanVoiceSelect");
-  if(gvs)gvs.addEventListener("change",e=>{setGermanVoiceURI(e.target.value);speak("Ich lerne Deutsch. Guten Tag!");});
+  if(gvs)gvs.addEventListener("change",e=>{try{if(!e.target.value||e.target.disabled){setGermanVoiceURI("");return;}}catch(err){}setGermanVoiceURI(e.target.value);speak("Ich lerne Deutsch. Guten Tag!");});
 }catch(e){}
 try{
   const gvr=$("refreshVoices");

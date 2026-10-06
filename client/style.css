@@ -391,6 +391,10 @@ html[data-theme="light"] .talk-bot{background:rgba(0,0,0,.05)}
 .theme-name{font-weight:800;font-size:13px;margin:6px 0 2px}
 .theme-prev{height:34px;border-radius:9px;margin-bottom:2px}
 .theme-hex{font-size:11px;color:var(--muted);direction:ltr}
+/* German voice selector: fit panel width, no horizontal overflow on mobile */
+#germanVoiceSelect{max-width:100%;min-height:44px;overflow:hidden;text-overflow:ellipsis}
+#voiceStatus{margin-top:6px}
+#voiceHint{margin-top:2px;font-size:13px}
 /* Speaking mic */
 .mic-btn{min-height:52px;font-size:18px}
 .mic-btn.live{background:linear-gradient(135deg,#991b1b,#ef4444)!important;color:#fff;border-color:transparent;animation:micpulse 1.2s infinite}
