@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="reference.css">
 <link rel="stylesheet" href="launch.css">
 <link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="premium.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070b18">
 <meta name="mobile-web-app-capable" content="yes">
@@ -40,57 +41,63 @@
       </div>
     </div>
     <nav class="nav" id="mainNav">
+      <div class="nav-group" data-i18n="nav_grp_home">الرئيسية</div>
       <button class="nav-item active" data-page="dashboard"><span class="nav-ico">🏠</span> الرئيسية</button>
+      <div class="nav-group" data-i18n="nav_grp_learn">تعلّم</div>
       <button class="nav-item" data-page="vocab"><span class="nav-ico">📚</span> الكلمات</button>
       <button class="nav-item" data-page="sentences"><span class="nav-ico">💬</span> الجمل</button>
       <button class="nav-item" data-page="flashcards"><span class="nav-ico">🃏</span> فلاش كارد</button>
-      <button class="nav-item" data-page="ankidroid"><span class="nav-ico">🧠</span> AnkiDroid</button>
       <button class="nav-item" data-page="explain"><span class="nav-ico">📄</span> الشرح</button>
       <button class="nav-item" data-page="verbs"><span class="nav-ico">⚡</span> الأفعال</button>
       <button class="nav-item" data-page="grammar"><span class="nav-ico">📐</span> القواعد</button>
       <button class="nav-item" data-page="reference"><span class="nav-ico">🏛️</span> <span data-i18n="reference">المرجع الألماني الشامل</span></button>
-      <button class="nav-item" data-page="howto"><span class="nav-ico">🧠</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
+      <div class="nav-group" data-i18n="nav_grp_master">إتقان</div>
+      <button class="nav-item" data-page="howto"><span class="nav-ico">📖</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
       <button class="nav-item" data-page="career"><span class="nav-ico">💼</span> المسار المهني</button>
-      <button class="nav-item" data-page="sentex"><span class="nav-ico">✏️</span> تدريبات الجمل</button>
-      <button class="nav-item" data-page="quiz"><span class="nav-ico">📝</span> الاختبارات</button>
-      <button class="nav-item" data-page="journey"><span class="nav-ico">🗺️</span> الرحلة</button>
+      <div class="nav-group" data-i18n="nav_grp_live">الحياة والممارسة</div>
+      <button class="nav-item" data-page="life"><span class="nav-ico">🎙️</span> Deutsch Life</button>
+      <button class="nav-item" data-page="simulator"><span class="nav-ico">🏙️</span> محاكاة الحياة في ألمانيا</button>
+      <button class="nav-item" data-page="survive"><span class="nav-ico">🛂</span> البقاء</button>
       <button class="nav-item" data-page="listen"><span class="nav-ico">🎧</span> استماع</button>
       <button class="nav-item" data-page="speak"><span class="nav-ico">🎤</span> تحدث</button>
-      <button class="nav-item" data-page="talk"><span class="nav-ico">💬</span> محادثة</button>
+      <button class="nav-item" data-page="talk"><span class="nav-ico">🗣️</span> محادثة</button>
       <button class="nav-item" data-page="real"><span class="nav-ico">🌍</span> مواقف</button>
-      <button class="nav-item" data-page="job"><span class="nav-ico">💼</span> الشغل</button>
-      <button class="nav-item" data-page="ach"><span class="nav-ico">🏆</span> إنجازاتي</button>
-      <button class="nav-item" data-page="games"><span class="nav-ico">🎮</span> الألعاب</button>
-      <button class="nav-item" data-page="world"><span class="nav-ico">🗺️</span> العالم</button>
-      <button class="nav-item" data-page="life"><span class="nav-ico">🎙️</span> Deutsch Life</button>
-      <button class="nav-item" data-page="exp"><span class="nav-ico">🌍</span> تجارب ألمانية</button>
-      <button class="nav-item" data-page="mygermany"><span class="nav-ico">🌍</span> My Germany</button>
+      <button class="nav-item" data-page="job"><span class="nav-ico">🏭</span> الشغل</button>
+      <button class="nav-item" data-page="sentex"><span class="nav-ico">✏️</span> تدريبات الجمل</button>
+      <button class="nav-item" data-page="exp"><span class="nav-ico">🧳</span> تجارب ألمانية</button>
+      <button class="nav-item" data-page="mygermany"><span class="nav-ico">🇩🇪</span> My Germany</button>
       <button class="nav-item" data-page="dlife"><span class="nav-ico">🎭</span> مواقف تدريبية</button>
-      <button class="nav-item" data-page="simulator"><span class="nav-ico">🏠</span> محاكاة الحياة في ألمانيا</button>
-      <button class="nav-item" data-page="stories"><span class="nav-ico">📖</span> قصص</button>
-      <button class="nav-item" data-page="survive"><span class="nav-ico">🛂</span> البقاء</button>
-      <button class="nav-item" data-page="challenge"><span class="nav-ico">⚡</span> التحدي</button>
-      <button class="nav-item" data-page="me"><span class="nav-ico">🙂</span> شخصيتي</button>
-      <button class="nav-item" data-page="practice"><span class="nav-ico">🎯</span> تدريب ذكي</button>
-      <button class="nav-item" data-page="tutor"><span class="nav-ico">🤖</span> المدرّب</button>
-      <button class="nav-item" data-page="roadmap"><span class="nav-ico">🗺️</span> الخريطة</button>
-      <button class="nav-item" data-page="labs"><span class="nav-ico">🧪</span> المختبر</button>
-      <button class="nav-item" data-page="shadowing"><span class="nav-ico">🎙️</span> تقليد النطق</button>
+      <button class="nav-item" data-page="stories"><span class="nav-ico">📜</span> قصص</button>
+      <button class="nav-item" data-page="situations"><span class="nav-ico">🎬</span> مواقف ألمانية</button>
+      <button class="nav-item" data-page="shadowing"><span class="nav-ico">🔊</span> تقليد النطق</button>
       <button class="nav-item" data-page="writing"><span class="nav-ico">✍️</span> مختبر الكتابة</button>
       <button class="nav-item" data-page="dictation"><span class="nav-ico">👂</span> الإملاء السمعي</button>
-      <button class="nav-item" data-page="situations"><span class="nav-ico">🎬</span> مواقف ألمانية</button>
-      <button class="nav-item" data-page="erreplay"><span class="nav-ico">🧠</span> <span data-i18n="erreplay">إعادة الأخطاء</span></button>
       <button class="nav-item" data-page="lislab"><span class="nav-ico">📻</span> <span data-i18n="nav_lislab">مختبر الاستماع</span></button>
+      <div class="nav-group" data-i18n="nav_grp_test">اختبار وتدريب</div>
+      <button class="nav-item" data-page="quiz"><span class="nav-ico">📝</span> الاختبارات</button>
+      <button class="nav-item" data-page="practice"><span class="nav-ico">🎯</span> تدريب ذكي</button>
+      <button class="nav-item" data-page="journey"><span class="nav-ico">🛤️</span> الرحلة</button>
+      <button class="nav-item" data-page="roadmap"><span class="nav-ico">🗺️</span> الخريطة</button>
+      <button class="nav-item" data-page="world"><span class="nav-ico">🌐</span> العالم</button>
+      <button class="nav-item" data-page="games"><span class="nav-ico">🎮</span> الألعاب</button>
+      <button class="nav-item" data-page="challenge"><span class="nav-ico">🏁</span> التحدي</button>
+      <button class="nav-item" data-page="chall"><span class="nav-ico">🚀</span> <span data-i18n="nav_chall">تحدي جديد</span></button>
+      <button class="nav-item" data-page="tutor"><span class="nav-ico">🤖</span> المدرّب</button>
+      <button class="nav-item" data-page="labs"><span class="nav-ico">🧪</span> المختبر</button>
       <button class="nav-item" data-page="fixsent"><span class="nav-ico">🩺</span> <span data-i18n="nav_fixsent">صحح الجملة</span></button>
       <button class="nav-item" data-page="finderr"><span class="nav-ico">🔍</span> <span data-i18n="nav_finderr">اكتشف الخطأ</span></button>
-      <button class="nav-item" data-page="chall"><span class="nav-ico">🚀</span> <span data-i18n="nav_chall">تحدي جديد</span></button>
-      <button class="nav-item" data-page="profile"><span class="nav-ico">👤</span> حسابي</button>
-      <button class="nav-item" data-page="analytics"><span class="nav-ico">📈</span> تقدمي</button>
-      <button class="nav-item" data-page="review"><span class="nav-ico">🧠</span> المراجعة <span class="badge" id="navReviewBadge">0</span></button>
+      <button class="nav-item" data-page="erreplay"><span class="nav-ico">🔂</span> <span data-i18n="erreplay">إعادة الأخطاء</span></button>
+      <button class="nav-item" data-page="review"><span class="nav-ico">🔁</span> المراجعة <span class="badge" id="navReviewBadge">0</span></button>
       <button class="nav-item" data-page="mistakes"><span class="nav-ico">❌</span> أخطائي <span class="badge" id="navMistBadge">0</span></button>
+      <button class="nav-item" data-page="ach"><span class="nav-ico">🏆</span> إنجازاتي</button>
+      <button class="nav-item" data-page="me"><span class="nav-ico">🙂</span> شخصيتي</button>
       <button class="nav-item" data-page="stats"><span class="nav-ico">📊</span> الإحصائيات</button>
+      <button class="nav-item" data-page="analytics"><span class="nav-ico">📈</span> تقدمي</button>
       <button class="nav-item" data-page="planner"><span class="nav-ico">🗓️</span> خطة المذاكرة</button>
       <button class="nav-item" data-page="favorites"><span class="nav-ico">❤️</span> المفضلة <span class="badge" id="navFavBadge">0</span></button>
+      <div class="nav-group" data-i18n="nav_grp_tools">الأدوات</div>
+      <button class="nav-item" data-page="ankidroid"><span class="nav-ico">🧠</span> AnkiDroid</button>
+      <button class="nav-item" data-page="profile"><span class="nav-ico">👤</span> حسابي</button>
       <div class="side-lang" id="sideLang">
         <div class="side-lang-head"><span class="nav-ico">🌐</span> <span data-i18n="set_lang">🌐 اللغة</span></div>
         <button type="button" class="btn btn-ghost sm" data-setlang="ar" data-i18n="lang_ar">🇪🇬 عربي</button>
