@@ -1233,7 +1233,7 @@ function deckSubRowHTML(a, id, depth) {
     '<button class="anki-deck-name" data-aoverview="' + esc(id) + '" title="' + esc(deckPath(a, id)) + '">↳ ' + esc(d.name) + '</button>' +
     '<button class="anki-deck-go" data-aoverview="' + esc(id) + '" aria-label="' + esc(T("anki_overview")) + '">' + chipCounts(c) + '</button>' +
     '<button class="mini-btn" data-astudy="' + esc(id) + '" aria-label="' + esc(T("anki_study_now")) + '">▶</button>' +
-    '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions">⋮</button>' +
+    '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions" aria-haspopup="menu" aria-expanded="false">⋮</button>' +
     '</div>';
   if (kids.length) {
     h += '<div class="anki-kids' + (open ? "" : " hidden") + '">';
@@ -1261,7 +1261,7 @@ function deckCardHTML(a, id) {
     (kids.length ? '<button class="anki-toggle" data-atoggle="' + esc(id) + '" aria-expanded="' + (open ? "true" : "false") + '" aria-label="expand">' + (open ? "▾" : "▸") + '</button>' : '<span class="anki-toggle-sp"></span>') +
     '<button class="anki-deck-name" data-aoverview="' + esc(id) + '" title="' + esc(deckPath(a, id)) + '">' + esc(d.name) + '</button>' +
     '<button class="anki-deck-go" data-aoverview="' + esc(id) + '" aria-label="' + esc(T("anki_overview")) + '">' + chipCounts(c) + '</button>' +
-    '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions" aria-haspopup="menu">⋮</button>' +
+    '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions" aria-haspopup="menu" aria-expanded="false">⋮</button>' +
     '</div>' +
     '<button class="anki-deck-sub" data-aoverview="' + esc(id) + '" dir="auto"><span class="anki-deck-total">' + c.total + ' ' + esc(T("anki_total")) + '</span>' + duePill + '</button>' +
     '<div class="anki-deck-bar" role="img" aria-label="' + esc(T("anki_progress")) + ' ' + prog + '%"><div class="anki-deck-fill" style="width:' + prog + '%"></div></div>' +
@@ -1916,31 +1916,112 @@ function ioHTML(a) {
   return h;
 }
 /* ================= N. events ================= */
-function closeMenu() { try { var m = document.getElementById("ankiMenu"); if (m) m.remove(); } catch (e) {} }
+/* Deck card ⋮ menu: single body-level overlay with smart viewport clamping.
+ * Root cause of the old bug: the menu was position:absolute with
+ * top = rect.bottom + scrollY, plus a mobile bottom-sheet rule that sets
+ * top:auto — but the inline top overrode top:auto, pushing the fixed sheet
+ * far below the viewport. It also never flipped upward near the bottom edge
+ * and used insetInlineEnd = innerWidth - rect.right, which is wrong in RTL
+ * (inline-end is the left side there). This version uses position:fixed +
+ * viewport coordinates, measures the real menu size, flips up/left as needed,
+ * and clears inline offsets on phones so the bottom-sheet CSS applies. */
+var _menuAnchor = null, _menuDeck = null, _menuCleanup = null;
+function closeMenu() {
+  try { var m = document.getElementById("ankiMenu"); if (m) m.remove(); } catch (e) {}
+  _menuAnchor = null; _menuDeck = null;
+  if (_menuCleanup) { try { _menuCleanup(); } catch (e2) {} _menuCleanup = null; }
+  try {
+    var btns = document.querySelectorAll('.anki-menu-btn[aria-expanded="true"]');
+    for (var i = 0; i < btns.length; i++) btns[i].setAttribute("aria-expanded", "false");
+  } catch (e3) {}
+}
+function _isPhoneMenu() {
+  try { return !!(window.matchMedia && window.matchMedia("(max-width: 640px)").matches); } catch (e) { return false; }
+}
+/* Viewport-safe placement for the open menu. Direction-agnostic: aligns to
+ * the button's physical edges then clamps into [8px, viewport-8px], so RTL
+ * (button on the left) and LTR (button on the right) both stay visible. */
+function positionDeckMenu(m, anchor) {
+  if (!m || !anchor) return;
+  try {
+    if (_isPhoneMenu()) {
+      /* Let the bottom-sheet CSS own the geometry on phones. Any stale
+       * inline offsets from a previous desktop placement must go. */
+      m.style.top = ""; m.style.left = ""; m.style.right = "";
+      m.style.bottom = ""; m.style.insetInlineEnd = ""; m.style.insetInlineStart = "";
+      return;
+    }
+    m.style.bottom = ""; m.style.right = "";
+    m.style.insetInlineEnd = ""; m.style.insetInlineStart = "";
+    m.style.position = "fixed";
+    m.style.visibility = "hidden";
+    m.style.top = "0px"; m.style.left = "0px";
+    var r = anchor.getBoundingClientRect();
+    var vw = Math.max(320, window.innerWidth || 1024);
+    var vh = Math.max(320, window.innerHeight || 768);
+    var GAP = 6, PAD = 8;
+    var mw = m.offsetWidth || 240, mh = m.offsetHeight || 300;
+    if (mw > vw - PAD * 2) mw = vw - PAD * 2;
+    if (mh > vh - PAD * 2) mh = vh - PAD * 2;
+    var below = vh - r.bottom - PAD, above = r.top - PAD;
+    var openDown = (mh + GAP <= below) || (below >= above);
+    var top = openDown ? (r.bottom + GAP) : (r.top - mh - GAP);
+    if (top < PAD) top = PAD;
+    if (top + mh > vh - PAD) top = Math.max(PAD, vh - mh - PAD);
+    /* Prefer right-edge alignment with the button; fall back to left-edge,
+     * then clamp. Works for LTR and RTL without assuming inline direction. */
+    var left = r.right - mw;
+    if (left < PAD || left + mw > vw - PAD) left = r.left;
+    if (left < PAD) left = PAD;
+    if (left + mw > vw - PAD) left = Math.max(PAD, vw - mw - PAD);
+    /* Narrow screens: keep the menu fully on screen even if the button is
+     * flush against an edge. */
+    if (mw >= vw - PAD * 2) left = PAD;
+    m.style.top = Math.round(top) + "px";
+    m.style.left = Math.round(left) + "px";
+    m.style.visibility = "";
+  } catch (e) { try { m.style.visibility = ""; } catch (e2) {} }
+}
 function openDeckMenu(a, deckId, anchor) {
+  /* Toggle: tapping the same ⋮ button closes its menu. */
+  try {
+    var cur = document.getElementById("ankiMenu");
+    if (cur && _menuDeck === deckId && (_menuAnchor === anchor || (cur.getAttribute("data-deck") === String(deckId)))) {
+      var sameNode = (_menuAnchor === anchor);
+      var sameRect = false;
+      try {
+        if (!sameNode && _menuAnchor && anchor && anchor.getBoundingClientRect && _menuAnchor.getBoundingClientRect) {
+          var ra = anchor.getBoundingClientRect(), rb = _menuAnchor.getBoundingClientRect();
+          sameRect = Math.abs(ra.top - rb.top) < 2 && Math.abs(ra.left - rb.left) < 2;
+        }
+      } catch (eT) {}
+      if (sameNode || sameRect || !anchor) { closeMenu(); return; }
+    }
+  } catch (e0) {}
   closeMenu();
   var d = a.decks[deckId];
   if (!d) return;
   var m = document.createElement("div");
   m.id = "ankiMenu";
   m.className = "anki-menu";
+  m.setAttribute("role", "menu");
+  m.setAttribute("aria-label", "deck actions");
+  m.setAttribute("data-deck", String(deckId));
   m.innerHTML =
-    '<button data-m="study">📖 ' + esc(T("anki_study")) + '</button>' +
-    '<button data-m="add">➕ ' + esc(T("anki_add")) + '</button>' +
-    '<button data-m="browse">🔍 ' + esc(T("anki_browse")) + '</button>' +
-    '<button data-m="overview">👁 ' + esc(T("anki_overview")) + '</button>' +
-    '<button data-m="sub">📁 subdeck</button>' +
-    '<button data-m="opts">⚙️ ' + esc(T("anki_deck_options")) + '</button>' +
-    '<button data-m="custom">🎯 ' + esc(T("anki_custom_study")) + '</button>' +
-    '<button data-m="export">📤 CSV</button>' +
-    '<button data-m="rename">✏️ ' + esc(T("anki_rename")) + '</button>' +
-    '<button data-m="del" class="danger">🗑️ ' + esc(T("anki_delete")) + '</button>';
+    '<button role="menuitem" data-m="study">📖 ' + esc(T("anki_study")) + '</button>' +
+    '<button role="menuitem" data-m="add">➕ ' + esc(T("anki_add")) + '</button>' +
+    '<button role="menuitem" data-m="browse">🔍 ' + esc(T("anki_browse")) + '</button>' +
+    '<button role="menuitem" data-m="overview">👁 ' + esc(T("anki_overview")) + '</button>' +
+    '<button role="menuitem" data-m="sub">📁 subdeck</button>' +
+    '<button role="menuitem" data-m="opts">⚙️ ' + esc(T("anki_deck_options")) + '</button>' +
+    '<button role="menuitem" data-m="custom">🎯 ' + esc(T("anki_custom_study")) + '</button>' +
+    '<button role="menuitem" data-m="export">📤 CSV</button>' +
+    '<button role="menuitem" data-m="rename">✏️ ' + esc(T("anki_rename")) + '</button>' +
+    '<button role="menuitem" data-m="del" class="danger">🗑️ ' + esc(T("anki_delete")) + '</button>';
   document.body.appendChild(m);
-  try {
-    var r = anchor.getBoundingClientRect();
-    m.style.top = (r.bottom + window.scrollY + 4) + "px";
-    m.style.insetInlineEnd = Math.max(8, window.innerWidth - r.right) + "px";
-  } catch (e) {}
+  _menuAnchor = anchor || null; _menuDeck = deckId;
+  try { if (anchor && anchor.setAttribute) anchor.setAttribute("aria-expanded", "true"); } catch (eA) {}
+  positionDeckMenu(m, anchor);
   m.addEventListener("click", function (ev) {
     var b = ev.target.closest ? ev.target.closest("[data-m]") : null;
     if (!b) return;
@@ -1967,7 +2048,62 @@ function openDeckMenu(a, deckId, anchor) {
     else if (k === "rename") { renameFlow(A(), deckId); }
     else if (k === "del") { deleteFlow(A(), deckId); }
   });
-  setTimeout(function () { document.addEventListener("click", function h(e) { if (!m.contains(e.target)) { closeMenu(); document.removeEventListener("click", h); } }); }, 10);
+  /* Outside-click / Escape / resize: one cleanup per open menu, no leaks.
+   * The opening click itself is ignored via a one-tick guard instead of
+   * stopPropagation tricks, so tapping another ⋮ cleanly swaps menus. */
+  var openedAt = Date.now();
+  var armed = false;
+  setTimeout(function () { armed = true; }, 0);
+  function onDocPointer(ev) {
+    try {
+      if (!armed || (Date.now() - openedAt) < 5) return;
+      var t = ev && ev.target ? ev.target : null;
+      if (t && m.contains(t)) return;
+      /* ⋮ buttons manage toggle/swap themselves in the delegated handler —
+       * do not pre-close here or the same-button toggle would reopen. */
+      try { if (t && t.closest && t.closest("[data-amenu]")) return; } catch (eC) {}
+      closeMenu();
+    } catch (e) {}
+  }
+  function onKey(ev) {
+    try { if (ev && (ev.key === "Escape" || ev.key === "Esc")) { var back = _menuAnchor; closeMenu(); try { if (back && back.focus) back.focus(); } catch (eF) {} } } catch (e2) {}
+  }
+  var _rsT = 0;
+  function onViewChange() {
+    try {
+      clearTimeout(_rsT);
+      _rsT = setTimeout(function () {
+        var cur = document.getElementById("ankiMenu");
+        if (!cur) return;
+        if (_isPhoneMenu()) { positionDeckMenu(cur, _menuAnchor); return; }
+        /* If the anchor scrolled out of view, close rather than strand. */
+        try {
+          if (_menuAnchor && _menuAnchor.getBoundingClientRect) {
+            var r = _menuAnchor.getBoundingClientRect();
+            if (r.bottom < -40 || r.top > (window.innerHeight || 800) + 40) { closeMenu(); return; }
+          }
+        } catch (eR) {}
+        positionDeckMenu(cur, _menuAnchor);
+      }, 60);
+    } catch (e) {}
+  }
+  try {
+    document.addEventListener("pointerdown", onDocPointer, true);
+    document.addEventListener("click", onDocPointer, true);
+    document.addEventListener("keydown", onKey, true);
+    window.addEventListener("resize", onViewChange, { passive: true });
+    window.addEventListener("orientationchange", onViewChange, { passive: true });
+    document.addEventListener("scroll", onViewChange, true);
+    _menuCleanup = function () {
+      try { document.removeEventListener("pointerdown", onDocPointer, true); } catch (e) {}
+      try { document.removeEventListener("click", onDocPointer, true); } catch (e2) {}
+      try { document.removeEventListener("keydown", onKey, true); } catch (e3) {}
+      try { window.removeEventListener("resize", onViewChange); } catch (e4) {}
+      try { window.removeEventListener("orientationchange", onViewChange); } catch (e5) {}
+      try { document.removeEventListener("scroll", onViewChange, true); } catch (e6) {}
+      try { clearTimeout(_rsT); } catch (e7) {}
+    };
+  } catch (eL) {}
 }
 function renameFlow(a, deckId) {
   var d = a.decks[deckId];

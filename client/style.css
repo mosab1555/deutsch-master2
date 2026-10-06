@@ -1026,10 +1026,13 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 .anki-deck-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .anki-study-btn{min-height:44px}
 .anki-kids.hidden{display:none}
-.anki-menu{position:absolute;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:6px;display:flex;flex-direction:column;min-width:230px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
-.anki-menu button{background:none;border:none;color:var(--text);text-align:start;padding:12px;color:var(--text);cursor:pointer;border-radius:8px;font-size:14px;min-height:44px}
+.anki-menu{position:fixed;z-index:600;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:6px;display:flex;flex-direction:column;min-width:230px;max-width:min(320px,calc(100vw - 16px));max-height:min(70vh,430px);overflow-y:auto;overscroll-behavior:contain;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.anki-menu button{background:none;border:none;color:var(--text);text-align:start;padding:12px;color:var(--text);cursor:pointer;border-radius:8px;font-size:14px;min-height:44px;font-family:inherit}
 .anki-menu button:hover{background:rgba(255,255,255,.07)}
+.anki-menu button:focus-visible{outline:2px solid var(--neon);outline-offset:1px}
 .anki-menu button.danger{color:var(--red)}
+.anki-menu button.danger:hover{background:rgba(255,60,60,.12)}
+.anki-menu-btn[aria-expanded="true"]{background:rgba(255,255,255,.1);color:var(--text)}
 .anki-empty{padding:32px 20px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px;margin:12px 0}
 .anki-empty-ico{font-size:48px;margin-bottom:12px}
 .anki-empty h3{color:var(--text);margin:0 0 8px;font-size:20px}
@@ -1286,7 +1289,7 @@ html[data-theme="light"] .anki-deck-bar{background:rgba(0,0,0,.08)}
   .anki-ov-grid{grid-template-columns:repeat(2,1fr)}
   .anki-browser-toolbar select{max-width:110px}
   .anki-media-pick{grid-template-columns:1fr}
-  .anki-menu{position:fixed;inset-inline:8px;bottom:8px;top:auto;min-width:0;max-height:70vh;overflow-y:auto;border-radius:18px;padding:10px}
+  .anki-menu{position:fixed;inset-inline:8px;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom, 0px));top:auto;min-width:0;max-width:none;max-height:70vh;max-height:70dvh;overflow-y:auto;border-radius:18px;padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px))}
   .anki-menu button{min-height:48px;font-size:15px}
   .anki-savebar{bottom:0}
 }
