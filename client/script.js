@@ -1860,7 +1860,7 @@ function showPage(name){
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
-  $("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");
+  $("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}
   /* Page-state preservation: when DMPageState will restore a saved scroll
      position for this page, do NOT scroll to top first (avoids jump/flicker).
      First visits and explicit content opens still start at the top. */
@@ -1873,8 +1873,8 @@ function showPage(name){
 }
 document.querySelectorAll(".nav-item").forEach(b=>{if(b.hasAttribute("data-action"))return;b.addEventListener("click",()=>showPage(b.dataset.page));});
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-goto"))));
-$("menuBtn").addEventListener("click",()=>{$("sidebar").classList.add("open");$("sidebarOverlay").classList.add("show");});
-$("sidebarOverlay").addEventListener("click",()=>{$("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");});
+$("menuBtn").addEventListener("click",()=>{$("sidebar").classList.add("open");$("sidebarOverlay").classList.add("show");try{document.body.classList.add("drawer-open");}catch(e){}});
+$("sidebarOverlay").addEventListener("click",()=>{$("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}});
 
 /* ============ THEME / SPEED ============ */
 function applyTheme(){document.documentElement.setAttribute("data-theme",S.settings.theme);$("themeBtn").textContent=S.settings.theme==="dark"?"🌙":"☀️";try{applyColor();}catch(e){}}

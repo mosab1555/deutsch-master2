@@ -308,10 +308,16 @@ html[data-theme="light"] .stat-bar-row .bar{background:rgba(0,0,0,.08)}
 .detail-ar{font-size:24px;color:var(--gold);font-weight:800;margin:6px 0}
 /* Mobile polish */
 @media(max-width:1024px){.grid-2{grid-template-columns:1fr}.hero{flex-direction:column}}
+/* Mobile drawer layering (semantic scale):
+   app content (auto) < topbar 40 < sticky/floating page UI 50
+   < drawer backdrop 150 < drawer 160 < modal 200 < toast 300.
+   The backdrop + drawer sit above .anki-toolbar (sticky, z:50) so the
+   AnkiDroid action bar can never paint above / intercept the open drawer. */
 @media(max-width:860px){
-  .sidebar{position:fixed;right:0;top:0;transform:translateX(100%);transition:.35s;width:260px}
-  .sidebar.open{transform:none;box-shadow:-20px 0 60px rgba(0,0,0,.6)}
-  .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:45}
+  .sidebar{position:fixed;right:0;top:0;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow-y:auto;overscroll-behavior:contain;transform:translateX(100%);transition:transform .35s ease;width:260px;max-width:88vw;z-index:160}
+  .sidebar.open{transform:none;box-shadow:-20px 0 60px rgba(0,0,0,.6);z-index:160}
+  .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150}
+  body.drawer-open{overflow:hidden}
   .hamburger{display:block}
   .topbar{margin:10px 10px 0;padding:10px}
   .content{padding:14px 10px 60px}

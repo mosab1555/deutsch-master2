@@ -60,6 +60,7 @@
         // Hide sidebar
         document.getElementById("sidebar")?.classList.remove("open");
         document.getElementById("sidebarOverlay")?.classList.remove("show");
+        try { document.body.classList.remove("drawer-open"); } catch (e) {}
         // Update auth UI
         updateAuthUI(false);
     }
@@ -604,6 +605,7 @@
         document.getElementById("logoutBtn")?.addEventListener("click", function() {
             try { document.getElementById("sidebar")?.classList.remove("open"); } catch (e) {}
             try { document.getElementById("sidebarOverlay")?.classList.remove("show"); } catch (e) {}
+            try { document.body.classList.remove("drawer-open"); } catch (e) {}
             if (window.AuthModule && typeof window.AuthModule.signOut === "function") {
                 var p = null;
                 try { p = window.AuthModule.signOut(); } catch (e) {
