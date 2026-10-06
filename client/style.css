@@ -1283,3 +1283,41 @@ html[data-theme="light"] .anki-deck-bar{background:rgba(0,0,0,.08)}
 @media (prefers-reduced-motion:reduce){
   #ankiRoot *{transition:none!important;animation:none!important}
 }
+
+/* ============ AnkiDroid final UX pass: preview, browse actions, filters ============ */
+/* Fast subtle reveal (never a slow cinematic flip; killed by reduced-motion). */
+@keyframes ankiReveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.anki-card-back:not(.hidden){animation:ankiReveal .14s ease}
+/* --- browse rows: compact card + labeled touch actions --- */
+.anki-bcard-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 12px}
+.anki-bcard{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.anki-bcard input[type="checkbox"]{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--violet)}
+.anki-bcard-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.anki-bcard-main b{font-size:15px}
+.anki-bcard-main small{font-size:13px;color:var(--muted)}
+.anki-bcard-acts{display:flex;gap:6px;margin-top:8px}
+.anki-bcard-acts .mini-btn,.anki-row-acts .mini-btn{min-width:44px;min-height:44px;font-size:15px;display:inline-flex;align-items:center;justify-content:center}
+.anki-row-acts{white-space:nowrap}
+.anki-browser-toolbar{margin-bottom:8px}
+#ankiDeckF,#ankiTypeF{flex:1;min-width:0}
+/* --- card preview modal (management view) --- */
+.anki-preview-ov{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.anki-preview-sheet{width:100%;max-width:520px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.anki-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.anki-preview-head b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anki-preview-card{margin-bottom:12px}
+.anki-preview-card .anki-card-front,.anki-preview-card .anki-card-back{font-size:20px}
+.anki-preview-flip{width:100%;min-height:52px;font-size:16px;font-weight:800;margin-bottom:10px}
+.anki-preview-acts{justify-content:center}
+.anki-preview-acts .btn{min-height:44px}
+@media (max-width:640px){
+  .anki-browser-toolbar{flex-wrap:wrap}
+  .anki-browser-toolbar input{flex:1 1 100%}
+  .anki-browser-toolbar select{flex:1;max-width:none;min-width:120px}
+  .anki-preview-ov{padding:10px;align-items:flex-end}
+  .anki-preview-sheet{border-radius:20px 20px 0 0;max-width:none}
+  .anki-preview-card .anki-card-front,.anki-preview-card .anki-card-back{font-size:18px;padding:20px 14px}
+}
+@media (prefers-reduced-motion:reduce){
+  .anki-card-back:not(.hidden){animation:none}
+}

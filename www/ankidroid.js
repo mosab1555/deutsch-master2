@@ -676,6 +676,9 @@ function cardMatches(a, card, note, F, conds, nowMs) {
         (cd.v === "today" && (card.sched.last === todayKey()));
     } else if (cd.kind === "type") {
       hit = norm(note.type).indexOf(cd.v) >= 0;
+    } else if (cd.kind === "has") {
+      /* has:media narrows to notes carrying at least one stored image token. */
+      hit = cd.v === "media" ? noteHasMedia(a, note) : true;
     } else if (cd.kind === "level") {
       hit = norm(F._level || "").indexOf(cd.v) >= 0;
     } else if (cd.kind === "kapitel" || cd.kind === "kap") {
@@ -1222,6 +1225,7 @@ function deckSubRowHTML(a, id, depth) {
   if (!d || depth > 8) return "";
   var kids = childrenOf(a, id);
   var c = deckCounts(a, id, Date.now());
+  var dt = deckDueTotal(a, id, Date.now());
   var open = !d.collapsed;
   var h = '<div class="anki-deck" data-deck="' + esc(id) + '">' +
     '<div class="anki-deck-row anki-sub">' +
@@ -1247,18 +1251,23 @@ function deckCardHTML(a, id) {
   var prog = deckProgress(a, id, Date.now());
   var last = fmtLast(deckLastStudied(a, id));
   var open = !d.collapsed;
-  var h = '<article class="anki-deck-card" data-deck="' + esc(id) + '">' +
+  /* Premium deck card: name, totals, due pill, progress bar, last studied,
+   * primary study action. Subdecks render as compact rows inside. */
+  var duePill = dt.due > 0
+    ? '<span class="anki-deck-due">' + dt.due + ' ' + esc(T("anki_due_now")) + '</span>'
+    : '<span class="anki-deck-calm">✓</span>';
+  var h = '<article class="anki-deck-card' + (dt.due > 0 ? " has-due" : "") + '" data-deck="' + esc(id) + '">' +
     '<div class="anki-deck-row">' +
     (kids.length ? '<button class="anki-toggle" data-atoggle="' + esc(id) + '" aria-expanded="' + (open ? "true" : "false") + '" aria-label="expand">' + (open ? "▾" : "▸") + '</button>' : '<span class="anki-toggle-sp"></span>') +
     '<button class="anki-deck-name" data-aoverview="' + esc(id) + '" title="' + esc(deckPath(a, id)) + '">' + esc(d.name) + '</button>' +
     '<button class="anki-deck-go" data-aoverview="' + esc(id) + '" aria-label="' + esc(T("anki_overview")) + '">' + chipCounts(c) + '</button>' +
     '<button class="anki-menu-btn" data-amenu="' + esc(id) + '" aria-label="deck actions" aria-haspopup="menu">⋮</button>' +
     '</div>' +
-    '<div class="anki-deck-sub" dir="auto">' + esc(deckPath(a, id)) + ' · ' + c.total + ' ' + esc(T("anki_total")) + ' · ' + dt.due + ' ' + esc(T("anki_due_now")) + '</div>' +
-    '<div class="anki-progress" role="img" aria-label="' + esc(T("anki_progress")) + ' ' + prog + '%"><div class="progress"><div class="progress-fill" style="width:' + prog + '%"></div></div><span class="anki-prog-num">' + prog + '%</span></div>' +
+    '<button class="anki-deck-sub" data-aoverview="' + esc(id) + '" dir="auto"><span class="anki-deck-total">' + c.total + ' ' + esc(T("anki_total")) + '</span>' + duePill + '</button>' +
+    '<div class="anki-deck-bar" role="img" aria-label="' + esc(T("anki_progress")) + ' ' + prog + '%"><div class="anki-deck-fill" style="width:' + prog + '%"></div></div>' +
     '<div class="anki-deck-last muted">' + esc(T("anki_last_studied")) + ': ' + esc(last) + (kids.length ? ' · ' + kids.length + ' sub' : '') + '</div>' +
-    '<div class="anki-deck-actions"><button class="btn btn-primary sm" data-astudy="' + esc(id) + '">' + esc(T("anki_study_now")) + ' (' + dt.due + ')</button>' +
-    '<button class="btn btn-ghost sm" data-abrowse="' + esc(id) + '">' + esc(T("anki_browse")) + '</button></div>';
+    '<div class="anki-deck-actions"><button class="btn btn-primary sm anki-study-btn" data-astudy="' + esc(id) + '">' + esc(T("anki_study_now")) + (dt.due ? ' · ' + dt.due : '') + '</button>' +
+    '<button class="btn btn-ghost sm" data-abrowse="' + esc(id) + '" aria-label="' + esc(T("anki_browse")) + '">📋</button></div>';
   if (kids.length) {
     h += '<div class="anki-kids' + (open ? "" : " hidden") + '">';
     if (open) kids.forEach(function (k) { h += deckSubRowHTML(a, k, 1); });
@@ -1302,9 +1311,11 @@ function render() {
   else if (V.name === "collection") html = collectionHTML(a);
   else if (V.name === "custom") html = customHTML(a);
   else if (V.name === "io") html = ioHTML(a);
-  else html = homeHTML(a);
+   else html = homeHTML(a);
   r.innerHTML = html;
   bindRoot(r, a);
+  /* Populate the editor live preview after mount (DOM-only, keeps focus). */
+  if (V.name === "add" || V.name === "edit") { try { updateLivePreview(); } catch (e) {} }
 }
 function homeHTML(a) {
   var s = computeStats(a, Date.now());
@@ -1455,9 +1466,23 @@ function rateCurrent(rating) {
 }
 /* ---- browser ---- */
 var BROWSE_PAGE = 60;
+/* Per-card management actions (compact, labeled, touch-friendly). Handlers:
+ * data-aeditnote (edit), data-apreview (Anki-style preview), data-aduplicate
+ * (copy), data-adelcard (delete with confirm). */
+function browseRowActs(c) {
+  return '<button class="mini-btn" data-aeditnote="' + esc(c.note) + '" aria-label="' + esc(T("anki_edit")) + '" title="' + esc(T("anki_edit")) + '">✏️</button>' +
+    '<button class="mini-btn" data-apreview="' + esc(c.id) + '" aria-label="' + esc(T("anki_preview")) + '" title="' + esc(T("anki_preview")) + '">👁️</button>' +
+    '<button class="mini-btn" data-aduplicate="' + esc(c.note) + '" aria-label="' + esc(T("anki_duplicate")) + '" title="' + esc(T("anki_duplicate")) + '">⧉</button>' +
+    '<button class="mini-btn" data-adelcard="' + esc(c.note) + '" aria-label="' + esc(T("anki_delete")) + '" title="' + esc(T("anki_delete")) + '">🗑️</button>';
+}
 function browseHTML(a) {
   var q = V.q || "";
-  var res = searchCards(a, q, Date.now());
+  /* Deck/type dropdowns compose stable query tokens (deck ID survives rename,
+   * multi-word paths stay intact) on top of the free-text search. */
+  var extra = "";
+  if (V.deckF && a.decks[V.deckF]) extra += " deck:" + V.deckF;
+  if (V.typeF && a.types[V.typeF]) extra += " type:" + V.typeF;
+  var res = searchCards(a, (q + extra).trim(), Date.now());
   var sortK = V.sortK || "due";
   res.sort(function (x, y) {
     if (sortK === "deck") return deckPath(a, x.deck).localeCompare(deckPath(a, y.deck));
@@ -1480,8 +1505,12 @@ function browseHTML(a) {
     '<h3 class="anki-sec-t">' + esc(T("anki_manage_cards")) + '</h3>' +
     '<div class="anki-browser-toolbar"><input id="ankiSearch" class="full-input" dir="auto" placeholder="' + esc(T("anki_search_ph")) + '" value="' + esc(q) + '" aria-label="' + esc(T("anki_search_ph")) + '">' +
     '<select id="ankiSort" aria-label="sort"><option value="due"' + (sortK === "due" ? " selected" : "") + '>Due</option><option value="deck"' + (sortK === "deck" ? " selected" : "") + '>Deck</option><option value="state"' + (sortK === "state" ? " selected" : "") + '>State</option><option value="iv"' + (sortK === "iv" ? " selected" : "") + '>Interval</option></select></div>' +
+    '<div class="anki-browser-toolbar"><select id="ankiDeckF" aria-label="' + esc(T("anki_filter_deck")) + '"><option value="">' + esc(T("anki_filter_deck")) + '</option>' +
+    Object.keys(a.decks).map(function (k) { return '<option value="' + esc(k) + '"' + (V.deckF === k ? " selected" : "") + '>' + esc(deckPath(a, k)) + '</option>'; }).join("") + '</select>' +
+    '<select id="ankiTypeF" aria-label="' + esc(T("anki_filter_type")) + '"><option value="">' + esc(T("anki_filter_type")) + '</option>' +
+    Object.keys(a.types).map(function (k) { return '<option value="' + esc(k) + '"' + (V.typeF === k ? " selected" : "") + '>' + esc(a.types[k].name) + '</option>'; }).join("") + '</select></div>' +
     '<div class="anki-fchips" role="group">' +
-    chip("", T("anki_filter_all"), !ql) + chip("is:new", T("anki_filter_new") + " " + T("anki_new"), ql === "is:new") +
+    chip("", T("anki_filter_all"), !ql && !V.deckF && !V.typeF) + chip("is:new", T("anki_filter_new") + " " + T("anki_new"), ql === "is:new") +
     chip("is:due", T("anki_filter_due") + " " + T("anki_stat_due"), ql === "is:due") + chip("has:media", T("anki_filter_media"), ql === "has:media") +
     '</div>' +
     '<div class="anki-bulk"><button class="btn btn-ghost sm" data-abFloyd="sus">⏸️ ' + esc(T("anki_suspend")) + '</button>' +
@@ -1491,20 +1520,29 @@ function browseHTML(a) {
     '<button class="btn btn-ghost sm" data-abFloyd="reset">↺ ' + esc(T("anki_reset")) + '</button>' +
     '<button class="btn btn-red sm" data-abFloyd="del">🗑️</button>' +
     '<label class="muted"><input type="checkbox" id="ankiSelAll"> ✓</label></div>';
-  if (!slice.length) {
-    h += '<div class="anki-empty">—</div>';
+  if (!Object.keys(a.cards).length) {
+    h += '<div class="anki-empty"><div class="anki-empty-ico" aria-hidden="true">🃏</div>' +
+      '<h3>' + esc(T("anki_empty_decks_t")) + '</h3><p class="muted">' + esc(T("anki_empty_decks_s")) + '</p>' +
+      '<div class="row-flex anki-empty-cta"><button class="btn btn-primary" data-anewdeck="1">' + esc(T("anki_create_deck")) + '</button>' +
+      '<button class="btn btn-ghost" data-aview="add">' + esc(T("anki_add_first_card")) + '</button></div></div>';
+  } else if (!slice.length) {
+    h += '<div class="anki-empty"><div class="anki-empty-ico" aria-hidden="true">🔍</div>' +
+      '<h3>' + esc(T("anki_empty_deck_t")) + '</h3><p class="muted">' + esc(T("anki_empty_deck_s")) + '</p>' +
+      '<div class="row-flex anki-empty-cta"><button class="btn btn-ghost" data-aclear-f="1">' + esc(T("anki_filter_all")) + '</button>' +
+      '<button class="btn btn-primary" data-aview="add">' + esc(T("anki_add_first_card")) + '</button></div></div>';
   } else if (window.innerWidth < 640) {
     h += '<div class="anki-bcards">' + slice.map(function (c) {
       var n = a.notes[c.note] || {};
       var F = resolveFields(n);
       var s = schedOf(c);
       var hasM = noteHasMedia(a, n);
-      return '<label class="anki-bcard"><input type="checkbox" data-asel="' + esc(c.id) + '"' + (V.sel[c.id] ? " checked" : "") + '>' +
-        '<span class="anki-bcard-main"><b dir="auto">' + (hasM ? "📷 " : "") + esc(String(F.Front || "").slice(0, 80)) + '</b><small dir="auto">' + esc(String(F.Back || "").slice(0, 80)) + '</small>' +
-        '<small class="muted">' + esc(deckPath(a, c.deck)) + ' · ' + esc(s.st) + ' · ' + esc(s.due || "") + ' · ' + (s.iv | 0) + 'd</small></span></label>';
+      return '<div class="anki-bcard-wrap"><label class="anki-bcard"><input type="checkbox" data-asel="' + esc(c.id) + '"' + (V.sel[c.id] ? " checked" : "") + '>' +
+        '<span class="anki-bcard-main"><b dir="auto">' + (hasM ? "📷 " : "") + esc(String(F.Front || "").slice(0, 80)) + '</b><small dir="auto">→ ' + esc(String(F.Back || "").slice(0, 80)) + '</small>' +
+        '<small class="muted">' + esc(deckPath(a, c.deck)) + ' · ' + esc(s.st) + ' · ' + esc(s.due || "") + ' · ' + (s.iv | 0) + 'd</small></span></label>' +
+        '<div class="anki-bcard-acts">' + browseRowActs(c) + '</div></div>';
     }).join("") + '</div>';
   } else {
-    h += '<div class="anki-table-wrap"><table class="anki-browser-table"><thead><tr><th></th><th></th><th>' + esc(T("anki_front")) + '</th><th>' + esc(T("anki_back")) + '</th><th>Deck</th><th>State</th><th>Due</th><th>IV</th><th>' + esc(T("anki_tags")) + '</th></tr></thead><tbody>' +
+    h += '<div class="anki-table-wrap"><table class="anki-browser-table"><thead><tr><th></th><th></th><th>' + esc(T("anki_front")) + '</th><th>' + esc(T("anki_back")) + '</th><th>Deck</th><th>State</th><th>Due</th><th>IV</th><th>' + esc(T("anki_tags")) + '</th><th></th></tr></thead><tbody>' +
       slice.map(function (c) {
         var n = a.notes[c.note] || {};
         var F = resolveFields(n);
@@ -1519,7 +1557,8 @@ function browseHTML(a) {
         return '<tr><td><input type="checkbox" data-asel="' + esc(c.id) + '"' + (V.sel[c.id] ? " checked" : "") + '></td><td>' + thumb + '</td>' +
           '<td dir="auto">' + esc(String(F.Front || "").slice(0, 60)) + '</td><td dir="auto">' + esc(String(F.Back || "").slice(0, 60)) + '</td>' +
           '<td dir="auto">' + esc(deckPath(a, c.deck)) + '</td><td>' + esc(s.st) + (c.susp ? " ⏸️" : "") + (c.buried ? " 📥" : "") + '</td>' +
-          '<td dir="ltr">' + esc(s.due || "") + '</td><td>' + (s.iv | 0) + 'd</td><td dir="auto">' + esc((n.tags || []).join(", ")) + '</td></tr>';
+          '<td dir="ltr">' + esc(s.due || "") + '</td><td>' + (s.iv | 0) + 'd</td><td dir="auto">' + esc((n.tags || []).join(", ")) + '</td>' +
+          '<td class="anki-row-acts" nowrap>' + browseRowActs(c) + '</td></tr>';
       }).join("") + '</tbody></table></div>';
   }
   h += '<div class="anki-pager"><button class="btn btn-ghost sm" data-apage="-1" ' + (page <= 0 ? "disabled" : "") + '>‹</button><span class="muted">' + (page + 1) + ' / ' + pages + '</span><button class="btn btn-ghost sm" data-apage="1" ' + (page + 1 >= pages ? "disabled" : "") + '>›</button></div>';
@@ -1554,11 +1593,12 @@ function editorMediaHTML(a, note, type, isEdit) {
     if (cur[r.field]) cur[r.field] = cur[r.field].filter(function (m) { return m !== r.mid; });
   });
   var h = '<div class="form-group"><label>🖼️ ' + esc(T("anki_add_image")) + '</label>';
-  h += '<select id="ankiImgField">' + fields.map(function (f) {
+  h += '<select id="ankiImgField" aria-label="' + esc(T("anki_add_image")) + '">' + fields.map(function (f) {
     return '<option value="' + esc(f) + '"' + ((EM && EM.field === f ? f : defField) === f ? " selected" : "") + '>' + esc(f) + '</option>';
   }).join("") + '</select>';
-  h += '<div class="row-flex" style="margin-top:8px"><button class="btn btn-ghost sm" data-amedia-file="1">📁 ' + esc(T("anki_from_device")) + '</button>' +
-    '<button class="btn btn-ghost sm" data-amedia-url="1">🌐 ' + esc(T("anki_from_internet")) + '</button></div>';
+  h += '<div class="anki-media-pick">' +
+    '<button class="anki-act" data-amedia-file="1"><span class="anki-act-ico" aria-hidden="true">📁</span><span class="anki-act-t">' + esc(T("anki_from_device")) + '</span></button>' +
+    '<button class="anki-act" data-amedia-url="1"><span class="anki-act-ico" aria-hidden="true">🌐</span><span class="anki-act-t">' + esc(T("anki_from_internet")) + '</span></button></div>';
   h += '<input type="file" id="ankiImgFile" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" class="hidden">';
   h += '<div id="ankiImgUrlRow" class="hidden" style="margin-top:8px"><input id="ankiImgUrl" dir="ltr" placeholder="https://…" style="width:100%;margin-bottom:6px">' +
     '<div class="row-flex"><button class="btn btn-primary sm" data-amedia-fetch="1">⬇ ' + esc(T("anki_fetch_attach")) + '</button></div>' +
@@ -1585,6 +1625,30 @@ function editorMediaHTML(a, note, type, isEdit) {
   return h;
 }
 /* ---- add / edit note ---- */
+function typeIcon(id) {
+  var icons = { basic: "🔤", basic_rev: "🔄", vocab: "📖", article: "🏷️", sentence: "💬", verb: "⚡", grammar: "📐", listening: "🎧" };
+  return icons[id] || "🃏";
+}
+/* Visual card-type picker: one tap per type (replaces the confusing raw
+ * dropdown). The hidden select stays mounted so captureDraft() keeps working
+ * and typed text survives the type-switch re-render. */
+function typePillsHTML(a, typeId, isEdit) {
+  return '<div class="anki-type-pills" role="radiogroup" aria-label="' + esc(T("anki_note_type")) + '">' +
+    Object.keys(a.types).map(function (k) {
+      var on = k === typeId;
+      return '<button class="anki-type-pill' + (on ? " on" : "") + '" data-atype-pick="' + esc(k) + '" role="radio" aria-checked="' + (on ? "true" : "false") + '">' +
+        '<span aria-hidden="true">' + typeIcon(k) + '</span> ' + esc(a.types[k].name) + '</button>';
+    }).join("") + '</div>' +
+    '<select id="ankiEdType" class="hidden" aria-hidden="true" tabindex="-1">' +
+    Object.keys(a.types).map(function (k) { return '<option value="' + esc(k) + '"' + (k === typeId ? " selected" : "") + '>' + esc(a.types[k].name) + '</option>'; }).join("") + '</select>';
+}
+function editorFieldVal(note, isEdit, draft, f) {
+  var v = "";
+  if (isEdit && note && !note.ref) v = note.fields[f] || "";
+  if (isEdit && note && note.ref) { try { v = resolveFields(note)[f] || ""; } catch (e) { v = ""; } }
+  if (draft && draft.fields && draft.fields[f] !== undefined) v = draft.fields[f];
+  return v;
+}
 function editorHTML(a) {
   var isEdit = V.name === "edit";
   var note = isEdit ? a.notes[V.editNote] : null;
@@ -1608,22 +1672,17 @@ function editorHTML(a) {
     Object.keys(a.decks).map(function (k) { return '<option value="' + esc(k) + '"' + (k === deckId ? " selected" : "") + '>' + esc(deckPath(a, k)) + '</option>'; }).join("") + '</select>' +
     '<button class="btn btn-ghost sm" data-anewdeck="1" style="margin-top:6px">' + esc(T("anki_new_deck")) + '</button></div></section>' +
     '<section class="anki-step-sec" aria-label="' + esc(T("anki_step_type")) + '"><h4 class="anki-step-h"><span class="anki-step-num">2</span> ' + esc(T("anki_step_type")) + '</h4>' +
-    '<div class="form-group"><select id="ankiEdType" aria-label="' + esc(T("anki_note_type")) + '">' +
-    Object.keys(a.types).map(function (k) { return '<option value="' + esc(k) + '"' + (k === type.id ? " selected" : "") + '>' + esc(a.types[k].name) + '</option>'; }).join("") + '</select></div></section>' +
+    typePillsHTML(a, type.id, isEdit) + '</section>' +
     '<section class="anki-step-sec" aria-label="' + esc(T("anki_step_front")) + '"><h4 class="anki-step-h"><span class="anki-step-num">3</span> ' + esc(T("anki_step_front")) + '</h4>';
   (type.fields || []).slice(0, 1).forEach(function (f) {
-    var v = isEdit && !note.ref ? (note.fields[f] || "") : "";
-    if (isEdit && note.ref) { var F = resolveFields(note); v = F[f] || ""; }
-    if (draft && draft.fields && draft.fields[f] !== undefined) v = draft.fields[f];
+    var v = editorFieldVal(note, isEdit, draft, f);
     var big = /example|explanation|conjugation|transcript|meaning/i.test(f);
-    h += '<div class="form-group"><label dir="auto">' + esc(f) + '</label>' +
+    h += '<div class="form-group hero-field"><label dir="auto">' + esc(f) + '</label>' +
       (big ? '<textarea id="ankiEdF_' + esc(f) + '" dir="auto" placeholder="' + esc(T("anki_front_ph")) + '">' + esc(v) + '</textarea>' : '<input id="ankiEdF_' + esc(f) + '" dir="auto" placeholder="' + esc(T("anki_front_ph")) + '" value="' + esc(v) + '">') + '</div>';
   });
   h += '</section><section class="anki-step-sec" aria-label="' + esc(T("anki_step_back")) + '"><h4 class="anki-step-h"><span class="anki-step-num">4</span> ' + esc(T("anki_step_back")) + '</h4>';
   (type.fields || []).slice(1).forEach(function (f) {
-    var v = isEdit && !note.ref ? (note.fields[f] || "") : "";
-    if (isEdit && note.ref) { var F = resolveFields(note); v = F[f] || ""; }
-    if (draft && draft.fields && draft.fields[f] !== undefined) v = draft.fields[f];
+    var v = editorFieldVal(note, isEdit, draft, f);
     var big = /example|explanation|conjugation|transcript|meaning/i.test(f);
     var ph = (f === "Back" || f === (type.fields || [])[1]) ? T("anki_back_ph") : f;
     h += '<div class="form-group"><label dir="auto">' + esc(f) + '</label>' +
@@ -1634,11 +1693,47 @@ function editorHTML(a) {
   if (draft && typeof draft.tags === "string") tags = draft.tags;
   h += '<section class="anki-step-sec" aria-label="' + esc(T("anki_live_preview")) + '"><h4 class="anki-step-h"><span class="anki-step-num">5</span> ' + esc(T("anki_live_preview")) + '</h4>' +
     editorMediaHTML(a, note, type, isEdit) +
+    '<div class="anki-ed-preview"><div class="anki-pv-card"><div class="anki-pv-lab muted">' + esc(T("anki_front_side")) + '</div><div class="anki-pv-front" id="ankiLiveFront" dir="auto"></div>' +
+    '<div class="anki-say-line"><button class="mini-btn anki-say" data-alive-say="1" aria-label="' + esc(T("anki_listen")) + '">🔊</button></div></div>' +
+    '<div class="anki-pv-card"><div class="anki-pv-lab muted">' + esc(T("anki_back_side")) + '</div><div class="anki-pv-back" id="ankiLiveBack" dir="auto"></div></div></div>' +
     '<div class="form-group"><label>' + esc(T("anki_tags")) + '</label><input id="ankiEdTags" dir="auto" value="' + esc(tags) + '"></div>' +
     (isEdit && note.ref ? '<p class="muted">🔗 vocab:' + esc(note.ref.id) + '</p>' : '') +
-    '<div class="row-flex"><button class="btn btn-primary" data-asave="' + (isEdit ? "edit" : "add") + '">' + esc(T("anki_save")) + '</button>' +
+    '<div class="anki-savebar"><button class="btn btn-primary anki-save-btn" data-asave="' + (isEdit ? "edit" : "add") + '">' + esc(T("anki_save")) + '</button>' +
     '<button class="btn btn-ghost" data-aview="' + (isEdit ? "browse" : "home") + '">' + esc(T("anki_cancel")) + '</button></div></section></div>';
   return h;
+}
+/* Live Anki-style preview, refreshed from the DOM inputs (no full re-render,
+ * so focus and typing are never disturbed). Staged media (EM) and removals
+ * (EMR) are reflected exactly as the saved card would look. */
+function updateLivePreview() {
+  try {
+    var front = document.getElementById("ankiLiveFront");
+    if (!front) return;
+    var back = document.getElementById("ankiLiveBack");
+    var a = A();
+    var typeEl = document.getElementById("ankiEdType");
+    var typeId = (typeEl && typeEl.value) || "basic";
+    var type = a.types[typeId] || a.types.basic;
+    var F = {};
+    (type.fields || []).forEach(function (f) {
+      var el = document.getElementById("ankiEdF_" + f);
+      F[f] = el ? String(el.value).slice(0, 4000) : "";
+    });
+    (EMR || []).forEach(function (r) {
+      if (F[r.field] !== undefined && r.mid) {
+        var re = new RegExp("\\[\\[m:" + String(r.mid).replace(/[^A-Za-z0-9]/g, "") + "\\]\\]", "g");
+        F[r.field] = String(F[r.field] || "").replace(re, "");
+      }
+    });
+    if (EM && EM.mid && EM.field && F[EM.field] !== undefined && a.media && a.media[EM.mid]) {
+      if (extractMids(F[EM.field]).indexOf(EM.mid) < 0) {
+        F[EM.field] = (String(F[EM.field] || "").trim() + " [[m:" + EM.mid + "]]").trim();
+      }
+    }
+    var tmpl = (type.templates || [])[0] || { q: "{{Front}}", a: "{{Back}}" };
+    front.innerHTML = applyTemplate(tmpl.q, F, a, true) || '<span class="muted">…</span>';
+    if (back) back.innerHTML = applyTemplate(tmpl.a, F, a, true) || '<span class="muted">…</span>';
+  } catch (e) {}
 }
 /* ---- note types + templates ---- */
 function typesHTML(a) {
@@ -1800,17 +1895,24 @@ function customHTML(a) {
 }
 /* ---- import / export ---- */
 function ioHTML(a) {
+  var s = computeStats(a, Date.now());
   var h = toolbarHTML("io") +
-    '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="home">' + esc(T("anki_back_decks")) + '</button></div>' +
-    '<div class="anki-editor glass"><h4>📤 ' + esc(T("anki_export")) + '</h4>' +
-    '<div class="row-flex"><button class="btn btn-ghost sm" data-aexport="csv">CSV (all)</button>' +
-    '<button class="btn btn-ghost sm" data-aexport="json">JSON backup</button></div>' +
-    '<h4 style="margin-top:12px">📥 ' + esc(T("anki_import")) + '</h4>' +
-    '<p class="muted">CSV: Front,Back,Deck,Tags[,Type,Extra] · .apkg is NOT supported<br>' + esc(T("anki_csv_media_note")) + '</p>' +
+    '<div class="anki-backrow"><button class="btn btn-ghost sm" data-aview="home">' + esc(T("anki_back_decks")) + '</button>' +
+    '<span class="muted">' + s.total + ' ' + esc(T("anki_cards")) + ' · ' + s.decks + ' ' + esc(T("anki_stat_decks")) + '</span></div>' +
+    '<div class="anki-editor glass anki-steps-form">' +
+    '<section class="anki-step-sec" aria-label="' + esc(T("anki_import_title")) + '"><h4 class="anki-step-h"><span class="anki-step-num">📥</span> ' + esc(T("anki_import_title")) + '</h4>' +
+    '<p class="muted">' + esc(T("anki_import_sub")) + '</p>' +
     '<div class="form-group"><label>CSV file</label><input type="file" id="ankiCsvFile" accept=".csv,text/csv"></div>' +
     '<div class="form-group"><label>paste CSV</label><textarea id="ankiCsvText" dir="auto" placeholder="Front,Back,Deck,Tags"></textarea></div>' +
     '<div class="row-flex"><button class="btn btn-primary" data-aimport="1">' + esc(T("anki_import")) + '</button></div><div id="ankiIoBox"></div>' +
-    '<h4 style="margin-top:12px">JSON restore</h4><div class="form-group"><input type="file" id="ankiJsonFile" accept=".json,application/json"></div></div>';
+    '<p class="muted">CSV: Front,Back,Deck,Tags[,Type,Extra]<br>' + esc(T("anki_csv_media_note")) + '</p></section>' +
+    '<section class="anki-step-sec" aria-label="' + esc(T("anki_export_title")) + '"><h4 class="anki-step-h"><span class="anki-step-num">📤</span> ' + esc(T("anki_export_title")) + '</h4>' +
+    '<p class="muted">' + esc(T("anki_export_sub")) + '</p>' +
+    '<div class="row-flex"><button class="btn btn-ghost sm" data-aexport="csv">CSV (' + esc(T("anki_cards")) + ')</button>' +
+    '<button class="btn btn-ghost sm" data-aexport="json">JSON backup</button></div></section>' +
+    '<section class="anki-step-sec" aria-label="JSON restore"><h4 class="anki-step-h"><span class="anki-step-num">↺</span> JSON restore</h4>' +
+    '<div class="form-group"><input type="file" id="ankiJsonFile" accept=".json,application/json"></div>' +
+    '<p class="muted">' + esc(T("anki_formats")) + '</p></section></div>';
   return h;
 }
 /* ================= N. events ================= */
@@ -2004,10 +2106,23 @@ function bindRoot(r, a) {
     if ((b = q("[data-amedia-file]"))) { var fi = document.getElementById("ankiImgFile"); if (fi) fi.click(); return; }
     if ((b = q("[data-amedia-url]"))) { var ur = document.getElementById("ankiImgUrlRow"); if (ur) ur.classList.toggle("hidden"); var ui = document.getElementById("ankiImgUrl"); if (ui && !ur.classList.contains("hidden")) ui.focus(); return; }
     if ((b = q("[data-amedia-fetch]"))) { mediaFetchFlow(); return; }
-    if ((b = q("[data-editor-next]"))) { V.editorStep = Math.min(5, (V.editorStep || 1) + 1); render(); return; }
-    if ((b = q("[data-editor-prev]"))) { V.editorStep = Math.max(1, (V.editorStep || 1) - 1); render(); return; }
-    if ((b = q("[data-aquickstudy]"))) { var d = a.settings.defaultDeck && a.decks[a.settings.defaultDeck] ? a.settings.defaultDeck : Object.keys(a.decks)[0]; if (d) startSession(A(), d, {}); return; }
-    if ((b = q("[data-preview-flip]"))) { V.previewRevealed = !V.previewRevealed; var pc = document.getElementById("ankiPreviewInner"); if (pc) pc.classList.toggle("flipped"); return; }
+    if ((b = q("[data-atype-pick]"))) { pickNoteType(A(), b.getAttribute("data-atype-pick")); return; }
+    if ((b = q("[data-alive-say]"))) { editorSpeakFront(); return; }
+    if ((b = q("[data-apv-say]"))) { previewSpeak(b.getAttribute("data-apv-say")); return; }
+    if ((b = q("[data-aclose-preview]"))) { closeCardPreview(); return; }
+    if ((b = q("[data-apreview]"))) { openCardPreview(A(), b.getAttribute("data-apreview")); return; }
+    if ((b = q("[data-aduplicate]"))) { duplicateFlow(A(), b.getAttribute("data-aduplicate")); return; }
+    if ((b = q("[data-adelcard]"))) { deleteCardFlow(A(), b.getAttribute("data-adelcard")); return; }
+    if ((b = q("[data-aclear-f]"))) { setView({ name: "browse", q: "", page: 0, deckF: "", typeF: "" }); return; }
+    if ((b = q("[data-aquickstudy]"))) { var qd = A(); var qdeck = qd.settings.defaultDeck && qd.decks[qd.settings.defaultDeck] ? qd.settings.defaultDeck : Object.keys(qd.decks)[0]; if (qdeck) startSession(qd, qdeck, {}); else toastM(T("anki_empty_state"), ""); return; }
+    if ((b = q("[data-preview-flip]"))) {
+      V.previewRevealed = !V.previewRevealed;
+      var pc = document.getElementById("ankiPreviewInner");
+      if (pc) pc.classList.toggle("flipped", !!V.previewRevealed);
+      var pb = document.getElementById("ankiPreviewBack");
+      if (pb) pb.classList.toggle("hidden", !V.previewRevealed);
+      return;
+    }
     if ((b = q("[data-aexport-deck]"))) { var ids = Object.keys(A().cards).filter(function (x) { return descendants(A(), b.getAttribute("data-aexport-deck")).indexOf(A().cards[x].deck) >= 0; }); downloadFile("ankidroid-" + deckPath(A(), b.getAttribute("data-aexport-deck")).replace(/::/g, "-") + ".csv", exportCSV(A(), ids), "text/csv;charset=utf-8"); return; }
     if ((b = q("[data-afilter]"))) { var filter = b.getAttribute("data-afilter"); setView({ name: "browse", q: filter, page: 0 }); return; }
     if ((b = q("[data-amedia-rm]"))) {
@@ -2042,6 +2157,8 @@ function bindRoot(r, a) {
       return;
     }
     if (t.id === "ankiSort") { V.sortK = t.value; V.page = 0; render(); }
+    else if (t.id === "ankiDeckF") { V.deckF = t.value || ""; V.page = 0; render(); }
+    else if (t.id === "ankiTypeF") { V.typeF = t.value || ""; V.page = 0; render(); }
     else if (t.id === "ankiSelAll") {
       var on = t.checked;
       r.querySelectorAll("[data-asel]").forEach(function (cb) {
@@ -2069,6 +2186,11 @@ function bindRoot(r, a) {
           if (n) { n.focus(); n.setSelectionRange(pos, pos); }
         } catch (e) {}
       }, 350);
+    } else if (t && t.id && (t.id.indexOf("ankiEdF_") === 0 || t.id === "ankiEdTags")) {
+      /* Editor typing refreshes only the live preview box (debounced) so
+       * focus, IME composition and scroll position are never disturbed. */
+      clearTimeout(r._pv);
+      r._pv = setTimeout(function () { try { updateLivePreview(); } catch (e) {} }, 250);
     }
   });
   r.addEventListener("click", function (ev) {
@@ -2161,6 +2283,66 @@ function bindLightbox() {
 }
 /* ================= O. mutations from UI ================= */
 function val(id) { try { var e = document.getElementById(id); return e ? e.value : ""; } catch (e) { return ""; } }
+/* Visual type-pill selection. Add mode just switches the form type; edit mode
+ * rewrites the note type (cards may change count, hence the confirm). Typed
+ * text survives via the draft snapshot taken at render start. */
+function pickNoteType(a, typeId) {
+  var live = A();
+  if (!live.types[typeId]) return;
+  if (V.name === "edit") {
+    var note = live.notes[V.editNote];
+    if (!note || note.type === typeId) return;
+    if (note.ref) { toastM("🔒", "err"); return; }
+    var before = Object.keys(live.cards).filter(function (k) { return live.cards[k] && live.cards[k].note === V.editNote; }).length;
+    var after = (live.types[typeId].templates || []).length;
+    var ok = true;
+    if (before !== after) {
+      try { ok = window.confirm(before + " → " + after + "?"); } catch (e) {}
+    }
+    if (!ok) return;
+    var res = changeNoteType(live, V.editNote, typeId);
+    if (res.error) { toastM("✖", "err"); return; }
+    render();
+    return;
+  }
+  V.editType = typeId;
+  render();
+}
+function editorSpeakFront() {
+  try {
+    var typeEl = document.getElementById("ankiEdType");
+    var typeId = (typeEl && typeEl.value) || "basic";
+    var a = A();
+    var type = a.types[typeId] || a.types.basic;
+    var first = (type.fields || [])[0] || "Front";
+    var el = document.getElementById("ankiEdF_" + first);
+    var txt = el ? String(el.value || "") : "";
+    var tmp = document.createElement("div");
+    tmp.innerHTML = applyTemplate("{{x}}", { x: txt });
+    speakText(tmp.textContent);
+  } catch (e) {}
+}
+/* Duplicate a card's note (non-destructive, instant feedback). */
+function duplicateFlow(a, nid) {
+  var live = A();
+  if (!nid || !live.notes[nid]) return;
+  var res = duplicateNote(live, nid);
+  if (res.error) { toastM("✖ " + res.error, "err"); return; }
+  toastM("⧉ ✅", "ok");
+  render();
+}
+/* Delete one card's whole note (all its cards) with an explicit confirm and
+ * media cleanup. The red button is never visually dominant: compact icon. */
+function deleteCardFlow(a, nid) {
+  var live = A();
+  if (!nid || !live.notes[nid]) return;
+  var nCards = Object.keys(live.cards).filter(function (k) { return live.cards[k] && live.cards[k].note === nid; }).length;
+  var ok = false;
+  try { ok = window.confirm(T("anki_delete") + " (" + nCards + ")?"); } catch (e) {}
+  if (!ok) return;
+  deleteNote(live, nid);
+  render();
+}
 /* Create Deck/Section from the UI: validate -> persist -> verify ->
  * re-render from live S.anki -> auto-select -> open its overview. On
  * persistence failure roll back (createDeck already did), show the real
@@ -2563,8 +2745,57 @@ function boot() {
 
 /* ================= Q. public API (UI + tests) ================= */
 function closeCardPreview() { try { var p = document.getElementById("ankiPreview"); if (p) p.remove(); } catch (e) {} }
+/* Anki-style card preview (management view): explicit flip control only —
+ * tapping the card body never flips, audio/image buttons never propagate. */
+function openCardPreview(a, cardId) {
+  try {
+    closeCardPreview();
+    var card = a.cards[cardId];
+    if (!card) return;
+    var note = a.notes[card.note];
+    if (!note) return;
+    var sides = cardSides(a, card);
+    var r = root();
+    if (!r) return;
+    V.previewCard = cardId;
+    V.previewRevealed = false;
+    var ov = document.createElement("div");
+    ov.id = "ankiPreview";
+    ov.className = "anki-preview-ov";
+    ov.innerHTML = '<div class="anki-preview-sheet" role="dialog" aria-modal="true" aria-label="' + esc(T("anki_preview")) + '">' +
+      '<div class="anki-preview-head"><b dir="auto">' + esc(deckPath(a, card.deck)) + '</b>' +
+      '<button class="mini-btn" data-aclose-preview="1" aria-label="✖">✖</button></div>' +
+      '<div class="anki-preview-card"><div class="anki-preview-inner" id="ankiPreviewInner">' +
+      '<div class="anki-card-front" dir="auto"><div class="anki-say-line"><button class="mini-btn anki-say" data-apv-say="front" aria-label="' + esc(T("anki_listen")) + '">🔊</button></div>' + sides.front + '</div>' +
+      '<div class="anki-card-back hidden" id="ankiPreviewBack" dir="auto"><div class="anki-say-line"><button class="mini-btn anki-say" data-apv-say="back" aria-label="' + esc(T("anki_listen")) + '">🔊</button></div>' + sides.back + '</div>' +
+      '</div></div>' +
+      '<button class="btn btn-primary anki-preview-flip" data-preview-flip="1">👁️ ' + esc(T("anki_show_answer")) + '</button>' +
+      '<div class="row-flex anki-preview-acts"><button class="btn btn-ghost sm" data-aeditnote="' + esc(card.note) + '">✏️ ' + esc(T("anki_edit")) + '</button>' +
+      '<button class="btn btn-ghost sm" data-aduplicate="' + esc(card.note) + '">⧉ ' + esc(T("anki_duplicate")) + '</button></div>' +
+      '</div>';
+    r.appendChild(ov);
+    /* Backdrop tap closes; every control inside the sheet stops at its own
+     * handler (buttons never bubble into a close or a flip). */
+    ov.addEventListener("click", function (ev) {
+      try { if (ev.target === ov) closeCardPreview(); } catch (e) {}
+    });
+  } catch (e) {}
+}
+function previewSpeak(side) {
+  try {
+    var a = A();
+    var card = V.previewCard ? a.cards[V.previewCard] : null;
+    if (!card) return;
+    var F = cardSides(a, card).fields || {};
+    var txt = String((side === "back" ? F.Back : F.Front) || "");
+    var tmp = document.createElement("div");
+    tmp.innerHTML = applyTemplate("{{x}}", { x: txt });
+    speakText(tmp.textContent);
+  } catch (e) {}
+}
 var API = {
   render: render, startSession: startSession, rateCurrent: rateCurrent,
+  openCardPreview: openCardPreview, closeCardPreview: closeCardPreview,
   store: A, createDeck: createDeck, resolveDeckId: resolveDeckId, createDeckFlow: createDeckFlow, renameDeck: renameDeck, deleteDeck: deleteDeck,
   deckPath: deckPath, childrenOf: childrenOf, descendants: descendants, deckCounts: deckCounts, deckOpts: deckOpts,
   deckDueTotal: deckDueTotal, deckProgress: deckProgress, deckLastStudied: deckLastStudied, fmtLast: fmtLast,
