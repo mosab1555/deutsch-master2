@@ -1,0 +1,158 @@
+/* ==========================================================================
+   Deutsch Master — MOTION SYSTEM
+   GPU-friendly (transform + opacity only), purposeful, restrained.
+   Durations 120–400ms. Full prefers-reduced-motion support.
+   Presentation only: no selectors consumed by JS are renamed.
+   --------------------------------------------------------------------------
+   M0 tokens · M1 page transitions/entrance · M2 stagger · M3 press/hover
+   M4 sidebar/nav motion · M5 orbit motion · M6 quiz feedback · M7 streak/XP
+   M8 flashcards · M9 audio/fav micro-states · M10 modal/toast · M11 skeleton
+   M12 parallax helper · M13 reduced motion
+   ========================================================================== */
+
+/* ---------- M0 · MOTION TOKENS ---------- */
+:root{
+  --mo-fast:140ms; --mo-med:260ms; --mo-slow:380ms;
+  --mo-ease:cubic-bezier(.22,.8,.28,1);
+  --mo-spring:cubic-bezier(.3,1.4,.4,1);
+  --mo-lift:translateY(-3px); --mo-press:scale(.97);
+}
+
+/* ---------- M1 · PAGE TRANSITIONS ---------- */
+/* showPage toggles .page/.active with no delay; this animates the swap. */
+.page{animation:moPageIn var(--mo-med) var(--mo-ease)}
+@keyframes moPageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* outgoing fades fast so nav never feels blocked */
+.page:not(.active){animation:none}
+
+/* ---------- M2 · STAGGERED ENTRANCES (CSS-only, capped) ---------- */
+.page.mo-enter .word-card,.page.mo-enter .sent-card,.page.mo-enter .cmd-feat,
+.page.mo-enter .cmd-why-card,.page.mo-enter .grammar-card{animation:moRise var(--mo-med) var(--mo-ease) backwards}
+.page.mo-enter .word-card:nth-child(2),.page.mo-enter .sent-card:nth-child(2),
+.page.mo-enter .cmd-feat:nth-child(2),.page.mo-enter .cmd-why-card:nth-child(2){animation-delay:.05s}
+.page.mo-enter .word-card:nth-child(3),.page.mo-enter .sent-card:nth-child(3),
+.page.mo-enter .cmd-feat:nth-child(3),.page.mo-enter .cmd-why-card:nth-child(3){animation-delay:.1s}
+.page.mo-enter .word-card:nth-child(4),.page.mo-enter .sent-card:nth-child(4),
+.page.mo-enter .cmd-feat:nth-child(4),.page.mo-enter .cmd-why-card:nth-child(4){animation-delay:.15s}
+.page.mo-enter .word-card:nth-child(n+5),.page.mo-enter .sent-card:nth-child(n+5),
+.page.mo-enter .cmd-feat:nth-child(n+5),.page.mo-enter .cmd-why-card:nth-child(n+5){animation-delay:.2s}
+@keyframes moRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ---------- M3 · PRESS / HOVER / FOCUS (varied per component) ---------- */
+/* buttons: lift on hover, press on active, clear focus */
+.btn{transition:transform var(--mo-fast) var(--mo-ease),box-shadow var(--mo-fast) var(--mo-ease),background-color var(--mo-fast)}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:var(--mo-press)}
+.btn:focus-visible{outline:2px solid var(--lux-cyan,#45dcf0);outline-offset:2px}
+/* mini buttons: press only (no lift — dense rows) */
+.mini-btn{transition:transform var(--mo-fast) var(--mo-ease),background-color var(--mo-fast),border-color var(--mo-fast)}
+.mini-btn:active{transform:var(--mo-press)}
+/* quiz options: border-glow hover, spring press */
+.quiz-opt{transition:transform var(--mo-fast) var(--mo-ease),border-color var(--mo-fast),background-color var(--mo-fast),box-shadow var(--mo-med)}
+.quiz-opt:hover:not(:disabled){transform:translateY(-2px)}
+.quiz-opt:active:not(:disabled){transform:var(--mo-press)}
+/* vocab rows: slide accent on hover (no lift — list context) */
+.word-card,.sent-card{transition:background-color var(--mo-fast),border-color var(--mo-fast)}
+/* icon buttons: subtle scale */
+.icon-btn{transition:transform var(--mo-fast) var(--mo-ease),box-shadow var(--mo-fast)}
+.icon-btn:hover{transform:scale(1.06)}
+.icon-btn:active{transform:var(--mo-press)}
+/* tabs/chips: quick fade */
+.level-tab,.quiz-type,.sx-type,.sx-chip,.cmd-chipbtn{transition:background-color var(--mo-fast),border-color var(--mo-fast),color var(--mo-fast),transform var(--mo-fast) var(--mo-ease)}
+.level-tab:active,.quiz-type:active,.sx-type:active,.sx-chip:active,.cmd-chipbtn:active{transform:var(--mo-press)}
+/* selects/inputs: focus ring */
+select:focus-visible,input:focus-visible{outline:2px solid var(--lux-cyan,#45dcf0);outline-offset:1px}
+
+/* ---------- M4 · SIDEBAR MOTION ---------- */
+.nav-item{transition:background-color var(--mo-fast),border-color var(--mo-fast),color var(--mo-fast),padding-inline-start var(--mo-fast) var(--mo-ease)}
+.nav-item:hover{padding-inline-start:16px}
+.nav-item .nav-ico{transition:transform var(--mo-med) var(--mo-ease),box-shadow var(--mo-fast),background-color var(--mo-fast)}
+.nav-item:hover .nav-ico{transform:scale(1.1) rotate(-4deg)}
+.nav-item.active .nav-ico{transform:scale(1.08)}
+
+/* ---------- M5 · ORBIT MOTION ---------- */
+.cmd-orbit .orbit-ring.r1{animation:moOrbit 90s linear infinite}
+@keyframes moOrbit{to{transform:rotate(360deg)}}
+.orbit-core{transition:box-shadow var(--mo-med)}
+.orbit-node{transition:transform var(--mo-med) var(--mo-ease),border-color var(--mo-fast),box-shadow var(--mo-fast)}
+.orbit-node:hover{transform:translateY(-3px) scale(1.06)}
+.orbit-node:active{transform:var(--mo-press)}
+/* active node breathes once (not a loop — no distraction) */
+.orbit-node.active{animation:moNodeIn .45s var(--mo-spring)}
+@keyframes moNodeIn{0%{transform:scale(.92)}60%{transform:scale(1.08)}100%{transform:scale(1.1)}}
+/* DE badge: slow conic sheen, transform-free */
+.cmd-logo{overflow:hidden}
+.cmd-logo::before{content:"";position:absolute;inset:-40%;background:conic-gradient(transparent 70%,rgba(255,255,255,.35),transparent 85%);
+  animation:moSheen 7s linear infinite;pointer-events:none}
+@keyframes moSheen{to{transform:rotate(360deg)}}
+
+/* ---------- M6 · QUIZ FEEDBACK (refined, still instant-scored) ---------- */
+.quiz-opt.correct{animation:moPop .45s var(--mo-spring)}
+.quiz-opt.wrong{animation:moShake .4s var(--mo-ease)}
+@keyframes moPop{0%{transform:scale(1)}35%{transform:scale(1.04)}100%{transform:scale(1.01)}}
+@keyframes moShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}55%{transform:translateX(5px)}80%{transform:translateX(-2px)}}
+.order-answer.good{animation:moPop .4s var(--mo-spring)}
+.order-answer.bad{animation:moShake .35s var(--mo-ease)}
+.hit-shake{animation:moShake .35s var(--mo-ease)}
+
+/* ---------- M7 · STREAK FLAME + XP BURST ---------- */
+.streak-pill,.streak-mini{animation:moFlame 2.6s ease-in-out infinite;transform-origin:center}
+@keyframes moFlame{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+/* XP burst chip injected by motion.js next to #xpNum (removed after 1s) */
+.mo-xp-burst{position:absolute;display:inline-block;padding:2px 10px;border-radius:8px;font-weight:900;font-size:13px;
+  background:linear-gradient(180deg,#14c384,#0d8a5f);color:#fff;pointer-events:none;z-index:5;
+  animation:moBurst 1s var(--mo-ease) forwards}
+@keyframes moBurst{0%{opacity:0;transform:translateY(6px) scale(.9)}25%{opacity:1;transform:translateY(0) scale(1.05)}100%{opacity:0;transform:translateY(-16px)}}
+/* progress fills glide */
+.progress-fill{transition:width .7s var(--mo-ease)}
+
+/* ---------- M8 · FLASHCARDS: fast smooth flip ---------- */
+/* Audio buttons stopPropagation in JS: flip fires on intentional taps only. */
+.flash-inner{transition:transform .3s var(--mo-ease)!important}
+.flashcard.flipped .flash-inner{transform:rotateY(180deg)}
+.flash-controls .btn:active{transform:var(--mo-press)}
+
+/* ---------- M9 · AUDIO + FAVORITE MICRO-STATES ---------- */
+/* Only the button animates — the card stays still (JS contract). */
+.flash-face .btn[data-say-word].is-speaking,.flash-face .btn[data-say-sent].is-speaking{animation:moBtnPulse .45s var(--mo-ease)}
+@keyframes moBtnPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+/* favorite heart pop (motion.js adds .mo-pop for 400ms on activation) */
+.mini-btn.fav.mo-pop{animation:moPop .4s var(--mo-spring)}
+.mini-btn.fav.active{transition:transform var(--mo-fast),background-color var(--mo-fast)}
+
+/* ---------- M10 · MODAL / TOAST / PALETTE ---------- */
+.modal-overlay{animation:moFade var(--mo-fast) var(--mo-ease)}
+.modal{animation:moModalIn var(--mo-med) var(--mo-spring)}
+@keyframes moFade{from{opacity:0}to{opacity:1}}
+@keyframes moModalIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.toast{animation:moToastIn .3s var(--mo-spring)}
+@keyframes moToastIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.dm-pal-backdrop{animation:moFade var(--mo-fast) var(--mo-ease)}
+.dm-pal{animation:moModalIn var(--mo-med) var(--mo-spring)}
+
+/* ---------- M11 · SKELETONS (subtle shimmer) ---------- */
+.mo-skel{position:relative;overflow:hidden;background:rgba(148,163,200,.12);border-radius:8px;min-height:16px}
+.mo-skel::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(180,200,240,.16),transparent);
+  animation:moShimmer 1.5s linear infinite}
+@keyframes moShimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.mo-skel-card{border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.mo-skel-hero{border-radius:16px;min-height:220px}
+.mo-skel-row{min-height:64px;border-radius:10px}
+
+/* ---------- M12 · HERO PARTICLES + PARALLAX ---------- */
+@keyframes dmFloat{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-26px);opacity:1}}
+.dm-particles i{will-change:transform,opacity}
+.mo-parallax{transition:transform .2s linear;will-change:transform}
+
+/* ---------- M13 · REDUCED MOTION: functional feedback only ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
+  .page,.page.mo-enter .word-card,.page.mo-enter .sent-card,.page.mo-enter .cmd-feat,
+  .page.mo-enter .cmd-why-card,.page.mo-enter .grammar-card{animation:none}
+  .flash-inner{transition:none!important}
+  .streak-pill,.streak-mini,.cmd-orbit .orbit-ring.r1,.cmd-logo::before,.dm-particles i{animation:none}
+  .dm-particles{display:none}
+  .quiz-opt.correct,.quiz-opt.wrong,.order-answer.good,.order-answer.bad,.hit-shake{animation:none}
+  .mo-skel::after{animation:none}
+}

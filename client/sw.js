@@ -1,8 +1,8 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v43";
+var DM_CACHE = "german-academy-v44";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
-  "./style.css", "./reference.css", "./home.css", "./premium.css", "./extreme.css", "./premium.js", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
+  "./style.css", "./reference.css", "./home.css", "./premium.css", "./extreme.css", "./motion.css", "./premium.js", "./motion.js", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
   "./life.js", "./mygermany.js", "./dlife.js", "./simulator.js", "./glab.js", "./labsx.js", "./smart.js", "./adv.js", "./howto.js",
   "./feats.js", "./sent-a1.js",
   "./reference.js", "./reference-data-am.js", "./reference-data-bc.js", "./reference-data-d.js",
