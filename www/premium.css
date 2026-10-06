@@ -343,7 +343,7 @@ html[data-theme="light"] .dm-pal{background:#fff}
   .sidebar{width:min(300px,88vw)}
   .nav-item{padding:12px;font-size:15px;min-height:52px}
   .nav-ico{width:38px;height:38px}
-  .topbar{margin:10px 10px 0}
+  .topbar{margin:0}
   .sync-indicator{display:none}
   .content{padding:14px 12px 90px}
   .flashcard{height:320px}

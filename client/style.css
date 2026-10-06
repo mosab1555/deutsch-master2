@@ -19,6 +19,8 @@
   --auth-focus-ring:0 0 0 3px rgba(66,217,245,.28);
   --auth-shadow:0 24px 70px rgba(2,6,20,.55);
   --auth-radius:20px;
+  /* Fixed top header height (desktop single row); mobile override below. */
+  --dm-header-h:68px;
 }
 html[data-theme="light"]{
   --bg:#eef2ff; --bg2:#ffffff; --card:rgba(255,255,255,.9);
@@ -57,8 +59,14 @@ html[data-theme="light"] .sidebar{background:rgba(255,255,255,.85)}
 .streak-mini{background:linear-gradient(135deg,#f59e0b,#ef4444);padding:10px;border-radius:12px;text-align:center;font-weight:800;color:#fff}
 .level-chip{text-align:center;color:var(--muted);font-size:14px}.level-chip b{color:var(--gold)}
 .sidebar-overlay{display:none}
-.main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;margin:14px 18px 0;border-radius:16px;position:sticky;top:14px;z-index:40}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;padding-top:calc(var(--dm-header-h, 68px) + 14px + env(safe-area-inset-top, 0px))}
+/* Fixed top navigation: viewport-level, always visible while body scrolls.
+ * Root cause of the old bug: .topbar was position:sticky inside the .main
+ * column (top:14px, side margins, z:40) so it rode with the document, floated
+ * as a card, and sat BELOW sticky section bars (.anki-toolbar z:50).
+ * Scroll container is the document body (no inner scroller), .app/.main have
+ * no transforms (see extreme.css L8), so viewport-fixed is safe. */
+.topbar{position:fixed;top:0;inset-inline-end:0;inset-inline-start:270px;z-index:120;display:flex;align-items:center;gap:12px;padding:12px 20px;padding-top:calc(12px + env(safe-area-inset-top, 0px));margin:0;min-height:var(--dm-header-h, 68px);border-radius:0 0 16px 16px;border-top:none;box-shadow:0 8px 28px rgba(2,6,20,.35)}
 .glass{background:var(--card);backdrop-filter:blur(18px);border:1px solid var(--border);box-shadow:var(--shadow)}
 .search-wrap{position:relative;flex:1;max-width:520px;display:flex;align-items:center}
 .search-wrap input{width:100%;padding:11px 38px 11px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.25);color:var(--text);outline:none}
@@ -309,17 +317,22 @@ html[data-theme="light"] .stat-bar-row .bar{background:rgba(0,0,0,.08)}
 /* Mobile polish */
 @media(max-width:1024px){.grid-2{grid-template-columns:1fr}.hero{flex-direction:column}}
 /* Mobile drawer layering (semantic scale):
-   app content (auto) < topbar 40 < sticky/floating page UI 50
+   app content (auto) < sticky/floating page UI 50 < fixed topbar 120
    < drawer backdrop 150 < drawer 160 < modal 200 < toast 300.
-   The backdrop + drawer sit above .anki-toolbar (sticky, z:50) so the
-   AnkiDroid action bar can never paint above / intercept the open drawer. */
+   The backdrop + drawer sit above .topbar and .anki-toolbar (sticky, z:50)
+   so section bars can never paint above the fixed header or intercept the
+   open drawer. */
 @media(max-width:860px){
   .sidebar{position:fixed;right:0;top:0;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow-y:auto;overscroll-behavior:contain;transform:translateX(100%);transition:transform .35s ease;width:260px;max-width:88vw;z-index:160}
   .sidebar.open{transform:none;box-shadow:-20px 0 60px rgba(0,0,0,.6);z-index:160}
   .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150}
   body.drawer-open{overflow:hidden}
   .hamburger{display:block}
-  .topbar{margin:10px 10px 0;padding:10px}
+  /* Drawer overlays content: fixed header spans the full viewport width and
+   * wraps to two rows (search + actions); reserve its height + safe area. */
+  :root{--dm-header-h:112px}
+  .topbar{inset-inline:0;padding:10px;padding-top:calc(10px + env(safe-area-inset-top, 0px));border-radius:0 0 14px 14px}
+  .main{padding-top:calc(var(--dm-header-h) + 10px + env(safe-area-inset-top, 0px))}
   .content{padding:14px 10px 60px}
   .form-grid{grid-template-columns:1fr}
   .flash-word{font-size:32px}
