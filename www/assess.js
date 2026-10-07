@@ -49,7 +49,10 @@ var DMAssess = (function () {
     TEST_W_KAP: 0.65, PROG_W_KAP: 0.35, MIN_KAP_TEST_N: 4,
     HISTORY_CAP: 30, RESUME_TTL_DAYS: 7, EXAM_TIME_SEC: 1200,
     LVL_GATE_WORDS: 40, LVL_GATE_GRAMMAR: 4, STORE_V: 1,
-    QTIME_SEC: 12, BOSS_UNLOCK_READY: 50, PERFECT_ROUND_N: 5, MASTER_CAP: 40
+    QTIME_SEC: 12, BOSS_UNLOCK_READY: 50, PERFECT_ROUND_N: 5, MASTER_CAP: 120,
+    /* Large-test sizing: quick 20 / normal 40 / intensive 60 / advanced 80 /
+       master = all valid content up to MASTER_CAP. Counts are targets only:
+       every spec slices to real valid content and reports the actual number. */
   };
 
   /* skill registry: key -> Arabic label + learning route (all real pages) */
@@ -1120,10 +1123,11 @@ DMAssess.specs = (function () {
   };
   var CAT_IDS = Object.keys(CATS);
   var MODES = {
-    quick:     { ar: "سريع",  n: 10, de: "10 أسئلة" },
-    normal:    { ar: "عادي",  n: 20, de: "20 سؤالًا" },
-    intensive: { ar: "مكثف",  n: 30, de: "30 سؤالًا" },
-    master:    { ar: "Master", n: 0,  de: "حتى تغطية المحتوى" }
+    quick:     { ar: "سريع",  n: 20, de: "20 سؤالًا" },
+    normal:    { ar: "عادي",  n: 40, de: "40 سؤالًا" },
+    intensive: { ar: "مكثف",  n: 60, de: "60 سؤالًا" },
+    advanced:  { ar: "شامل",  n: 80, de: "80 سؤالًا" },
+    master:    { ar: "Master", n: 0,  de: "كل المحتوى المتاح" }
   };
   var DIFFS = {
     easy:   { ar: "سهل",   de: "leichte Fragen" },
@@ -1131,47 +1135,78 @@ DMAssess.specs = (function () {
     hard:   { ar: "صعب",   de: "schwere Fragen" },
     graded: { ar: "متدرج", de: "سهل ← صعب" }
   };
-  /* one category inside one Kapitel, sized by mode + filtered by difficulty */
+  /* one category inside one Kapitel, sized by mode + filtered by difficulty.
+     mode.n is a TARGET: the pool is sliced to real valid content, and the
+     actual count is exposed on pool._actual (never faked upward). Master
+     uses MASTER_CAP as the practical upper bound. */
   function kapitelCategorySpec(kap, catId, modeKey, diffKey, level) {
     var cat = CATS[catId];
     var mode = MODES[modeKey] || MODES.quick;
     var diff = DIFFS[diffKey] ? diffKey : "mixed";
+    var target = mode.n || DMAssess.CONFIG.MASTER_CAP;
     var o = { kap: kap };
     if (level) o.level = level;
     if (diff !== "mixed" && diff !== "graded") o.diff = diff;
     return {
       id: "kc-" + kap + "-" + catId + "-" + modeKey + "-" + diff,
-      kind: "kapitel", cat: catId, kap: kap, level: level || null,
+      kind: "kapitel", cat: catId, kap: kap, level: level || null, target: target,
       modeTitle: (cat ? cat.ar : catId) + " • " + kap + " (" + mode.ar + "، " + (DIFFS[diffKey] || DIFFS.medium).ar + ")",
       minQ: 5, timed: false, diffKey: diff,
       build: function () {
         if (catId === "mistakes") return mistakeSpec(kap).build();
-        var per = Math.max(1, Math.ceil((mode.n || 24) / (cat.facs.length)));
+        var per = Math.max(1, Math.ceil(target / (cat.facs.length)));
+        /* diff-filtered builds discard non-matching items AFTER collecting,
+           so over-collect (bounded) to let the result actually reach the
+           target when enough matching content exists. Probe and Start use
+           identical parameters, so shown availability stays honest. */
+        if (diff !== "mixed" && diff !== "graded") per = Math.min(60, per * 5);
         var plan = cat.facs.map(function (f) { return F(f, per, o); });
         var got = U.buildPool(plan, mode.n ? undefined : 99);
         var pool = got.pool;
         if (diff === "graded") pool = DMAssess.filterByDiff(pool, "graded");
-        if (mode.n) pool = pool.slice(0, mode.n);
-        else pool = pool.slice(0, DMAssess.CONFIG.MASTER_CAP);
+        pool = pool.slice(0, target);
         pool._notes = got.notes;
+        pool._actual = pool.length;
+        pool._target = target;
         return pool;
       }
     };
   }
-  /* full Kapitel exam: one section per available category */
-  function kapitelExamSpec(kap, level) {
+  /* full Kapitel exam: balanced mix across all available categories, scaled
+     to `total` (default 60). Short categories redistribute automatically:
+     buildPool reports real coverage and we slice to what truly exists. */
+  function kapitelExamSpec(kap, level, total) {
+    total = Math.max(8, Math.min(total || 60, DMAssess.CONFIG.MASTER_CAP));
     return {
-      id: "kexam-" + kap, kind: "kapitel", cat: "full", kap: kap, level: level || null,
-      modeTitle: "الامتحان الشامل • " + kap, minQ: 12, timed: false,
+      id: "kexam-" + kap, kind: "kapitel", cat: "full", kap: kap, level: level || null, target: total,
+      modeTitle: "الامتحان الشامل • " + kap + " (" + total + " سؤالًا)",
+      minQ: 8, timed: false,
       build: function () {
         var o = { kap: kap };
         if (level) o.level = level;
         var plan = [];
+        /* balanced base: every category contributes; weights mirror the
+           recommended 60-question distribution (vocab-heavy, skills mixed) */
+        var WEIGHT = { words: 3, sentences: 2, ordering: 2, grammar: 3, verbs: 2, articles: 2, plural: 1, translate: 2, reading: 2, listening: 3, reallife: 2, tfquiz: 1, writing: 1, speaking: 1 };
+        var units = 0, wsum = 0;
         CAT_IDS.forEach(function (cid) {
           if (cid === "mistakes") return;
-          CATS[cid].facs.forEach(function (f) { plan.push(F(f, 2, o)); });
+          wsum += (WEIGHT[cid] || 1) * ((CATS[cid].facs || []).length || 1);
         });
-        return U.buildPool(plan, 4).pool;
+        CAT_IDS.forEach(function (cid) {
+          if (cid === "mistakes") return;
+          var facs = CATS[cid].facs, w = (WEIGHT[cid] || 1);
+          facs.forEach(function (f) {
+            var n = Math.max(1, Math.round(total * w / Math.max(1, wsum)));
+            plan.push(F(f, n, o)); units += n;
+          });
+        });
+        var got = U.buildPool(plan, 99);
+        var pool = DMAssess.shuffled(got.pool).slice(0, total);
+        pool._notes = got.notes;
+        pool._actual = pool.length;
+        pool._target = total;
+        return pool;
       }
     };
   }
@@ -1289,28 +1324,85 @@ DMAssess.specs = (function () {
     if (tested >= 3) return { ok: true, why: tested + " اختبارات في " + kap };
     return { ok: false, why: "يحتاج إتقان " + DMAssess.CONFIG.BOSS_UNLOCK_READY + "% أو 3 اختبارات في " + kap + " (التعلّم نفسه مفتوح دائمًا)" };
   }
-  function bossSpec(kap) {
+  function bossSpec(kap, total) {
+    total = Math.max(10, Math.min(total || 40, DMAssess.CONFIG.MASTER_CAP));
     return {
-      id: "boss-" + kap, kind: "kapitel", cat: "boss", kap: kap,
-      modeTitle: "اختبار الزعيم 👑 • " + kap, minQ: 10, timed: false, adaptiveDiff: true,
+      id: "boss-" + kap, kind: "kapitel", cat: "boss", kap: kap, target: total,
+      modeTitle: "اختبار الزعيم 👑 • " + kap + " (" + total + " سؤالًا)",
+      minQ: 8, timed: false, adaptiveDiff: true,
       build: function () {
         var o = { kap: kap };
         var got = U.buildPool([
-          F("error", 2, o), F("conj", 2, o), F("kein", 2, o),
-          F("order", 2, o), F("listenGap", 2, o), F("dialogue", 1, o),
-          F("grammar", 2, o), F("match", 1, o), F("reading", 1, o), F("situation", 1, o)
-        ], 3);
+          F("error", Math.ceil(total * 0.15), o), F("conj", Math.ceil(total * 0.12), o),
+          F("kein", Math.ceil(total * 0.10), o), F("order", Math.ceil(total * 0.12), o),
+          F("listenGap", Math.ceil(total * 0.12), o), F("dialogue", Math.ceil(total * 0.08), o),
+          F("grammar", Math.ceil(total * 0.12), o), F("match", Math.ceil(total * 0.06), o),
+          F("reading", Math.ceil(total * 0.06), o), F("situation", Math.ceil(total * 0.07), o)
+        ], 99);
         var pool = DMAssess.filterByDiff(got.pool, "graded");
-        return pool.slice(0, 16);
+        pool = pool.slice(0, total);
+        pool._notes = got.notes;
+        pool._actual = pool.length;
+        pool._target = total;
+        return pool;
+      }
+    };
+  }
+  /* cumulative test: Kapitel range (e.g. K1..K3 or whole A1). Stays inside
+     the selected kaps only — never leaks other content. Balanced by skill. */
+  function cumulSpec(kaps, total, o) {
+    o = o || {};
+    kaps = (kaps || []).slice();
+    total = Math.max(8, Math.min(total || 60, DMAssess.CONFIG.MASTER_CAP));
+    return {
+      id: "cumul-" + kaps.join("-") + "-" + total, kind: "kapitel", cat: "cumul",
+      kap: kaps.length === 1 ? kaps[0] : null, kaps: kaps, level: o.level || null, target: total,
+      modeTitle: "اختبار تراكمي 📚 (" + (kaps.join(" + ") || "الكل") + ") • " + total + " سؤالًا)",
+      minQ: 8, timed: false,
+      build: function () {
+        var dist = { vocab: 22, grammar: 18, sentences: 16, verbs: 12, listening: 10, reading: 10, practical: 12 };
+        var counts = DMAssess.distribute(total, dist);
+        var DIST_FACS = {
+          vocab: ["vocabMean", "article", "translate", "match", "wordClass"],
+          grammar: ["grammar", "kein", "gap"], sentences: ["gap", "order", "sentMean"],
+          verbs: ["verb", "conj", "error"], listening: ["listening", "listenGap"],
+          reading: ["reading", "sentMean"], practical: ["situation", "dialogue"]
+        };
+        var plan = [];
+        Object.keys(counts).forEach(function (sk) {
+          var facs = DIST_FACS[sk] || ["vocabMean"];
+          var perKap = Math.max(1, Math.ceil(counts[sk] / Math.max(1, kaps.length) / facs.length));
+          kaps.forEach(function (kp) {
+            facs.forEach(function (f) {
+              var slot = F(f, perKap, {});
+              slot.kap = kp;
+              if (o.level) slot.level = o.level;
+              plan.push(slot);
+            });
+          });
+          if (!kaps.length) facs.forEach(function (f) {
+            var slot = F(f, Math.max(1, Math.ceil(counts[sk] / facs.length)), {});
+            if (o.level) slot.level = o.level;
+            plan.push(slot);
+          });
+        });
+        var got = U.buildPool(plan, 99);
+        var pool = DMAssess.shuffled(got.pool).slice(0, total);
+        pool._notes = got.notes;
+        pool._actual = pool.length;
+        pool._target = total;
+        return pool;
       }
     };
   }
   /* smart test-me: weakness-weighted distribution from real history */
   function smartSpec(o) {
     o = o || {};
+    var total = Math.max(8, Math.min(o.total || 40, DMAssess.CONFIG.MASTER_CAP));
     return {
-      id: "smart-" + Date.now().toString(36), kind: "general",
-      modeTitle: "اختبرني بذكاء 🧠", minQ: 6, timed: false,
+      id: "smart-" + Date.now().toString(36), kind: "general", cat: "smart",
+      kap: o.kap || null, level: o.level || null, target: total,
+      modeTitle: "اختبرني بذكاء 🧠 (" + total + " سؤالًا)", minQ: 6, timed: false,
       build: function () {
         var dist = { vocab: 15, grammar: 15, sentences: 15, verbs: 10, listening: 10, reading: 10, practical: 10, writing: 8, speaking: 7 };
         try {
@@ -1320,11 +1412,11 @@ DMAssess.specs = (function () {
             Object.keys(dist).forEach(function (k) { dist[k] = dist[k] * (boost[k] || 1); });
           }
         } catch (e) {}
-        return mixedDistSpec(dist, { total: o.total || 15, kap: o.kap || null, level: o.level || null }).build();
+        return mixedDistSpec(dist, { total: total, kap: o.kap || null, level: o.level || null }).build();
       }
     };
   }
-  return { mixedSpec: mixedSpec, placementSpec: placementSpec, kapitelSpec: kapitelSpec, skillSpec: skillSpec, a1ExamSpec: a1ExamSpec, levelExamSpec: levelExamSpec, SKILL_FACTORIES: SKILL_FACTORIES, CATS: CATS, CAT_IDS: CAT_IDS, MODES: MODES, DIFFS: DIFFS, kapitelCategorySpec: kapitelCategorySpec, kapitelExamSpec: kapitelExamSpec, mixedDistSpec: mixedDistSpec, customSpec: customSpec, mistakeSpec: mistakeSpec, dailySpec: dailySpec, bossSpec: bossSpec, bossUnlock: bossUnlock, smartSpec: smartSpec };
+  return { mixedSpec: mixedSpec, placementSpec: placementSpec, kapitelSpec: kapitelSpec, skillSpec: skillSpec, a1ExamSpec: a1ExamSpec, levelExamSpec: levelExamSpec, SKILL_FACTORIES: SKILL_FACTORIES, CATS: CATS, CAT_IDS: CAT_IDS, MODES: MODES, DIFFS: DIFFS, kapitelCategorySpec: kapitelCategorySpec, kapitelExamSpec: kapitelExamSpec, mixedDistSpec: mixedDistSpec, customSpec: customSpec, mistakeSpec: mistakeSpec, dailySpec: dailySpec, bossSpec: bossSpec, cumulSpec: cumulSpec, bossUnlock: bossUnlock, smartSpec: smartSpec };
 })();
 /* ============ SESSION RUNNER + STORE ============ */
 DMAssess.app = (function () {
@@ -1405,6 +1497,35 @@ DMAssess.app = (function () {
       '<div class="muted">التغطية المتاحة: ' + Object.keys(bySkill).map(function (s) { return esc(skillAr(s)) + " (" + bySkill[s] + ")"; }).join(" • ") + '</div>' +
       '<div class="row-flex"><button class="btn btn-ghost sm" data-as="dash">← عودة للمركز</button></div></div>';
   }
+  /* Header-aware focus: smooth-scrolls an element into view without hiding
+     it under the fixed top header or the mobile bottom nav. Uses CSS
+     scroll-margin-top where present; the JS offset is the safety net for
+     older WebViews. Never scrolls to page top. */
+  function focusBelowHeader(elOrId, opts) {
+    try {
+      var el = typeof elOrId === "string" ? $(elOrId) : elOrId;
+      if (!el) return false;
+      var extra = (opts && opts.extra) || 8;
+      var hdr = 76;
+      try {
+        var hb = document.getElementById("dmTopHeader");
+        if (hb) hdr = Math.max(hdr, Math.ceil(hb.getBoundingClientRect().height) + 10);
+        var cs = getComputedStyle(document.documentElement);
+        var vh = parseInt(cs.getPropertyValue("--dm-header-h"), 10);
+        if (vh > hdr) hdr = vh + 10;
+      } catch (e2) {}
+      var y = 0;
+      try {
+        var r = el.getBoundingClientRect();
+        y = (window.pageYOffset || document.documentElement.scrollTop || 0) + r.top - hdr - extra;
+      } catch (e3) { return false; }
+      if (y < 0) y = 0;
+      try { window.scrollTo({ top: y, behavior: "smooth" }); }
+      catch (e4) { try { window.scrollTo(0, y); } catch (e5) {} }
+      try { if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1"); } catch (e6) {}
+      return true;
+    } catch (e) { return false; }
+  }
   function startFlow(spec, opts) {
     opts = opts || {};
     ensureStore();
@@ -1418,7 +1539,7 @@ DMAssess.app = (function () {
       return false;
     }
     sess = {
-      spec: { id: spec.id, kind: spec.kind, modeTitle: spec.modeTitle, timed: !!spec.timed, secs: spec.secs || 0, passPct: spec.passPct || 0, kap: spec.kap || null, skill: spec.skill || null, level: spec.level || null, cat: spec.cat || null, mode: spec.customMode || (spec.kind === "exam" ? "exam" : "test"), diffKey: spec.diffKey || null, seed: spec.seed || null },
+      spec: { id: spec.id, kind: spec.kind, modeTitle: spec.modeTitle, timed: !!spec.timed, secs: spec.secs || 0, passPct: spec.passPct || 0, kap: spec.kap || null, kaps: spec.kaps || null, total: spec.target || null, skill: spec.skill || null, level: spec.level || null, cat: spec.cat || null, mode: spec.customMode || (spec.kind === "exam" ? "exam" : "test"), diffKey: spec.diffKey || null, seed: spec.seed || null },
       specRef: spec, qs: pool, ans: pool.map(function () { return null; }),
       idx: 0, startedAt: Date.now(),
       deadline: spec.timed ? Date.now() + (spec.secs || C.CONFIG.EXAM_TIME_SEC) * 1000 : 0,
@@ -1432,7 +1553,10 @@ DMAssess.app = (function () {
     persistInProgress();
     renderRunner();
     try { if (typeof showPage === "function") showPage("quiz"); } catch (e) {}
-    setTimeout(function () { try { var r = $("assessRunner"); if (r) r.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }, 60);
+    /* Focus the runner workspace (header-aware). showPage() already scrolled
+       to top on page switches; this runs after so the runner stays visible
+       without hiding under the fixed header. */
+    setTimeout(function () { focusBelowHeader("assessRunner"); }, 80);
     return true;
   }
   function persistInProgress() {
@@ -1462,7 +1586,9 @@ DMAssess.app = (function () {
         var S2 = DMAssess.specs, m = ip.specMeta || {};
         if (m.id === "placement") spec = S2.placementSpec();
         else if (m.kind === "kapitel" && m.kap && !m.cat) spec = S2.kapitelSpec(m.kap);
-        else if (m.kind === "kapitel" && m.kap && m.cat === "full") spec = S2.kapitelExamSpec(m.kap, m.level);
+        else if (m.kind === "kapitel" && m.kap && m.cat === "full") spec = S2.kapitelExamSpec(m.kap, m.level, m.total);
+        else if (m.kind === "kapitel" && m.cat === "cumul") spec = S2.cumulSpec(m.kaps || (m.kap ? [m.kap] : []), m.total, { level: m.level });
+        else if (m.kind === "kapitel" && m.kap && m.cat === "boss") spec = S2.bossSpec(m.kap, m.total);
         else if (m.kind === "kapitel" && m.kap && m.cat) spec = S2.kapitelCategorySpec(m.kap, m.cat, "normal", m.diffKey || "mixed", m.level);
         else if (m.kind === "skill" && m.skill && S2.SKILL_FACTORIES[m.skill]) spec = S2.skillSpec(m.skill);
         else if (m.id === "exam-a1") spec = S2.a1ExamSpec();
@@ -1517,15 +1643,26 @@ DMAssess.app = (function () {
     /* challenge per-question countdown */
     if (sess.qTimed && sess.qDeadline && !sess.ans[sess.idx]) {
       var ql = Math.max(0, Math.ceil((sess.qDeadline - Date.now()) / 1000));
-      var qe = $("asrQTimer");
-      if (qe) {
-        qe.textContent = "⏱️ " + ql + "s";
-        qe.classList.toggle("asr-danger", ql <= 4);
-      }
-      if (ql <= 0) {
-        var q = sess.qs[sess.idx];
-        toast("⏱️ انتهى وقت السؤال!", "err");
-        lockAnswer(q, { ok: false, user: "— (انتهى الوقت)", correct: correctTextOf(q), timeout: true });
+      /* Backgrounded app: freeze the per-question clock instead of failing
+         the user for leaving. Each throttled background tick pushes the
+         deadline forward so the countdown effectively pauses; the visible
+         countdown resumes intact on return. Overall exam deadlines keep
+         their honest wall-clock (exam semantics, resumed via inProgress). */
+      var hiddenNow = false;
+      try { hiddenNow = !!(typeof document !== "undefined" && document.hidden); } catch (e) {}
+      if (hiddenNow) {
+        try { sess.qDeadline += 500; } catch (e) {}
+      } else {
+        var qe = $("asrQTimer");
+        if (qe) {
+          qe.textContent = "⏱️ " + ql + "s";
+          qe.classList.toggle("asr-danger", ql <= 4);
+        }
+        if (ql <= 0) {
+          var q = sess.qs[sess.idx];
+          toast("⏱️ انتهى وقت السؤال!", "err");
+          lockAnswer(q, { ok: false, user: "— (انتهى الوقت)", correct: correctTextOf(q), timeout: true });
+        }
       }
     }
   }
@@ -1741,9 +1878,9 @@ DMAssess.app = (function () {
       if (btn._asw) return; btn._asw = true;
       btn.addEventListener("click", function () {
         var k = btn.getAttribute("data-as");
-        if (k === "prev") { if (sess.idx > 0) { sess.idx--; sess._sel = null; renderQ(); } }
+        if (k === "prev") { if (sess.idx > 0) { sess.idx--; sess._sel = null; try { persistInProgress(); } catch (e2) {} renderQ(); } }
         else if (k === "next") {
-          if (sess.idx < sess.qs.length - 1) { sess.idx++; sess._sel = null; renderQ(); }
+          if (sess.idx < sess.qs.length - 1) { sess.idx++; sess._sel = null; try { persistInProgress(); } catch (e2) {} renderQ(); }
           else finish(false);
         }
         else if (k === "submit") submitAnswer();
@@ -1954,6 +2091,7 @@ DMAssess.app = (function () {
     renderRunner: renderRunner, ensureStore: ensureStore, getSess: function () { return sess; },
     setSess: function (s) { sess = s; }, correctTextOf: correctTextOf, modeBadge: modeBadge,
     persistInProgress: persistInProgress, clearInProgress: clearInProgress, stopTimer: stopTimer,
+    focusBelowHeader: focusBelowHeader,
     renderCenter: function () { return DMAssess.center.renderCenter(); },
     finish: function (auto) { return DMAssess.center.finish(auto); },
     wireDashBtns: function (root) { return DMAssess.center.wireDashBtns(root); }
@@ -2219,8 +2357,7 @@ DMAssess.center = (function () {
     h += '</div>';
     root.innerHTML = h;
     wireDashBtns(root);
-    root.querySelectorAll("[data-asgo]").forEach(function (b) {
-      if (b._asg) return; b._asg = true;
+    root.querySelectorAll("[data-asgo]").forEach(function (b) {      if (b._asg) return; b._asg = true;
       b.addEventListener("click", function () {
         var go = b.getAttribute("data-asgo"), gid = b.getAttribute("data-gid");
         goPage(go);
@@ -2232,7 +2369,10 @@ DMAssess.center = (function () {
         }, 400);
       });
     });
-    try { root.scrollIntoView({ behavior: "smooth" }); window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
+    /* Single header-aware focus on the result. (Previously this did BOTH
+       scrollIntoView AND scrollTo(top:0) — the two fought and the page
+       jumped to an unrelated position.) */
+    try { A.focusBelowHeader(root.querySelector("#assessResult") || root, { extra: 4 }); } catch (e) {}
   }
 
 /* ---------------- dashboard ---------------- */
@@ -2401,7 +2541,7 @@ DMAssess.center = (function () {
         else if (k === "oldquiz") {
           try {
             var q = $("quizSetup");
-            if (q) { q.scrollIntoView({ behavior: "smooth" }); try { if (FN("renderQuizHistory")) FN("renderQuizHistory")(); } catch (e) {} }
+            if (q) { A.focusBelowHeader(q); try { if (FN("renderQuizHistory")) FN("renderQuizHistory")(); } catch (e) {} }
           } catch (e) {}
         }
         else if (k.indexOf("hist:") === 0) openHistory(k.slice(5));
@@ -2475,7 +2615,13 @@ DMAssess.center = (function () {
     + ".asd-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}"
     + ".asd-barfill{width:100%;max-width:56px;background:linear-gradient(180deg,var(--gold,#f5b301),#b97e00);border-radius:8px 8px 0 0;min-height:4px}"
     + ".as-resume{border-color:var(--gold,#f5b301)}" + ".asr-combo{font-weight:800;color:#ff8c42;background:rgba(255,140,66,.12);border:1px solid rgba(255,140,66,.4);border-radius:10px;padding:2px 8px}" + ".asr-mode{font-weight:700;background:rgba(255,255,255,.06);border:1px solid var(--border,#333);border-radius:10px;padding:2px 8px;font-size:12px}" + ".asr-conj{display:flex;flex-direction:column;gap:10px}" + ".asr-conjrow{background:rgba(255,255,255,.03);border:1px solid var(--border,#333);border-radius:12px;padding:8px}"
-    + ".tag{background:rgba(255,255,255,.07);border:1px solid var(--border,#333);border-radius:20px;padding:2px 10px;font-size:12px}";
+    + ".tag{background:rgba(255,255,255,.07);border:1px solid var(--border,#333);border-radius:20px;padding:2px 10px;font-size:12px}"
+    /* scroll anchors: keep focused workspace visible below the fixed header
+       and above the mobile bottom nav; no absolute/fake-spacing hacks */
+    + "html{scroll-padding-top:calc(var(--dm-header-h,68px) + 14px + env(safe-area-inset-top,0px))}"
+    + "#assessRoot,#assessRunner,#assessResult,#assessDash{scroll-margin-top:calc(var(--dm-header-h,68px) + 14px + env(safe-area-inset-top,0px))}"
+    + "#assessRunner{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}"
+    + ".asr-nav{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:5;background:inherit;padding:6px 0}";
   function injectCss() {
     try { if (document.getElementById("assessCss")) return; var st = document.createElement("style"); st.id = "assessCss"; st.textContent = CSS; document.head.appendChild(st); } catch (e) {}
   }
