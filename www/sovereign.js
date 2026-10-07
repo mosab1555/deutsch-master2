@@ -137,8 +137,12 @@
     }
   }
 
-  /* ---- 3. Hero kicker: MASTER GERMAN · BUILD YOUR FUTURE ---- */
+  /* ---- 3. Hero kicker: DISABLED (was a duplicate marketing heading) ----
+     The static markup already has the brand row + Arabic eyebrow; injecting
+     another English kicker + German micro-line duplicated the top heading
+     and broke homepage spacing. Kept as a no-op so boot order is untouched. */
   function addHeroKicker() {
+    return;
     try {
       var hero = doc.querySelector(".cmd-hero h1");
       if (!hero || doc.querySelector(".sv-kicker")) return;
@@ -271,6 +275,10 @@
     try {
       if (window.__svBottomNavScrollWired) return;
       window.__svBottomNavScrollWired = true;
+      /* Single-listener rule: the canonical .dm-bnav (#dmBnav) is managed by
+         dm-ultimate.js. When it exists there is no .sv-bottomnav to manage,
+         so register nothing here — one scroll listener total. */
+      try { if (doc.querySelector(".dm-bnav")) return; } catch (e) {}
       var lastY = 0;
       var ticking = false;
       try {

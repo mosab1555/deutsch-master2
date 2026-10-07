@@ -175,9 +175,10 @@ html[data-theme="light"] .sidebar{background:linear-gradient(180deg,#fff,#f4f1e6
      page content never moves). Visible = translateY(0), hidden = 110%. */
   transform:translateY(0);
   will-change:transform;
+  pointer-events:auto;
   transition:transform 280ms cubic-bezier(0.22, 1, 0.36, 1)}
 html[data-theme="light"] .dm-bnav{background:rgba(255,255,255,.94)}
-.dm-bnav.hide{transform:translateY(110%);pointer-events:none}
+.dm-bnav.hide,.dm-bnav.is-hidden{transform:translateY(110%);pointer-events:none}
 @media (prefers-reduced-motion:reduce){
   .dm-bnav{transition:none}
 }
@@ -202,9 +203,11 @@ html[data-theme="light"] .dm-bnav{background:rgba(255,255,255,.94)}
 /* ============ 7 · HERO (Luxury Editorial + Dark Cinematic, §8) ============ */
 .cmd-scope{max-width:1120px;margin-inline:auto}
 .cmd-ambient i{animation:none !important;opacity:.5 !important}
-.dm-hero-kicker{display:flex;align-items:center;gap:10px;font-family:var(--dm-font-de);
-  font-size:.7rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dm-gold);margin-bottom:10px}
-.dm-hero-kicker::before{content:"";width:26px;height:1px;background:var(--dm-gold)}
+.dm-hero-kicker{display:none !important}
+/* NOTE: the redesign's marketing kicker (.dm-hero-kicker markup was removed
+   from index/academy.html) and the giant background word (.cmd-hero::after
+   "DEUTSCH") were removed — the top keeps only the original brand row +
+   Arabic eyebrow + heading. */
 .cmd-hero,.hero{
   background:linear-gradient(160deg,#0d142e 0%,#0a0f24 55%,#0c0f1e 100%) !important;
   border:1px solid var(--dm-border-strong) !important;border-radius:var(--dm-radius-lg) !important;
@@ -215,10 +218,9 @@ html[data-theme="light"] .cmd-hero{background:linear-gradient(160deg,#fff,#f4f1e
   background:
     radial-gradient(560px 260px at 88% 0%,rgba(79,141,255,.16),transparent 60%),
     radial-gradient(520px 300px at 8% 100%,rgba(216,181,106,.10),transparent 60%)}
-.cmd-hero::after{content:"DEUTSCH";position:absolute;bottom:-24px;inset-inline-end:-6px;font-family:var(--dm-font-de);
-  font-weight:900;font-size:clamp(72px,14vw,150px);letter-spacing:.02em;color:transparent;
-  -webkit-text-stroke:1px rgba(216,181,106,.10);pointer-events:none;line-height:1}
-.hm-hero-main h1{font-size:clamp(1.7rem,4.6vw,2.9rem);line-height:1.25;font-weight:900;letter-spacing:-.015em;margin:.4em 0 .35em}
+.cmd-hero::after{content:none;display:none !important}
+/* Clean, compact, educational heading (no oversized cinematic typography). */
+.hm-hero-main h1{font-size:clamp(1.35rem,3.4vw,1.9rem);line-height:1.4;font-weight:800;letter-spacing:0;margin:.4em 0 .35em}
 .grad-text{background:linear-gradient(120deg,#f0d896,#d8b56a 40%,#8fb4ff 90%) !important;
   -webkit-background-clip:text !important;background-clip:text !important;color:transparent !important}
 .cmd-sub{color:var(--dm-text-secondary);font-size:1rem;line-height:1.9;max-width:56ch}
@@ -244,49 +246,12 @@ html[data-theme="light"] .cmd-hero{background:linear-gradient(160deg,#fff,#f4f1e
 .cmd-stepbtn b{display:block;font-size:.86rem}
 .cmd-stepbtn small{color:var(--dm-text-muted);font-size:.74rem}
 
-/* ============ 8 · LEARNING ORBIT (§9) ============ */
-.hm-visual{display:flex;flex-direction:column;gap:12px;align-items:center}
-.cmd-orbit{position:relative;width:min(320px,72vw);aspect-ratio:1;display:grid;place-items:center;margin-inline:auto}
-.orbit-ring{position:absolute;border-radius:50%;border:1px dashed rgba(216,181,106,.25);pointer-events:none}
-.orbit-ring.r1{inset:6%}.orbit-ring.r2{inset:0;border-color:rgba(79,141,255,.22)}
-@media (prefers-reduced-motion:no-preference){
-  .orbit-ring.r1{animation:dmSpin 40s linear infinite}
-  .orbit-ring.r2{animation:dmSpinRev 60s linear infinite}
-}
-@keyframes dmSpin{to{transform:rotate(360deg)}}
-@keyframes dmSpinRev{to{transform:rotate(-360deg)}}
-.orbit-core{width:46%;aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  background:radial-gradient(circle at 35% 30%,#1a2450,#0b1128 70%);
-  border:1px solid var(--dm-border-strong);box-shadow:var(--dm-shadow-premium),inset 0 0 30px rgba(79,141,255,.12);position:relative}
-.orbit-core::before{content:"";position:absolute;inset:-1px;border-radius:50%;padding:1px;
-  background:conic-gradient(from var(--dm-orbit-p,0turn),var(--dm-gold) 0turn,rgba(216,181,106,.05) .18turn,transparent .2turn);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
-.orbit-pct{font-family:var(--dm-font-de);font-weight:900;font-size:1.5rem;color:var(--dm-ivory)}
-.orbit-lbl{font-size:.68rem;color:var(--dm-text-muted)}
-.orbit-streak{font-size:.78rem;font-weight:800;color:var(--dm-gold)}
-.orbit-nodes{position:absolute;inset:0;pointer-events:none}
-.orbit-node{position:absolute;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:3px;
-  background:var(--dm-surface);border:1px solid var(--dm-border);border-radius:14px;padding:7px 9px;min-width:64px;
-  font-size:.66rem;font-weight:700;color:var(--dm-text-secondary);cursor:pointer;
-  transition:transform var(--dm-transition-fast),border-color var(--dm-transition-fast);box-shadow:var(--dm-shadow)}
-.orbit-node:hover{transform:translateY(-2px) scale(1.03)}
-.orbit-node .on-dot{font-size:.95rem}
-.orbit-node.on{border-color:var(--dm-gold);color:var(--dm-text);box-shadow:0 0 0 1px var(--dm-gold-soft),var(--dm-shadow)}
-.orbit-node .on-ring{height:3px;width:100%;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
-.orbit-node .on-ring i{display:block;height:100%;background:linear-gradient(90deg,var(--dm-gold),var(--dm-blue))}
-.orbit-node.n0{top:0;inset-inline-start:50%;transform:translateX(50%)}
-.orbit-node.n1{top:18%;inset-inline-end:0}
-.orbit-node.n2{bottom:18%;inset-inline-end:2%}
-.orbit-node.n3{bottom:0;inset-inline-start:50%;transform:translateX(50%)}
-.orbit-node.n4{bottom:18%;inset-inline-start:2%}
-.orbit-node.n5{top:18%;inset-inline-start:0}
-[dir="rtl"] .orbit-node.n0{transform:translateX(-50%)}
-[dir="rtl"] .orbit-node.n3{transform:translateX(-50%)}
-.orbit-detail{width:100%;max-width:340px;text-align:start}
-.orbit-detail h3{margin:0 0 4px;font-size:1rem}
-.orbit-detail p{margin:0 0 8px;color:var(--dm-text-secondary);font-size:.84rem;line-height:1.7}
-.orbit-detail .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.orbit-metric{font-size:.75rem;color:var(--dm-blue);border:1px solid rgba(79,141,255,.3);border-radius:999px;padding:3px 10px;background:var(--dm-blue-soft)}
+/* ============ 8 · LEARNING ORBIT — RESTORED to the pre-redesign baseline ====
+   The redesign restyled the orbit for markup (.on-dot/.on-ring) that
+   home.js never generates (it emits .ico/.v nodes for the home.css circle
+   design), which broke homepage visuals. These overrides are removed so
+   home.css governs the orbit again; only the detail-card width cap stays. */
+.orbit-detail{width:100%;max-width:340px}
 
 /* ============ 9 · PRIMITIVES: buttons/badges/chips/tabs/progress (§13) ============ */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:13px;
@@ -422,10 +387,15 @@ html[data-theme="light"] .article.das{color:#1f7a56}
   background:linear-gradient(90deg,var(--dm-gold),transparent)}
 
 /* ============ 12 · LEARNING PAGES (§18-28) ============ */
-.filters{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin-bottom:12px}
+/* NOTE: filter/input sizing intentionally mirrors the pre-redesign stable
+   values from style.css (compact Words controls): no min-height override,
+   12px radius, 10px/12px padding, 14px font. dm-ultimate only re-themes
+   colors here; sizing stays with the original. */
+.filters{display:flex;flex-wrap:wrap;gap:10px;padding:14px;margin-bottom:12px}
+.filters input,.filters select{flex:1;min-width:150px}
 .filters input,.filters select,.full-input,input[type="text"],input[type="email"],input[type="password"],input[type="tel"],select,textarea{
-  background:var(--dm-surface);border:1px solid var(--dm-border);color:var(--dm-text);border-radius:11px;
-  padding:9px 12px;font-size:.86rem;min-height:40px;font-family:inherit}
+  background:var(--dm-surface);border:1px solid var(--dm-border);color:var(--dm-text);border-radius:12px;
+  padding:10px 12px;font-size:14px;font-family:inherit}
 .filters input:focus,.filters select:focus{border-color:var(--dm-blue);outline:none;box-shadow:0 0 0 3px var(--dm-blue-soft)}
 /* flashcards: clean flip, no distracting spin (§20) */
 .flash-wrap{max-width:640px;margin-inline:auto}
@@ -538,13 +508,12 @@ button,.btn,.nav-item,.dm-bnav-item{font-family:inherit}
   .cards-grid{grid-template-columns:1fr}
   .cmd-loop{grid-template-columns:repeat(3,1fr);gap:6px}
   .btn{min-height:46px}
-  .hm-hero-main h1{font-size:1.6rem}
-  .cmd-orbit{width:min(270px,80vw)}
+  .hm-hero-main h1{font-size:1.35rem}
   .topbar .search-wrap input{font-size:.8rem}
-  .filters{flex-direction:column}
-  .filters input,.filters select{width:100%}
+  /* Compact Words filters on phones: wrapping grid (pre-redesign behavior),
+     never a full-width stacked column. */
+  .filters input,.filters select{flex:1 1 140px;min-width:0;max-width:100%}
   .flash-controls .btn{min-width:44%}
-  .orbit-node{min-width:56px;font-size:.6rem;padding:5px 7px}
 }
 @media (min-width:861px){.dm-bnav{display:none !important}}
 @media (min-width:1280px){.content{max-width:1120px}}
@@ -558,3 +527,23 @@ button,.btn,.nav-item,.dm-bnav-item{font-family:inherit}
 .grad-text{background:linear-gradient(120deg,#f0d896,#d8b56a 40%,#8fb4ff 90%) !important;
   -webkit-background-clip:text !important;background-clip:text !important}
 .article.die{background:rgba(216,181,106,.13) !important;border-color:rgba(216,181,106,.45) !important;color:var(--dm-gold) !important}
+
+/* ============ 16 · BOTTOM-NAV TRANSITION AUTHORITY (keep last) ============
+   Restates the exact slide spec AFTER every other rule (including the §13
+   global transition-property reset) so nothing can silently downgrade it:
+   visible translateY(0) + pointer-events:auto, hidden translateY(110%) +
+   pointer-events:none, element always in the DOM (never display:none).
+   Fixed + vertical-only: no layout shift, no horizontal movement. */
+.dm-bnav{
+  transform:translateY(0);
+  pointer-events:auto;
+  will-change:transform;
+  transition:transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dm-bnav.hide,.dm-bnav.is-hidden{
+  transform:translateY(110%);
+  pointer-events:none;
+}
+@media (prefers-reduced-motion:reduce){
+  .dm-bnav{transition:none !important}
+}

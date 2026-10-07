@@ -76,12 +76,14 @@
   var DM_HIDE_DELTA = 6;  /* ignore sub-threshold jitter */
   function showBnav() {
     try {
-      if (bnav && bnav.classList.contains("hide")) bnav.classList.remove("hide");
+      if (!bnav) return;
+      bnav.classList.remove("hide");
+      bnav.classList.remove("is-hidden");
     } catch (e) {}
   }
   function hideBnav() {
     try {
-      if (bnav && !bnav.classList.contains("hide")) bnav.classList.add("hide");
+      if (bnav && !bnav.classList.contains("hide") && !bnav.classList.contains("is-hidden")) bnav.classList.add("hide");
     } catch (e) {}
   }
   function onScroll() {
@@ -118,7 +120,7 @@
       window.DMBottomNav.show = showBnav;
       window.DMBottomNav.hide = hideBnav;
       window.DMBottomNav.isHidden = function () {
-        try { return !!(bnav && bnav.classList.contains("hide")); }
+        try { return !!(bnav && (bnav.classList.contains("hide") || bnav.classList.contains("is-hidden"))); }
         catch (e2) { return false; }
       };
     } catch (e) {}
