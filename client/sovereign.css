@@ -384,29 +384,54 @@ html[data-theme="light"] .topbar{background:linear-gradient(180deg,rgba(255,255,
   .topbar{inset-inline-start:0!important}
   .cmd-hero.hero{grid-template-columns:1fr;gap:18px}
   .cmd-steps{grid-template-columns:1fr}
-  .content{padding:14px 12px 120px}
+  .content{padding:14px 12px calc(108px + env(safe-area-inset-bottom,0px))}
   .cards-grid{grid-template-columns:1fr}
   .grid-2{grid-template-columns:1fr}
   .cmd-groups{grid-template-columns:1fr}
   .flash-controls{flex-wrap:wrap}
   .btn{min-height:46px}
-  /* Bottom navigation: 5 primary destinations */
+  /* Bottom navigation: exactly 5 primary destinations (dashboard/explain/
+     ankidroid/quiz/review). Premium dark-navy surface in the Deutsch Master
+     identity, mobile-only (desktop keeps the sidebar architecture). Slim bar:
+     ~68px + safe-area, never covering content (see .content padding above).
+     Layering: above page content + topbar(120), below drawer backdrop(150),
+     drawer(160), modal(200) and toast(300) so the sidebar stays authoritative
+     and no second navigation layer appears. */
   .sv-bottomnav{
-    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:300;
-    padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));
-    background:linear-gradient(180deg,rgba(10,16,34,.9),rgba(5,7,15,.96));
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:140;
+    align-items:stretch;gap:2px;
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));
+    background:linear-gradient(180deg,rgba(17,26,51,.97),rgba(11,16,32,.98));
+    background:linear-gradient(180deg,var(--navy-elev,#111A33),var(--navy,#0B1020));
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    border-top:1px solid var(--sv-line);
+    border-top:1px solid var(--border,rgba(185,198,220,.12));
+    box-shadow:0 -10px 30px rgba(2,6,20,.45),inset 0 1px 0 rgba(255,255,255,.05);
   }
-  html[data-theme="light"] .sv-bottomnav{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(238,241,249,.97))}
+  html[data-theme="light"] .sv-bottomnav{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(238,241,249,.98))}
   .sv-bottomnav button{
-    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-    background:none;border:0;color:var(--sv-muted);font-size:10.5px;font-weight:700;
-    padding:7px 2px;border-radius:12px;min-height:56px;cursor:pointer;
+    flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    position:relative;background:none;border:1px solid transparent;color:var(--sv-muted);
+    font-size:11px;font-weight:700;line-height:1.2;white-space:nowrap;
+    padding:7px 2px 6px;border-radius:12px;min-height:56px;cursor:pointer;
+    font-family:inherit;
   }
-  .sv-bottomnav button svg{width:22px;height:22px}
-  .sv-bottomnav button.on{color:var(--sv-gold)}
-  .sv-bottomnav button.on svg{filter:drop-shadow(0 0 6px rgba(233,196,106,.5))}
+  .sv-bottomnav button svg{width:22px;height:22px;flex:none}
+  .sv-bottomnav button span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  /* Active destination: subtle cobalt highlight + platinum text + small
+     indicator bar. Restrained — no neon glow. */
+  .sv-bottomnav button.on{
+    color:#D9E0EA;color:var(--text,#D9E0EA);
+    background:rgba(40,93,255,.16);
+    border-color:rgba(77,163,255,.35);
+    font-weight:800;
+  }
+  .sv-bottomnav button.on svg{color:#4DA3FF;color:var(--cyan-acc,#4DA3FF)}
+  .sv-bottomnav button.on::after{
+    content:"";position:absolute;top:3px;left:50%;transform:translateX(-50%);
+    width:18px;height:3px;border-radius:3px;
+    background:linear-gradient(90deg,#285DFF,#4DA3FF);
+  }
+  .sv-bottomnav button:focus-visible{outline:2px solid #4DA3FF;outline-offset:1px}
   .hamburger{display:inline-grid!important;place-items:center}
 }
 @media (max-width:900px) and (prefers-reduced-motion:no-preference){

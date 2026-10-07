@@ -164,12 +164,17 @@
     } catch (e) {}
   }
 
-  /* ---- 4. Mobile bottom navigation ---- */
+  /* ---- 4. Mobile bottom navigation ----
+     Single persistent bar with exactly the 5 primary destinations, in order:
+     dashboard (الرئيسية) -> explain (الشرح) -> ankidroid (أنكي درويد) ->
+     quiz (الاختبارات) -> review (مراجعة). Uses the existing showPage routing,
+     registered once; active state syncs via MutationObserver (no polling,
+     no duplicate handlers, no DOM rebuilds, no Back interference). */
   var BOTTOM = [
     { page: "dashboard", ar: "\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629" },
-    { page: "vocab", ar: "\u0627\u0644\u0643\u0644\u0645\u0627\u062a" },
-    { page: "practice", ar: "\u062a\u062f\u0631\u064a\u0628" },
-    { page: "journey", ar: "\u0627\u0644\u0631\u062d\u0644\u0629" },
+    { page: "explain", ar: "\u0627\u0644\u0634\u0631\u062d" },
+    { page: "ankidroid", ar: "\u0623\u0646\u0643\u064a \u062f\u0631\u0648\u064a\u062f" },
+    { page: "quiz", ar: "\u0627\u0644\u0627\u062e\u062a\u0628\u0627\u0631\u0627\u062a" },
     { page: "review", ar: "\u0645\u0631\u0627\u062c\u0639\u0629" }
   ];
   function currentPage() {
