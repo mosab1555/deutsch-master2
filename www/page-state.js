@@ -42,6 +42,16 @@ var MAX_SCROLL = 20000;
 var MAX_FIELD_LEN = 200;
 var MAX_FIELDS = 60;
 
+/* Last logical view (resumed after the OS kills the process).
+   Tiny separate record — one page id + scroll + timestamp — written only on
+   navigation and throttled while scrolling. Same-tab backgrounding never
+   touches it destructively: in-memory S.mem keeps serving the live session.
+   Restored at most twice per document load (early + late attempt), only when
+   the launch otherwise sits on the home page with no explicit flow active
+   (recovery screen, OAuth callback). Never a loop, never a second store. */
+var LV_KEY = "dm_lastview_v1";
+var LV_TTL = 30 * 86400000;
+
 /* Pages whose navigation render must ALWAYS run (fresh summaries / idempotent
    lists). They are never skipped, so progress numbers can never go stale. */
 var NEVER_SKIP = {
@@ -472,7 +482,77 @@ S.clearPageState = function (page) {
     else { S.mem = {}; S.persisted = {}; }
     S.persistNow();
   } catch (e) {}
+  try {
+    /* A full wipe is a fresh start: no last-view may survive it. Scoped to
+       the navigation record only — durable progress is owned elsewhere. */
+    if (!page && typeof localStorage !== "undefined" && localStorage.removeItem) {
+      localStorage.removeItem(LV_KEY);
+    }
+    S._lvPage = null; S._lvScroll = 0;
+  } catch (e) {}
   return true;
+};
+
+/* ---------------- last logical view ---------------- */
+function readLastView() {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    var raw = localStorage.getItem(LV_KEY);
+    if (!raw) return null;
+    var o = JSON.parse(raw);
+    if (!o || o.v !== 1 || typeof o.page !== "string") return null;
+    if (!/^[a-z0-9-]{2,24}$/.test(o.page)) return null;
+    if (o.page === "dashboard" || o.page === "auth") return null;
+    if (typeof o.ts !== "number" || !isFinite(o.ts)) return null;
+    if (Date.now() - o.ts > LV_TTL) return null;
+    if (!validPage(o.page)) return null;
+    return { page: o.page, scroll: num(o.scroll, 0), ts: o.ts };
+  } catch (e) { return null; }
+}
+S.readLastView = readLastView;
+S.recordLastView = function (name) {
+  try {
+    if (!name || name === "dashboard" || name === "auth") return false;
+    if (!validPage(name)) return false;
+    if (typeof localStorage === "undefined") return false;
+    var sc = 0;
+    try {
+      if (S.mem && S.mem[name] && typeof S.mem[name].scroll === "number") sc = num(S.mem[name].scroll, 0);
+    } catch (e) {}
+    S._lvPage = String(name);
+    S._lvScroll = sc;
+    localStorage.setItem(LV_KEY, JSON.stringify({ v: 1, page: String(name), scroll: sc, ts: Date.now() }));
+    return true;
+  } catch (e) { return false; }
+};
+/* Deferred, validated, single-shot resume of the last logical view.
+   phase "early" skips transient states for the "late" retry; "late" settles
+   (never retries again) so at most two attempts exist per document load. */
+S.tryRestoreLastView = function (phase) {
+  try {
+    if (S._lvDone) return false;
+    var saved = readLastView();
+    if (!saved) { S._lvDone = true; return false; }
+    try {
+      var q = (typeof location !== "undefined" && location.search) || (typeof window !== "undefined" && window.location && window.location.search) || "";
+      if (/[?&](code|error)=/.test(q)) { if (phase === "late") S._lvDone = true; return false; }
+    } catch (e) {}
+    var activeId = null;
+    try {
+      var a = document.querySelector(".page.active");
+      if (a && a.id) activeId = a.id;
+    } catch (e) {}
+    if (activeId && activeId !== "page-dashboard") { if (phase === "late") S._lvDone = true; return false; }
+    if (S.current && S.current !== "dashboard") { if (phase === "late") S._lvDone = true; return false; }
+    var fn = null;
+    try { fn = (typeof window !== "undefined" && typeof window.showPage === "function") ? window.showPage : null; } catch (e) {}
+    if (typeof fn !== "function") { if (phase === "late") S._lvDone = true; return false; }
+    S._lvDone = true;
+    try { fn(saved.page); } catch (e) { return false; }
+    try { S.restoreScroll(saved.page, saved.scroll); } catch (e) {}
+    try { S._lvPage = saved.page; S._lvScroll = saved.scroll; } catch (e) {}
+    return true;
+  } catch (e) { return false; }
 };
 
 /* ---------------- navigation core ---------------- */
@@ -545,6 +625,8 @@ S.navigate = function (name, prev) {
     finally { S._navigating = false; S._pending = null; }
     S.current = name;
     if (!validPage(name)) return ret;
+    /* Remember the last logical view so a process kill can resume here. */
+    try { S.recordLastView(name); } catch (e) {}
     if (from && from === name) {
       /* Same-page sub-navigation (e.g. opening a lesson): adopt live, keep scroll. */
       try { S.capture(name); } catch (e) {}
@@ -601,6 +683,24 @@ function onScroll() {
       S.mem[S.current].scroll = getScroll();
       S.saveSoon();
     }
+    /* Keep the last-view scroll fresh too (own slow throttle: at most one
+       extra write per few seconds of active scrolling, none when idle). */
+    try {
+      if (S._lvPage && S.current && S._lvPage === S.current && typeof localStorage !== "undefined") {
+        S._lvScroll = getScroll();
+        if (!S._lvT && (!S._lvLastW || now - S._lvLastW > 4000)) {
+          S._lvLastW = now;
+          S._lvT = setTimeout(function () {
+            S._lvT = null;
+            try {
+              if (S._lvPage) {
+                localStorage.setItem(LV_KEY, JSON.stringify({ v: 1, page: S._lvPage, scroll: num(S._lvScroll, 0), ts: Date.now() }));
+              }
+            } catch (e) {}
+          }, 1200);
+        }
+      }
+    } catch (e) {}
   } catch (e) {}
 }
 
@@ -757,6 +857,18 @@ function boot() {
     } catch (e) {}
   }
   /* Re-assert outermost after deferred module wiring (career.js pattern). */
+  /* Last-view resume: two deferred single-shot attempts (early + late).
+     Deferred so auth/session settling and lazy sections win any race: each
+     attempt is a silent no-op unless the launch sits on the home page with
+     a valid saved view and no explicit flow active. */
+  function scheduleLastViewRestore() {
+    try {
+      setTimeout(function () { try { S.tryRestoreLastView("early"); } catch (e) {} }, 900);
+    } catch (e) {}
+    try {
+      setTimeout(function () { try { S.tryRestoreLastView("late"); } catch (e) {} }, 3500);
+    } catch (e) {}
+  }
   try {
     if (typeof document !== "undefined" && document.addEventListener) {
       document.addEventListener("DOMContentLoaded", function () {
@@ -768,7 +880,11 @@ function boot() {
            visibility/focus changes never reach this (DOMContentLoaded fires
            once per document). */
         try { if (S._freshResetDone && typeof window !== "undefined" && window.scrollTo) window.scrollTo(0, 0); } catch (e2) {}
+        try { scheduleLastViewRestore(); } catch (e3) {}
       });
+      try {
+        if (document.readyState !== "loading") scheduleLastViewRestore();
+      } catch (e) {}
     }
   } catch (e) {}
   try {

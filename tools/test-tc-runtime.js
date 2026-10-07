@@ -129,7 +129,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(1200);
   const modes = await E("({modes:document.querySelectorAll('[data-tc^=\"mode:\"]').length,diffs:document.querySelectorAll('[data-tc^=\"diff:\"]').length,start:!!document.querySelector('[data-tc=\"start\"]')})");
   const mj = JSON.parse(modes);
-  rec("TC-MODE", "mode (4) + difficulty (4) + start render", mj.modes === 4 && mj.diffs === 4 && mj.start === true, modes);
+  rec("TC-MODE", "mode (5) + difficulty (4) + start render", mj.modes === 5 && mj.diffs === 4 && mj.start === true, modes);
   await cdp.ev("document.querySelector('[data-tc=\"mode:normal\"]').click()");
   await sleep(600);
   await cdp.ev("document.querySelector('[data-tc=\"diff:graded\"]').click()");

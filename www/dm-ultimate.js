@@ -235,9 +235,29 @@
     mirrorOrbit();
     window.setTimeout(mirrorOrbit, 1500);
     window.setTimeout(function () { wrapShowPage(); bindBnav(); mirrorOrbit(); }, 2500);
-    // keep badges fresh (cheap 5s poll, no storage reads — DOM only)
-    window.setInterval(syncBnav.bind(null, (document.querySelector(".dm-bnav-item.active") || {}).dataset
-      ? document.querySelector(".dm-bnav-item.active").dataset.page : "dashboard"), 5000);
+    // keep badges fresh (cheap 5s poll, DOM only, skipped while hidden).
+    // Reads the LIVE page every tick (never a stale boot-time snapshot) so
+    // the highlight can never snap back to the launch page mid-session.
+    window.setInterval(function () {
+      try {
+        if (typeof document !== "undefined" && document.hidden) return;
+        var cur = null;
+        try {
+          if (window.DMPageState && typeof window.DMPageState.current === "string") cur = window.DMPageState.current;
+        } catch (e) {}
+        if (!cur) {
+          try {
+            var act = document.querySelector(".dm-bnav-item.active");
+            if (act && act.dataset) cur = act.dataset.page;
+          } catch (e2) {}
+        }
+        var known = false;
+        try {
+          known = !!cur && !!document.querySelector('.dm-bnav-item[data-page="' + String(cur).replace(/"/g, "") + '"]');
+        } catch (e3) { known = false; }
+        syncBnav(known ? cur : "dashboard");
+      } catch (e) {}
+    }, 5000);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

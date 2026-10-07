@@ -143,7 +143,7 @@ const FKEYS = Object.keys(FULL.ui.FACTORIES);
 });
 const CATS = FULL.specs.CATS;
 check("B18 CATS registry complete", FULL.specs.CAT_IDS.length >= 13 && CATS.words && CATS.words.facs.length >= 2 && CATS.mistakes.facs === null, FULL.specs.CAT_IDS.length);
-check("B19 MODES sizes", FULL.specs.MODES.quick.n === 10 && FULL.specs.MODES.normal.n === 20 && FULL.specs.MODES.intensive.n === 30 && FULL.specs.MODES.master.n === 0);
+check("B19 MODES sizes", FULL.specs.MODES.quick.n === 20 && FULL.specs.MODES.normal.n === 40 && FULL.specs.MODES.intensive.n === 60 && FULL.specs.MODES.advanced.n === 80 && FULL.specs.MODES.master.n === 0);
 check("B20 DIFFS four levels", Object.keys(FULL.specs.DIFFS).join(",") === "easy,medium,hard,graded");
 const kc = FULL.specs.kapitelCategorySpec("K3", "grammar", "normal", "medium", null);
 check("B21 kapitelCategorySpec shape", kc.id.includes("K3") && kc.id.includes("grammar") && kc.diffKey === "medium" && kc.minQ === 5 && typeof kc.build === "function", kc.id);
@@ -154,7 +154,7 @@ check("B23 customSpec exam flags", cue.timed === true && cue.passPct === FULL.CO
 const dl = FULL.specs.dailySpec("2026-05-01");
 check("B24 dailySpec shape", dl.id === "daily-2026-05-01" && dl.minQ === 8 && !!dl.seed);
 const bs = FULL.specs.bossSpec("K3");
-check("B25 bossSpec shape", bs.adaptiveDiff === true && bs.minQ === 10 && typeof bs.build === "function");
+check("B25 bossSpec shape", bs.adaptiveDiff === true && bs.minQ === 8 && typeof bs.build === "function");
 check("B26 boss locked when weak", FULL.specs.bossUnlock("K3", { K3: { pct: 30 } }, []).ok === false);
 check("B27 boss unlocked by readiness", FULL.specs.bossUnlock("K3", { K3: { pct: 80 } }, []).ok === true);
 check("B28 boss unlocked by 3 tests", FULL.specs.bossUnlock("K3", {}, [{ kaps: { K3: { n: 5 } } }, { kaps: { K3: { n: 5 } } }, { kaps: { K3: { n: 5 } } }]).ok === true);

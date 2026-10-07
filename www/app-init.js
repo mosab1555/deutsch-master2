@@ -7,9 +7,45 @@
 (function () {
     "use strict";
 
+// Lightweight lifecycle/error diagnostics (QA aid only, no UI, no storage).
+    // Ring buffer of recent signals: uncaught errors, unhandled rejections,
+    // init failures and background/foreground transitions. Console-only;
+    // never logs user data (names/messages only, truncated).
+    // Readable in QA via window.__dmErrors (array, newest last, max 50).
+    try {
+        window.__dmErrors = window.__dmErrors || [];
+        if (!window.__dmErrorsLogged) {
+            window.__dmErrorsLogged = true;
+            var __dmErrPush = function (kind, msg) {
+                try {
+                    var buf = window.__dmErrors;
+                    buf.push({ t: Date.now(), kind: String(kind).slice(0, 24), msg: String(msg == null ? "" : msg).slice(0, 220) });
+                    if (buf.length > 50) buf.splice(0, buf.length - 50);
+                } catch (e) {}
+            };
+            window.addEventListener("error", function (event) {
+                var m = (event && (event.message || (event.error && event.error.message))) || "unknown error";
+                __dmErrPush("error", m);
+                try { console.warn("[App] Uncaught error:", m); } catch (e) {}
+            });
+            document.addEventListener("visibilitychange", function () {
+                try { __dmErrPush("lifecycle", document.hidden ? "hidden" : "visible"); } catch (e) {}
+            });
+            window.addEventListener("pagehide", function () {
+                try { __dmErrPush("lifecycle", "pagehide"); } catch (e) {}
+            });
+            window.addEventListener("pageshow", function () {
+                try { __dmErrPush("lifecycle", "pageshow"); } catch (e) {}
+            });
+            window.__dmErrPush = __dmErrPush;
+        }
+    } catch (e) {}
+
 // Global unhandled rejection handler for debugging
     window.addEventListener("unhandledrejection", function(event) {
-        console.warn("[App] Unhandled promise rejection:", event.reason && event.reason.message ? event.reason.message : event.reason);
+        var reason = event.reason && event.reason.message ? event.reason.message : event.reason;
+        try { if (window.__dmErrPush) window.__dmErrPush("rejection", reason); } catch (e) {}
+        console.warn("[App] Unhandled promise rejection:", reason);
         event.preventDefault();
     });
 
@@ -918,25 +954,30 @@
             }
             var uid = currentUidOf(session);
             if (session && session.user && uid) {
-                // User signed in: responsive UI first, identity work async.
+                // Same-account refreshes (TOKEN_REFRESHED when the app returns
+                // from the background, USER_UPDATED, INITIAL_SESSION re-fire)
+                // must NEVER yank the user back to the dashboard: only a
+                // genuine identity transition drives navigation. Topbar state
+                // is still refreshed so the account label can never go stale.
+                if (uid === lastUid) {
+                    updateAuthUI(true);
+                    postSignIn(uid);
+                    return;
+                }
+                // Genuine sign-in / account switch: responsive UI first, identity work async.
                 showMainApp();
                 updateAuthUI(true);
-                if (uid !== lastUid) {
-                    var prev = lastUid;
-                    lastUid = uid;
-                    try { window.ProfileModule?.clearCache?.(); } catch (e) {}
-                    refreshProfileIfVisible();
-                    switchToAccount(uid).then(function () {
-                        if (gen !== sessionGen) return;
-                        postSignIn(uid);
-                    }).catch(function (e) {
-                        if (gen !== sessionGen) return;
-                        console.warn("[App] Account switch failed:", e);
-                        postSignIn(uid);
-                    });
-                } else {
+                lastUid = uid;
+                try { window.ProfileModule?.clearCache?.(); } catch (e) {}
+                refreshProfileIfVisible();
+                switchToAccount(uid).then(function () {
+                    if (gen !== sessionGen) return;
                     postSignIn(uid);
-                }
+                }).catch(function (e) {
+                    if (gen !== sessionGen) return;
+                    console.warn("[App] Account switch failed:", e);
+                    postSignIn(uid);
+                });
             } else {
                 // Signed out (or no previous session) - stay in the app, offline-first
                 if (lastUid !== null) {
