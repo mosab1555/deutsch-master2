@@ -58,7 +58,9 @@ ok("T7 lang mapping", study.includes('setAttribute("lang",L==="ar"?"ar":(L==="de
 // Test 8 — direction mapping
 ok("T8 dir mapping", study.includes('setAttribute("dir",L==="ar"?"rtl":"ltr")'));
 // Test 9 — smoke: required pages have de UI + no leaks in static chrome
-const need = { dashboard: "Startseite", practice: "Intelligentes Training", sentex: "Satzübungen", games: "Spiele", quiz: "Tests", review: "Wiederholung", settings: "Einstellungen", mistakes: "Meine Fehler" };
+// "quiz" section was intentionally renamed to the Assessment Center
+// (مركز الاختبارات والتقييم): ar "مركز الاختبارات", en "Assessment Center", de "Testcenter".
+const need = { dashboard: "Startseite", practice: "Intelligentes Training", sentex: "Satzübungen", games: "Spiele", quiz: "Testcenter", review: "Wiederholung", settings: "Einstellungen", mistakes: "Meine Fehler" };
 let smoke = true;
 for (const [k, de] of Object.entries(need)) if (t("de", k) !== de) { console.log("FAIL T9 de." + k); smoke = false; }
 for (const f of ["client/index.html", "client/academy.html"]) {
