@@ -591,53 +591,190 @@
             } catch (e) {}
         });
 
-        // Send OTP
-        document.getElementById("btnSendOTP")?.addEventListener("click", function() {
-            var phone = document.getElementById("authPhone")?.value?.trim();
-            var btn = document.getElementById("btnSendOTP");
-            if (isBusy(btn)) return;
+        // ---- Phone OTP flow state (SMS, never OAuth) ----
+        // lastPhoneE164 holds the normalized number the SMS was requested
+        // for, so verification always uses the identical value even if the
+        // user edits the visible input afterwards.
+        var lastPhoneE164 = null;
+        var resendTimer = null;
+        var resendUntil = 0;
+        var OTP_RESEND_SECONDS = 60;
 
-            if (!phone) {
-                showAuthMessage(window.t?.("enter_phone") || "\u0623\u062F\u062E\u0644 \u0631\u0642\u0645 \u0627\u0644\u0647\u0627\u062A\u0641");
+        function normalizePhoneInput(raw) {
+            try {
+                if (window.AuthModule?.normalizeEgyptianPhone) return window.AuthModule.normalizeEgyptianPhone(raw);
+            } catch (e) {}
+            // Fallback when the auth layer is unavailable: minimal E.164 trim.
+            try {
+                var d = String(raw == null ? "" : raw).replace(/[^\d+]/g, "");
+                if (/^01\d{9}$/.test(d)) return "+2" + d;
+                if (/^\+20\d{10}$/.test(d)) return d;
+                return null;
+            } catch (e2) { return null; }
+        }
+
+        function sanitizeOtpInput(raw) {
+            try {
+                if (window.AuthModule?.sanitizeOtpCode) return window.AuthModule.sanitizeOtpCode(raw);
+            } catch (e) {}
+            try { return String(raw == null ? "" : raw).replace(/[^\d]/g, ""); } catch (e2) { return ""; }
+        }
+
+        function translatePhone(err) {
+            try {
+                if (window.AuthModule?.translateError) return window.AuthModule.translateError(err, "phone");
+            } catch (e) {}
+            return (err && err.message) || String(err || "حدث خطأ في تسجيل الدخول برقم الهاتف. حاول مرة أخرى.");
+        }
+
+        // Resend cooldown: disables both send + resend buttons, shows the
+        // remaining seconds, then restores the resend action. Never bypasses
+        // Supabase rate limits — it only prevents accidental double-SMS.
+        function startResendCooldown() {
+            try {
+                if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+                resendUntil = Date.now() + OTP_RESEND_SECONDS * 1000;
+                var sendBtn = document.getElementById("btnSendOTP");
+                var resendBtn = document.getElementById("btnResendOTP");
+                var show = function (left) {
+                    var base = window.t?.("resend_otp") || "إعادة إرسال الرمز";
+                    var label = left > 0
+                        ? (base + " (" + left + " ث)")
+                        : base;
+                    if (sendBtn) {
+                        sendBtn.disabled = left > 0;
+                        if (left <= 0 && !sendBtn.dataset.busy) {
+                            sendBtn.textContent = sendBtn.dataset.originalText || sendBtn.textContent;
+                        } else if (left > 0) {
+                            sendBtn.textContent = label;
+                        }
+                    }
+                    if (resendBtn) {
+                        resendBtn.disabled = left > 0;
+                        resendBtn.textContent = label;
+                    }
+                };
+                show(OTP_RESEND_SECONDS);
+                resendTimer = setInterval(function () {
+                    var left = Math.max(0, Math.ceil((resendUntil - Date.now()) / 1000));
+                    show(left);
+                    if (left <= 0 && resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+                }, 1000);
+            } catch (e) {}
+        }
+
+        function showOtpForm() {
+            document.getElementById("phoneForm")?.classList.add("hidden");
+            document.getElementById("otpForm")?.classList.remove("hidden");
+            showAuthMessage("تم إرسال رمز التحقق إلى هاتفك. أدخل الرمز المكون من 6 أرقام.", false);
+            var otpInput = document.getElementById("authOTP");
+            if (otpInput) {
+                try { otpInput.value = ""; } catch (e) {}
+                try { otpInput.focus({ preventScroll: true }); } catch (e2) {
+                    try { otpInput.focus(); } catch (e3) {}
+                }
+            }
+            startResendCooldown();
+        }
+
+        function requestPhoneOtp(sourceBtnId) {
+            var rawPhone = document.getElementById("authPhone")?.value;
+            var btn = document.getElementById(sourceBtnId || "btnSendOTP");
+            var resendBtn = document.getElementById("btnResendOTP");
+            var activeBtn = (sourceBtnId === "btnResendOTP" && resendBtn) ? resendBtn : btn;
+            if (isBusy(btn) || isBusy(resendBtn)) return;
+            if (!activeBtn) return;
+
+            var normalized = normalizePhoneInput(rawPhone);
+            if (!normalized) {
+                showAuthMessage("رقم الهاتف غير صحيح. أدخل رقمًا مصريًا صحيحًا.");
                 return;
             }
 
-            setButtonLoading(btn, true);
-            var promise = window.AuthModule?.sendPhoneOTP?.(phone);
-            promise?.then(function(result) {
-                setButtonLoading(btn, false, window.t?.("send_otp") || "\u0625\u0631\u0633\u0627\u0644 \u0631\u0645\u0632 \u0627\u0644\u062A\u062D\u0642\u0642");
+            setButtonLoading(activeBtn, true);
+            var promise = null;
+            try { promise = window.AuthModule?.sendPhoneOTP?.(normalized); } catch (e) {
+                setButtonLoading(activeBtn, false);
+                showAuthMessage(translatePhone(e));
+                return;
+            }
+            if (!promise || typeof promise.then !== "function") {
+                // Auth layer unavailable (e.g. library failed to load offline):
+                // never leave the button stuck in a loading state.
+                setButtonLoading(activeBtn, false);
+                showAuthMessage("تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى.");
+                return;
+            }
+            promise.then(function(result) {
+                setButtonLoading(activeBtn, false, "إرسال رمز التحقق");
                 if (result?.error) {
-                    showAuthMessage(window.AuthModule?.translateError?.(result.error) || result.error);
+                    showAuthMessage(translatePhone(result.error));
                 } else {
-                    // Switch to OTP form
-                    document.getElementById("phoneForm")?.classList.add("hidden");
-                    document.getElementById("otpForm")?.classList.remove("hidden");
-                    showAuthMessage(window.t?.("otp_sent") || "\u062A\u0645 \u0625\u0631\u0633\u0627\u0644 \u0631\u0645\u0632 \u0627\u0644\u062A\u062D\u0642\u0642 \u0625\u0644\u0649 \u0647\u0627\u062A\u0641\u0643", false);
+                    lastPhoneE164 = (result && result.phone) || normalized;
+                    showOtpForm();
                 }
+            }, function(err) {
+                setButtonLoading(activeBtn, false, "إرسال رمز التحقق");
+                showAuthMessage(translatePhone(err));
             });
+        }
+
+        // Send OTP
+        document.getElementById("btnSendOTP")?.addEventListener("click", function() {
+            requestPhoneOtp("btnSendOTP");
+        });
+
+        // Resend OTP (same request, guarded by the cooldown timer).
+        document.getElementById("btnResendOTP")?.addEventListener("click", function() {
+            if (Date.now() < resendUntil) return;
+            requestPhoneOtp("btnResendOTP");
         });
 
         // Verify OTP
         document.getElementById("btnVerifyOTP")?.addEventListener("click", function() {
-            var phone = document.getElementById("authPhone")?.value?.trim();
-            var token = document.getElementById("authOTP")?.value?.trim();
+            var rawPhone = lastPhoneE164 || document.getElementById("authPhone")?.value;
+            var phone = normalizePhoneInput(rawPhone);
+            var token = sanitizeOtpInput(document.getElementById("authOTP")?.value);
             var btn = document.getElementById("btnVerifyOTP");
             if (isBusy(btn)) return;
 
-            if (!token || token.length !== 6) {
+            if (!phone) {
+                showAuthMessage("رقم الهاتف غير صحيح. أدخل رقمًا مصريًا صحيحًا.");
+                return;
+            }
+            if (!/^\d{6}$/.test(token)) {
                 showAuthMessage(window.t?.("enter_otp") || "\u0623\u062F\u062E\u0644 \u0631\u0645\u0632 \u0627\u0644\u062A\u062D\u0642\u0642 \u0627\u0644\u0645\u0643\u0648\u0646 \u0645\u0646 6 \u0623\u0631\u0642\u0627\u0645");
                 return;
             }
 
             setButtonLoading(btn, true);
-            var promise = window.AuthModule?.verifyPhoneOTP?.(phone, token);
-            promise?.then(function(result) {
+            var promise = null;
+            try { promise = window.AuthModule?.verifyPhoneOTP?.(phone, token); } catch (e) {
+                setButtonLoading(btn, false, window.t?.("verify_otp") || "\u0627\u0644\u062A\u062D\u0642\u0642");
+                showAuthMessage(translatePhone(e));
+                return;
+            }
+            if (!promise || typeof promise.then !== "function") {
+                setButtonLoading(btn, false, window.t?.("verify_otp") || "\u0627\u0644\u062A\u062D\u0642\u0642");
+                showAuthMessage("تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى.");
+                return;
+            }
+            promise.then(function(result) {
                 setButtonLoading(btn, false, window.t?.("verify_otp") || "\u0627\u0644\u062A\u062D\u0642\u0642");
                 if (result?.error) {
-                    showAuthMessage(window.AuthModule?.translateError?.(result.error) || result.error);
-                } else if (result?.data?.user) {
+                    showAuthMessage(translatePhone(result.error));
+                } else if (result?.data?.user || result?.data?.session) {
+                    // Session is established by Supabase; the shared
+                    // onAuthStateChange -> handleSession flow continues into
+                    // the normal profile/cloud-sync initialization.
+                    lastPhoneE164 = null;
+                    showAuthMessage(window.t?.("verified_success") || "\u062A\u0645 \u0627\u0644\u062A\u062D\u0642\u0642 \u0628\u0646\u062C\u0627\u062D \u2713", false);
+                } else {
                     showAuthMessage(window.t?.("verified_success") || "\u062A\u0645 \u0627\u0644\u062A\u062D\u0642\u0642 \u0628\u0646\u062C\u0627\u062D \u2713", false);
                 }
+            }, function(err) {
+                setButtonLoading(btn, false, window.t?.("verify_otp") || "\u0627\u0644\u062A\u062D\u0642\u0642");
+                showAuthMessage(translatePhone(err));
             });
         });
 
@@ -647,6 +784,8 @@
             document.getElementById("phoneForm")?.classList.remove("hidden");
             var otpInput = document.getElementById("authOTP");
             if (otpInput) otpInput.value = "";
+            lastPhoneE164 = null;
+            try { document.getElementById("authPhone")?.focus({ preventScroll: true }); } catch (e) {}
         });
 
         // Premium auth views (tabs, password toggle, phone toggle, recovery).

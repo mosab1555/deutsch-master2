@@ -212,36 +212,127 @@ const AuthModule = (function () {
         }
     }
 
-    // Send Phone OTP
+    // ==================== PHONE OTP HELPERS ====================
+    //
+    // Egyptian mobile normalization (single authority for phone auth).
+    // Accepts: 010xxxxxxxx / 011 / 012 / 015, +20..., 20..., 0020...,
+    // values with spaces/dashes/parens, Arabic-Indic digits.
+    // Returns the E.164 form ("+2010...") or null when clearly invalid.
+    // Already-normalized international E.164 numbers pass through untouched
+    // (never transformed twice). Invalid input is rejected, never coerced
+    // into a different valid number.
+    function normalizeEgyptianPhone(raw) {
+        try {
+            if (raw == null) return null;
+            var s = String(raw).trim();
+            if (!s) return null;
+            // Arabic-Indic + Eastern Arabic-Indic digits -> ASCII.
+            s = s.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, function (ch) {
+                var code = ch.charCodeAt(0);
+                if (code >= 0x0660 && code <= 0x0669) return String(code - 0x0660);
+                return String(code - 0x06F0);
+            });
+            s = s.trim();
+            // A "+" anywhere except position 0 is malformed: reject.
+            if (s.indexOf("+", 1) !== -1) return null;
+            var hasPlus = s.charAt(0) === "+";
+            // Strip separators but keep a single leading "+".
+            var digits = s.replace(/[^\d]/g, "");
+            if (!digits) return null;
+            if (hasPlus) {
+                // Already international: validate generic E.164, pass through.
+                if (/^20(10|11|12|15)\d{8}$/.test(digits)) return "+" + digits;
+                // A "+20..." number at Egyptian length with a non-mobile
+                // prefix (e.g. +2019...) is a typo, not a foreign number:
+                // reject instead of passing a broken number to Supabase.
+                if (/^20\d{10}$/.test(digits)) return null;
+                if (/^\d{7,15}$/.test(digits)) return "+" + digits;
+                return null;
+            }
+            // "00" international prefix -> treat like "+".
+            if (/^0020(10|11|12|15)\d{8}$/.test(digits)) return "+" + digits.slice(2);
+            if (/^00\d{7,15}$/.test(digits)) return "+" + digits.slice(2);
+            // "20" + Egyptian mobile without "+" (e.g. 201095202373).
+            if (/^20(10|11|12|15)\d{8}$/.test(digits)) return "+" + digits;
+            // Local Egyptian mobile: "01X" + 8 digits.
+            if (/^01(0|1|2|5)\d{8}$/.test(digits)) return "+2" + digits;
+            // Bare 10-digit mobile without trunk zero (e.g. 1095202373).
+            if (/^1(0|1|2|5)\d{8}$/.test(digits)) return "+20" + digits;
+            return null;
+        } catch (e) { return null; }
+    }
+
+    // OTP sanitizer: ignores accidental spaces/separators, keeps digits only.
+    function sanitizeOtpCode(raw) {
+        try {
+            if (raw == null) return "";
+            var digits = String(raw).replace(/[\u0660-\u0669\u06F0-\u06F9]/g, function (ch) {
+                var code = ch.charCodeAt(0);
+                if (code >= 0x0660 && code <= 0x0669) return String(code - 0x0660);
+                return String(code - 0x06F0);
+            }).replace(/[^\d]/g, "");
+            return digits;
+        } catch (e) { return ""; }
+    }
+
+    // Send Phone OTP (SMS channel). Normalizes to E.164 first so Egyptian
+    // trunk numbers ("010...") are never sent raw to Supabase.
     async function sendPhoneOTP(phone) {
         if (!supabaseClient) return { error: "Supabase not initialized" };
 
+        var normalized = normalizeEgyptianPhone(phone);
+        if (!normalized) {
+            return { error: "رقم الهاتف غير صحيح. أدخل رقمًا مصريًا صحيحًا." };
+        }
+
         try {
             const { data, error } = await supabaseClient.auth.signInWithOtp({
-                phone: phone.trim(),
+                phone: normalized,
                 options: {
                     channel: "sms"
                 }
             });
-            return { data, error };
+            if (error) {
+                console.warn("[Auth] sendPhoneOTP failed:", errorMessageOf(error));
+            } else {
+                logAuthEvent("sign_in", "phone", true, null, null);
+            }
+            return { data, error, phone: normalized };
         } catch (e) {
-            return { error: e.message };
+            console.warn("[Auth] sendPhoneOTP threw:", e && e.message ? e.message : e);
+            return { error: (e && e.message) || e };
         }
     }
 
-    // Verify Phone OTP
+    // Verify Phone OTP. Uses the same normalization as sendPhoneOTP so the
+    // (phone, token) pair always matches what the SMS was requested for.
     async function verifyPhoneOTP(phone, token) {
         if (!supabaseClient) return { error: "Supabase not initialized" };
 
+        var normalized = normalizeEgyptianPhone(phone);
+        if (!normalized) {
+            return { error: "رقم الهاتف غير صحيح. أدخل رقمًا مصريًا صحيحًا." };
+        }
+        var code = sanitizeOtpCode(token);
+        if (!/^\d{6}$/.test(code)) {
+            return { error: "رمز التحقق غير صحيح." };
+        }
+
         try {
             const { data, error } = await supabaseClient.auth.verifyOtp({
-                phone: phone.trim(),
-                token: token.trim(),
+                phone: normalized,
+                token: code,
                 type: "sms"
             });
-            return { data, error };
+            if (error) {
+                console.warn("[Auth] verifyPhoneOTP failed:", errorMessageOf(error));
+            } else {
+                logAuthEvent("sign_in", "phone", true, null, data?.user?.id || null);
+            }
+            return { data, error, phone: normalized };
         } catch (e) {
-            return { error: e.message };
+            console.warn("[Auth] verifyPhoneOTP threw:", e && e.message ? e.message : e);
+            return { error: (e && e.message) || e };
         }
     }
 
@@ -355,8 +446,13 @@ const AuthModule = (function () {
     // ==================== ERROR HANDLING ====================
 
     // Convert Supabase auth errors to user-friendly Arabic messages.
-    // providerHint ("google" | "facebook") only customizes the provider name
-    // inside provider-specific messages; omit it to keep generic wording.
+    // providerHint ("google" | "facebook" | "phone") only customizes the
+    // provider name inside provider-specific messages; omit it to keep
+    // generic wording. Phone flows MUST pass "phone" so phone/SMS errors are
+    // never misreported as OAuth/external-account errors.
+    // Phone-specific patterns are matched before the generic OAuth branch
+    // even without a hint, so a phone error can never fall into the
+    // "external account" message.
     function translateError(error, providerHint) {
         if (!error) return "حدث خطأ غير معروف";
 
@@ -373,6 +469,11 @@ const AuthModule = (function () {
         // Code-side the call is correct; only external config can enable it.
         if (/unsupported provider|provider is not enabled|provider.*not enabled|not enabled.*provider/i.test(msg) ||
             (/validation_failed/i.test(errCode + " " + msg) && /provider/i.test(msg))) {
+            // Phone flows never surface the OAuth/external wording, even
+            // when Supabase answers with a generic provider-disabled error.
+            if (providerHint === "phone") {
+                return "تسجيل الدخول برقم الهاتف غير متاح حاليًا لأن خدمة SMS غير مفعلة.";
+            }
             return providerAr
                 ? ("تسجيل الدخول عبر " + providerAr + " غير متاح حاليًا. جرّب مرة أخرى لاحقًا.")
                 : "تسجيل الدخول عبر الحساب الخارجي غير متاح حاليًا. جرّب مرة أخرى لاحقًا.";
@@ -405,8 +506,55 @@ const AuthModule = (function () {
             return "رقم الهاتف هذا مسجل بالفعل. حاول تسجيل الدخول.";
         }
 
-        if (msg.includes("Invalid OTP") || msg.includes("invalid_token") || msg.includes("otp_expired")) {
-            return "رمز التحقق غير صحيح أو منتهي الصلاحية. اطلب رمزاً جديداً.";
+        // ---------- Phone / SMS OTP errors (must precede the OAuth branch) ----------
+        // SMS provider not configured on the Supabase project:
+        // Dashboard > Authentication > Providers > Phone must be enabled with
+        // an SMS provider (e.g. Twilio). No code-side fix can substitute that;
+        // the frontend reports it explicitly instead of faking success.
+        if (/sms.*not|phone.*not.*enabl|phone.*signup.*disabl|signup.*phone.*disabl|phone.*not.*configur|twilio|message.*provider.*not|sms.*provider/i.test(msg) ||
+            (/unsupported provider|provider is not enabled|provider.*not enabled|not enabled.*provider/i.test(msg) &&
+                (/phone|sms|twilio/i.test(msg) || providerHint === "phone"))) {
+            return "تسجيل الدخول برقم الهاتف غير متاح حاليًا لأن خدمة SMS غير مفعلة.";
+        }
+
+        // Invalid phone number format (Supabase expects E.164, e.g. +2010...).
+        if (/invalid.*phone|phone.*invalid|e\.?\s?164|phone number.*not valid|must be a valid phone/i.test(msg)) {
+            return "رقم الهاتف غير صحيح. أدخل رقمًا مصريًا صحيحًا.";
+        }
+
+        // Local pre-validation message passes through untouched.
+        if (/أدخل رقمًا مصريًا صحيحًا/.test(msg)) {
+            return msg.slice(0, 200);
+        }
+
+        // Expired OTP (checked before generic invalid-OTP so otp_expired maps here).
+        if (/otp_expired|expired.*otp|otp.*expired/i.test(msg) ||
+            (/expired/i.test(msg) && /otp|token|code|verification/i.test(msg))) {
+            return "انتهت صلاحية رمز التحقق. اطلب رمزًا جديدًا.";
+        }
+
+        // Wrong OTP code.
+        if (/invalid.*(otp|token|code)|invalid_token|(otp|token|code).*invalid|wrong.*(otp|code)|incorrect.*(otp|code)/i.test(msg)) {
+            return "رمز التحقق غير صحيح.";
+        }
+
+        // Too many verification attempts (distinct from send rate limits).
+        if (/too many.*attempt|attempt.*exceed|max.*attempt|too many.*verif|verif.*attempt/i.test(msg)) {
+            return "تم تجاوز عدد محاولات التحقق. حاول مرة أخرى لاحقًا.";
+        }
+
+        // Send/verify rate limits (Supabase: over_sms_send_rate_limit, etc.).
+        if (/too many requests|rate.?limit|over_.*rate_limit|sms_send_rate_limited|rate_limited|too many.*(sms|otp|code)/i.test(msg)) {
+            return "لقد طلبت رموز تحقق كثيرة. انتظر قليلًا ثم حاول مرة أخرى.";
+        }
+
+        // Phone OTP fallback (never the OAuth/external message).
+        if (providerHint === "phone") {
+            if (/network|fetch|connection|failed to fetch|load failed/i.test(msg)) {
+                return "تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى.";
+            }
+            console.log("[Auth] Untranslated phone error:", msg);
+            return "حدث خطأ في تسجيل الدخول برقم الهاتف. حاول مرة أخرى.";
         }
 
         if (msg.includes("OTP expired") || msg.includes("expired")) {
@@ -539,6 +687,8 @@ const AuthModule = (function () {
         signUpWithEmail,
         sendPhoneOTP,
         verifyPhoneOTP,
+        normalizeEgyptianPhone,
+        sanitizeOtpCode,
         sendEmailOTP,
         resetPassword,
         updatePassword,
