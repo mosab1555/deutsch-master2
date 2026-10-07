@@ -65,27 +65,68 @@
     } catch (e) {}
   }
 
-  /* ---------- 2 · hide on scroll down ---------- */
+  /* ---------- 2 · hide on scroll down ----------
+     Smooth slide via CSS transform (see .dm-bnav in dm-ultimate.css).
+     Scroll direction decides the state; near-top always forces visible.
+     Small delta threshold + hide-after offset prevent flickering on tiny
+     or rapid direction changes. Passive listener + rAF throttle: no work
+     per raw scroll event, vertical only, element stays in DOM. */
   var bnav = null, lastY = 0, ticking = false;
+  var DM_HIDE_AFTER = 80; /* meaningful downward travel before hiding */
+  var DM_HIDE_DELTA = 6;  /* ignore sub-threshold jitter */
+  function showBnav() {
+    try {
+      if (bnav && bnav.classList.contains("hide")) bnav.classList.remove("hide");
+    } catch (e) {}
+  }
+  function hideBnav() {
+    try {
+      if (bnav && !bnav.classList.contains("hide")) bnav.classList.add("hide");
+    } catch (e) {}
+  }
   function onScroll() {
-    if (!bnav) return;
-    var y = window.scrollY || document.documentElement.scrollTop || 0;
-    if (y < 80) bnav.classList.remove("hide");
-    else if (y > lastY + 4) bnav.classList.add("hide");
-    else if (y < lastY - 4) bnav.classList.remove("hide");
-    lastY = y;
     ticking = false;
+    if (!bnav) return;
+    var y = 0;
+    try { y = window.scrollY || document.documentElement.scrollTop || 0; }
+    catch (e) { y = 0; }
+    /* Top of page: always visible (covers overscroll bounce y <= 0). */
+    if (y < DM_HIDE_AFTER) { showBnav(); lastY = y; return; }
+    var dy = y - lastY;
+    if (dy > DM_HIDE_DELTA) hideBnav();
+    else if (dy < -DM_HIDE_DELTA) showBnav();
+    /* Advance the baseline only on meaningful moves so rapid direction
+       flips around the threshold cannot flutter the bar. */
+    if (Math.abs(dy) >= DM_HIDE_DELTA) lastY = y;
+  }
+  function requestTick() {
+    if (ticking) return;
+    ticking = true;
+    try {
+      if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(onScroll);
+      else window.setTimeout(onScroll, 16);
+    } catch (e) { ticking = false; }
   }
   function bindScroll() {
     bnav = document.getElementById("dmBnav");
     if (!bnav) return;
-    lastY = window.scrollY || 0;
-    window.addEventListener("scroll", function () {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(onScroll);
-      }
-    }, { passive: true });
+    try { lastY = window.scrollY || document.documentElement.scrollTop || 0; }
+    catch (e) { lastY = 0; }
+    /* Test seam (no behavior change): DMBottomNav.show/hide/isHidden. */
+    try {
+      window.DMBottomNav = window.DMBottomNav || {};
+      window.DMBottomNav.show = showBnav;
+      window.DMBottomNav.hide = hideBnav;
+      window.DMBottomNav.isHidden = function () {
+        try { return !!(bnav && bnav.classList.contains("hide")); }
+        catch (e2) { return false; }
+      };
+    } catch (e) {}
+    try {
+      window.addEventListener("scroll", requestTick, { passive: true });
+    } catch (e) {
+      try { window.addEventListener("scroll", requestTick); } catch (_) {}
+    }
   }
 
   /* ---------- 3 · orbit progress mirror ---------- */

@@ -411,13 +411,16 @@ html[data-theme="light"] .topbar{background:linear-gradient(180deg,rgba(255,255,
        Vertical only: never introduces horizontal movement. */
     transform:translateY(0);
     will-change:transform;
-    transition:transform var(--sv-t-med,280ms) var(--sv-ease,cubic-bezier(.22,.8,.24,1));
+    transition:transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   /* Hidden state: fully below the viewport + non-interactive. Visibility is
      left alone so the slide-out transition always runs to completion. */
   .sv-bottomnav.sv-hidden{
     transform:translateY(110%);
     pointer-events:none;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .sv-bottomnav{transition:none}
   }
   html[data-theme="light"] .sv-bottomnav{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(238,241,249,.98))}
   .sv-bottomnav button{

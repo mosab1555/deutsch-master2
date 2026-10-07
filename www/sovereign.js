@@ -196,6 +196,9 @@
   function buildBottomNav() {
     try {
       if (doc.querySelector(".sv-bottomnav")) return;
+      /* Single-bar rule: index/academy ship the static .dm-bnav (#dmBnav).
+         Do not create a second navigation layer on top of it. */
+      if (doc.querySelector(".dm-bnav")) return;
       var bar = doc.createElement("nav");
       bar.className = "sv-bottomnav";
       bar.setAttribute("aria-label", "bottom");
@@ -273,17 +276,21 @@
       try {
         lastY = window.pageYOffset || doc.documentElement.scrollTop || 0;
       } catch (e) { lastY = 0; }
-      /* Test seam (no behavior change): DMBottomNav.show/hide/isHidden. */
+      /* Test seam: do not clobber the canonical .dm-bnav seam when it
+         exists (dm-ultimate.js loads last and owns #dmBnav). Only provide
+         fallback controls for the legacy .sv-bottomnav. */
       try {
-        window.DMBottomNav = window.DMBottomNav || {};
-        window.DMBottomNav.show = showBottomBar;
-        window.DMBottomNav.hide = hideBottomBar;
-        window.DMBottomNav.isHidden = function () {
-          try {
-            var b = bottomBar();
-            return !!(b && b.classList.contains("sv-hidden"));
-          } catch (e2) { return false; }
-        };
+        if (!window.DMBottomNav || !window.DMBottomNav.show) {
+          window.DMBottomNav = window.DMBottomNav || {};
+          window.DMBottomNav.show = showBottomBar;
+          window.DMBottomNav.hide = hideBottomBar;
+          window.DMBottomNav.isHidden = function () {
+            try {
+              var b = bottomBar();
+              return !!(b && b.classList.contains("sv-hidden"));
+            } catch (e2) { return false; }
+          };
+        }
       } catch (e) {}
       function update() {
         ticking = false;
