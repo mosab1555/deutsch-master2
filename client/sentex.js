@@ -537,7 +537,7 @@ function finishSx(H){
   });
   const perRows=Object.keys(per).sort().map(function(k){
     const q=per[k];
-    return '<div class="stat-bar-row"><span class="lbl">'+escapeHtml(k)+'</span><div class="bar"><div class="fill" style="width:'+Math.round(q.ok/Math.max(1,q.n)*100)+'%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div><b>'+q.ok+'/'+q.n+'</b></div>'
+    return '<div class="stat-bar-row"><span class="lbl">'+escapeHtml(k)+'</span><div class="bar"><div class="fill" style="width:'+Math.round(q.ok/Math.max(1,q.n)*100)+'%;background:linear-gradient(90deg,#1E7A55,#2FA97C)"></div></div><b>'+q.ok+'/'+q.n+'</b></div>'
       +'<div class="muted">'+escapeHtml(q.name)+'</div>';
   }).join("");
   const wrongs=ST.results.filter(function(r){return !r.ok;});

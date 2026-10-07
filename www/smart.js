@@ -883,7 +883,7 @@ function smFinish(quit){
     S.testsTaken=(S.testsTaken||0)+1;
     addXP(score*2+5,"smart");markStudyDay();save();
   }catch(e){}
-  const perRows=Object.keys(per).map(k=>'<div class="stat-bar-row"><span class="lbl">'+smSkillAr(k)+'</span><div class="bar"><div class="fill" style="width:'+Math.round(per[k].ok/per[k].n*100)+'%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div><b>'+per[k].ok+'/'+per[k].n+'</b></div>').join("");
+  const perRows=Object.keys(per).map(k=>'<div class="stat-bar-row"><span class="lbl">'+smSkillAr(k)+'</span><div class="bar"><div class="fill" style="width:'+Math.round(per[k].ok/per[k].n*100)+'%;background:linear-gradient(90deg,#1E7A55,#2FA97C)"></div></div><b>'+per[k].ok+'/'+per[k].n+'</b></div>').join("");
   const wrongs=SM.results.filter(r=>!r.ok).slice(0,5);
   host.innerHTML='<div class="panel glass" style="text-align:center"><h3>🎯 نتيجة التدريب الذكي</h3>'
     +'<div class="stat-num" style="font-size:44px">'+score+' / '+total+'</div>'

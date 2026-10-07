@@ -98,7 +98,7 @@ function renderMygHome(){
   +'<div><b>🇩🇪 تقدم ألمانيا:</b> '+mygSkillAvg()+'%</div><div class="progress"><div class="progress-fill" style="width:'+mygSkillAvg()+'%"></div></div></div>'
   +'</div>'
   +'<div class="row-flex"><button class="btn btn-primary sm" id="mygDay">▶️ ابدأ اليوم</button><button class="btn btn-ghost sm" id="mygChars">🎭 الشخصيات</button><button class="btn btn-ghost sm" id="mygBank">🏦 كشف الحساب</button><button class="btn btn-ghost sm" id="mygLog">📜 يومياتي</button></div>'
-  +'<h4>❤️ مهارات الحياة</h4>'+sk.map(s=>'<div class="stat-bar-row"><span class="lbl">'+mygSkillName(s.k)+'</span><div class="bar"><div class="fill" style="width:'+s.v+'%;background:linear-gradient(90deg,#7c3aed,#00d4ff)"></div></div><b>'+s.v+'%</b></div>').join("")
+  +'<h4>❤️ مهارات الحياة</h4>'+sk.map(s=>'<div class="stat-bar-row"><span class="lbl">'+mygSkillName(s.k)+'</span><div class="bar"><div class="fill" style="width:'+s.v+'%;background:linear-gradient(90deg,#285DFF,#4DA3FF)"></div></div><b>'+s.v+'%</b></div>').join("")
   +'<div id="mygSub"></div>';
   $("mygDay").addEventListener("click",mygRunDay);
   $("mygChars").addEventListener("click",renderMygChars);

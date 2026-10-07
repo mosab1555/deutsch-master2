@@ -21,11 +21,13 @@ else console.log("PASS all nav/goto targets resolve to page sections");
 // logout uses data-action, not data-page — verify it still exists
 if (!/id="logoutBtn"/.test(html)) { fail = 1; console.log("FAIL logoutBtn missing"); }
 else console.log("PASS logout action preserved");
-// sovereign wired last
+// obsidian identity layer is authoritative and loads last (after sovereign.css)
 const cssLinks = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)">/g)].map((x) => x[1]);
 const jsLinks = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((x) => x[1]);
-if (cssLinks[cssLinks.length - 1] !== "sovereign.css") { fail = 1; console.log("FAIL sovereign.css not last: " + cssLinks.slice(-2).join(",")); }
-else console.log("PASS sovereign.css loads last");
+if (cssLinks[cssLinks.length - 1] !== "obsidian.css") { fail = 1; console.log("FAIL obsidian.css not last: " + cssLinks.slice(-2).join(",")); }
+else console.log("PASS obsidian.css loads last");
+if (!cssLinks.includes("sovereign.css")) { fail = 1; console.log("FAIL sovereign.css missing"); }
+else console.log("PASS sovereign.css wired");
 if (jsLinks[jsLinks.length - 1] !== "sovereign.js") { fail = 1; console.log("FAIL sovereign.js not last"); }
 else console.log("PASS sovereign.js loads last");
 // every wired file must exist on disk

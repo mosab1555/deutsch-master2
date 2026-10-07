@@ -1989,44 +1989,18 @@ function applyTheme(){document.documentElement.setAttribute("data-theme",S.setti
 /* ============ COLOR THEMES ============ */
 function hexRgb(h){h=String(h||"").replace("#","");if(h.length===3)h=h.split("").map(c=>c+c).join("");const n=parseInt(h,16);return [(n>>16)&255,(n>>8)&255,n&255].join(",");}
 const THEMES=[
-{id:"default",name:"Default Blue",c1:"#7c3aed",c2:"#00d4ff",gold:"#f5c451",p2:"#2563eb"},
-{id:"royal",name:"Royal Blue",c1:"#1d4ed8",c2:"#38bdf8",gold:"#fbbf24",p2:"#1e40af"},
-{id:"ocean",name:"Ocean",c1:"#0ea5e9",c2:"#22d3ee",gold:"#fcd34d",p2:"#0369a1"},
-{id:"cyan",name:"Cyan",c1:"#06b6d4",c2:"#67e8f9",gold:"#fde047",p2:"#0e7490"},
-{id:"purple",name:"Purple",c1:"#7c3aed",c2:"#a78bfa",gold:"#f5c451",p2:"#6d28d9"},
-{id:"violet",name:"Violet",c1:"#8b5cf6",c2:"#d946ef",gold:"#fbbf24",p2:"#7c3aed"},
-{id:"pink",name:"Pink",c1:"#ec4899",c2:"#f9a8d4",gold:"#fde68a",p2:"#be185d"},
-{id:"rose",name:"Rose",c1:"#f43f5e",c2:"#fda4af",gold:"#fef3c7",p2:"#be123c"},
-{id:"red",name:"Red",c1:"#ef4444",c2:"#f87171",gold:"#fde68a",p2:"#b91c1c"},
-{id:"orange",name:"Orange",c1:"#f97316",c2:"#fdba74",gold:"#fef08a",p2:"#c2410c"},
-{id:"sunset",name:"Sunset",c1:"#f59e0b",c2:"#ef4444",gold:"#fde68a",p2:"#b45309"},
-{id:"amber",name:"Amber",c1:"#f59e0b",c2:"#fcd34d",gold:"#fff7ed",p2:"#b45309"},
-{id:"yellow",name:"Yellow",c1:"#eab308",c2:"#fef08a",gold:"#fffbeb",p2:"#a16207"},
-{id:"lime",name:"Lime",c1:"#84cc16",c2:"#bef264",gold:"#fefce8",p2:"#4d7c0f"},
-{id:"green",name:"Green",c1:"#22c55e",c2:"#4ade80",gold:"#fef9c3",p2:"#15803d"},
-{id:"emerald",name:"Emerald",c1:"#10b981",c2:"#6ee7b7",gold:"#fef3c7",p2:"#047857"},
-{id:"teal",name:"Teal",c1:"#14b8a6",c2:"#5eead4",gold:"#fef9c3",p2:"#0f766e"},
-{id:"turquoise",name:"Turquoise",c1:"#06b6d4",c2:"#5eead4",gold:"#fef08a",p2:"#0e7490"},
-{id:"neon",name:"Neon",c1:"#22ff88",c2:"#00e5ff",gold:"#faff00",p2:"#00aa55"},
-{id:"midnight",name:"Midnight",c1:"#312e81",c2:"#155e75",gold:"#d4a017",p2:"#1e1b4b"},
-{id:"cyber",name:"Cyber",c1:"#d946ef",c2:"#22d3ee",gold:"#f0abfc",p2:"#a21caf"},
-{id:"darkpurple",name:"Dark Purple",c1:"#6d28d9",c2:"#4c1d95",gold:"#c4b5fd",p2:"#4c1d95"},
-/* ---- Premium collection (additive): distinct identities, coordinated accents.
-   Optional fields (backward compatible): p1 = button/accent override (when c1
-   is too light for white text), base = preferred "light"/"dark" surface set,
-   surf = surface overrides applied as CSS vars (cleared when absent). ---- */
-{id:"cyberneon",name:"Cyber Neon",c1:"#00e5ff",c2:"#a855f7",gold:"#facc15",p1:"#0369a1",p2:"#1e40af"},
-{id:"royalpurple",name:"Royal Purple",c1:"#6d28d9",c2:"#c084fc",gold:"#e9d5ff",p2:"#4c1d95"},
-{id:"emeraldpro",name:"Emerald Pro",c1:"#059669",c2:"#34d399",gold:"#f5c451",p1:"#047857",p2:"#065f46"},
-{id:"crimsonfire",name:"Crimson Fire",c1:"#dc2626",c2:"#f97316",gold:"#fdba74",p2:"#7f1d1d"},
-{id:"oceanblue",name:"Ocean Blue",c1:"#1e40af",c2:"#22d3ee",gold:"#fcd34d",p2:"#0c4a6e"},
-{id:"sunsetfusion",name:"Sunset Fusion",c1:"#a21caf",c2:"#fb923c",gold:"#fecdd3",p2:"#4c1d95"},
-{id:"luxurygold",name:"Luxury Gold",c1:"#b8860b",c2:"#f5c451",gold:"#fff7ed",p1:"#854d0e",p2:"#451a03",surf:{bg:"#0d0b08",bg2:"#1a1510"}},
-{id:"arcticice",name:"Arctic Ice",c1:"#0284c7",c2:"#7dd3fc",gold:"#92400e",p2:"#0c4a6e",base:"light"},
-{id:"aurora",name:"Aurora",c1:"#14b8a6",c2:"#c084fc",gold:"#f0abfc",p1:"#0f766e",p2:"#134e4a"},
-{id:"obsidian",name:"Obsidian",c1:"#e2e8f0",c2:"#38bdf8",gold:"#cbd5e1",p1:"#334155",p2:"#334155",surf:{bg:"#050507",bg2:"#0e0e14"}},
-{id:"sapphireglass",name:"Sapphire Glass",c1:"#1d4ed8",c2:"#7dd3fc",gold:"#dbeafe",p2:"#172554",surf:{border:"rgba(147,197,253,.22)"}},
-{id:"rosequartz",name:"Rose Quartz",c1:"#db2777",c2:"#f9a8d4",gold:"#92400e",p2:"#831843",base:"light",surf:{bg:"#fdf2f6",bg2:"#ffffff"}}];
+/* Obsidian × Cobalt × Champagne identity: every theme stays inside the brand
+   palette. Unknown legacy ids fall back to THEMES[0] (themeById below). */
+{id:"default",name:"Obsidian Cobalt",c1:"#285DFF",c2:"#4DA3FF",gold:"#D8B56A",p2:"#1D46C8"},
+{id:"royal",name:"Royal Navy",c1:"#1D46C8",c2:"#4DA3FF",gold:"#D8B56A",p2:"#172750"},
+{id:"cobalt",name:"Cobalt Depth",c1:"#285DFF",c2:"#B9E6FF",gold:"#D8B56A",p2:"#1D46C8"},
+{id:"ice",name:"Ice Blue",c1:"#4DA3FF",c2:"#B9E6FF",gold:"#D8B56A",p1:"#285DFF",p2:"#1D46C8"},
+{id:"champagne",name:"Champagne",c1:"#D8B56A",c2:"#E7CC91",gold:"#D8B56A",p1:"#1D46C8",p2:"#172750"},
+{id:"platinum",name:"Platinum Ice",c1:"#285DFF",c2:"#B9E6FF",gold:"#8A6A2E",p2:"#1D46C8",base:"light"},
+{id:"midnight",name:"Midnight Navy",c1:"#172750",c2:"#285DFF",gold:"#D8B56A",p2:"#0B1020"},
+{id:"luxurygold",name:"Luxury Gold",c1:"#8A6A2E",c2:"#D8B56A",gold:"#E7CC91",p1:"#1D46C8",p2:"#172750",surf:{bg:"#0B1020",bg2:"#0F1730"}},
+{id:"obsidian",name:"Obsidian",c1:"#B7C1D1",c2:"#4DA3FF",gold:"#D8B56A",p1:"#285DFF",p2:"#1D46C8",surf:{bg:"#0B1020",bg2:"#0F1730"}},
+{id:"sapphireglass",name:"Sapphire Glass",c1:"#1D46C8",c2:"#4DA3FF",gold:"#D8B56A",p2:"#172750",surf:{border:"rgba(185,198,220,.20)"}}];
 function themeById(id){return THEMES.find(t=>t.id===id)||THEMES[0];}
 function applyColor(id){
   const t=themeById(id||(S.settings&&S.settings.color)||"default");
@@ -2297,9 +2271,9 @@ function renderDashboard(){
   $("lastQuizTxt").textContent=S.lastQuiz?("آخر اختبار: "+S.lastQuiz.type+" — "+S.lastQuiz.score+"/"+S.lastQuiz.total+" ("+S.lastQuiz.pct+"%) ⭐+"+S.lastQuiz.xp+" بتاريخ "+S.lastQuiz.date):"لم تحل أي اختبار بعد — ابدأ الآن! 🚀";
   const p=S.planner;const t=todayStr();
   const dw=p.day===t?p.dw:0,ds=p.day===t?p.ds:0,dm=p.day===t?p.dm:0;
-  $("dashPlanner").innerHTML='<div class="stat-bar-row"><span class="lbl">📚 كلمات</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dw/Math.max(1,p.words)*100)+'%;background:linear-gradient(90deg,#7c3aed,#00d4ff)"></div></div><b>'+dw+'/'+p.words+'</b></div>'+
-  '<div class="stat-bar-row"><span class="lbl">💬 جمل</span><div class="bar"><div class="fill" style="width:'+Math.min(100,ds/Math.max(1,p.sentences)*100)+'%;background:linear-gradient(90deg,#059669,#34d399)"></div></div><b>'+ds+'/'+p.sentences+'</b></div>'+
-  '<div class="stat-bar-row"><span class="lbl">⏱️ دقائق</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dm/Math.max(1,p.minutes)*100)+'%;background:linear-gradient(90deg,#b8860b,#fde68a)"></div></div><b>'+dm+'/'+p.minutes+'</b></div>';
+  $("dashPlanner").innerHTML='<div class="stat-bar-row"><span class="lbl">📚 كلمات</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dw/Math.max(1,p.words)*100)+'%;background:linear-gradient(90deg,#285DFF,#4DA3FF)"></div></div><b>'+dw+'/'+p.words+'</b></div>'+
+  '<div class="stat-bar-row"><span class="lbl">💬 جمل</span><div class="bar"><div class="fill" style="width:'+Math.min(100,ds/Math.max(1,p.sentences)*100)+'%;background:linear-gradient(90deg,#1E7A55,#2FA97C)"></div></div><b>'+ds+'/'+p.sentences+'</b></div>'+
+  '<div class="stat-bar-row"><span class="lbl">⏱️ دقائق</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dm/Math.max(1,p.minutes)*100)+'%;background:linear-gradient(90deg,#8A6A2E,#D8B56A)"></div></div><b>'+dm+'/'+p.minutes+'</b></div>';
   renderNextBestStep();
   renderFocusRow();
 }
@@ -2451,7 +2425,7 @@ function renderReview(){
   const words=allWords();
   const counts={new:0,review:0,hard:0,known:0,later:0};
   words.forEach(w=>{counts[getStatus(w.id)]=(counts[getStatus(w.id)]||0)+1;});
-  const colors={new:"#22d3ee",review:"#fb923c",hard:"#ef4444",known:"#22c55e",later:"#94a3b8"};
+  const colors={new:"#4DA3FF",review:"#D8B56A",hard:"#D3616E",known:"#2FA97C",later:"#77849B"};
   $("reviewLevels").innerHTML=Object.keys(counts).map(k=>'<div class="level-card glass"><div class="level-num" style="color:'+colors[k]+'">'+counts[k]+'</div><div>'+STATUS_AR[k]+'</div></div>').join("");
   const due=dueWords();
   $("dueCount").textContent=due.length;
@@ -3565,7 +3539,7 @@ function renderStats(){
     ["📝",S.testsTaken||0,"اختبارات"],["🎯",acc+"%","نسبة النجاح"],["📅",Object.keys(S.studyDays).length,"أيام المذاكرة"],["🔥",(S.streak.longest||0),"أطول Streak"]
   ];
   $("statsGrid").innerHTML=cards.map(c=>'<div class="stat-card glass"><div class="stat-ico">'+c[0]+'</div><div class="stat-num">'+c[1]+'</div><div class="stat-label">'+c[2]+'</div></div>').join("");
-  const colors={new:"#22d3ee",review:"#fb923c",hard:"#ef4444",known:"#22c55e",later:"#94a3b8"};
+  const colors={new:"#4DA3FF",review:"#D8B56A",hard:"#D3616E",known:"#2FA97C",later:"#77849B"};
   $("statusBars").innerHTML=Object.keys(counts).map(k=>'<div class="stat-bar-row"><span class="lbl">'+STATUS_AR[k]+'</span><div class="bar"><div class="fill" style="width:'+(words.length?counts[k]/words.length*100:0)+'%;background:'+colors[k]+'"></div></div><b>'+counts[k]+'</b></div>').join("");
   const wrong=Math.max(0,(S.totalAnswered||0)-(S.totalCorrect||0));
   $("donut").style.background="conic-gradient(var(--green) "+acc+"%, rgba(255,255,255,.1) "+acc+"%)";

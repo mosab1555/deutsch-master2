@@ -1,22 +1,22 @@
 /* Deutsch Master - Dark Premium + Light */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#070b18; --bg2:#0b1230; --card:rgba(255,255,255,.06);
-  --border:rgba(255,255,255,.12); --text:#eef2ff; --muted:#9aa6c8;
-  --violet:#7c3aed; --neon:#00d4ff; --cyan:#22d3ee; --gold:#f5c451;
-  --green:#22c55e; --red:#ef4444; --orange:#fb923c;
-  --grad:linear-gradient(135deg,#7c3aed,#00d4ff);
-  --v1:124,58,237; --v2:0,212,255; --v3:245,196,81;
-  --p1:#7c3aed; --p2:#2563eb;
+  --bg:#0B1020; --bg2:#0F1730; --card:rgba(17,26,51,.92);
+  --border:rgba(185,198,220,.12); --text:#D9E0EA; --muted:#77849B;
+  --violet:#285DFF; --neon:#4DA3FF; --cyan:#4DA3FF; --gold:#D8B56A;
+  --green:#2FA97C; --red:#D3616E; --orange:#C99A3F;
+  --grad:linear-gradient(135deg,#285DFF,#1D46C8);
+  --v1:40,93,255; --v2:77,163,255; --v3:216,181,106;
+  --p1:#285DFF; --p2:#1D46C8;
   --shadow:0 10px 40px rgba(0,0,0,.5);
   --radius:18px;
-  /* Premium auth tokens: deep navy identity, royal-blue actions, restrained cyan accents */
-  --navy:#0B1220; --navy-elev:#111C30;
-  --royal:#3563E9; --royal-deep:#2547B8; --royal-ink:#1E3AA8;
-  --cyan-acc:#42D9F5;
-  --auth-card:#101A30; --auth-input:#0B1426; --auth-border:rgba(148,178,255,.18);
-  --auth-text:#F2F6FF; --auth-muted:#A9B8D8;
-  --auth-focus-ring:0 0 0 3px rgba(66,217,245,.28);
+  /* Premium auth tokens: obsidian navy identity, cobalt actions, ice accents */
+  --navy:#0B1020; --navy-elev:#111A33;
+  --royal:#285DFF; --royal-deep:#1D46C8; --royal-ink:#1D46C8;
+  --cyan-acc:#4DA3FF;
+  --auth-card:#111A33; --auth-input:#0F1730; --auth-border:rgba(185,198,220,.16);
+  --auth-text:#D9E0EA; --auth-muted:#77849B;
+  --auth-focus-ring:0 0 0 3px rgba(77,163,255,.28);
   --auth-shadow:0 24px 70px rgba(2,6,20,.55);
   --auth-radius:20px;
   /* Fixed top header height (desktop single row); mobile override below. */

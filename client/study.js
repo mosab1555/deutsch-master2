@@ -730,12 +730,12 @@ function renderAnalytics(){
   const row=(t,v,col)=>'<div class="stat-bar-row"><span class="lbl">'+t+'</span><div class="bar"><div class="fill" style="width:'+Math.round(v.ok/Math.max(1,v.n)*100)+'%;background:'+col+'"></div></div><b>'+v.ok+'/'+v.n+'</b></div>';
   const weak=weakAreas();
   $("analyticsBox").innerHTML='<div class="panel glass"><h3>📈 تقدمي</h3>'
-  +row("📚 مفردات",s.vocab,"linear-gradient(90deg,#7c3aed,#00d4ff)")
-  +row("📐 قواعد",s.gram,"linear-gradient(90deg,#059669,#34d399)")
-  +row("🎧 استماع",s.li,"linear-gradient(90deg,#0284c7,#38bdf8)")
-  +row("🗣️ تحدث",s.sp,"linear-gradient(90deg,#b45309,#fbbf24)")
-  +row("📖 قراءة",{n:s.rd.n,ok:Math.min(s.rd.n,Math.round(s.vocab.ok/10))},"linear-gradient(90deg,#6d28d9,#c084fc)")
-  +row("🔄 مراجعة",s.rv,"linear-gradient(90deg,#be123c,#fb7185)")
+  +row("📚 مفردات",s.vocab,"linear-gradient(90deg,#285DFF,#4DA3FF)")
+  +row("📐 قواعد",s.gram,"linear-gradient(90deg,#1E7A55,#2FA97C)")
+  +row("🎧 استماع",s.li,"linear-gradient(90deg,#1D46C8,#4DA3FF)")
+  +row("🗣️ تحدث",s.sp,"linear-gradient(90deg,#8A6A2E,#D8B56A)")
+  +row("📖 قراءة",{n:s.rd.n,ok:Math.min(s.rd.n,Math.round(s.vocab.ok/10))},"linear-gradient(90deg,#285DFF,#B9E6FF)")
+  +row("🔄 مراجعة",s.rv,"linear-gradient(90deg,#93303D,#D3616E)")
   +'<h3>🎯 تحتاج تحسين</h3>'+(weak.length?weak.map(x=>'<div class="muted">'+x.lvl+' '+escapeHtml(x.k)+' ('+x.n+')</div>').join(""):'<div class="muted">🟢 كل المجالات قوية!</div>')
   +'</div>';
 }
