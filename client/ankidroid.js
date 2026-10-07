@@ -1121,6 +1121,9 @@ function speakText(txt) {
   } catch (e) {}
   try {
     if ("speechSynthesis" in window) {
+      /* Cancel first: rapid taps must never overlap speech (main engine
+         always cancels via stopAllSpeech; the Anki fallback must too). */
+      try { window.speechSynthesis.cancel(); } catch (ce) {}
       var u = new SpeechSynthesisUtterance(txt);
       u.lang = isArabic(txt) ? "ar-SA" : "de-DE";
       window.speechSynthesis.speak(u);
@@ -2093,7 +2096,7 @@ function openDeckMenu(a, deckId, anchor) {
     document.addEventListener("keydown", onKey, true);
     window.addEventListener("resize", onViewChange, { passive: true });
     window.addEventListener("orientationchange", onViewChange, { passive: true });
-    document.addEventListener("scroll", onViewChange, true);
+    document.addEventListener("scroll", onViewChange, { passive: true, capture: true });
     _menuCleanup = function () {
       try { document.removeEventListener("pointerdown", onDocPointer, true); } catch (e) {}
       try { document.removeEventListener("click", onDocPointer, true); } catch (e2) {}
@@ -2783,6 +2786,9 @@ function pronFlow() {
           _mrec.ondataavailable = function (e) { if (e.data && e.data.size) _mchunks.push(e.data); };
           _mrec.onstop = function () {
             try {
+              /* Revoke the previous take: repeated recordings must not leak
+                 blob URLs (same discipline as the preview cleanup). */
+              try { if (url && url.indexOf("blob:") === 0) URL.revokeObjectURL(url); } catch (re) {}
               url = URL.createObjectURL(new Blob(_mchunks, { type: _mrec.mimeType || "audio/webm" }));
               if (pb) pb.disabled = false;
               stream.getTracks().forEach(function (tr) { try { tr.stop(); } catch (e2) {} });

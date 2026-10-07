@@ -62,9 +62,12 @@ body{
     radial-gradient(1100px 520px at 85% -5%,rgba(59,99,240,.16),transparent 60%),
     radial-gradient(900px 480px at 8% 12%,rgba(124,58,237,.13),transparent 62%),
     linear-gradient(180deg,var(--lx-bg0),var(--lx-bg1) 55%,var(--lx-bg0));
-  background-attachment:fixed;
 }
-html[data-theme="light"] body{background:linear-gradient(180deg,#f2f4fb,#e7ecf9 60%,#eef1fa);background-attachment:fixed}
+/* background-attachment:fixed forces full repaints on mobile scroll — desktop only */
+@media(hover:hover) and (min-width:1024px){
+  body{background-attachment:fixed}
+}
+html[data-theme="light"] body{background:linear-gradient(180deg,#f2f4fb,#e7ecf9 60%,#eef1fa)}
 
 /* soften the animated blobs: fewer repaints, same vibe */
 .bg-animated .blob{will-change:transform;opacity:.42}

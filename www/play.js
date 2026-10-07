@@ -53,6 +53,8 @@ function sessTick(ok,word,fixed){
   try{const t=todayStr();S.timeLog[t]=(S.timeLog[t]||0)+0;save();}catch(e){}
 }
 setInterval(function(){
+  /* Hidden-tab guard: no minute-logging or storage writes while backgrounded. */
+  try{if(document.hidden)return;}catch(e){}
   try{const t=todayStr();S.timeLog[t]=(S.timeLog[t]||0)+1;save();}catch(e){}
 },60000);
 /* streak freeze: consume automatically when a day was missed */

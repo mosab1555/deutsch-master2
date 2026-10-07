@@ -99,14 +99,15 @@ function lxListen(onText,onErr){
     const Ctor=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!Ctor){if(onErr)onErr("nosr");return null;}
     const r=new Ctor();r.lang="de-DE";r.interimResults=false;r.maxAlternatives=1;
+    try{if(typeof dmMicStart==="function")dmMicStart(r);}catch(e){}
     r.onresult=function(e){
       try{
         const tx=e.results[0][0].transcript;
         if(onText)onText(tx);
       }catch(ex){if(onErr)onErr("parse");}
     };
-    r.onerror=function(){if(onErr)onErr("hear");};
-    r.onend=function(){};
+    r.onerror=function(){try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(e){}if(onErr)onErr("hear");};
+    r.onend=function(){try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(e){}};
     r.start();
     toast("🎤 استمع للنطق... تحدث الآن","ok");
     return r;

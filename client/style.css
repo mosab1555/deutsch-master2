@@ -31,7 +31,7 @@ html[data-theme="light"]{
   --auth-focus-ring:0 0 0 3px rgba(53,99,233,.18);
   --auth-shadow:0 24px 60px rgba(23,32,51,.16);
 }
-body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .4s,color .4s}
+body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;overflow-x:hidden;overflow-x:clip;transition:background .4s,color .4s}
 .hidden{display:none!important}
 /* Animated BG */
 .bg-animated{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(1200px 600px at 80% -10%,#1a2456 0%,transparent 60%),radial-gradient(900px 500px at 10% 110%,#3b0764 0%,transparent 60%),var(--bg)}
@@ -59,13 +59,25 @@ html[data-theme="light"] .sidebar{background:rgba(255,255,255,.85)}
 .streak-mini{background:linear-gradient(135deg,#f59e0b,#ef4444);padding:10px;border-radius:12px;text-align:center;font-weight:800;color:#fff}
 .level-chip{text-align:center;color:var(--muted);font-size:14px}.level-chip b{color:var(--gold)}
 .sidebar-overlay{display:none}
+/* ===== App shell: single coherent scroll model (Option A — BODY SCROLL) =====
+ * The scroll container is the DOCUMENT viewport (window.scrollY /
+ * documentElement.scrollTop — see page-state.js getScroll()). .app/.main/
+ * .content are NOT scrollers (no overflow-y, no height locks).
+ * #dmTopHeader is a DIRECT child of .app (sibling of .sidebar and .main),
+ * so it can never be trapped inside the scrolling document flow; .main only
+ * reserves the header height via padding-top.
+ * SHELL INVARIANT: .app/.main must NEVER create a containing block for fixed
+ * descendants — no transform / filter / perspective / contain / will-change
+ * on either (one non-none value would silently re-base position:fixed to that
+ * ancestor and the header would scroll with the page again). html/body use
+ * overflow-x:clip (not hidden) so the viewport — never the body — stays the
+ * scroller; position:fixed then holds on iOS Safari / Android WebViews too. */
+html,body{overflow-x:hidden;overflow-x:clip}
+.app,.main{transform:none;filter:none;perspective:none;contain:none}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;padding-top:calc(var(--dm-header-h, 68px) + 14px + env(safe-area-inset-top, 0px))}
-/* Fixed top navigation: viewport-level, always visible while body scrolls.
- * Root cause of the old bug: .topbar was position:sticky inside the .main
- * column (top:14px, side margins, z:40) so it rode with the document, floated
- * as a card, and sat BELOW sticky section bars (.anki-toolbar z:50).
- * Scroll container is the document body (no inner scroller), .app/.main have
- * no transforms (see extreme.css L8), so viewport-fixed is safe. */
+/* Viewport-level top header: physically stationary while the body scrolls.
+ * Logical insets keep RTL/LTR correct; the 270px sidebar offset applies only
+ * on desktop where the sidebar is a docked column (mobile drawer overlays). */
 .topbar{position:fixed;top:0;inset-inline-end:0;inset-inline-start:270px;z-index:120;display:flex;align-items:center;gap:12px;padding:12px 20px;padding-top:calc(12px + env(safe-area-inset-top, 0px));margin:0;min-height:var(--dm-header-h, 68px);border-radius:0 0 16px 16px;border-top:none;box-shadow:0 8px 28px rgba(2,6,20,.35)}
 .glass{background:var(--card);backdrop-filter:blur(18px);border:1px solid var(--border);box-shadow:var(--shadow)}
 .search-wrap{position:relative;flex:1;max-width:520px;display:flex;align-items:center}
@@ -972,7 +984,7 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 
 /* ================= AnkiDroid section (dedicated SRS; separate from Flashcards) ================= */
 #ankiRoot{max-width:960px;margin:0 auto;padding:4px 8px 48px;overflow-x:hidden}
-.anki-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;position:sticky;top:0;z-index:50;padding:8px 0;background:inherit}
+.anki-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;position:sticky;top:calc(var(--dm-header-h, 68px) + 8px + env(safe-area-inset-top, 0px));z-index:50;padding:8px 0;background:inherit}
 .anki-toolbar-sp{flex:1}
 .anki-tab{white-space:nowrap}
 .anki-hero{display:flex;gap:16px;align-items:flex-start;padding:24px 20px;border-radius:20px;background:linear-gradient(135deg,rgba(var(--v1),.15),rgba(var(--v2),.08));border:1px solid var(--border);margin-bottom:16px;position:relative;overflow:hidden}

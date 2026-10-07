@@ -1415,6 +1415,35 @@ function activeStateKey(){ return dmStateKey(DM_ACTIVE_UID); }
    quota exhaustion where setItem throws. Backward compatible: previous
    callers ignore the return value. */
 function save(){try{localStorage.setItem(activeStateKey(),JSON.stringify(S));return true;}catch(e){return false;}}
+/* Write coalescing: rapid-fire save() calls (every quiz answer, status tap)
+   collapse into ONE trailing write. First call in a burst still writes
+   synchronously with a real true/false result (quota contract preserved for
+   explicit saves like the AnkiDroid editor); calls within the 250ms window
+   return optimistic true and are flushed by the trailing write + pagehide. */
+var _saveLastWrite=0,_saveFlushT=null,_savePendingWrite=false;
+function saveNow(){try{localStorage.setItem(activeStateKey(),JSON.stringify(S));return true;}catch(e){return false;}}
+function saveFlushed(){
+  try{if(_saveFlushT){clearTimeout(_saveFlushT);_saveFlushT=null;}}catch(e){}
+  _savePendingWrite=false;_saveLastWrite=Date.now();
+  return saveNow();
+}
+var _saveOrig=save;
+save=function(){
+  var now=Date.now();
+  if(now-_saveLastWrite<250){
+    if(!_savePendingWrite){
+      _savePendingWrite=true;
+      try{_saveFlushT=setTimeout(saveFlushed,250);}catch(e){_savePendingWrite=false;}
+    }
+    return true;
+  }
+  _saveLastWrite=now;
+  return _saveOrig();
+};
+try{
+  window.addEventListener("pagehide",function(){try{if(_savePendingWrite)saveFlushed();}catch(e){}});
+  document.addEventListener("visibilitychange",function(){try{if(document.hidden&&_savePendingWrite)saveFlushed();}catch(e){}});
+}catch(e){}
 function setActiveIdentityOnly(uid){ DM_ACTIVE_UID = uid || null; }
 function loadIdentitySnapshot(uid){
   var raw=null;
@@ -1466,7 +1495,7 @@ const STATUS_AR={new:"🆕 جديدة",review:"🔁 مراجعة",hard:"🔴 ص�
 
 /* ============ HELPERS ============ */
 function $(id){return document.getElementById(id);}
-function toast(msg,cls){const t=document.createElement("div");t.className="toast "+(cls||"");t.textContent=msg;$("toasts").appendChild(t);setTimeout(()=>t.remove(),2600);}
+function toast(msg,cls){try{const box=$("toasts");if(!box)return;const t=document.createElement("div");t.className="toast "+(cls||"");t.textContent=msg;box.appendChild(t);setTimeout(()=>{try{t.remove();}catch(e){}},2600);}catch(e){}}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=a[i];a[i]=a[j];a[j]=tmp;}return a;}
 /* Fairness helper: shuffled DISPLAY order for option indices (Fisher-Yates).
    Render buttons in the returned order with data-i = ORIGINAL index, then
@@ -1791,6 +1820,22 @@ function speakGerman(text){
   toast("تعذر تشغيل النطق على هذا الجهاز 😢","err");
 }
 function speak(text){speakGerman(text);}
+/* Single mic slot: starting a new SpeechRecognition session always stops the
+   previous one first (prevents overlapping sessions on double-tap / fast nav).
+   Helpers are global so all mic entry points share the discipline. */
+var _dmMicActive=null;
+function dmMicStart(r){
+  try{
+    if(_dmMicActive&&_dmMicActive!==r){
+      try{_dmMicActive.onresult=null;_dmMicActive.onerror=null;_dmMicActive.onend=null;}catch(e){}
+      try{_dmMicActive.stop();}catch(e){}
+      try{if(_dmMicActive.abort)_dmMicActive.abort();}catch(e){}
+    }
+  }catch(e){}
+  _dmMicActive=r||null;
+  return r;
+}
+function dmMicEnd(r){try{if(!r||_dmMicActive===r)_dmMicActive=null;}catch(e){}}
 /* Arabic TTS mirror of speakGerman: ar voice + ar fallback, same no-overlap rules. */
 function speakAr(text){
   const t=String(text==null?"":text).trim();
@@ -1860,7 +1905,7 @@ function showPage(name){
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
-  $("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}
+  try{const _sb=$("sidebar");if(_sb)_sb.classList.remove("open");const _so=$("sidebarOverlay");if(_so)_so.classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}}catch(e){}
   /* Page-state preservation: when DMPageState will restore a saved scroll
      position for this page, do NOT scroll to top first (avoids jump/flicker).
      First visits and explicit content opens still start at the top. */
@@ -1873,8 +1918,8 @@ function showPage(name){
 }
 document.querySelectorAll(".nav-item").forEach(b=>{if(b.hasAttribute("data-action"))return;b.addEventListener("click",()=>showPage(b.dataset.page));});
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-goto"))));
-$("menuBtn").addEventListener("click",()=>{$("sidebar").classList.add("open");$("sidebarOverlay").classList.add("show");try{document.body.classList.add("drawer-open");}catch(e){}});
-$("sidebarOverlay").addEventListener("click",()=>{$("sidebar").classList.remove("open");$("sidebarOverlay").classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}});
+try{const _mb=$("menuBtn");if(_mb)_mb.addEventListener("click",()=>{try{const _s=$("sidebar");if(_s)_s.classList.add("open");const _o=$("sidebarOverlay");if(_o)_o.classList.add("show");}catch(e){}try{document.body.classList.add("drawer-open");}catch(e){}});}catch(e){}
+try{const _sov=$("sidebarOverlay");if(_sov)_sov.addEventListener("click",()=>{try{const _s=$("sidebar");if(_s)_s.classList.remove("open");}catch(e){}try{_sov.classList.remove("show");}catch(e){}try{document.body.classList.remove("drawer-open");}catch(e){}});}catch(e){}
 
 /* ============ THEME / SPEED ============ */
 function applyTheme(){document.documentElement.setAttribute("data-theme",S.settings.theme);$("themeBtn").textContent=S.settings.theme==="dark"?"🌙":"☀️";try{applyColor();}catch(e){}}
@@ -2149,6 +2194,7 @@ try{
 
 /* ============ DASHBOARD ============ */
 function animateCount(el,to){
+  if(!el)return;
   const from=parseInt(el.textContent||"0",10)||0;
   /* Cancel a previous in-flight animation on the same element: renderAll
      fires often (quiz answers, status taps); overlapping intervals would
@@ -2169,7 +2215,7 @@ function renderDashboard(){
   animateCount($("dDays"),days);animateCount($("dTests"),S.testsTaken||0);
   animateCount($("dCorrect"),S.totalCorrect||0);animateCount($("dStreak"),S.streak.count||0);
   $("heroProgressPct").textContent=pct+"%";
-  setTimeout(()=>{$("heroProgressFill").style.width=pct+"%";},100);
+  setTimeout(()=>{try{if($("heroProgressPct").textContent===pct+"%")$("heroProgressFill").style.width=pct+"%";}catch(e){}},100);
   $("dSavedBar").style.width=pct+"%";
   $("dReviewBar").style.width=Math.min(100,words.length?due/words.length*100:0)+"%";
   $("dDaysBar").style.width=Math.min(100,days/30*100)+"%";
@@ -2181,7 +2227,7 @@ function renderDashboard(){
   $("lvlNum").textContent=L.lvl;$("lvlName").textContent=L.name;
   $("xpNum").textContent=S.xp||0;
   $("xpNext").textContent=L.cur+" / "+L.need;
-  setTimeout(()=>{$("xpFill").style.width=Math.min(100,L.cur/Math.max(1,L.need)*100)+"%";},100);
+  setTimeout(()=>{try{if(($("xpNext").textContent||"")===L.cur+" / "+L.need)$("xpFill").style.width=Math.min(100,L.cur/Math.max(1,L.need)*100)+"%";}catch(e){}},100);
   $("accNum").textContent=acc+"%";
   $("bestNum").textContent=(S.bestPct||0)+"%";
   $("comboNum").textContent=(S.maxCombo||0);
@@ -2887,18 +2933,26 @@ if($("explainKapitel"))$("explainKapitel").addEventListener("change",renderExpla
 
 /* ============ QUIZ ENGINE ============ */
 let quizType="mixed",quizQs=[],quizIdx=0,quizScore=0;
-let quizCombo=0,quizXpEarned=0,quizResults=[],quizTimerInt=null,qTimeLeft=0;
+let quizCombo=0,quizXpEarned=0,quizResults=[],quizTimerInt=null,qTimeLeft=0,quizSpeakT=null;
 const QUICK_SECS=15;
-function stopQTimer(){if(quizTimerInt){clearInterval(quizTimerInt);quizTimerInt=null;}$("quizTimerWrap").classList.add("hidden");}
+function stopQTimer(){
+  if(quizTimerInt){clearInterval(quizTimerInt);quizTimerInt=null;}
+  /* Cancel a pending listen-question auto-speak so it never leaks into the
+     next question or the next page after quick navigation. */
+  try{if(quizSpeakT){clearTimeout(quizSpeakT);quizSpeakT=null;}}catch(e){}
+  try{const _w=$("quizTimerWrap");if(_w)_w.classList.add("hidden");}catch(e){}
+}
 function startQTimer(){
   stopQTimer();
   if(quizType!=="quick")return;
   qTimeLeft=QUICK_SECS;
-  $("quizTimerWrap").classList.remove("hidden");
-  $("quizTimerFill").style.width="100%";
+  try{const _w=$("quizTimerWrap");if(_w)_w.classList.remove("hidden");}catch(e){}
+  try{const _f=$("quizTimerFill");if(_f)_f.style.width="100%";}catch(e){}
   quizTimerInt=setInterval(()=>{
+    /* Hidden-tab guard: don't burn the countdown (or CPU) while backgrounded. */
+    try{if(document.hidden)return;}catch(e){}
     qTimeLeft-=0.1;
-    $("quizTimerFill").style.width=Math.max(0,qTimeLeft/QUICK_SECS*100)+"%";
+    try{const _f=$("quizTimerFill");if(_f)_f.style.width=Math.max(0,qTimeLeft/QUICK_SECS*100)+"%";}catch(e){}
     if(qTimeLeft<=0){stopQTimer();timeoutAnswer();}
   },100);
 }
@@ -3131,7 +3185,9 @@ function renderQ(){
     const txt=q.listen||q.replay;
     const b=document.createElement("button");b.className="btn btn-gold sm";b.textContent="🔊 استمع الآن";
     b.addEventListener("click",()=>speak(txt));
-    $("quizListenBtn").appendChild(b);setTimeout(()=>speak(txt),400);
+    $("quizListenBtn").appendChild(b);
+    try{if(quizSpeakT){clearTimeout(quizSpeakT);quizSpeakT=null;}}catch(e){}
+    quizSpeakT=setTimeout(()=>{quizSpeakT=null;try{speak(txt);}catch(e){}},400);
   }
   if(q.kind==="order"){
     const ans=document.createElement("div");ans.className="order-answer";ans.id="orderAns";ans.setAttribute("dir","ltr");

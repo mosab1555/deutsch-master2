@@ -311,7 +311,7 @@ function startInterview(box){
     $("ivMic").addEventListener("click",()=>{
       const Ctor=(typeof window!=="undefined")&&(window.SpeechRecognition||window.webkitSpeechRecognition);
       if(!Ctor){toast("المايك غير مدعوم — اكتب ⌨️","err");return;}
-      try{const r=new Ctor();r.lang="de-DE";r.onresult=e=>{$("ivIn").value=e.results[0][0].transcript;};r.onerror=()=>toast("تعذر السماع — اكتب ⌨️","err");r.start();toast("🎤 تحدث...","ok");}catch(e){toast("تعذر المايك","err");}
+      try{const r=new Ctor();r.lang="de-DE";try{if(typeof dmMicStart==="function")dmMicStart(r);}catch(ee){}r.onresult=e=>{$("ivIn").value=e.results[0][0].transcript;};r.onerror=()=>{try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(ee){}toast("تعذر السماع — اكتب ⌨️","err");};r.onend=()=>{try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(ee){}};r.start();toast("🎤 تحدث...","ok");}catch(e){toast("تعذر المايك","err");}
     });
     $("ivOk").addEventListener("click",()=>{
       const v=$("ivIn").value.trim(),fb=$("ivFb");fb.classList.remove("hidden");

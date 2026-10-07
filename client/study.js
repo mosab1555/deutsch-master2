@@ -516,9 +516,11 @@ function labSpeak(box){
       if(!Ctor){toast("التعرف الصوتي غير مدعوم — اكتب إجابتك ⌨️","err");return;}
       try{
         const r=new Ctor();r.lang="de-DE";r.interimResults=false;
+        try{if(typeof dmMicStart==="function")dmMicStart(r);}catch(ee){}
         toast("🎤 تحدث الآن...","ok");
         r.onresult=e=>{const tx=e.results[0][0].transcript;$("labSpIn").value=tx;toast("سمعتك: "+tx,"ok");};
-        r.onerror=()=>toast("تعذر السماع — اكتب إجابتك ⌨️","err");
+        r.onerror=()=>{try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(ee){}toast("تعذر السماع — اكتب إجابتك ⌨️","err");};
+        r.onend=()=>{try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(ee){}};
         r.start();
       }catch(e){toast("تعذر تشغيل المايك","err");}
     });

@@ -87,7 +87,7 @@ function startScenario(id){
       $("dMic").addEventListener("click",()=>{
         const Ctor=(typeof window!=="undefined")&&(window.SpeechRecognition||window.webkitSpeechRecognition);
         if(!Ctor){toast("المايك غير مدعوم — اكتب ⌨️","err");return;}
-        try{const r=new Ctor();r.lang="de-DE";r.onresult=e=>{$("dIn2").value=e.results[0][0].transcript;toast("سمعتك ✅","ok");};r.onerror=()=>toast("تعذر السماع — اكتب ⌨️","err");r.start();toast("🎤 تحدث...","ok");}catch(e){toast("تعذر المايك","err");}
+        try{const r=new Ctor();r.lang="de-DE";try{if(typeof dmMicStart==="function")dmMicStart(r);}catch(ee){}r.onresult=e=>{$("dIn2").value=e.results[0][0].transcript;toast("سمعتك ✅","ok");};r.onerror=()=>{try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(ee){}toast("تعذر السماع — اكتب ⌨️","err");};r.onend=()=>{try{if(typeof dmMicEnd==="function")dmMicEnd(r);}catch(ee){}};r.start();toast("🎤 تحدث...","ok");}catch(e){toast("تعذر المايك","err");}
       });
       $("dOk").addEventListener("click",()=>{
         const v=$("dIn2").value.trim();if(v.length<2){showFb(false,"اكتب أو قل ردًا أولًا.");return;}

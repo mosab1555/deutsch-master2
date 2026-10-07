@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Deutsch Master | أتقن الألمانية</title>
 <meta name="description" content="Deutsch Master - تطبيق تعليمي متكامل لتعلم الألمانية مستوى A1">
 <link rel="stylesheet" href="style.css">
@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="premium.css">
 <link rel="stylesheet" href="radical.css">
 <link rel="stylesheet" href="lux.css">
+<link rel="stylesheet" href="sovereign.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#040718">
 <meta name="mobile-web-app-capable" content="yes">
@@ -116,9 +117,10 @@
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- Main -->
-  <div class="main">
-    <header class="topbar glass">
+  <!-- App-shell top header: viewport-fixed, direct child of .app.
+       NEVER move this inside .main/.content: the document (body) is the
+       scroll container, so anything inside .main scrolls with the page. -->
+  <header class="topbar glass" id="dmTopHeader">
       <button class="icon-btn hamburger" id="menuBtn" data-i18n-aria="aria_menu" aria-label="القائمة">☰</button>
       <div class="search-wrap">
         <span class="search-ico">🔍</span>
@@ -139,8 +141,10 @@
         <div class="user-menu hidden" id="userMenu">
         </div>
       </div>
-    </header>
+  </header>
 
+  <!-- Main -->
+  <div class="main">
     <main class="content">
                         <!-- DASHBOARD -->
       <section class="page active" id="page-dashboard">
@@ -1015,5 +1019,6 @@
     <script src="ankidroid.js"></script>
     <script src="page-state.js"></script>
     <script src="lux.js"></script>
+    <script src="sovereign.js"></script>
 </body>
 </html>
