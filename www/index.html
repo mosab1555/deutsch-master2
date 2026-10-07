@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="lux.css">
 <link rel="stylesheet" href="sovereign.css">
 <link rel="stylesheet" href="obsidian.css">
+<link rel="stylesheet" href="dm-ultimate.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B1020">
 <meta name="mobile-web-app-capable" content="yes">
@@ -51,14 +52,14 @@
       <button class="nav-item" data-page="vocab"><span class="nav-ico">📚</span> الكلمات</button>
       <button class="nav-item" data-page="sentences"><span class="nav-ico">💬</span> الجمل</button>
       <button class="nav-item" data-page="flashcards"><span class="nav-ico">🃏</span> فلاش كارد</button>
-      <button class="nav-item" data-page="ankidroid"><span class="nav-ico">🧠</span> AnkiDroid</button>
       <button class="nav-item" data-page="explain"><span class="nav-ico">📄</span> الشرح</button>
       <button class="nav-item" data-page="verbs"><span class="nav-ico">⚡</span> الأفعال</button>
       <button class="nav-item" data-page="grammar"><span class="nav-ico">📐</span> القواعد</button>
       <button class="nav-item" data-page="reference"><span class="nav-ico">🏛️</span> <span data-i18n="reference">المرجع الألماني الشامل</span></button>
       <div class="nav-group" data-i18n="nav_grp_master">إتقان</div>
-      <button class="nav-item" data-page="howto"><span class="nav-ico">📖</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
-      <button class="nav-item" data-page="career"><span class="nav-ico">💼</span> المسار المهني</button>
+      <button class="nav-item" data-page="howto"><span class="nav-ico">🧭</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
+      <button class="nav-item" data-page="career"><span class="nav-ico">🎓</span> المسار المهني</button>
+      <button class="nav-item" data-page="ankidroid"><span class="nav-ico">🧠</span> AnkiDroid</button>
       <div class="nav-group" data-i18n="nav_grp_live">الحياة والممارسة</div>
       <button class="nav-item" data-page="life"><span class="nav-ico">🎙️</span> Deutsch Life</button>
       <button class="nav-item" data-page="simulator"><span class="nav-ico">🏙️</span> محاكاة الحياة في ألمانيا</button>
@@ -159,6 +160,7 @@
               <div><b>Deutsch Master</b><small data-i18n="cmd_brand_tag">نظام تعلم الألمانية</small></div>
             </div>
             <span class="hm-eyebrow" data-i18n="home_eyebrow">🇩🇪 من A1 إلى B2 • طريقك للألمانية</span>
+            <div class="dm-hero-kicker" aria-hidden="true"><span>Deutsch Master</span><span>·</span><span>Master German. Build your future.</span></div>
             <h1><span data-i18n="cmd_h1a">أتقن الألمانية بـ</span> <span class="grad-text" data-i18n="cmd_h1b">نظامٍ متكامل، لا دروس عشوائية.</span></h1>
             <p class="cmd-sub" data-i18n="cmd_sub">المفردات والقواعد والجمل والنطق والاستماع والتحدث والمراجعة الذكية — كلها تعمل معًا في نظام واحد مبني حول مستواك.</p>
             <p class="typing-line"><span id="typingText"></span><span class="caret">|</span></p>
@@ -944,6 +946,17 @@
   </div>
 </div>
 
+<!-- ULTIMATE mobile bottom navigation (5 targets, syncs with showPage) -->
+<nav class="dm-bnav" id="dmBnav" data-i18n-aria="aria_menu" aria-label="التنقل السريع">
+  <div class="dm-bnav-inner">
+    <button type="button" class="dm-bnav-item active" data-page="dashboard" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>الرئيسية</span></button>
+    <button type="button" class="dm-bnav-item" data-page="explain" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg><span>الشرح</span></button>
+    <button type="button" class="dm-bnav-item" data-page="ankidroid" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6v6H9zM12 1v3M12 20v3M1 12h3M20 12h3"/></svg><span>أنكي درويد</span></button>
+    <button type="button" class="dm-bnav-item" data-page="quiz" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M9 9l2 2 4-4M9 14h6"/></svg><span>الاختبارات</span><span class="dm-bnav-badge zero">0</span></button>
+    <button type="button" class="dm-bnav-item" data-page="review" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2 5"/><path d="M4 17v-5h5"/></svg><span>مراجعة</span><span class="dm-bnav-badge zero">0</span></button>
+  </div>
+</nav>
+
 <!-- Add Word Modal -->
 <div class="modal-overlay hidden" id="wordModal">
   <div class="modal glass">
@@ -1022,5 +1035,6 @@
     <script src="back-handler.js"></script>
     <script src="lux.js"></script>
     <script src="sovereign.js"></script>
+    <script src="dm-ultimate.js"></script>
 </body>
 </html>

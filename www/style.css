@@ -983,7 +983,10 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 .device-meta{font-size:12px;color:var(--muted);text-align:left}
 
 /* ================= AnkiDroid section (dedicated SRS; separate from Flashcards) ================= */
-#ankiRoot{max-width:960px;margin:0 auto;padding:4px 8px 48px;overflow-x:hidden}
+/* overflow-x:clip (not hidden): no horizontal scrollbar AND no scroll container,
+   so the sticky .anki-toolbar below keeps working (overflow:hidden would force
+   overflow-y to auto, which silently disables position:sticky). */
+#ankiRoot{max-width:960px;margin:0 auto;padding:4px 8px 48px;overflow-x:clip}
 .anki-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px;position:sticky;top:calc(var(--dm-header-h, 68px) + 8px + env(safe-area-inset-top, 0px));z-index:50;padding:8px 0;background:inherit}
 .anki-toolbar-sp{flex:1}
 .anki-tab{white-space:nowrap}
@@ -1008,7 +1011,7 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 .anki-stat-l{font-size:12px;color:var(--muted);margin-top:6px}
 .anki-next{margin-bottom:20px}
 .anki-sec-t{font-size:18px;font-weight:700;margin:0 0 12px}
-.anki-sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.anki-sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap;min-width:0}
 .anki-sec-head .anki-sec-t{margin:0}
 .anki-next-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .anki-act{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;border-radius:14px;background:var(--card);border:1px solid var(--border);cursor:pointer;text-align:start;color:var(--text);font-family:inherit;min-height:110px;transition:border-color .15s,transform .15s}
@@ -1019,11 +1022,18 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 .anki-act-t{font-size:15px;font-weight:700}
 .anki-act-d{font-size:12px;color:var(--muted);line-height:1.4}
 .anki-decks-sec{margin-bottom:20px}
-.anki-deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.anki-deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px}
 .anki-deck-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;transition:border-color .15s,box-shadow .15s}
 .anki-deck-card:hover{border-color:rgba(var(--v1),.4);box-shadow:0 4px 20px rgba(0,0,0,.15)}
 .anki-deck-card.has-due{border-inline-start:3px solid var(--orange)}
-.anki-deck-list{display:flex;flex-direction:column;gap:2px}
+.anki-deck-list{display:flex;flex-direction:column;gap:2px;min-width:0}
+/* Grid/block descendants must be allowed to shrink below their content
+   min-width: a long unbreakable German deck name (white-space:nowrap) would
+   otherwise force the whole grid track to ~800px on phones, clipping deck
+   controls behind #ankiRoot's horizontal clip. The name itself keeps its
+   single-line ellipsis; only the track/item minimums are uncapped. */
+.anki-deck-card{min-width:0;min-inline-size:0}
+.anki-deck,.anki-kids,.anki-deck-row,.anki-deck-sub{min-width:0}
 .anki-deck-row{display:flex;align-items:center;gap:6px;padding:8px 4px;min-height:48px}
 .anki-deck-row.anki-sub{padding:6px 4px;min-height:44px;border-top:1px dashed var(--border)}
 .anki-toggle{width:36px;height:36px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px;flex:none;border-radius:8px}
@@ -1158,7 +1168,7 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 .row-flex{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--neon);outline-offset:2px}
 @media (max-width:900px){
-  .anki-deck-grid{grid-template-columns:repeat(2,1fr)}
+  .anki-deck-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .anki-next-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:640px){
@@ -1170,7 +1180,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .anki-cta-main,.anki-cta-sub{flex:1;min-width:140px}
   .anki-stats{grid-template-columns:repeat(2,1fr)}
   .anki-next-grid{grid-template-columns:repeat(2,1fr)}
-  .anki-deck-grid{grid-template-columns:1fr}
+  .anki-deck-grid{grid-template-columns:minmax(0,1fr)}
   .anki-ratings{grid-template-columns:repeat(2,1fr)}
   .anki-ov-grid{grid-template-columns:repeat(2,1fr)}
   .anki-card-front,.anki-card-back{font-size:19px;padding:22px 14px}
@@ -1236,8 +1246,8 @@ html[dir="ltr"] .anki-hero::before{inset-inline-start:auto;inset-inline-end:auto
 .anki-act-d{font-size:12px;color:var(--muted);line-height:1.5}
 .anki-act.primary{background:linear-gradient(135deg,rgba(124,58,237,.28),rgba(0,212,255,.14));border-color:rgba(124,58,237,.55)}
 /* --- decks --- */
-.anki-sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.anki-deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.anki-sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;min-width:0}
+.anki-deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));gap:12px}
 .anki-deck-list .anki-deck-grid{width:100%}
 .anki-deck-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:6px 10px 12px;box-shadow:var(--shadow)}
 .anki-deck-card.has-due{border-color:rgba(251,146,60,.5)}
@@ -1310,7 +1320,7 @@ html[data-theme="light"] .anki-deck-bar{background:rgba(0,0,0,.08)}
   .anki-stats{grid-template-columns:repeat(2,1fr)}
   .anki-next-grid{grid-template-columns:repeat(2,1fr)}
   .anki-act{min-height:96px}
-  .anki-deck-grid{grid-template-columns:1fr}
+  .anki-deck-grid{grid-template-columns:minmax(0,1fr)}
   .anki-ov-grid{grid-template-columns:repeat(2,1fr)}
   .anki-browser-toolbar select{max-width:110px}
   .anki-media-pick{grid-template-columns:1fr}
