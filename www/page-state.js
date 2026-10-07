@@ -42,13 +42,15 @@ var MAX_SCROLL = 20000;
 var MAX_FIELD_LEN = 200;
 var MAX_FIELDS = 60;
 
-/* Last logical view (resumed after the OS kills the process).
-   Tiny separate record — one page id + scroll + timestamp — written only on
-   navigation and throttled while scrolling. Same-tab backgrounding never
-   touches it destructively: in-memory S.mem keeps serving the live session.
-   Restored at most twice per document load (early + late attempt), only when
-   the launch otherwise sits on the home page with no explicit flow active
-   (recovery screen, OAuth callback). Never a loop, never a second store. */
+/* Last logical view (DEPRECATED — startup always lands on Home).
+ * The `dm_lastview_v1` record previously resumed the previous page after the
+ * OS killed the process. That behavior is intentionally DISABLED: every fresh
+ * launch must open the Home page (dashboard). The key is treated as transient
+ * navigation state and purged on fresh launch (see resetFreshLaunch). The
+ * reader/validator below is kept only as a harmless, side-effect-free
+ * compatibility seam for tests; nothing writes the key and the restore hook
+ * below is a permanent no-op. Same-tab backgrounding never touches anything:
+ * in-memory S.mem keeps serving the live session. */
 var LV_KEY = "dm_lastview_v1";
 var LV_TTL = 30 * 86400000;
 
@@ -510,49 +512,31 @@ function readLastView() {
   } catch (e) { return null; }
 }
 S.readLastView = readLastView;
+/* DISABLED by the always-start-on-Home rule: navigation must never record a
+   resumable view (recording is what made the next launch reopen the previous
+   page). Kept as a function so external callers/tests do not throw; it
+   removes any stale record left by older app versions and reports false. */
 S.recordLastView = function (name) {
   try {
-    if (!name || name === "dashboard" || name === "auth") return false;
-    if (!validPage(name)) return false;
-    if (typeof localStorage === "undefined") return false;
-    var sc = 0;
-    try {
-      if (S.mem && S.mem[name] && typeof S.mem[name].scroll === "number") sc = num(S.mem[name].scroll, 0);
-    } catch (e) {}
-    S._lvPage = String(name);
-    S._lvScroll = sc;
-    localStorage.setItem(LV_KEY, JSON.stringify({ v: 1, page: String(name), scroll: sc, ts: Date.now() }));
-    return true;
-  } catch (e) { return false; }
+    if (typeof localStorage !== "undefined" && localStorage.removeItem) {
+      localStorage.removeItem(LV_KEY);
+    }
+  } catch (e) {}
+  try { S._lvPage = null; S._lvScroll = 0; } catch (e2) {}
+  return false;
 };
-/* Deferred, validated, single-shot resume of the last logical view.
-   phase "early" skips transient states for the "late" retry; "late" settles
-   (never retries again) so at most two attempts exist per document load. */
+/* DISABLED by the always-start-on-Home rule: a fresh launch must stay on the
+   Home page and never navigate to a previously open page. Permanent no-op
+   (also marks the single-shot flag so repeated calls stay false). Kept as a
+   function so external callers/tests do not throw. */
 S.tryRestoreLastView = function (phase) {
+  try { S._lvDone = true; } catch (e) {}
   try {
-    if (S._lvDone) return false;
-    var saved = readLastView();
-    if (!saved) { S._lvDone = true; return false; }
-    try {
-      var q = (typeof location !== "undefined" && location.search) || (typeof window !== "undefined" && window.location && window.location.search) || "";
-      if (/[?&](code|error)=/.test(q)) { if (phase === "late") S._lvDone = true; return false; }
-    } catch (e) {}
-    var activeId = null;
-    try {
-      var a = document.querySelector(".page.active");
-      if (a && a.id) activeId = a.id;
-    } catch (e) {}
-    if (activeId && activeId !== "page-dashboard") { if (phase === "late") S._lvDone = true; return false; }
-    if (S.current && S.current !== "dashboard") { if (phase === "late") S._lvDone = true; return false; }
-    var fn = null;
-    try { fn = (typeof window !== "undefined" && typeof window.showPage === "function") ? window.showPage : null; } catch (e) {}
-    if (typeof fn !== "function") { if (phase === "late") S._lvDone = true; return false; }
-    S._lvDone = true;
-    try { fn(saved.page); } catch (e) { return false; }
-    try { S.restoreScroll(saved.page, saved.scroll); } catch (e) {}
-    try { S._lvPage = saved.page; S._lvScroll = saved.scroll; } catch (e) {}
-    return true;
-  } catch (e) { return false; }
+    if (typeof localStorage !== "undefined" && localStorage.removeItem) {
+      localStorage.removeItem(LV_KEY);
+    }
+  } catch (e2) {}
+  return false;
 };
 
 /* ---------------- navigation core ---------------- */
@@ -625,7 +609,9 @@ S.navigate = function (name, prev) {
     finally { S._navigating = false; S._pending = null; }
     S.current = name;
     if (!validPage(name)) return ret;
-    /* Remember the last logical view so a process kill can resume here. */
+    /* Always-start-on-Home rule: the previous page is deliberately NOT
+       recorded anywhere, so the next fresh launch cannot restore it. Any
+       stale last-view record left by an older app version is purged. */
     try { S.recordLastView(name); } catch (e) {}
     if (from && from === name) {
       /* Same-page sub-navigation (e.g. opening a lesson): adopt live, keep scroll. */
@@ -683,24 +669,8 @@ function onScroll() {
       S.mem[S.current].scroll = getScroll();
       S.saveSoon();
     }
-    /* Keep the last-view scroll fresh too (own slow throttle: at most one
-       extra write per few seconds of active scrolling, none when idle). */
-    try {
-      if (S._lvPage && S.current && S._lvPage === S.current && typeof localStorage !== "undefined") {
-        S._lvScroll = getScroll();
-        if (!S._lvT && (!S._lvLastW || now - S._lvLastW > 4000)) {
-          S._lvLastW = now;
-          S._lvT = setTimeout(function () {
-            S._lvT = null;
-            try {
-              if (S._lvPage) {
-                localStorage.setItem(LV_KEY, JSON.stringify({ v: 1, page: S._lvPage, scroll: num(S._lvScroll, 0), ts: Date.now() }));
-              }
-            } catch (e) {}
-          }, 1200);
-        }
-      }
-    } catch (e) {}
+    /* Always-start-on-Home rule: no last-view scroll is persisted while
+       scrolling. The live session scroll above is the only scroll tracking. */
   } catch (e) {}
 }
 
@@ -763,8 +733,10 @@ function ensureOutermost() {
 
 /* ---------------- fresh-launch reset (central, single handler) ----------------
  * Every new document load is a fresh launch: start at the home page
- * (dashboard) with default transient UI. Only the transient navigation
- * store (LS_KEY) plus the transient topic hash (#howto[-id]) are reset.
+ * (dashboard) with default transient UI. Only transient NAVIGATION state is
+ * reset: the per-page store (LS_KEY) plus the deprecated last-view record
+ * (LV_KEY, no longer written but purged so older installs cannot resume once)
+ * plus the transient topic hash (#howto[-id]).
  * Durable data is NEVER touched here: deutsch_master_v2 (plus per-uid and
  * backup snapshots), dm_merge_decision keys, dm_device_id, dm_welcomed, dm_sync_queue,
  * dm_push_claim and Supabase auth keys are left intact.
@@ -774,7 +746,7 @@ function ensureOutermost() {
  * visibilitychange/pageshow/focus/blur/pagehide/beforeunload handlers here:
  * backgrounding, tab switches or lock/unlock must NOT reset the session.
  * A full reload re-evaluates this file, which is the fresh-launch signal. */
-S.TRANSIENT_KEYS = [LS_KEY];
+S.TRANSIENT_KEYS = [LS_KEY, LV_KEY];
 S._freshResetDone = false;
 function isTransientHash(h) {
   try {
@@ -788,9 +760,14 @@ S.resetFreshLaunch = function (reason) {
   try { S.persisted = {}; } catch (e) {}
   try { S._explicit = {}; } catch (e) {}
   try { S._lastExplainId = null; } catch (e) {}
+  try { S._lvPage = null; S._lvScroll = 0; S._lvDone = true; } catch (e2) {}
   try {
     if (typeof localStorage !== "undefined" && localStorage.removeItem) {
       localStorage.removeItem(LS_KEY);
+      /* Purge the deprecated last-view record (older versions wrote it on
+         every navigation). Without this, one stale record could reopen the
+         previous page a single time after upgrade. */
+      localStorage.removeItem(LV_KEY);
     }
   } catch (e) {}
   /* Drop the transient topic deep-link (HW.open was seeded from it at
@@ -857,18 +834,9 @@ function boot() {
     } catch (e) {}
   }
   /* Re-assert outermost after deferred module wiring (career.js pattern). */
-  /* Last-view resume: two deferred single-shot attempts (early + late).
-     Deferred so auth/session settling and lazy sections win any race: each
-     attempt is a silent no-op unless the launch sits on the home page with
-     a valid saved view and no explicit flow active. */
-  function scheduleLastViewRestore() {
-    try {
-      setTimeout(function () { try { S.tryRestoreLastView("early"); } catch (e) {} }, 900);
-    } catch (e) {}
-    try {
-      setTimeout(function () { try { S.tryRestoreLastView("late"); } catch (e) {} }, 3500);
-    } catch (e) {}
-  }
+  /* Always-start-on-Home rule: there is deliberately NO deferred last-view
+     restore here anymore. Fresh launch ends on the Home page; any stale
+     last-view record was already purged by resetFreshLaunch above. */
   try {
     if (typeof document !== "undefined" && document.addEventListener) {
       document.addEventListener("DOMContentLoaded", function () {
@@ -880,11 +848,7 @@ function boot() {
            visibility/focus changes never reach this (DOMContentLoaded fires
            once per document). */
         try { if (S._freshResetDone && typeof window !== "undefined" && window.scrollTo) window.scrollTo(0, 0); } catch (e2) {}
-        try { scheduleLastViewRestore(); } catch (e3) {}
       });
-      try {
-        if (document.readyState !== "loading") scheduleLastViewRestore();
-      } catch (e) {}
     }
   } catch (e) {}
   try {

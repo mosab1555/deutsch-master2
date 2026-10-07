@@ -2,7 +2,9 @@
  * Covers the background-resume contract:
  *  - backgrounding never resets the live session (no destructive handlers)
  *  - same-account auth refreshes never navigate (no dashboard yank)
- *  - last logical view is recorded, validated and restored after process death
+ *  - EVERY fresh launch starts on Home: the previous page is never recorded
+ *    and never restored (no resume after process death); stale last-view
+ *    records left by older versions are purged on boot
  *  - stale/invalid/OAuth/auth-flow views are never restored
  *  - challenge per-question clock freezes while hidden (no unfair timeout)
  *  - test navigation position is persisted (no counter loss)
@@ -128,27 +130,23 @@ function bootPS(preStore, preHash, preSearch) {
 }
 function js(sb, expr) { return vm.runInContext(expr, sb); }
 
-/* ---------- L1: last view recorded on navigation ---------- */
+/* ---------- L1: previous page is NEVER recorded (always start on Home) ---------- */
 (function () {
   const sb = bootPS();
   check("L1: module loads", !!sb._loadOk, sb._loadErr);
   js(sb, "DMPageState.current='dashboard'; showPage('quiz');");
-  let raw = sb._store["dm_lastview_v1"];
-  let ok = false;
-  try { const o = JSON.parse(raw); ok = o.v === 1 && o.page === "quiz" && typeof o.ts === "number"; } catch (e) {}
-  check("L1: navigating records last view", ok, raw);
+  check("L1: navigating never records a last view", !("dm_lastview_v1" in sb._store), sb._store["dm_lastview_v1"]);
+  check("L1: recordLastView reports false (disabled)", js(sb, "DMPageState.recordLastView('quiz')") === false);
   js(sb, "showPage('dashboard');");
-  check("L1: dashboard never recorded", (function () {
-    try { return JSON.parse(sb._store["dm_lastview_v1"]).page === "quiz"; } catch (e) { return false; }
-  })());
+  check("L1: dashboard navigation writes no last view", !("dm_lastview_v1" in sb._store));
   js(sb, "showPage('auth');");
-  check("L1: auth screen never recorded", (function () {
-    try { return JSON.parse(sb._store["dm_lastview_v1"]).page === "quiz"; } catch (e) { return false; }
-  })());
+  check("L1: auth screen writes no last view", !("dm_lastview_v1" in sb._store));
   js(sb, "showPage('no-such-page');");
-  check("L1: invalid page never recorded", (function () {
-    try { return JSON.parse(sb._store["dm_lastview_v1"]).page === "quiz"; } catch (e) { return false; }
-  })());
+  check("L1: invalid page writes no last view", !("dm_lastview_v1" in sb._store));
+  // A stale record left by an older app version is purged on navigation.
+  sb._store["dm_lastview_v1"] = JSON.stringify({ v: 1, page: "quiz", ts: Date.now() });
+  js(sb, "DMPageState.current='dashboard'; showPage('vocab');");
+  check("L1: stale record purged on navigation", !("dm_lastview_v1" in sb._store));
 })();
 
 /* ---------- L2: malformed / stale records rejected ---------- */
@@ -176,32 +174,32 @@ function js(sb, expr) { return vm.runInContext(expr, sb); }
   check("L2: absent record is null", js(sbM, "DMPageState.readLastView()") === null);
 })();
 
-/* ---------- L3: fresh boot restores the recorded view ---------- */
+/* ---------- L3: fresh boot NEVER restores the previous page (stays on Home) ---------- */
 (function () {
-  const sbA = bootPS();
-  js(sbA, "DMPageState.current='dashboard'; showPage('quiz');");
-  const saved = sbA._store["dm_lastview_v1"];
-  const sbB = bootPS();
-  sbB._store["dm_lastview_v1"] = saved;
+  // Simulate a stale last-view record left on disk by an older app version.
+  const stale = JSON.stringify({ v: 1, page: "quiz", scroll: 400, ts: Date.now() });
+  const sbB = bootPS({ _extra: { "dm_lastview_v1": stale } });
+  check("L3: stale last-view purged on fresh boot", !("dm_lastview_v1" in sbB._store), sbB._store["dm_lastview_v1"]);
+  check("L3: fresh boot lands on Home", js(sbB, "DMPageState.current==='dashboard'"));
   const calls = [];
   // NOTE: window === globalThis in the sandbox, so window.showPage alone is
-  // the hook tryRestoreLastView reads. Do NOT reassign bare showPage here:
+  // the hook a restore would read. Do NOT reassign bare showPage here:
   // that would clobber the capture with a self-recursive relay.
   vm.runInContext("window.showPage=function(n){__restored.push(n);return 'nav:'+n;};", sbB);
   sbB.__restored = calls;
-  const r = js(sbB, "DMPageState.tryRestoreLastView('late')");
-  check("L3: recorded view restored on fresh boot", r === true && calls.indexOf("quiz") >= 0, JSON.stringify(calls));
-  check("L3: restore is single-shot", js(sbB, "DMPageState.tryRestoreLastView('late')") === false && calls.length === 1);
+  check("L3: restore hook (late) is a no-op", js(sbB, "DMPageState.tryRestoreLastView('late')") === false && calls.length === 0, JSON.stringify(calls));
+  check("L3: restore hook (early) is a no-op", js(sbB, "DMPageState.tryRestoreLastView('early')") === false && calls.length === 0);
+  check("L3: restore stays a no-op on repeat calls", js(sbB, "DMPageState.tryRestoreLastView('late')") === false && calls.length === 0);
 })();
 
-/* ---------- L4: restore never fights explicit flows ---------- */
+/* ---------- L4: restore hook never navigates, whatever the launch context ---------- */
 (function () {
   const sb = bootPS(null, "", "?code=abc123");
   sb._store["dm_lastview_v1"] = JSON.stringify({ v: 1, page: "quiz", ts: Date.now() });
   const calls = [];
   sb.__restored = calls;
   vm.runInContext("window.showPage=function(n){__restored.push(n);return 'nav:'+n;};", sb);
-  check("L4: OAuth callback blocks restore", js(sb, "DMPageState.tryRestoreLastView('late')") === false && calls.length === 0);
+  check("L4: OAuth callback launch stays on Home (no restore)", js(sb, "DMPageState.tryRestoreLastView('late')") === false && calls.length === 0);
   const sb2 = bootPS();
   sb2._store["dm_lastview_v1"] = JSON.stringify({ v: 1, page: "quiz", ts: Date.now() });
   // simulate recovery/auth screen active instead of dashboard
@@ -210,16 +208,19 @@ function js(sb, expr) { return vm.runInContext(expr, sb); }
   const calls2 = [];
   sb2.__restored = calls2;
   vm.runInContext("window.showPage=function(n){__restored.push(n);return 'nav:'+n;};", sb2);
-  check("L4: non-dashboard foreground blocks restore", js(sb2, "DMPageState.tryRestoreLastView('late')") === false && calls2.length === 0);
+  check("L4: auth-foreground launch stays put (no restore)", js(sb2, "DMPageState.tryRestoreLastView('late')") === false && calls2.length === 0);
 })();
 
-/* ---------- L5: wipe clears the last view ---------- */
+/* ---------- L5: wipe clears the last view (and navigation never recreates it) ---------- */
 (function () {
   const sb = bootPS();
-  js(sb, "DMPageState.current='dashboard'; showPage('quiz');");
+  // Stale record as left by an older app version (navigation no longer writes one).
+  sb._store["dm_lastview_v1"] = JSON.stringify({ v: 1, page: "quiz", ts: Date.now() });
   const had = !!sb._store["dm_lastview_v1"];
   js(sb, "DMPageState.clearPageState();");
   check("L5: full wipe clears last view", had && !sb._store["dm_lastview_v1"]);
+  js(sb, "DMPageState.current='dashboard'; showPage('quiz');");
+  check("L5: navigation after wipe writes no last view", !("dm_lastview_v1" in sb._store));
 })();
 
 /* ---------- L6: same-account refresh never navigates ---------- */
@@ -273,8 +274,11 @@ function js(sb, expr) { return vm.runInContext(expr, sb); }
   const ps = strip(psSrc);
   check("L10: page-state still has no destructive bg handlers",
     !/visibilitychange/.test(ps) && !/pageshow|pagehide/.test(ps) && !/beforeunload/.test(ps));
-  check("L10: restore is attempt-capped (early+late only)", (psSrc.match(/tryRestoreLastView\("/g) || []).length <= 3);
-  check("L10: single last-view key, versioned", /dm_lastview_v1/.test(psSrc) && /o\.v !== 1/.test(psSrc));
+  check("L10: no deferred restore scheduled on boot (always Home, no flicker)",
+    (psSrc.match(/tryRestoreLastView\("/g) || []).length === 0 && !/scheduleLastViewRestore/.test(psSrc));
+  check("L10: last-view key only purged, never written",
+    /dm_lastview_v1/.test(psSrc) && !/setItem\(LV_KEY/.test(psSrc));
+  check("L10: stale last-view validation seam kept (versioned)", /dm_lastview_v1/.test(psSrc) && /o\.v !== 1/.test(psSrc));
 })();
 
 console.log("----");
