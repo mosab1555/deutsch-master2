@@ -1929,9 +1929,23 @@ document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",(
     if(window.__dmDrawerInit) return;
     window.__dmDrawerInit=true;
     function els(){return {sb:document.getElementById("sidebar"),ov:document.getElementById("sidebarOverlay"),btn:document.getElementById("menuBtn")};}
+    /* Drawer mode exists only at <=860px (see CSS @media(max-width:860px)).
+       On desktop the sidebar is a permanently visible docked column
+       (position:sticky, no off-viewport transform), so it must NEVER carry
+       inert=true or aria-hidden="true" — either flag silently makes every
+       .nav-item unclickable while looking perfectly normal. */
+    function isDocked(){try{return window.innerWidth>860;}catch(e){return false;}}
     function syncA11y(open){
       try{
         const {sb,btn}=els();
+        if(isDocked()){
+          if(btn) btn.setAttribute("aria-expanded","false");
+          if(sb){
+            sb.setAttribute("aria-hidden","false");
+            if("inert" in sb) sb.inert=false;
+          }
+          return;
+        }
         if(btn) btn.setAttribute("aria-expanded",open?"true":"false");
         if(sb){
           sb.setAttribute("aria-hidden",open?"false":"true");
@@ -1958,8 +1972,8 @@ document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",(
         if(returnFocus&&btn&&typeof btn.focus==="function"){try{btn.focus({preventScroll:true});}catch(e){}}
       }catch(e){}
     }
-    function isOpen(){try{const {sb}=els();return !!(sb&&sb.classList.contains("open"));}catch(e){return false;}}
-    function toggle(){if(isOpen())close();else open();}
+    function isOpen(){try{if(isDocked())return false;const {sb}=els();return !!(sb&&sb.classList.contains("open"));}catch(e){return false;}}
+    function toggle(){if(isDocked()){close();return;}if(isOpen())close();else open();}
     window.DMDrawer={open,close,toggle,isOpen};
     try{
       const {btn,ov}=els();

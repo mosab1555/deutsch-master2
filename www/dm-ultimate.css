@@ -547,3 +547,32 @@ button,.btn,.nav-item,.dm-bnav-item{font-family:inherit}
 @media (prefers-reduced-motion:reduce){
   .dm-bnav{transition:none !important}
 }
+
+/* ============ 17 · DESKTOP SHELL AUTHORITY (keep last — wins the cascade) ====
+   Root causes fixed here (desktop only, min-width:861px; mobile untouched):
+   1) .app was capped at 1440px + centered while .topbar is viewport-fixed,
+      so on >=1440px screens the header misaligned with the centered shell
+      and large empty margins appeared. Full-viewport shell fixes both.
+   2) .content was pinned to 1120px AFTER premium/radical widened it to
+      1280-1380px on large screens, making desktop content artificially
+      narrow. Fluid caps below restore the intended wide-screen widths.
+   3) Sidebar width (284px via sovereign.css) vs topbar offset (270px via
+      style.css) mismatched by 14px, letting the fixed header (z-index 120)
+      overlap the sidebar edge (z-index 50). One shared 280px width fixes it.
+   Docked sidebar stays in normal flow (position:sticky); the .open drawer
+   transform rules live inside max-width:860px blocks only. */
+@media (min-width:861px){
+  .app{max-width:none;margin-inline:0}
+  .sidebar{width:280px;flex:0 0 280px;position:sticky;top:0;height:100vh}
+  .topbar{inset-inline-start:280px}
+  .content{max-width:1200px;width:100%;margin-inline:auto}
+  .cmd-scope{max-width:1200px}
+}
+@media (min-width:1440px){
+  .content{max-width:1280px}
+  .cmd-scope{max-width:1280px}
+}
+@media (min-width:1920px){
+  .content{max-width:1360px}
+  .cmd-scope{max-width:1360px}
+}
