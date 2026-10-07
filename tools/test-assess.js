@@ -106,6 +106,69 @@ check("A26 learn.js placement+final untouched", LEARN.includes("placeStart") && 
 check("A27 assess respects page-state preservation", SRC.includes("skipRender"));
 check("A28 thresholds documented in CONFIG", ["KAP_READY", "PASS_A1_EXAM", "MIN_SKILL_N", "RESUME_TTL_DAYS"].every(k => SRC.includes(k)));
 
+/* ===== B: Test Center engine (pure core + spec shapes, no DOM) ===== */
+const V = DMAssess.validateQ;
+check("B1 valid mc passes", V({ type: "mc", prompt: "Q?", opts: ["a", "b"], correct: 0 }) === true);
+check("B2 rejects empty/short opts", V({ type: "mc", prompt: "Q?", opts: ["a"], correct: 0 }) === false);
+check("B3 rejects duplicate opts", V({ type: "mc", prompt: "Q?", opts: ["x", "x"], correct: 0 }) === false);
+check("B4 rejects bad correct index", V({ type: "mc", prompt: "Q?", opts: ["a", "b"], correct: 5 }) === false);
+check("B5 rejects empty prompt", V({ type: "mc", prompt: "  ", opts: ["a", "b"], correct: 0 }) === false);
+check("B6 order needs chips+answer", V({ type: "order", prompt: "Q?", chips: ["a", "b"], answer: "a b" }) === false && V({ type: "order", prompt: "Q?", chips: ["a", "b", "c"], answer: "a b c" }) === true);
+check("B7 fill needs accept", V({ type: "fill", prompt: "Q? ___", accept: [] }) === false && V({ type: "fill", prompt: "Q? ___", accept: ["der"], answer: "der" }) === true);
+check("B8 speak needs sample", V({ type: "speak", prompt: "Q?", sample: "" }) === false);
+check("B9 match needs 2+ pairs", V({ type: "match", prompt: "Q?", pairs: [{ de: "a", ar: "ب" }] }) === false && V({ type: "match", prompt: "Q?", pairs: [{ de: "a", ar: "ب" }, { de: "c", ar: "د" }] }) === true);
+check("B10 conj rows validated", V({ type: "conj", prompt: "Q?", rows: [{ opts: ["a"] }] }) === false && V({ type: "conj", prompt: "Q?", rows: [{ opts: ["a", "b"], correct: 0 }] }) === true);
+
+const dist = DMAssess.distribute(20, { vocab: 20, grammar: 20, sentences: 20, verbs: 10, listening: 10, reading: 10, practical: 10 });
+const dsum = Object.keys(dist).reduce((a, k) => a + dist[k], 0);
+check("B11 distribute sums exactly", dsum === 20, JSON.stringify(dist));
+check("B12 distribute empty ratios", JSON.stringify(DMAssess.distribute(10, {})) === "{}");
+
+const rng1 = DMAssess.seededRng("daily-2026-01-01"), rng2 = DMAssess.seededRng("daily-2026-01-01");
+const seq1 = [rng1(), rng1(), rng1()].join(","), seq2 = [rng2(), rng2(), rng2()].join(",");
+const rng3 = DMAssess.seededRng("daily-2026-01-02");
+check("B13 seeded rng deterministic", seq1 === seq2 && seq1 !== [rng3(), rng3(), rng3()].join(","));
+
+const dpool = [{ id: "1", diff: "hard" }, { id: "2", diff: "easy" }, { id: "3", diff: "medium" }];
+check("B14 easy filter", DMAssess.filterByDiff(dpool, "easy").length === 1);
+const graded = DMAssess.filterByDiff(dpool, "graded").map(q => q.id).join("");
+check("B15 graded sorts easy->hard", graded === "231", graded);
+check("B16 missing level falls back", DMAssess.filterByDiff([{ id: "1", diff: "easy" }], "hard").length === 1);
+
+/* full-file require (Node-safe, no window) for registry + spec shapes */
+const FULL = require(path.join(root, "client", "assess.js"));
+const FKEYS = Object.keys(FULL.ui.FACTORIES);
+["kein", "conj", "wordClass", "sentMean", "dialogue", "listenGap"].forEach(f => {
+  check("B17 factory registered: " + f, FKEYS.includes(f));
+});
+const CATS = FULL.specs.CATS;
+check("B18 CATS registry complete", FULL.specs.CAT_IDS.length >= 13 && CATS.words && CATS.words.facs.length >= 2 && CATS.mistakes.facs === null, FULL.specs.CAT_IDS.length);
+check("B19 MODES sizes", FULL.specs.MODES.quick.n === 10 && FULL.specs.MODES.normal.n === 20 && FULL.specs.MODES.intensive.n === 30 && FULL.specs.MODES.master.n === 0);
+check("B20 DIFFS four levels", Object.keys(FULL.specs.DIFFS).join(",") === "easy,medium,hard,graded");
+const kc = FULL.specs.kapitelCategorySpec("K3", "grammar", "normal", "medium", null);
+check("B21 kapitelCategorySpec shape", kc.id.includes("K3") && kc.id.includes("grammar") && kc.diffKey === "medium" && kc.minQ === 5 && typeof kc.build === "function", kc.id);
+const cu = FULL.specs.customSpec({ levels: ["A1"], kaps: ["K1"], cats: ["words"], diff: "easy", count: 10, mode: "challenge" });
+check("B22 customSpec challenge flags", cu.qTimed === true && cu.timed === false && cu.minQ === 5, JSON.stringify({ q: cu.qTimed, t: cu.timed }));
+const cue = FULL.specs.customSpec({ cats: ["grammar"], count: 20, mode: "exam" });
+check("B23 customSpec exam flags", cue.timed === true && cue.passPct === FULL.CONFIG.PASS_A1_EXAM);
+const dl = FULL.specs.dailySpec("2026-05-01");
+check("B24 dailySpec shape", dl.id === "daily-2026-05-01" && dl.minQ === 8 && !!dl.seed);
+const bs = FULL.specs.bossSpec("K3");
+check("B25 bossSpec shape", bs.adaptiveDiff === true && bs.minQ === 10 && typeof bs.build === "function");
+check("B26 boss locked when weak", FULL.specs.bossUnlock("K3", { K3: { pct: 30 } }, []).ok === false);
+check("B27 boss unlocked by readiness", FULL.specs.bossUnlock("K3", { K3: { pct: 80 } }, []).ok === true);
+check("B28 boss unlocked by 3 tests", FULL.specs.bossUnlock("K3", {}, [{ kaps: { K3: { n: 5 } } }, { kaps: { K3: { n: 5 } } }, { kaps: { K3: { n: 5 } } }]).ok === true);
+const ms = FULL.specs.mistakeSpec("K1");
+check("B29 mistakeSpec shape", ms.minQ === 4 && typeof ms.build === "function");
+const sm = FULL.specs.smartSpec({ weakSkills: ["grammar"], total: 15 });
+check("B30 smartSpec shape", sm.minQ === 6 && typeof sm.build === "function");
+check("B31 new thresholds documented", ["QTIME_SEC", "BOSS_UNLOCK_READY", "PERFECT_ROUND_N", "MASTER_CAP"].every(k => SRC.includes(k)));
+const TC = fs.readFileSync(path.join(root, "client", "testcenter.js"), "utf8");
+check("B32 testcenter module present", TC.includes("DMTestCenter") && TC.includes("renderSection") && TC.includes("builderHtml") && TC.includes("recordsHtml"));
+check("B33 testcenter wired in pages", IDX.includes('<script src="testcenter.js">') && fs.readFileSync(path.join(root, "client", "academy.html"), "utf8").includes('<script src="testcenter.js">'));
+check("B34 sw precaches testcenter", SW.includes('"./testcenter.js"'));
+check("B35 picker hooked in dashboard", SRC.includes("DMTestCenter.renderSection") && SRC.includes("DMTestCenter.wire"));
+
 console.log("----");
 console.log("TOTAL pass=" + pass + " fail=" + fail + " RESULT: " + (fail === 0 ? "PASS" : "FAIL"));
 process.exit(fail === 0 ? 0 : 1);

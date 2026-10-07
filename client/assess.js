@@ -48,7 +48,8 @@ var DMAssess = (function () {
     CONF_HIGH_N: 20, CONF_MED_N: 10,
     TEST_W_KAP: 0.65, PROG_W_KAP: 0.35, MIN_KAP_TEST_N: 4,
     HISTORY_CAP: 30, RESUME_TTL_DAYS: 7, EXAM_TIME_SEC: 1200,
-    LVL_GATE_WORDS: 40, LVL_GATE_GRAMMAR: 4, STORE_V: 1
+    LVL_GATE_WORDS: 40, LVL_GATE_GRAMMAR: 4, STORE_V: 1,
+    QTIME_SEC: 12, BOSS_UNLOCK_READY: 50, PERFECT_ROUND_N: 5, MASTER_CAP: 40
   };
 
   /* skill registry: key -> Arabic label + learning route (all real pages) */
@@ -93,6 +94,99 @@ var DMAssess = (function () {
 
   function emptyAgg() { return { n: 0, ok: 0, pct: 0, ev: "none" }; }
   function evOf(n) { return n >= CONFIG.MIN_SKILL_N ? "ok" : (n > 0 ? "thin" : "none"); }
+  /* Deterministic RNG (daily test, reproducible practice). mulberry32. */
+  function hashSeed(str) {
+    var h = 2166136261;
+    str = String(str == null ? "" : str);
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function mulberry32(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function seededRng(seedStr) { return mulberry32(hashSeed(seedStr)); }
+  /* Content validation: every served question must pass this. Invalid items
+     are skipped by buildPool — never crash a session, never fake a score. */
+  function validateQ(q) {
+    if (!q || typeof q !== "object") return false;
+    if (!q.prompt || !String(q.prompt).trim()) return false;
+    var t = q.type;
+    if (t === "order") {
+      if (!q.chips || q.chips.length < 3 || !q.answer || !String(q.answer).trim()) return false;
+      return true;
+    }
+    if (t === "fill" || t === "speak") {
+      if (t === "fill" && (!q.accept || !q.accept.length || !q.accept[0])) return false;
+      if (t === "speak" && !q.sample) return false;
+      return !!String(q.prompt).trim();
+    }
+    if (t === "match") {
+      if (!q.pairs || q.pairs.length < 2) return false;
+      for (var i = 0; i < q.pairs.length; i++) {
+        if (!q.pairs[i].de || !q.pairs[i].ar) return false;
+      }
+      return true;
+    }
+    if (t === "conj") {
+      if (!q.rows || q.rows.length < 1 || !q.rows[0].opts || q.rows[0].opts.length < 2) return false;
+      return true;
+    }
+    /* option-based types: need unique non-empty options + valid correct idx */
+    if (!q.opts || q.opts.length < 2) return false;
+    if (typeof q.correct !== "number" || q.correct < 0 || q.correct >= q.opts.length) return false;
+    var seen = {}, ok = true;
+    q.opts.forEach(function (o) {
+      var k = String(o == null ? "" : o).trim();
+      if (!k || seen[k]) ok = false;
+      seen[k] = 1;
+    });
+    return ok;
+  }
+  var DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
+  /* Difficulty filter: 'graded' sorts easy->hard; a missing level falls back
+     to the closest available (never an empty test when content exists). */
+  function filterByDiff(pool, diff) {
+    pool = pool || [];
+    if (!diff || diff === "mixed") return pool.slice();
+    if (diff === "graded") {
+      return pool.slice().sort(function (a, b) {
+        return (DIFF_ORDER[a.diff] == null ? 1 : DIFF_ORDER[a.diff]) - (DIFF_ORDER[b.diff] == null ? 1 : DIFF_ORDER[b.diff]);
+      });
+    }
+    var exact = pool.filter(function (q) { return q.diff === diff; });
+    if (exact.length) return exact;
+    var keys = Object.keys(DIFF_ORDER);
+    var want = DIFF_ORDER[diff];
+    for (var d = 1; d < 3; d++) {
+      var lo = keys.filter(function (k) { return DIFF_ORDER[k] === want - d; })[0];
+      var hi = keys.filter(function (k) { return DIFF_ORDER[k] === want + d; })[0];
+      var fb = pool.filter(function (q) { return q.diff === lo || q.diff === hi; });
+      if (fb.length) return fb;
+    }
+    return pool.slice();
+  }
+  /* Percent distribution -> integer counts summing exactly to total. */
+  function distribute(total, ratios) {
+    total = Math.max(0, total | 0);
+    ratios = ratios || {};
+    var keys = Object.keys(ratios);
+    if (!keys.length || total <= 0) return {};
+    var sum = 0;
+    keys.forEach(function (k) { sum += Math.max(0, +ratios[k] || 0); });
+    if (sum <= 0) return {};
+    var out = {}, acc = 0;
+    keys.forEach(function (k, i) {
+      if (i === keys.length - 1) out[k] = total - acc;
+      else { out[k] = Math.floor(total * (Math.max(0, +ratios[k] || 0) / sum)); acc += out[k]; }
+    });
+    return out;
+  }
   /* Score one answered session. items: [{skill, topic, kap, ok, w}] */
   function scoreAnswers(items) {
     var sk = {}, kp = {}, tp = {}, tn = 0, tok = 0;
@@ -186,7 +280,7 @@ var DMAssess = (function () {
       .sort(function (a, b) { return skills[a].pct - skills[b].pct; });
   }
 
-  return { CONFIG: CONFIG, SKILLS: SKILLS, SKILL_KEYS: SKILL_KEYS, shuffled: shuffled, stratify: stratify, scoreAnswers: scoreAnswers, statusOf: statusOf, levelFromStages: levelFromStages, kapitelReadiness: kapitelReadiness, currentKapitel: currentKapitel, weakTopics: weakTopics, strongSkills: strongSkills, weakSkills: weakSkills, clampPct: clampPct };
+  return { CONFIG: CONFIG, SKILLS: SKILLS, SKILL_KEYS: SKILL_KEYS, shuffled: shuffled, stratify: stratify, scoreAnswers: scoreAnswers, statusOf: statusOf, levelFromStages: levelFromStages, kapitelReadiness: kapitelReadiness, currentKapitel: currentKapitel, weakTopics: weakTopics, strongSkills: strongSkills, weakSkills: weakSkills, clampPct: clampPct, hashSeed: hashSeed, mulberry32: mulberry32, seededRng: seededRng, validateQ: validateQ, filterByDiff: filterByDiff, distribute: distribute };
 })();
 /* ================= BROWSER LAYER (needs app globals; all lazy) ============ */
 DMAssess.ui = (function () {
@@ -649,40 +743,222 @@ DMAssess.ui = (function () {
     q.why = ws.map(function (w) { return fullDe(w) + " = " + w.ar; }).join(" • ");
     return q;
   }
+  function mkKein(o) {
+    /* النفي: kein / keine / nicht — from real nouns + real rule. */
+    var pool = vocabPool(o).filter(function (w) { return w.type === "اسم" && w.art && w.art !== "-" && /^[A-ZÄÖÜ]/.test(w.de || ""); });
+    if (pool.length < 3) return null;
+    var w = shuffle(pool)[0];
+    var useNicht = Math.random() < 0.35;
+    var right, wrongs, sentence;
+    if (useNicht) {
+      right = "nicht"; wrongs = ["kein", "keine"];
+      sentence = "Ich lerne heute ___ . (" + w.ar + " — الجملة فعلية بدون اسم)";
+    } else {
+      right = (w.art === "die") ? "keine" : "kein";
+      wrongs = [right === "kein" ? "keine" : "kein", "nicht"];
+      sentence = "Ich habe ___ " + w.de + ". (" + w.ar + ")";
+    }
+    var opts = shuffle([right].concat(wrongs));
+    var q = baseQ("mc", "grammar", { topic: "negation", topicAr: "النفي kein / nicht", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
+    q.prompt = "اختر النفي الصحيح: " + sentence;
+    q.de = sentence; q.opts = opts; q.correct = opts.indexOf(right);
+    q.why = useNicht
+      ? "nicht تنفي الفعل/الجملة: Ich lerne heute nicht."
+      : "قبل الأسماء نستخدم kein/keine (وليس nicht): " + (w.art === "die" ? "keine " + w.de : "kein " + w.de) + " — " + w.ar;
+    return q;
+  }
+  function mkConj(o) {
+    /* تصريف الأفعال: pronoun rows (ich/du/er...) each with 3 form options. */
+    var pool = vocabPool(o).filter(function (w) { return w.type === "فعل"; });
+    if (!pool.length) return null;
+    var verbs = shuffle(pool);
+    var persons = [["ich", "Ich"], ["du", "Du"], ["er", "Er"], ["wir", "Wir"]];
+    for (var vi = 0; vi < verbs.length; vi++) {
+      var w = verbs[vi], conj = conjVerbForm(w.de);
+      if (!conj) continue;
+      var forms = {};
+      persons.forEach(function (p) { forms[p[0]] = lastTok(conj[p[0]]); });
+      if (!forms.ich || !forms.er || forms.ich === forms.er) continue;
+      var picks = shuffle(persons).slice(0, 2);
+      var rows = [], okAll = true;
+      picks.forEach(function (p) {
+        var right = forms[p[0]];
+        var distract = [];
+        persons.forEach(function (q2) { if (q2[0] !== p[0] && forms[q2[0]] && forms[q2[0]] !== right && distract.indexOf(forms[q2[0]]) < 0) distract.push(forms[q2[0]]); });
+        if (distract.length < 2) { okAll = false; return; }
+        var opts = shuffle([right].concat(distract.slice(0, 2)));
+        rows.push({ pron: p[1], key: p[0], opts: opts, correct: opts.indexOf(right) });
+      });
+      if (!okAll || rows.length < 2) continue;
+      var q = baseQ("conj", "grammar", { topic: "conjugation", topicAr: "تصريف الأفعال ich/du/er", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
+      q.prompt = "⚡ صرّف الفعل (" + w.de + " — " + w.ar + ") مع كل ضمير:";
+      q.rows = rows;
+      q.why = picks.map(function (p) { return p[1] + " " + forms[p[0]]; }).join(" • ");
+      return q;
+    }
+    return null;
+  }
+  function mkWordClass(o) {
+    /* أقسام الكلام: Verb / Nomen / Adjektiv from real word types. */
+    var pool = vocabPool(o).filter(function (w) { return w.type === "فعل" || w.type === "اسم" || w.type === "صفة"; });
+    if (pool.length < 4) return null;
+    var w = shuffle(pool)[0];
+    var arOf = { "فعل": "فعل Verb", "اسم": "اسم Nomen", "صفة": "صفة Adjektiv" };
+    var others = ["فعل", "اسم", "صفة"].filter(function (t) { return t !== w.type; });
+    var opts = shuffle([arOf[w.type]].concat(others.map(function (t) { return arOf[t]; })));
+    var q = baseQ("mc", "vocab", { topic: "wordclass", topicAr: "أقسام الكلام", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
+    q.prompt = "ما نوع الكلمة: " + fullDe(w) + " (" + w.ar + ")؟";
+    q.de = fullDe(w); q.opts = opts; q.correct = opts.indexOf(arOf[w.type]);
+    q.why = fullDe(w) + " نوعها: " + arOf[w.type];
+    return q;
+  }
+  function mkSentMean(o) {
+    /* معنى الجملة: real sentence -> Arabic meaning options. */
+    var pool = sentPool(o).filter(function (s) { return String(s.de || "").split(" ").length >= 5; });
+    if (pool.length < 4) return null;
+    var s = shuffle(pool)[0];
+    var opts = shuffle([s.ar].concat(distractAr(words(), s.ar, 3)));
+    if (opts.length < 4) return null;
+    var q = baseQ("mc", "sentences", { topic: "sentmean", topicAr: "معنى الجملة", kap: s.kap, level: (s.level || s.lvl) || "A1", diff: "easy", refId: s.id, refKind: "sentence" });
+    q.prompt = "💬 ما معنى الجملة: «" + s.de + "»؟";
+    q.de = s.de; q.opts = opts; q.correct = opts.indexOf(s.ar);
+    q.why = s.de + " = " + s.ar;
+    return q;
+  }
+  function mkDialogue(o) {
+    /* أكمل الحوار: real TALK_SITS continuation with previous turn as context. */
+    var sits = talkPool().filter(function (s) { return s.steps && s.steps.length >= 2; });
+    if (!sits.length) return null;
+    var s = shuffle(sits)[0];
+    var valid = [];
+    for (var i = 1; i < s.steps.length; i++) {
+      if (s.steps[i][2] && s.steps[i][2].length >= 3) valid.push(i);
+    }
+    if (!valid.length) return null;
+    var i2 = shuffle(valid)[0], prev = s.steps[i2 - 1], st = s.steps[i2];
+    var ord = shuffle(st[2].map(function (_, i3) { return i3; }));
+    var q = baseQ("mc", "practical", { topic: "dialogue:" + s.id, topicAr: "إكمال الحوار: " + s.t, kap: o.kap || null, level: o.level || "A1", diff: "medium" });
+    q.prompt = "🗣️ أكمل الحوار (" + s.t + ") — قال: «" + prev[0] + "» فأجبت: «" + prev[2][prev[3]] + "» — ثم قال: «" + st[0] + "» (" + st[1] + ") — ما ردك؟";
+    q.de = st[0]; q.opts = ord.map(function (i4) { return st[2][i4]; }); q.correct = ord.indexOf(st[3]);
+    q.why = "الرد الطبيعي: " + st[2][st[3]];
+    return q;
+  }
+  function mkListenGap(o) {
+    /* استماع بكلمة ناقصة: hear the sentence, pick the missing word. */
+    var pool = listenPool().filter(function (x) { return x.de && x.de.split(" ").length >= 4; });
+    if (pool.length < 4) return null;
+    var it = shuffle(pool)[0];
+    var toks = it.de.replace(/[.?!,]/g, "").split(" ").filter(Boolean);
+    var cands = toks.map(function (t, i) { return i; }).filter(function (i) { return toks[i].length > 3 && i > 0 && i < toks.length - 1; });
+    if (!cands.length) return null;
+    var bi = shuffle(cands)[0], missing = toks[bi];
+    var others = [];
+    shuffle(pool.filter(function (x) { return x !== it; })).forEach(function (x) {
+      x.de.replace(/[.?!,]/g, "").split(" ").forEach(function (t) {
+        if (others.length < 12 && t.length > 3 && t.toLowerCase() !== missing.toLowerCase() && others.indexOf(t) < 0) others.push(t);
+      });
+    });
+    if (others.length < 3) return null;
+    var opts = shuffle([missing].concat(shuffle(others).slice(0, 3)));
+    var blanked = toks.slice(); blanked[bi] = "___";
+    var q = baseQ("mc", "listening", { topic: "listen-gap", topicAr: "الكلمة الناقصة سمعيًا", kap: o.kap || null, level: o.level || "A1", diff: "medium" });
+    q.prompt = "🎧 استمع للجملة واختر الكلمة الناقصة: " + blanked.join(" ");
+    q.listenText = it.de; q.opts = opts; q.correct = opts.indexOf(missing);
+    q.why = "الجملة: " + it.de + " = " + it.ar;
+    return q;
+  }
 
   var FACTORIES = {
     vocabMean: mkVocabMean, article: mkArticle, plural: mkPlural, translate: mkTranslate, tf: mkTF,
     grammar: mkGrammar, verb: mkVerb, error: mkError, order: mkOrder, gap: mkSentenceGap,
     fillWrite: mkFillWrite, reading: mkReading, listening: mkListening, speaking: mkSpeaking,
-    situation: mkSituation, match: mkMatch
+    situation: mkSituation, match: mkMatch,
+    kein: mkKein, conj: mkConj, wordClass: mkWordClass, sentMean: mkSentMean,
+    dialogue: mkDialogue, listenGap: mkListenGap
   };
-  /* build a pool of tagged questions: spec = [{factory, skill?, n, kap?, level?}] */
-  function buildPool(spec, perFactoryCap) {
+  /* build a pool of tagged questions.
+     spec = [{factory, skill?, n, kap?, level?, diff?}]
+     opts = {cap?, rng?, excludeIds?{refId:1}, validate=true}
+     Every question is validated (prompt/options/answer); invalid or
+     duplicate items are skipped and reported in notes — the session then
+     adapts its size honestly instead of serving broken questions. */
+  function buildPool(spec, perFactoryCap, opts) {
+    opts = opts || {};
+    var rng = opts.rng || Math.random;
+    var excl = opts.excludeIds || null;
     var pool = [], notes = [];
     (spec || []).forEach(function (sl) {
       var fn = FACTORIES[sl.factory];
       if (!fn) return;
-      var want = sl.n || 1, tries = 0, got = 0, seen = {};
+      var want = sl.n || 1, tries = 0, got = 0, bad = 0, seen = {};
       while (got < want && tries < want * 12 + 8) {
         tries++;
         var q = null;
-        try { q = fn({ kap: sl.kap, level: sl.level }); } catch (e) { q = null; }
+        try { q = fn({ kap: sl.kap, level: sl.level, rng: rng }); } catch (e) { q = null; }
         if (!q || seen[q.prompt]) continue;
+        if (excl && q.refId && excl[q.refId]) continue;
+        if (opts.validate !== false && !C.validateQ(q)) { bad++; continue; }
         seen[q.prompt] = 1;
         if (sl.skill) q.skill = sl.skill;
+        if (sl.diff && sl.diff !== "mixed" && sl.diff !== "graded") q.diffLock = sl.diff;
         pool.push(q); got++;
         if (perFactoryCap && got >= perFactoryCap) break;
       }
-      if (got < want) notes.push({ factory: sl.factory, want: want, got: got });
+      if (sl.diff) {
+        var before = pool.length;
+        var thisSlot = pool.splice(pool.length - got, got);
+        var kept = C.filterByDiff(thisSlot, sl.diff);
+        kept.forEach(function (q) { pool.push(q); });
+        got = kept.length;
+      }
+      if (got < want) notes.push({ factory: sl.factory, want: want, got: got, bad: bad });
+      else if (bad) notes.push({ factory: sl.factory, want: want, got: got, bad: bad });
     });
-    return { pool: pool, notes: notes };
+    return { pool: C.shuffled(pool, rng), notes: notes };
+  }
+  /* Weakness concepts from real mistake history -> NEW questions on the same
+     concept (never the same memorized item). Returns {plan, excludeIds}. */
+  var MISTAKE_FACTORIES = {
+    artikel: ["article", "wordClass"], plural: ["plural", "wordClass"],
+    "ein-kein": ["kein", "article"], "nicht-kein": ["kein", "grammar"],
+    pronomen: ["grammar", "gap"], possessiv: ["grammar", "gap"],
+    konjugation: ["verb", "conj", "error"], akkusativ: ["grammar", "error", "gap"],
+    wortstellung: ["order", "gap"], fragen: ["grammar", "dialogue"],
+    praepositionen: ["grammar", "gap", "situation"], allgemein: ["vocabMean", "translate", "match", "sentMean"]
+  };
+  function mistakePlan(limit) {
+    var plan = [], excludeIds = {}, seen = {};
+    try {
+      var M = (typeof S !== "undefined" && S.mistakes) || {};
+      var DM = (typeof DMProgress !== "undefined") ? DMProgress : null;
+      Object.keys(M).forEach(function (id) {
+        var m = M[id] || {};
+        if (m.done) return;
+        var skill = "allgemein";
+        try {
+          if (DM && DM.skillOfMistake) {
+            var w = null;
+            try { var f = (typeof wordById === "function") ? wordById : null; if (f) w = f(id); } catch (e) {}
+            skill = DM.skillOfMistake(m, w) || "allgemein";
+          } else if (m.skill) skill = m.skill;
+        } catch (e) {}
+        var key = skill + "|" + (m.kap || "?");
+        if (seen[key]) return;
+        seen[key] = 1;
+        excludeIds[id] = 1;
+        var facs = MISTAKE_FACTORIES[skill] || MISTAKE_FACTORIES.allgemein;
+        plan.push({ factory: facs[Object.keys(seen).length % facs.length], skill: null, n: 2, kap: m.kap || null });
+      });
+    } catch (e) {}
+    return { plan: plan.slice(0, limit || 12), excludeIds: excludeIds, concepts: Object.keys(seen).length };
   }
 
   /*__APPEND__*/
   return {
     kapitelList: kapitelList, kapLabel: kapLabel, levelUnlocked: levelUnlocked,
     levelWordCount: levelWordCount, levelGrammarCount: levelGrammarCount,
-    buildPool: buildPool, stratify: function (p, s, r) { return C.stratify(p, s, r); },
+    buildPool: buildPool, mistakePlan: mistakePlan, MISTAKE_FACTORIES: MISTAKE_FACTORIES,
+    stratify: function (p, s, r) { return C.stratify(p, s, r); },
     gradeSpeaking: gradeSpeaking, esc: esc, say: say, words: words,
     vocabPool: vocabPool, grammarPool: grammarPool, sentPool: sentPool,
     FACTORIES: FACTORIES
@@ -806,7 +1082,249 @@ DMAssess.specs = (function () {
       }
     };
   }
-  return { mixedSpec: mixedSpec, placementSpec: placementSpec, kapitelSpec: kapitelSpec, skillSpec: skillSpec, a1ExamSpec: a1ExamSpec, levelExamSpec: levelExamSpec, SKILL_FACTORIES: SKILL_FACTORIES };
+  function levelExamSpec(level) {
+    var L = { level: level };
+    return {
+      id: "exam-" + level.toLowerCase(), kind: "exam", level: level,
+      modeTitle: "امتحان " + level + " الشامل — Deutsch Master",
+      minQ: 20, timed: true, secs: DMAssess.CONFIG.EXAM_TIME_SEC, passPct: DMAssess.CONFIG.PASS_A1_EXAM,
+      build: function () {
+        return U.buildPool([
+          F("listening", 4, L), F("reading", 4, L),
+          F("vocabMean", 2, L), F("article", 1, L), F("plural", 1, L),
+          F("grammar", 3, L), F("verb", 2, L),
+          F("order", 2, L), F("fillWrite", 2, L), F("speaking", 2, L)
+        ], 5).pool;
+      }
+    };
+  }
+  /* ---- Test Center category registry: id -> label/icon/factories/skill ----
+     Single source of truth for picker cards AND builders. Counts shown in the
+     UI are probed live from real content (never hardcoded). */
+  var CATS = {
+    words:     { ar: "الكلمات",      de: "Wörter",      ico: "🟦", facs: ["vocabMean", "match", "wordClass"], skill: "vocab" },
+    sentences: { ar: "الجمل",        de: "Sätze",       ico: "🟩", facs: ["gap", "sentMean", "match"], skill: "sentences" },
+    ordering:  { ar: "ترتيب الجملة", de: "Satzbau",     ico: "🟨", facs: ["order"], skill: "sentences" },
+    grammar:   { ar: "القواعد",      de: "Grammatik",   ico: "🟥", facs: ["grammar", "kein", "gap"], skill: "grammar" },
+    verbs:     { ar: "الأفعال",      de: "Verben",      ico: "🟪", facs: ["verb", "conj", "error"], skill: "grammar" },
+    articles:  { ar: "المقالات",     de: "Artikel",     ico: "🟧", facs: ["article"], skill: "vocab" },
+    plural:    { ar: "الجمع",        de: "Plural",      ico: "🟫", facs: ["plural"], skill: "vocab" },
+    translate: { ar: "الترجمة",      de: "Übersetzung", ico: "🔁", facs: ["translate", "sentMean"], skill: "vocab" },
+    reading:   { ar: "القراءة",      de: "Lesen",       ico: "📖", facs: ["reading", "sentMean"], skill: "reading" },
+    listening: { ar: "الاستماع",     de: "Hören",       ico: "🎧", facs: ["listening", "listenGap"], skill: "listening" },
+    reallife:  { ar: "المواقف",      de: "Alltag",      ico: "🌍", facs: ["situation", "dialogue"], skill: "practical" },
+    mistakes:  { ar: "أخطائي",       de: "Fehler",      ico: "❌", facs: null, skill: null },
+    tfquiz:    { ar: "صح أم خطأ",    de: "Richtig/Falsch", ico: "⚖️", facs: ["tf"], skill: "vocab" },
+    writing:   { ar: "الكتابة",      de: "Schreiben",   ico: "✍️", facs: ["fillWrite", "order"], skill: "writing" },
+    speaking:  { ar: "التحدث",       de: "Sprechen",    ico: "🎤", facs: ["speaking"], skill: "speaking" }
+  };
+  var CAT_IDS = Object.keys(CATS);
+  var MODES = {
+    quick:     { ar: "سريع",  n: 10, de: "10 أسئلة" },
+    normal:    { ar: "عادي",  n: 20, de: "20 سؤالًا" },
+    intensive: { ar: "مكثف",  n: 30, de: "30 سؤالًا" },
+    master:    { ar: "Master", n: 0,  de: "حتى تغطية المحتوى" }
+  };
+  var DIFFS = {
+    easy:   { ar: "سهل",   de: "leichte Fragen" },
+    medium: { ar: "متوسط", de: "mittlere Fragen" },
+    hard:   { ar: "صعب",   de: "schwere Fragen" },
+    graded: { ar: "متدرج", de: "سهل ← صعب" }
+  };
+  /* one category inside one Kapitel, sized by mode + filtered by difficulty */
+  function kapitelCategorySpec(kap, catId, modeKey, diffKey, level) {
+    var cat = CATS[catId];
+    var mode = MODES[modeKey] || MODES.quick;
+    var diff = DIFFS[diffKey] ? diffKey : "mixed";
+    var o = { kap: kap };
+    if (level) o.level = level;
+    if (diff !== "mixed" && diff !== "graded") o.diff = diff;
+    return {
+      id: "kc-" + kap + "-" + catId + "-" + modeKey + "-" + diff,
+      kind: "kapitel", cat: catId, kap: kap, level: level || null,
+      modeTitle: (cat ? cat.ar : catId) + " • " + kap + " (" + mode.ar + "، " + (DIFFS[diffKey] || DIFFS.medium).ar + ")",
+      minQ: 5, timed: false, diffKey: diff,
+      build: function () {
+        if (catId === "mistakes") return mistakeSpec(kap).build();
+        var per = Math.max(1, Math.ceil((mode.n || 24) / (cat.facs.length)));
+        var plan = cat.facs.map(function (f) { return F(f, per, o); });
+        var got = U.buildPool(plan, mode.n ? undefined : 99);
+        var pool = got.pool;
+        if (diff === "graded") pool = DMAssess.filterByDiff(pool, "graded");
+        if (mode.n) pool = pool.slice(0, mode.n);
+        else pool = pool.slice(0, DMAssess.CONFIG.MASTER_CAP);
+        pool._notes = got.notes;
+        return pool;
+      }
+    };
+  }
+  /* full Kapitel exam: one section per available category */
+  function kapitelExamSpec(kap, level) {
+    return {
+      id: "kexam-" + kap, kind: "kapitel", cat: "full", kap: kap, level: level || null,
+      modeTitle: "الامتحان الشامل • " + kap, minQ: 12, timed: false,
+      build: function () {
+        var o = { kap: kap };
+        if (level) o.level = level;
+        var plan = [];
+        CAT_IDS.forEach(function (cid) {
+          if (cid === "mistakes") return;
+          CATS[cid].facs.forEach(function (f) { plan.push(F(f, 2, o)); });
+        });
+        return U.buildPool(plan, 4).pool;
+      }
+    };
+  }
+  /* mixed test with explicit percent distribution {vocab:20, grammar:20...} */
+  function mixedDistSpec(dist, o) {
+    o = o || {};
+    var counts = DMAssess.distribute(o.total || 20, dist || { vocab: 20, grammar: 20, sentences: 20, verbs: 10, listening: 10, reading: 10, practical: 10 });
+    var DIST_FACS = {
+      vocab: ["vocabMean", "article", "translate", "match", "wordClass"],
+      grammar: ["grammar", "kein", "gap"], sentences: ["gap", "order", "sentMean"],
+      verbs: ["verb", "conj", "error"], listening: ["listening", "listenGap"],
+      reading: ["reading", "sentMean"], practical: ["situation", "dialogue"],
+      writing: ["fillWrite", "order"], speaking: ["speaking"]
+    };
+    return {
+      id: "dist-" + Date.now().toString(36), kind: "general",
+      modeTitle: "اختبار متنوع (" + (o.total || 20) + " سؤالًا)", minQ: 5, timed: false,
+      build: function () {
+        var plan = [];
+        Object.keys(counts).forEach(function (sk) {
+          var facs = DIST_FACS[sk] || ["vocabMean"];
+          var per = Math.ceil(counts[sk] / facs.length) || 0;
+          facs.forEach(function (f) { if (per > 0) plan.push(F(f, per, { kap: o.kap || null, level: o.level || null })); });
+        });
+        var got = U.buildPool(plan, 99, o.rng ? { rng: o.rng } : null);
+        var pool = DMAssess.shuffled(got.pool, o.rng);
+        return pool.slice(0, o.total || 20);
+      }
+    };
+  }
+  /* custom builder result: levels[], kaps[], cats[], diff, count, mode */
+  function customSpec(b) {
+    b = b || {};
+    var levels = (b.levels && b.levels.length ? b.levels : [null]);
+    var kaps = (b.kaps && b.kaps.length ? b.kaps : [null]);
+    var cats = (b.cats && b.cats.length ? b.cats : ["words", "grammar", "sentences"]);
+    var total = b.count || 10, diff = b.diff || "mixed", mode = b.mode || "test";
+    return {
+      id: "custom-" + Date.now().toString(36), kind: "general", customMode: mode,
+      modeTitle: "اختباري الخاص (" + total + " • " + cats.length + " فئات)",
+      minQ: 5, timed: mode === "exam",
+      secs: mode === "exam" ? DMAssess.CONFIG.EXAM_TIME_SEC : 0,
+      qTimed: mode === "challenge", qSecs: DMAssess.CONFIG.QTIME_SEC,
+      passPct: mode === "exam" ? DMAssess.CONFIG.PASS_A1_EXAM : 0,
+      build: function () {
+        var per = Math.max(1, Math.ceil(total / Math.max(1, cats.length * levels.length * kaps.length)));
+        var plan = [];
+        cats.forEach(function (cid) {
+          if (cid === "mistakes") return;
+          var facs = (CATS[cid] || {}).facs || ["vocabMean"];
+          levels.forEach(function (lv) {
+            kaps.forEach(function (kp) {
+              facs.forEach(function (f) {
+                var slot = F(f, per, {});
+                if (lv) slot.level = lv;
+                if (kp) slot.kap = kp;
+                if (diff !== "mixed" && diff !== "graded") slot.diff = diff;
+                plan.push(slot);
+              });
+            });
+          });
+        });
+        var got = U.buildPool(plan, 99);
+        var pool = got.pool;
+        if (diff === "graded") pool = DMAssess.filterByDiff(pool, "graded");
+        pool = DMAssess.shuffled(pool).slice(0, total);
+        pool._notes = got.notes;
+        return pool;
+      }
+    };
+  }
+  /* mistake test: same weak concepts, NEW questions (same item excluded) */
+  function mistakeSpec(kap) {
+    return {
+      id: "mist-" + (kap || "all") + "-" + Date.now().toString(36), kind: "skill", skill: "mixed-weak",
+      modeTitle: "اختبرني في أخطائي" + (kap ? " • " + kap : ""), minQ: 4, timed: false,
+      build: function () {
+        var mp = U.mistakePlan(12);
+        if (!mp.plan.length) return [];
+        var plan = mp.plan.map(function (sl) {
+          if (kap) sl.kap = kap;
+          sl.n = 2;
+          return sl;
+        });
+        return U.buildPool(plan, 4, { excludeIds: mp.excludeIds }).pool;
+      }
+    };
+  }
+  /* daily challenge: fixed composition, date-seeded => same test all day */
+  function dailySpec(dateStr) {
+    var seed = dateStr || "today";
+    return {
+      id: "daily-" + seed, kind: "general",
+      modeTitle: "تحدي اليوم 🎯", minQ: 8, timed: false, seed: seed,
+      build: function () {
+        var rng = DMAssess.seededRng(seed);
+        var got = U.buildPool([
+          F("vocabMean", 3, {}), F("grammar", 2, {}), F("gap", 2, {}),
+          F("listening", 2, {}), F("situation", 1, {}), F("article", 2, {})
+        ], 4, { rng: rng });
+        return DMAssess.shuffled(got.pool, rng).slice(0, 12);
+      }
+    };
+  }
+  /* boss test: hard-heavy surprise mix; unlock = readiness>=50 OR 3 tests */
+  function bossUnlock(kap, rmap, history) {
+    var r = (rmap || {})[kap];
+    var tested = 0;
+    try {
+      (history || []).forEach(function (h) {
+        if (h.kapitel === kap || (h.kaps && h.kaps[kap] && h.kaps[kap].n >= 4)) tested++;
+      });
+    } catch (e) {}
+    if (r && r.pct >= DMAssess.CONFIG.BOSS_UNLOCK_READY) return { ok: true, why: "إتقان " + kap + ": " + r.pct + "%" };
+    if (tested >= 3) return { ok: true, why: tested + " اختبارات في " + kap };
+    return { ok: false, why: "يحتاج إتقان " + DMAssess.CONFIG.BOSS_UNLOCK_READY + "% أو 3 اختبارات في " + kap + " (التعلّم نفسه مفتوح دائمًا)" };
+  }
+  function bossSpec(kap) {
+    return {
+      id: "boss-" + kap, kind: "kapitel", cat: "boss", kap: kap,
+      modeTitle: "اختبار الزعيم 👑 • " + kap, minQ: 10, timed: false, adaptiveDiff: true,
+      build: function () {
+        var o = { kap: kap };
+        var got = U.buildPool([
+          F("error", 2, o), F("conj", 2, o), F("kein", 2, o),
+          F("order", 2, o), F("listenGap", 2, o), F("dialogue", 1, o),
+          F("grammar", 2, o), F("match", 1, o), F("reading", 1, o), F("situation", 1, o)
+        ], 3);
+        var pool = DMAssess.filterByDiff(got.pool, "graded");
+        return pool.slice(0, 16);
+      }
+    };
+  }
+  /* smart test-me: weakness-weighted distribution from real history */
+  function smartSpec(o) {
+    o = o || {};
+    return {
+      id: "smart-" + Date.now().toString(36), kind: "general",
+      modeTitle: "اختبرني بذكاء 🧠", minQ: 6, timed: false,
+      build: function () {
+        var dist = { vocab: 15, grammar: 15, sentences: 15, verbs: 10, listening: 10, reading: 10, practical: 10, writing: 8, speaking: 7 };
+        try {
+          if (o.weakSkills && o.weakSkills.length) {
+            var boost = {};
+            o.weakSkills.forEach(function (s) { boost[s] = 3; });
+            Object.keys(dist).forEach(function (k) { dist[k] = dist[k] * (boost[k] || 1); });
+          }
+        } catch (e) {}
+        return mixedDistSpec(dist, { total: o.total || 15, kap: o.kap || null, level: o.level || null }).build();
+      }
+    };
+  }
+  return { mixedSpec: mixedSpec, placementSpec: placementSpec, kapitelSpec: kapitelSpec, skillSpec: skillSpec, a1ExamSpec: a1ExamSpec, levelExamSpec: levelExamSpec, SKILL_FACTORIES: SKILL_FACTORIES, CATS: CATS, CAT_IDS: CAT_IDS, MODES: MODES, DIFFS: DIFFS, kapitelCategorySpec: kapitelCategorySpec, kapitelExamSpec: kapitelExamSpec, mixedDistSpec: mixedDistSpec, customSpec: customSpec, mistakeSpec: mistakeSpec, dailySpec: dailySpec, bossSpec: bossSpec, bossUnlock: bossUnlock, smartSpec: smartSpec };
 })();
 /* ============ SESSION RUNNER + STORE ============ */
 DMAssess.app = (function () {
@@ -872,6 +1390,7 @@ DMAssess.app = (function () {
     if (q.type === "fill") return q.answer;
     if (q.type === "match") return q.why;
     if (q.type === "speak") return q.sample;
+    if (q.type === "conj" && q.rows) return q.rows.map(function (r) { return r.pron + " " + r.opts[r.correct]; }).join(" • ");
     if (q.opts && typeof q.correct === "number") return q.opts[q.correct];
     return q.why || "";
   }
@@ -899,13 +1418,17 @@ DMAssess.app = (function () {
       return false;
     }
     sess = {
-      spec: { id: spec.id, kind: spec.kind, modeTitle: spec.modeTitle, timed: !!spec.timed, secs: spec.secs || 0, passPct: spec.passPct || 0, kap: spec.kap || null, skill: spec.skill || null, level: spec.level || null },
+      spec: { id: spec.id, kind: spec.kind, modeTitle: spec.modeTitle, timed: !!spec.timed, secs: spec.secs || 0, passPct: spec.passPct || 0, kap: spec.kap || null, skill: spec.skill || null, level: spec.level || null, cat: spec.cat || null, mode: spec.customMode || (spec.kind === "exam" ? "exam" : "test"), diffKey: spec.diffKey || null, seed: spec.seed || null },
       specRef: spec, qs: pool, ans: pool.map(function () { return null; }),
       idx: 0, startedAt: Date.now(),
       deadline: spec.timed ? Date.now() + (spec.secs || C.CONFIG.EXAM_TIME_SEC) * 1000 : 0,
       stages: spec.adaptive ? [{ id: "A", level: "A1", n: pool.length, ok: 0, done: 0 }] : null,
-      stageIdx: 0, t0q: Date.now(), autoSpoke: {}
+      stageIdx: 0, t0q: Date.now(), autoSpoke: {},
+      combo: 0, bestCombo: 0, perfects: 0,
+      qTimed: !!spec.qTimed, qSecs: spec.qSecs || C.CONFIG.QTIME_SEC, qDeadline: 0,
+      adaptiveDiff: !!spec.adaptiveDiff
     };
+    if (sess.qTimed) sess.qDeadline = Date.now() + sess.qSecs * 1000;
     persistInProgress();
     renderRunner();
     try { if (typeof showPage === "function") showPage("quiz"); } catch (e) {}
@@ -919,7 +1442,8 @@ DMAssess.app = (function () {
         v: C.CONFIG.STORE_V, specMeta: sess.spec,
         qs: sess.qs, ans: sess.ans, idx: sess.idx,
         startedAt: sess.startedAt, deadline: sess.deadline,
-        stages: sess.stages, stageIdx: sess.stageIdx
+        stages: sess.stages, stageIdx: sess.stageIdx,
+        combo: sess.combo || 0, bestCombo: sess.bestCombo || 0, perfects: sess.perfects || 0
       };
       save();
     } catch (e) {}
@@ -937,19 +1461,31 @@ DMAssess.app = (function () {
       try {
         var S2 = DMAssess.specs, m = ip.specMeta || {};
         if (m.id === "placement") spec = S2.placementSpec();
-        else if (m.kind === "kapitel" && m.kap) spec = S2.kapitelSpec(m.kap);
-        else if (m.kind === "skill" && m.skill) spec = S2.skillSpec(m.skill);
+        else if (m.kind === "kapitel" && m.kap && !m.cat) spec = S2.kapitelSpec(m.kap);
+        else if (m.kind === "kapitel" && m.kap && m.cat === "full") spec = S2.kapitelExamSpec(m.kap, m.level);
+        else if (m.kind === "kapitel" && m.kap && m.cat) spec = S2.kapitelCategorySpec(m.kap, m.cat, "normal", m.diffKey || "mixed", m.level);
+        else if (m.kind === "skill" && m.skill && S2.SKILL_FACTORIES[m.skill]) spec = S2.skillSpec(m.skill);
         else if (m.id === "exam-a1") spec = S2.a1ExamSpec();
         else if (m.kind === "exam" && m.level) spec = S2.levelExamSpec(m.level);
         else spec = S2.mixedSpec(ip.qs.length);
+        /* carry session behavior flags for rebuilt/new-kind specs */
+        if (spec && m) {
+          if (m.mode === "challenge") { spec.qTimed = true; spec.qSecs = DMAssess.CONFIG.QTIME_SEC; }
+          if (m.mode === "exam" && !spec.timed) { spec.timed = true; spec.secs = DMAssess.CONFIG.EXAM_TIME_SEC; }
+          if (m.cat === "boss") spec.adaptiveDiff = true;
+        }
       } catch (e) { spec = null; }
       if (!spec) return false;
       sess = {
         spec: ip.specMeta, specRef: spec, qs: ip.qs, ans: ip.ans || ip.qs.map(function () { return null; }),
         idx: Math.min(ip.idx || 0, ip.qs.length - 1), startedAt: ip.startedAt,
         deadline: ip.deadline || 0, stages: ip.stages || null, stageIdx: ip.stageIdx || 0,
-        t0q: Date.now(), autoSpoke: {}
+        t0q: Date.now(), autoSpoke: {},
+        combo: ip.combo || 0, bestCombo: ip.bestCombo || 0, perfects: ip.perfects || 0,
+        qTimed: !!(ip.specMeta && ip.specMeta.mode === "challenge"), qSecs: DMAssess.CONFIG.QTIME_SEC,
+        qDeadline: 0, adaptiveDiff: !!(ip.specMeta && (ip.specMeta.cat === "boss" || ip.specMeta.adaptiveDiff))
       };
+      if (sess.qTimed && !sess.ans[sess.idx]) sess.qDeadline = Date.now() + sess.qSecs * 1000;
       if (sess.deadline && Date.now() >= sess.deadline) { finish(true); return true; }
       renderRunner();
       try { if (typeof showPage === "function") showPage("quiz"); } catch (e) {}
@@ -966,16 +1502,32 @@ DMAssess.app = (function () {
   function finish(auto) { try { return DMAssess.center.finish(auto); } catch (e) { if (window.console) console.error("assess finish", e); return null; } }
   function renderCenter() { try { return DMAssess.center.renderCenter(); } catch (e) { if (window.console) console.error("assess center", e); } }
   function tickTimer() {
-    if (!sess || !sess.deadline) return;
-    var left = Math.max(0, Math.round((sess.deadline - Date.now()) / 1000));
-    var el = $("asrTimer");
-    if (el) {
-      var m = Math.floor(left / 60), s = left % 60;
-      el.textContent = "⏱️ " + m + ":" + (s < 10 ? "0" : "") + s;
-      el.classList.toggle("asr-danger", left < 180);
+    if (!sess) return;
+    if (sess.deadline) {
+      var left = Math.max(0, Math.round((sess.deadline - Date.now()) / 1000));
+      var el = $("asrTimer");
+      if (el) {
+        var m = Math.floor(left / 60), s = left % 60;
+        el.textContent = "⏱️ " + m + ":" + (s < 10 ? "0" : "") + s;
+        el.classList.toggle("asr-danger", left < 180);
+      }
+      persistThrottleTick(left);
+      if (left <= 0) { toast("⏱️ انتهى الوقت — يتم تسليم الاختبار تلقائيًا", "err"); finish(true); return; }
     }
-    persistThrottleTick(left);
-    if (left <= 0) { toast("⏱️ انتهى الوقت — يتم تسليم الاختبار تلقائيًا", "err"); finish(true); }
+    /* challenge per-question countdown */
+    if (sess.qTimed && sess.qDeadline && !sess.ans[sess.idx]) {
+      var ql = Math.max(0, Math.ceil((sess.qDeadline - Date.now()) / 1000));
+      var qe = $("asrQTimer");
+      if (qe) {
+        qe.textContent = "⏱️ " + ql + "s";
+        qe.classList.toggle("asr-danger", ql <= 4);
+      }
+      if (ql <= 0) {
+        var q = sess.qs[sess.idx];
+        toast("⏱️ انتهى وقت السؤال!", "err");
+        lockAnswer(q, { ok: false, user: "— (انتهى الوقت)", correct: correctTextOf(q), timeout: true });
+      }
+    }
   }
   var __lastPersist = 0;
   function persistThrottleTick(left) {
@@ -991,7 +1543,7 @@ DMAssess.app = (function () {
     var done = sess.ans.filter(Boolean).length;
     root.innerHTML = '<div id="assessRunner" class="asr-wrap"></div>';
     renderQ();
-    if (sess.spec.timed && sess.deadline) { timerInt = setInterval(tickTimer, 1000); }
+    if ((sess.spec.timed && sess.deadline) || sess.qTimed) { timerInt = setInterval(tickTimer, 500); }
     try {
       var before = window.onbeforeunload;
       window.onbeforeunload = function (e) {
@@ -1001,12 +1553,19 @@ DMAssess.app = (function () {
       sess._prevUnload = before;
     } catch (e) {}
   }
+  function modeBadge() {
+    var m = (sess && sess.spec.mode) || "test";
+    return m === "training" ? "🟢 تدريب" : m === "challenge" ? "🟡 تحدي" : m === "exam" ? "🔴 امتحان" : "🔵 اختبار";
+  }
   function qStatusLine() {
     var done = sess.ans.filter(Boolean).length;
     return '<div class="quiz-top"><span id="asrQNum">' + (sess.idx + 1) + ' / ' + sess.qs.length + '</span>' +
       '<div class="progress"><div class="progress-fill" style="width:' + Math.round(done / sess.qs.length * 100) + '%"></div></div>' +
       '<span class="muted">✅ ' + done + '</span>' +
-      (sess.spec.timed ? '<span id="asrTimer" class="asr-timer">⏱️ …</span>' : '') + '</div>';
+      (sess.combo >= 2 ? '<span class="asr-combo">🔥x' + sess.combo + '</span>' : '') +
+      '<span class="asr-mode">' + modeBadge() + '</span>' +
+      (sess.spec.timed ? '<span id="asrTimer" class="asr-timer">⏱️ …</span>' : '') +
+      (sess.qTimed && !sess.ans[sess.idx] ? '<span id="asrQTimer" class="asr-timer">⏱️ …</span>' : '') + '</div>';
   }
   function renderQ() {
     var box = $("assessRunner"); if (!box || !sess) return;
@@ -1089,9 +1648,34 @@ DMAssess.app = (function () {
         '<div class="muted">مثال: ' + esc(q.sample || "") + (sr ? '' : ' (التعرف الصوتي غير مدعوم في متصفحك — اكتب إجابتك ⌨️)') + '</div>';
       return;
     }
+    if (q.type === "conj") {
+      var cans = a ? a.conjAns || {} : (sess._conj || {});
+      b.innerHTML = '<div class="asr-conj">' + q.rows.map(function (r, ri) {
+        return '<div class="asr-conjrow"><b>' + esc(r.pron) + ' ___</b><div class="quiz-opts">' + r.opts.map(function (o, oi) {
+          var cls = "quiz-opt";
+          if (a) {
+            if (oi === r.correct) cls += " correct";
+            else if (cans[ri] === oi) cls += " wrong";
+            if (cans[ri] === oi) cls += " sel";
+          } else if (cans[ri] === oi) cls += " sel";
+          return '<button class="' + cls + '" data-crow="' + ri + '" data-cpick="' + oi + '" dir="ltr"' + (a ? " disabled" : "") + '>' + esc(o) + '</button>';
+        }).join("") + "</div></div>";
+      }).join("") + "</div>";
+      if (!a) {
+        sess._conj = sess._conj || {};
+        b.querySelectorAll("[data-crow]").forEach(function (x) {
+          x.addEventListener("click", function () {
+            var ri = x.getAttribute("data-crow");
+            sess._conj[ri] = parseInt(x.getAttribute("data-cpick"), 10);
+            b.querySelectorAll('[data-crow="' + ri + '"]').forEach(function (y) { y.classList.remove("sel"); });
+            x.classList.add("sel");
+          });
+        });
+      }
+      return;
+    }
     if (q.type === "match") {
-      var locked = a ? a.lockedPairs || [] : [];
-      b.innerHTML = '<div class="asr-match">' +
+      var locked = a ? a.lockedPairs || [] : [];      b.innerHTML = '<div class="asr-match">' +
         '<div class="asr-mcol" id="asrMDe">' + q.pairs.map(function (p, i) {
           var isL = locked.indexOf(p.de) >= 0;
           return '<button class="quiz-opt asr-mbtn' + (isL ? ' correct' : '') + '" data-mde="' + i + '"' + (isL ? ' disabled' : '') + '>' + esc(p.de) + '</button>';
@@ -1230,6 +1814,18 @@ DMAssess.app = (function () {
       return { ok: okS, user: t.trim(), correct: q.sample, extra: "تطابق الكلمات: " + g.pct + "%" + (g.notes ? " — " + g.notes : "") + " (تقييم استرشادي)" };
     }
     if (q.type === "match") return null; /* match submits itself when complete */
+    if (q.type === "conj") {
+      var cmap = sess._conj || {};
+      if (Object.keys(cmap).length < q.rows.length) return { empty: true };
+      var okRows = 0;
+      var parts = q.rows.map(function (r, ri) {
+        var good = cmap[ri] === r.correct;
+        if (good) okRows++;
+        return r.pron + " " + r.opts[cmap[ri]];
+      });
+      var okC = okRows >= Math.ceil(q.rows.length * 0.75);
+      return { ok: okC, user: parts.join(" • "), correct: correctTextOf(q), conjAns: cmap, extra: "صحيح: " + okRows + "/" + q.rows.length };
+    }
     if (sess._sel === null || sess._sel === undefined) return { empty: true };
     var pi = sess._sel;
     return { ok: pi === q.correct, user: (q.opts || [])[pi], correct: (q.opts || [])[q.correct], picked: pi };
@@ -1247,17 +1843,64 @@ DMAssess.app = (function () {
     if (r.empty) { toast("أجب أولًا ✍️", "err"); return; }
     lockAnswer(q, r);
   }
+  /* adaptive difficulty: after a miss, pull an easier unanswered question
+     forward (reinforce); after a streak, pull a harder one (stretch).
+     Never changes Kapitel/skill coverage — only the order. */
+  var DIFF_RANK = { easy: 0, medium: 1, hard: 2 };
+  function adaptQueue(ok) {
+    try {
+      if (!sess || sess.idx + 1 >= sess.qs.length) return;
+      var recent = sess.ans.slice(Math.max(0, sess.idx - 2), sess.idx + 1);
+      var streak = recent.length === 3 && recent.every(function (x) { return x && x.ok; });
+      var slump = recent.length >= 2 && recent.every(function (x) { return x && !x.ok; });
+      if (!streak && !slump) return;
+      var want = streak ? 2 : 0, cur = DIFF_RANK[sess.qs[sess.idx].diff] == null ? 1 : DIFF_RANK[sess.qs[sess.idx].diff];
+      for (var j = sess.idx + 1; j < sess.qs.length; j++) {
+        if (sess.ans[j]) continue;
+        var rj = DIFF_RANK[sess.qs[j].diff] == null ? 1 : DIFF_RANK[sess.qs[j].diff];
+        if ((streak && rj > cur) || (slump && rj < cur)) {
+          var nxt = sess.idx + 1;
+          if (j !== nxt && !sess.ans[nxt]) {
+            var tq = sess.qs[nxt]; sess.qs[nxt] = sess.qs[j]; sess.qs[j] = tq;
+            var ta = sess.ans[nxt]; sess.ans[nxt] = sess.ans[j]; sess.ans[j] = ta;
+          }
+          return;
+        }
+      }
+    } catch (e) {}
+  }
   function lockAnswer(q, r) {
     var ms = Date.now() - (sess.t0q || Date.now());
     sess.t0q = Date.now();
-    sess.ans[sess.idx] = { ok: !!r.ok, user: String(r.user == null ? "" : r.user), correct: String(r.correct == null ? "" : r.correct), picked: (r.picked == null ? -1 : r.picked), extra: r.extra || "", lockedPairs: r.lockedPairs || [], pickedArr: (sess._picked || []).slice() };
+    if (sess.qTimed) sess.qDeadline = Date.now() + sess.qSecs * 1000;
+    sess.ans[sess.idx] = { ok: !!r.ok, user: String(r.user == null ? "" : r.user), correct: String(r.correct == null ? "" : r.correct), picked: (r.picked == null ? -1 : r.picked), extra: r.extra || "", lockedPairs: r.lockedPairs || [], pickedArr: (sess._picked || []).slice(), conjAns: r.conjAns || null, timeout: !!r.timeout };
     logAttempt(q, !!r.ok, ms);
     progressSideEffects(q, !!r.ok, String(r.user || ""));
+    /* game mechanics: combo + perfect rounds (lightweight, no heavy anim) */
+    if (r.ok) {
+      sess.combo = (sess.combo || 0) + 1;
+      if (sess.combo > (sess.bestCombo || 0)) sess.bestCombo = sess.combo;
+      if (sess.combo > 0 && sess.combo % 5 === 0) {
+        try { if (FN("addXP")) FN("addXP")(5); } catch (e) {}
+        toast("🔥 كومبو x" + sess.combo + " — ⭐+5", "ok");
+      }
+    } else sess.combo = 0;
+    var answeredN = sess.ans.filter(Boolean).length;
+    if (answeredN > 0 && answeredN % C.CONFIG.PERFECT_ROUND_N === 0) {
+      var round = sess.ans.slice(answeredN - C.CONFIG.PERFECT_ROUND_N, answeredN);
+      if (round.length === C.CONFIG.PERFECT_ROUND_N && round.every(function (x) { return x && x.ok; })) {
+        sess.perfects = (sess.perfects || 0) + 1;
+        try { if (FN("addXP")) FN("addXP")(10); } catch (e2) {}
+        toast("🏆 Perfect Round! خمس إجابات صحيحة متتالية ⭐+10", "ok");
+      }
+    }
     if (sess.stages) {
       var st = sess.stages[sess.stageIdx];
       if (st) { st.done++; if (r.ok) st.ok++; }
     }
-    sess._sel = null;
+    sess._sel = null; sess._conj = null;
+    /* adaptive difficulty: reinforce on struggle, stretch on streaks */
+    if (sess.adaptiveDiff && !sess.ans[sess.idx + 1]) adaptQueue(!!r.ok);
     persistInProgress();
     /* adaptive placement: stage complete? advance or finish */
     if (sess.specRef.adaptive && sess.stages) {
@@ -1309,7 +1952,7 @@ DMAssess.app = (function () {
   return {
     startFlow: startFlow, resumeFlow: resumeFlow, discardFlow: discardFlow,
     renderRunner: renderRunner, ensureStore: ensureStore, getSess: function () { return sess; },
-    setSess: function (s) { sess = s; }, correctTextOf: correctTextOf,
+    setSess: function (s) { sess = s; }, correctTextOf: correctTextOf, modeBadge: modeBadge,
     persistInProgress: persistInProgress, clearInProgress: clearInProgress, stopTimer: stopTimer,
     renderCenter: function () { return DMAssess.center.renderCenter(); },
     finish: function (auto) { return DMAssess.center.finish(auto); },
@@ -1427,9 +2070,12 @@ DMAssess.center = (function () {
         review.push({ p: String(q.prompt).slice(0, 160), ps: q.passage ? String(q.passage).slice(0, 200) : "", u: String(a.user).slice(0, 120), c: String(a.correct).slice(0, 120), why: String(q.why || "").slice(0, 220), sk: q.skill, tp: q.topicAr || q.topic, kap: q.kap, gid: q.gid || null, refId: q.refId || null });
       }
     });
+    var sessMode = sess.spec.mode || (sess.spec.kind === "exam" ? "exam" : "test");
+    var bestKey = sess.spec.kind + ":" + (sess.spec.cat || "") + ":" + (sess.spec.kap || "") + ":" + (sess.spec.level || "") + ":" + sessMode;
     var entry = {
       id: "as" + Date.now().toString(36), ts: Date.now(), date: today(),
-      mode: sess.spec.kind, title: sess.spec.modeTitle + (sess.spec.kap ? " — " + sess.spec.kap : "") + (sess.spec.skill ? " — " + skillAr(sess.spec.skill) : ""),
+      mode: sess.spec.kind, sessMode: sessMode, cat: sess.spec.cat || null,
+      title: sess.spec.modeTitle + (sess.spec.kap ? " — " + sess.spec.kap : "") + (sess.spec.skill ? " — " + skillAr(sess.spec.skill) : ""),
       level: levelVerdict ? levelVerdict.level : null, levelConf: levelVerdict ? levelVerdict.confidence : null,
       kapitel: cur.current, kapitelNext: cur.next,
       score: scored.total.ok, total: sess.qs.length, pct: scored.total.pct,
@@ -1437,8 +2083,23 @@ DMAssess.center = (function () {
       skills: scored.skills, kaps: scored.kaps, rmap: rmap,
       weak: C.weakSkills(scored.skills), strong: C.strongSkills(scored.skills),
       weakTopics: C.weakTopics(scored.topics, 6).map(function (x) { return { sk: x.skill, tp: x.topic, pct: x.pct, n: Math.round(x.n) }; }),
-      stages: stages, review: review, specId: sess.spec.id
+      stages: stages, review: review, specId: sess.spec.id, bestKey: bestKey,
+      comboBest: sess.bestCombo || 0, perfects: sess.perfects || 0, newRecord: false
     };
+    /* personal records (additive keys only; history stays the source of truth) */
+    try {
+      var st0 = A.ensureStore();
+      if (st0) {
+        if (!st0.best || typeof st0.best !== "object") st0.best = {};
+        if (!st0.days || typeof st0.days !== "object") st0.days = {};
+        if (entry.pct > (st0.best[bestKey] || 0)) { st0.best[bestKey] = entry.pct; entry.newRecord = (st0.history || []).some(function (h) { return h.bestKey === bestKey; }); }
+        if ((sess.bestCombo || 0) > (st0.bestCombo || 0)) st0.bestCombo = sess.bestCombo;
+        var dk = today();
+        st0.days[dk] = (st0.days[dk] || 0) + 1;
+        var dks = Object.keys(st0.days).sort();
+        while (dks.length > 60) { delete st0.days[dks.shift()]; }
+      }
+    } catch (e5) {}
     /* persist history (ring buffer) */
     try {
       var st = A.ensureStore();
@@ -1497,6 +2158,8 @@ DMAssess.center = (function () {
     h += '<div class="panel glass asd-hero"><div class="muted">' + esc(entry.title) + ' • ' + esc(entry.date) + ' • ⏱️ ' + Math.floor(entry.dur / 60) + ':' + String(entry.dur % 60).padStart(2, "0") + '</div>';
     h += '<div class="asr-big">' + entry.pct + '%</div>';
     h += '<div><b>' + esc(entry.status) + '</b> <span class="muted">(' + entry.score + '/' + entry.total + ')</span></div>';
+    if (entry.newRecord) h += '<div class="quiz-feedback ok">🎉 رقم قياسي جديد — أفضل نتيجة لك في هذا النوع!</div>';
+    if (entry.comboBest >= 3) h += '<div class="muted">🔥 أطول سلسلة صحيحة: <b>x' + entry.comboBest + '</b>' + (entry.perfects ? ' • 🏆 Perfect Rounds: ' + entry.perfects : '') + '</div>';
     if (entry.level) {
       h += '<div class="asd-lvlrow"><div class="asd-lvl"><span class="muted">مستواك</span><b>' + esc(entry.level) + '</b></div>';
       h += '<div class="asd-lvl"><span class="muted">Kapitel</span><b>' + esc(entry.kapitel || "—") + '</b></div>';
@@ -1617,6 +2280,8 @@ DMAssess.center = (function () {
       h += '<div class="panel glass as-resume"><b>💾 لديك اختبار غير مكتمل: ' + esc(ip.title) + ' (' + ip.done + '/' + ip.total + ')</b>' +
         '<div class="row-flex"><button class="btn btn-primary sm" data-as="resume">▶️ استكمال الاختبار</button><button class="btn btn-ghost sm" data-as="discard">🗑️ تجاهل</button></div></div>';
     }
+    /* guided Test Center flow (testcenter.js, additive; guarded) */
+    try { if (typeof DMTestCenter !== "undefined" && DMTestCenter && DMTestCenter.renderSection) h += DMTestCenter.renderSection(d); } catch (e) {}
     /* status */
     var kapTxt = d.cur.current ? d.cur.current : "—";
     var kapSub = !d.cur.current ? "ابدأ أول تقييم" : (d.cur.next ? "قريب من " + d.cur.next : "متقدم 🎉");
@@ -1693,6 +2358,7 @@ DMAssess.center = (function () {
     h += '</div>';
     root.innerHTML = h;
     wireDashBtns(root);
+    try { if (typeof DMTestCenter !== "undefined" && DMTestCenter && DMTestCenter.wire) DMTestCenter.wire(root); } catch (e2) {}
   }
   function statCard(ico, label, val, sub) {
     return '<div class="asd-stat"><div class="asd-ico">' + ico + '</div><b>' + esc(val) + '</b><span class="muted">' + esc(label) + '</span><small class="muted">' + esc(sub || "") + '</small></div>';
@@ -1808,7 +2474,7 @@ DMAssess.center = (function () {
     + ".asd-bars{display:flex;gap:10px;align-items:flex-end;min-height:120px;padding-top:8px}"
     + ".asd-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}"
     + ".asd-barfill{width:100%;max-width:56px;background:linear-gradient(180deg,var(--gold,#f5b301),#b97e00);border-radius:8px 8px 0 0;min-height:4px}"
-    + ".as-resume{border-color:var(--gold,#f5b301)}"
+    + ".as-resume{border-color:var(--gold,#f5b301)}" + ".asr-combo{font-weight:800;color:#ff8c42;background:rgba(255,140,66,.12);border:1px solid rgba(255,140,66,.4);border-radius:10px;padding:2px 8px}" + ".asr-mode{font-weight:700;background:rgba(255,255,255,.06);border:1px solid var(--border,#333);border-radius:10px;padding:2px 8px;font-size:12px}" + ".asr-conj{display:flex;flex-direction:column;gap:10px}" + ".asr-conjrow{background:rgba(255,255,255,.03);border:1px solid var(--border,#333);border-radius:12px;padding:8px}"
     + ".tag{background:rgba(255,255,255,.07);border:1px solid var(--border,#333);border-radius:20px;padding:2px 10px;font-size:12px}";
   function injectCss() {
     try { if (document.getElementById("assessCss")) return; var st = document.createElement("style"); st.id = "assessCss"; st.textContent = CSS; document.head.appendChild(st); } catch (e) {}
