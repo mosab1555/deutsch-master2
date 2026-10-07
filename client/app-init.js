@@ -57,10 +57,13 @@
         // Hide all other pages
         document.querySelectorAll(".page:not(#page-auth)").forEach(function(p) { p.classList.remove("active"); });
         document.querySelectorAll(".nav-item").forEach(function(b) { b.classList.remove("active"); });
-        // Hide sidebar
+        // Hide sidebar (single authority: DMDrawer in script.js when present).
+        if (window.DMDrawer && typeof window.DMDrawer.close === "function") { try { window.DMDrawer.close(); } catch (e) {} }
+        else {
         document.getElementById("sidebar")?.classList.remove("open");
         document.getElementById("sidebarOverlay")?.classList.remove("show");
         try { document.body.classList.remove("drawer-open"); } catch (e) {}
+        }
         // Update auth UI
         updateAuthUI(false);
     }
@@ -603,9 +606,13 @@
         // account entry is the existing data-page="profile" nav item).
         // Closes the sidebar so the resulting guest UI is fully visible.
         document.getElementById("logoutBtn")?.addEventListener("click", function() {
+            // Single authority: DMDrawer in script.js when present.
+            if (window.DMDrawer && typeof window.DMDrawer.close === "function") { try { window.DMDrawer.close(); } catch (e) {} }
+            else {
             try { document.getElementById("sidebar")?.classList.remove("open"); } catch (e) {}
             try { document.getElementById("sidebarOverlay")?.classList.remove("show"); } catch (e) {}
             try { document.body.classList.remove("drawer-open"); } catch (e) {}
+            }
             if (window.AuthModule && typeof window.AuthModule.signOut === "function") {
                 var p = null;
                 try { p = window.AuthModule.signOut(); } catch (e) {

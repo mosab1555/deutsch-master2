@@ -358,9 +358,29 @@ html[data-theme="light"] .topbar{background:linear-gradient(180deg,rgba(255,255,
 /* ============ SV-9 · MOBILE (bottom nav, compact, no overflow) ============ */
 .sv-bottomnav{display:none}
 @media (max-width:860px){
-  .sidebar{position:fixed;inset-block:0;inset-inline-start:0;transform:translateX(105%);transition:transform var(--sv-t-med) var(--sv-ease);height:100dvh;box-shadow:var(--sv-sh-lg)}
-  html[dir="rtl"] .sidebar{transform:translateX(-105%)}
-  .sidebar.open{transform:none!important}
+  /* Mobile drawer — ROOT-CAUSE FIX (was visibly stuck open on phones).
+     The drawer docks on the inline-start side (right in this RTL app,
+     left in LTR) and MUST sit fully off-viewport while closed:
+     - RTL (right drawer): hide with +X (rightwards).
+     - LTR (left drawer):  hide with -X (leftwards).
+     The previous rules had these two directions swapped, so the closed
+     drawer translated INTO the viewport (visible, clickable, covering
+     content) instead of out of it. sovereign.css loads last and wins the
+     cascade over style.css, so this inversion was the visible bug.
+     Closed state is a real hidden state (transform + visibility +
+     pointer-events), never opacity alone. position:fixed keeps it out of
+     layout so content uses the full width and no horizontal overflow
+     occurs. GPU-friendly: only transform animates. */
+  .sidebar{position:fixed;inset-block:0;inset-inline-start:0;inset-inline-end:auto;transform:translateX(-105%);visibility:hidden;pointer-events:none;overflow-y:auto;overscroll-behavior:contain;width:284px;max-width:88vw;height:100dvh;z-index:160;box-shadow:var(--sv-sh-lg);transition:transform var(--sv-t-med) var(--sv-ease),visibility 0s linear var(--sv-t-med)}
+  html[dir="rtl"] .sidebar{transform:translateX(105%)}
+  .sidebar.open{transform:none!important;visibility:visible;pointer-events:auto;z-index:160;transition:transform var(--sv-t-med) var(--sv-ease),visibility 0s}
+  /* Overlay: hidden + non-interactive while closed; above content/topbar
+     but below the drawer while open. Same 150/160 scale as style.css —
+     no z-index inflation, just made explicit so the cascade cannot
+     strand a click-blocking backdrop. */
+  .sidebar-overlay{display:none;opacity:0;visibility:hidden;pointer-events:none}
+  .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(2,5,16,.6);z-index:150;opacity:1;visibility:visible;pointer-events:auto}
+  body.drawer-open{overflow:hidden}
   .topbar{inset-inline-start:0!important}
   .cmd-hero.hero{grid-template-columns:1fr;gap:18px}
   .cmd-steps{grid-template-columns:1fr}

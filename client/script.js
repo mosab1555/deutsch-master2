@@ -1905,7 +1905,7 @@ function showPage(name){
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
-  try{const _sb=$("sidebar");if(_sb)_sb.classList.remove("open");const _so=$("sidebarOverlay");if(_so)_so.classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}}catch(e){}
+  try{if(window.DMDrawer&&typeof window.DMDrawer.close==="function"){window.DMDrawer.close();}else{const _sb=$("sidebar");if(_sb)_sb.classList.remove("open");const _so=$("sidebarOverlay");if(_so)_so.classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}}}catch(e){}
   /* Page-state preservation: when DMPageState will restore a saved scroll
      position for this page, do NOT scroll to top first (avoids jump/flicker).
      First visits and explicit content opens still start at the top. */
@@ -1918,8 +1918,71 @@ function showPage(name){
 }
 document.querySelectorAll(".nav-item").forEach(b=>{if(b.hasAttribute("data-action"))return;b.addEventListener("click",()=>showPage(b.dataset.page));});
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.getAttribute("data-goto"))));
-try{const _mb=$("menuBtn");if(_mb)_mb.addEventListener("click",()=>{try{const _s=$("sidebar");if(_s)_s.classList.add("open");const _o=$("sidebarOverlay");if(_o)_o.classList.add("show");}catch(e){}try{document.body.classList.add("drawer-open");}catch(e){}});}catch(e){}
-try{const _sov=$("sidebarOverlay");if(_sov)_sov.addEventListener("click",()=>{try{const _s=$("sidebar");if(_s)_s.classList.remove("open");}catch(e){}try{_sov.classList.remove("show");}catch(e){}try{document.body.classList.remove("drawer-open");}catch(e){}});}catch(e){}
+/* ============ DRAWER (single authoritative sidebar controller) ============
+   States: #sidebar.open + #sidebarOverlay.show + body.drawer-open.
+   Closed = fully off-viewport via CSS transform (+ visibility hidden +
+   pointer-events none in sovereign.css/style.css), so it never occupies
+   layout, covers content, traps touches, or leaves a click-blocking layer.
+   RTL: drawer docks right, hides rightwards — direction preserved. */
+(function initDMDrawer(){
+  try{
+    if(window.__dmDrawerInit) return;
+    window.__dmDrawerInit=true;
+    function els(){return {sb:document.getElementById("sidebar"),ov:document.getElementById("sidebarOverlay"),btn:document.getElementById("menuBtn")};}
+    function syncA11y(open){
+      try{
+        const {sb,btn}=els();
+        if(btn) btn.setAttribute("aria-expanded",open?"true":"false");
+        if(sb){
+          sb.setAttribute("aria-hidden",open?"false":"true");
+          if("inert" in sb) sb.inert=!open;
+        }
+      }catch(e){}
+    }
+    function open(){
+      try{
+        const {sb,ov}=els();
+        if(sb) sb.classList.add("open");
+        if(ov) ov.classList.add("show");
+        try{document.body.classList.add("drawer-open");}catch(e){}
+        syncA11y(true);
+      }catch(e){}
+    }
+    function close(returnFocus){
+      try{
+        const {sb,ov,btn}=els();
+        if(sb) sb.classList.remove("open");
+        if(ov) ov.classList.remove("show");
+        try{document.body.classList.remove("drawer-open");}catch(e){}
+        syncA11y(false);
+        if(returnFocus&&btn&&typeof btn.focus==="function"){try{btn.focus({preventScroll:true});}catch(e){}}
+      }catch(e){}
+    }
+    function isOpen(){try{const {sb}=els();return !!(sb&&sb.classList.contains("open"));}catch(e){return false;}}
+    function toggle(){if(isOpen())close();else open();}
+    window.DMDrawer={open,close,toggle,isOpen};
+    try{
+      const {btn,ov}=els();
+      if(btn&&!btn.__dmDrawerWired){btn.__dmDrawerWired=true;btn.setAttribute("aria-expanded","false");btn.setAttribute("aria-controls","sidebar");btn.addEventListener("click",toggle);}
+      if(ov&&!ov.__dmDrawerWired){ov.__dmDrawerWired=true;ov.addEventListener("click",()=>close());}
+      if(!window.__dmDrawerEscWired){window.__dmDrawerEscWired=true;document.addEventListener("keydown",e=>{try{if((e.key==="Escape"||e.key==="Esc")&&isOpen()){e.preventDefault();close(true);}}catch(_){}});}
+      /* Crossing back to desktop must never strand a body scroll-lock or a
+         stale open class: desktop sidebar is a docked column, not a drawer. */
+      if(!window.__dmDrawerResizeWired){
+        window.__dmDrawerResizeWired=true;
+        let _dmMq=null;
+        try{_dmMq=window.matchMedia("(min-width:861px)");}catch(e){_dmMq=null;}
+        const onWide=()=>{try{if(window.innerWidth>860)close();}catch(e){}};
+        if(_dmMq&&typeof _dmMq.addEventListener==="function")_dmMq.addEventListener("change",e=>{try{if(e.matches)close();}catch(_){}});
+        else if(_dmMq&&typeof _dmMq.addListener==="function")_dmMq.addListener(e=>{try{if(e.matches)close();}catch(_){}});
+        else window.addEventListener("resize",onWide);
+      }
+    }catch(e){}
+    /* Initial state: CLOSED. Never auto-open on load/refresh; also repairs a
+       stale open class should one ever be serialized into markup. */
+    try{close();}catch(e){}
+  }catch(e){}
+})();
 
 /* ============ THEME / SPEED ============ */
 function applyTheme(){document.documentElement.setAttribute("data-theme",S.settings.theme);$("themeBtn").textContent=S.settings.theme==="dark"?"🌙":"☀️";try{applyColor();}catch(e){}}
