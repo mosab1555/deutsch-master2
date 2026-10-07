@@ -238,6 +238,83 @@
     } catch (e) {}
   }
 
+  /* ---- 4b. Bottom navigation auto-hide on scroll ----
+     Visible state = normal fixed position. Hidden state = .sv-hidden
+     (transform:translateY(110%) in CSS: fully below the viewport, no gap
+     since the bar is position:fixed). Scroll direction decides the state;
+     scrollY === 0 always forces visible. A small delta threshold plus a
+     hide-after offset prevents flickering on tiny/rapid direction changes.
+     Passive listener + rAF throttle: no work per raw scroll event, no touch
+     interference, vertical only. Registered once; never wraps showPage so
+     routing, active states and back-button behavior are untouched. */
+  var SV_HIDE_AFTER = 120; /* meaningful downward travel before hiding */
+  var SV_HIDE_DELTA = 10;  /* ignore sub-threshold jitter */
+  function bottomBar() {
+    try { return doc.querySelector(".sv-bottomnav"); } catch (e) { return null; }
+  }
+  function showBottomBar() {
+    try {
+      var bar = bottomBar();
+      if (bar && bar.classList.contains("sv-hidden")) bar.classList.remove("sv-hidden");
+    } catch (e) {}
+  }
+  function hideBottomBar() {
+    try {
+      var bar = bottomBar();
+      if (bar && !bar.classList.contains("sv-hidden")) bar.classList.add("sv-hidden");
+    } catch (e) {}
+  }
+  function wireBottomNavAutoHide() {
+    try {
+      if (window.__svBottomNavScrollWired) return;
+      window.__svBottomNavScrollWired = true;
+      var lastY = 0;
+      var ticking = false;
+      try {
+        lastY = window.pageYOffset || doc.documentElement.scrollTop || 0;
+      } catch (e) { lastY = 0; }
+      /* Test seam (no behavior change): DMBottomNav.show/hide/isHidden. */
+      try {
+        window.DMBottomNav = window.DMBottomNav || {};
+        window.DMBottomNav.show = showBottomBar;
+        window.DMBottomNav.hide = hideBottomBar;
+        window.DMBottomNav.isHidden = function () {
+          try {
+            var b = bottomBar();
+            return !!(b && b.classList.contains("sv-hidden"));
+          } catch (e2) { return false; }
+        };
+      } catch (e) {}
+      function update() {
+        ticking = false;
+        var y = 0;
+        try { y = window.pageYOffset || doc.documentElement.scrollTop || 0; }
+        catch (e) { y = 0; }
+        /* Top of page: always visible (covers overscroll bounce y <= 0). */
+        if (y <= 0) { showBottomBar(); lastY = y; return; }
+        var dy = y - lastY;
+        if (dy > SV_HIDE_DELTA && y > SV_HIDE_AFTER) hideBottomBar();
+        else if (dy < -SV_HIDE_DELTA) showBottomBar();
+        /* Advance the baseline only on meaningful moves so rapid direction
+           flips around the threshold cannot flutter the bar. */
+        if (Math.abs(dy) >= SV_HIDE_DELTA) lastY = y;
+      }
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        try {
+          if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(update);
+          else setTimeout(update, 16);
+        } catch (e) { ticking = false; }
+      }
+      try {
+        window.addEventListener("scroll", onScroll, { passive: true });
+      } catch (e) {
+        try { window.addEventListener("scroll", onScroll); } catch (e2) {}
+      }
+    } catch (e) {}
+  }
+
   /* ---- 5. Orbit: pause animation work while offscreen ---- */
   function guardOrbit() {
     try {
@@ -260,6 +337,7 @@
     upgradeFeatureTiles();
     addHeroKicker();
     buildBottomNav();
+    wireBottomNavAutoHide();
     guardOrbit();
     try { doc.documentElement.classList.add("sv-on"); } catch (e) {}
   }

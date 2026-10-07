@@ -406,6 +406,18 @@ html[data-theme="light"] .topbar{background:linear-gradient(180deg,rgba(255,255,
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     border-top:1px solid var(--border,rgba(185,198,220,.12));
     box-shadow:0 -10px 30px rgba(2,6,20,.45),inset 0 1px 0 rgba(255,255,255,.05);
+    /* Auto-hide on scroll: transform-only (GPU, no layout work, no gap —
+       the bar is position:fixed so translating it never moves page content).
+       Vertical only: never introduces horizontal movement. */
+    transform:translateY(0);
+    will-change:transform;
+    transition:transform var(--sv-t-med,280ms) var(--sv-ease,cubic-bezier(.22,.8,.24,1));
+  }
+  /* Hidden state: fully below the viewport + non-interactive. Visibility is
+     left alone so the slide-out transition always runs to completion. */
+  .sv-bottomnav.sv-hidden{
+    transform:translateY(110%);
+    pointer-events:none;
   }
   html[data-theme="light"] .sv-bottomnav{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(238,241,249,.98))}
   .sv-bottomnav button{
