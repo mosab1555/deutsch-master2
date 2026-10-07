@@ -138,13 +138,20 @@ const AuthModule = (function () {
                     }
                 }
             });
+            logAuthEvent("sign_in", "google", !error, errorMessageOf(error), null);
             return { data, error };
         } catch (e) {
+            logAuthEvent("sign_in", "google", false, e.message, null);
             return { error: e.message };
         }
     }
 
-    // Sign in with Facebook
+    // Sign in with Facebook (official Supabase OAuth provider id: "facebook").
+    // Requires the provider to be enabled in the Supabase Dashboard
+    // (Authentication > Providers > Facebook) with a Meta App ID/secret;
+    // when it is not, Supabase answers HTTP 400 validation_failed
+    // ("Unsupported provider: provider is not enabled") and no browser
+    // redirect happens - the caller surfaces translateError(result.error).
     async function signInWithFacebook() {
         if (!supabaseClient) return { error: "Supabase not initialized" };
 
@@ -156,8 +163,10 @@ const AuthModule = (function () {
                     redirectTo: redirectUrl
                 }
             });
+            logAuthEvent("sign_in", "facebook", !error, errorMessageOf(error), null);
             return { data, error };
         } catch (e) {
+            logAuthEvent("sign_in", "facebook", false, e.message, null);
             return { error: e.message };
         }
     }
@@ -301,21 +310,78 @@ const AuthModule = (function () {
         }
     }
 
-    // Get redirect URL based on environment
+    // Get redirect URL based on environment.
+    // Central helper for every OAuth/email redirect (single authority).
+    // Never invents provider credentials; only selects the target URL.
+    // Fallback is the current document URL (same origin the user is on),
+    // so a missing config can never produce redirectTo: undefined.
+    // Native shells (Capacitor) must never receive the desktop dev-server
+    // URL: they echo their own WebView origin instead.
     function getRedirectUrl() {
-        const config = window.SUPABASE_CONFIG || {};
-        const isLocalhost = window.location.hostname === "localhost" ||
-                           window.location.hostname === "127.0.0.1";
-        return isLocalhost ? config.redirectUrls?.local : config.redirectUrls?.production;
+        var config = window.SUPABASE_CONFIG || {};
+        var urls = config.redirectUrls || {};
+        var host = "";
+        try { host = window.location.hostname || ""; } catch (e) {}
+        var nativeShell = false;
+        try {
+            var Cap = window.Capacitor;
+            nativeShell = !!(Cap && (Cap.isNative === true ||
+                (typeof Cap.isNativePlatform === "function" && Cap.isNativePlatform())));
+        } catch (e2) { nativeShell = false; }
+        if (!nativeShell && (host === "localhost" || host === "127.0.0.1")) {
+            return urls.local || currentDocUrl();
+        }
+        if (!nativeShell && urls.production) return urls.production;
+        return currentDocUrl() || urls.production;
+    }
+    function currentDocUrl() {
+        try { return window.location.origin + window.location.pathname; }
+        catch (e) { return undefined; }
+    }
+
+    // Short safe message extractor for error-shaped values, including the
+    // Supabase HTTP-400 shape { code, error_code, msg } which carries no
+    // .message field. Never includes tokens (only short error text).
+    function errorMessageOf(error) {
+        try {
+            if (!error) return null;
+            if (typeof error === "string") return error.slice(0, 500);
+            var m = error.message || error.msg || error.error_description ||
+                error.error || error.error_code || null;
+            return m ? String(m).slice(0, 500) : null;
+        } catch (e) { return null; }
     }
 
     // ==================== ERROR HANDLING ====================
 
-    // Convert Supabase auth errors to user-friendly Arabic messages
-    function translateError(error) {
+    // Convert Supabase auth errors to user-friendly Arabic messages.
+    // providerHint ("google" | "facebook") only customizes the provider name
+    // inside provider-specific messages; omit it to keep generic wording.
+    function translateError(error, providerHint) {
         if (!error) return "حدث خطأ غير معروف";
 
-        const msg = error.message || error.error_description || error.error || String(error);
+        const raw = errorMessageOf(error) || String(error);
+        const msg = String(raw);
+        let errCode = "";
+        try { errCode = String(error.error_code || error.code || ""); } catch (e) {}
+
+        const providerAr = providerHint === "facebook" ? "فيسبوك"
+            : providerHint === "google" ? "Google" : null;
+
+        // Provider disabled in the Supabase Dashboard (HTTP 400
+        // validation_failed, "Unsupported provider: provider is not enabled").
+        // Code-side the call is correct; only external config can enable it.
+        if (/unsupported provider|provider is not enabled|provider.*not enabled|not enabled.*provider/i.test(msg) ||
+            (/validation_failed/i.test(errCode + " " + msg) && /provider/i.test(msg))) {
+            return providerAr
+                ? ("تسجيل الدخول عبر " + providerAr + " غير متاح حاليًا. جرّب مرة أخرى لاحقًا.")
+                : "تسجيل الدخول عبر الحساب الخارجي غير متاح حاليًا. جرّب مرة أخرى لاحقًا.";
+        }
+
+        // User cancelled at the provider (OAuth access_denied on return).
+        if (/access_denied|user (cancelled|canceled|denied)|cancelled/i.test(msg)) {
+            return "تم إلغاء تسجيل الدخول. يمكنك المحاولة مرة أخرى في أي وقت.";
+        }
 
         // Network errors
         if (msg.includes("network") || msg.includes("fetch") || msg.includes("connection")) {

@@ -475,11 +475,21 @@
             if (isBusy(btn)) return;
             setButtonLoading(btn, true);
             var promise = window.AuthModule?.signInWithGoogle?.();
-            promise?.then(function(result) {
+            if (!promise || typeof promise.then !== "function") {
+                // Auth layer unavailable (e.g. library failed to load offline):
+                // never leave the button stuck in a loading state.
+                setButtonLoading(btn, false, window.t?.("continue_with_google") || "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 Google");
+                showAuthMessage(window.t?.("network_error") || "تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.");
+                return;
+            }
+            promise.then(function(result) {
                 setButtonLoading(btn, false, window.t?.("continue_with_google") || "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 Google");
                 if (result?.error) {
-                    showAuthMessage(window.AuthModule?.translateError?.(result.error) || result.error);
+                    showAuthMessage(window.AuthModule?.translateError?.(result.error, "google") || result.error);
                 }
+            }, function(err) {
+                setButtonLoading(btn, false, window.t?.("continue_with_google") || "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 Google");
+                showAuthMessage(window.AuthModule?.translateError?.(err, "google") || window.t?.("auth_error") || "حدث خطأ في تسجيل الدخول. حاول مرة أخرى.");
             });
         });
 
@@ -489,11 +499,21 @@
             if (isBusy(btn)) return;
             setButtonLoading(btn, true);
             var promise = window.AuthModule?.signInWithFacebook?.();
-            promise?.then(function(result) {
+            if (!promise || typeof promise.then !== "function") {
+                // Auth layer unavailable (e.g. library failed to load offline):
+                // never leave the button stuck in a loading state.
+                setButtonLoading(btn, false, window.t?.("continue_with_facebook") || "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 Facebook");
+                showAuthMessage(window.t?.("network_error") || "تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.");
+                return;
+            }
+            promise.then(function(result) {
                 setButtonLoading(btn, false, window.t?.("continue_with_facebook") || "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 Facebook");
                 if (result?.error) {
-                    showAuthMessage(window.AuthModule?.translateError?.(result.error) || result.error);
+                    showAuthMessage(window.AuthModule?.translateError?.(result.error, "facebook") || result.error);
                 }
+            }, function(err) {
+                setButtonLoading(btn, false, window.t?.("continue_with_facebook") || "\u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629 \u0645\u0639 Facebook");
+                showAuthMessage(window.AuthModule?.translateError?.(err, "facebook") || window.t?.("auth_error") || "حدث خطأ في تسجيل الدخول. حاول مرة أخرى.");
             });
         });
 
