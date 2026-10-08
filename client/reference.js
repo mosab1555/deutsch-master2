@@ -19,9 +19,9 @@
 
 /* ---------- i18n chrome (one Object.assign per lang; merged by check-translations.js) ---------- */
 try{
-  Object.assign(I18N.ar,{reference:"المرجع الألماني الشامل",title_reference:"📚 المرجع الألماني الشامل",ref_search_ph:"ابحث في المرجع: mit / Dativ / ماضي / gestern / ضمائر...",ref_search_label:"🔍 بحث المرجع",ref_paths:"المسارات المعرفية",ref_topics:"مواضيع المسار",ref_back_paths:"← كل المسارات",ref_back_path:"← مواضيع المسار",ref_what:"ما هو؟",ref_rule:"القاعدة",ref_examples:"أمثلة",ref_notes:"ملاحظات مهمة",ref_mistakes:"أخطاء شائعة",ref_related:"🔗 موضوعات مرتبطة",ref_quiz:"📝 تدريب سريع",ref_no_results:"لا توجد نتائج مطابقة — جرّب كلمة أخرى",ref_grammar_hub:"📐 فتح القواعد المرتبطة",ref_open_lesson:"📖 فتح الشرح المفصل",ref_prev:"→ السابق",ref_next:"التالي ←",ref_topic_of:"الموضوع",ref_of:"من",ref_level_a1:"🟢 A1 أساسي",ref_level_a2:"🟡 A2 بعده",ref_level_b1:"🔵 B1 متقدم",ref_b1_closed:"🔵 محتوى متقدم — اضغط للفتح",ref_correct:"صحيح ✅",ref_wrong:"خطأ ❌",ref_home:"المرجع",ref_saved:"⭐ المحفوظة",ref_recent:"🕘 الأخيرة",ref_featured:"🌟 ابدأ من هنا",ref_next_up:"🎯 اقتراح لك",ref_filter_all:"الكل",ref_quick:"💡 الخلاصة",ref_why:"❓ لماذا؟",ref_when:"🕒 متى أستخدمه؟",ref_how:"🪜 كيف؟ خطوة بخطوة",ref_breakdown:"🧩 تفكيك مثال",ref_trick:"🧠 احفظها بهذه الطريقة",ref_reallife:"🏠 من الحياة",ref_practice:"📝 اختبر نفسك",ref_diff_easy:"🟢 سهل",ref_diff_mid:"🟡 متوسط",ref_diff_hard:"🔴 تحدي",ref_your_pick:"اختيارك",ref_mastery:"إتقان",ref_read:"📖 تمت القراءة",ref_save:"⭐ حفظ",ref_unsave:"⭐ محفوظ",ref_notfound:"الموضوع غير موجود",ref_notfound_back:"عودة إلى المرجع",ref_clear_filter:"✖ إظهار الكل",ref_correct_is:"الإجابة الصحيحة"});
-  Object.assign(I18N.en,{reference:"Complete German Reference",title_reference:"📚 Complete German Reference",ref_search_ph:"Search the reference: mit / Dativ / past / gestern / pronouns...",ref_search_label:"🔍 Reference search",ref_paths:"Knowledge paths",ref_topics:"Path topics",ref_back_paths:"← All paths",ref_back_path:"← Path topics",ref_what:"What is it?",ref_rule:"The rule",ref_examples:"Examples",ref_notes:"Important notes",ref_mistakes:"Common mistakes",ref_related:"🔗 Related topics",ref_quiz:"📝 Quick practice",ref_no_results:"No matches — try another word",ref_grammar_hub:"📐 Open related grammar",ref_open_lesson:"📖 Open full lesson",ref_prev:"→ Previous",ref_next:"Next ←",ref_topic_of:"Topic",ref_of:"of",ref_level_a1:"🟢 A1 basic",ref_level_a2:"🟡 A2 next",ref_level_b1:"🔵 B1 advanced",ref_b1_closed:"🔵 Advanced — tap to open",ref_correct:"Correct ✅",ref_wrong:"Wrong ❌",ref_home:"Reference",ref_saved:"⭐ Saved",ref_recent:"🕘 Recent",ref_featured:"🌟 Start here",ref_next_up:"🎯 Suggested for you",ref_filter_all:"All",ref_quick:"💡 Takeaway",ref_why:"❓ Why?",ref_when:"🕒 When to use it?",ref_how:"🪜 How? Step by step",ref_breakdown:"🧩 Example breakdown",ref_trick:"🧠 Remember it like this",ref_reallife:"🏠 Real life",ref_practice:"📝 Test yourself",ref_diff_easy:"🟢 Easy",ref_diff_mid:"🟡 Medium",ref_diff_hard:"🔴 Challenge",ref_your_pick:"Your pick",ref_mastery:"Mastery",ref_read:"📖 Read",ref_save:"⭐ Save",ref_unsave:"⭐ Saved",ref_notfound:"Topic not found",ref_notfound_back:"Back to Reference",ref_clear_filter:"✖ Show all",ref_correct_is:"Correct answer"});
-  Object.assign(I18N.de,{reference:"Deutsche Komplettreferenz",title_reference:"📚 Deutsche Komplettreferenz",ref_search_ph:"Referenz durchsuchen: mit / Dativ / Vergangenheit / gestern / Pronomen...",ref_search_label:"🔍 Referenzsuche",ref_paths:"Wissenspfade",ref_topics:"Pfadthemen",ref_back_paths:"← Alle Pfade",ref_back_path:"← Pfadthemen",ref_what:"Was ist das?",ref_rule:"Die Regel",ref_examples:"Beispiele",ref_notes:"Wichtige Hinweise",ref_mistakes:"Häufige Fehler",ref_related:"🔗 Verwandte Themen",ref_quiz:"📝 Kurztraining",ref_no_results:"Keine Treffer — versuch ein anderes Wort",ref_grammar_hub:"📐 Verwandte Grammatik öffnen",ref_open_lesson:"📖 Lektion öffnen",ref_prev:"→ Zurück",ref_next:"Weiter ←",ref_topic_of:"Thema",ref_of:"von",ref_level_a1:"🟢 A1 Basis",ref_level_a2:"🟡 A2 danach",ref_level_b1:"🔵 B1 fortgeschritten",ref_b1_closed:"🔵 Fortgeschritten — tippen zum Öffnen",ref_correct:"Richtig ✅",ref_wrong:"Falsch ❌",ref_home:"Referenz",ref_saved:"⭐ Gespeichert",ref_recent:"🕘 Zuletzt",ref_featured:"🌟 Starte hier",ref_next_up:"🎯 Vorschlag für dich",ref_filter_all:"Alle",ref_quick:"💡 Kurzfassung",ref_why:"❓ Warum?",ref_when:"🕒 Wann?",ref_how:"🪜 Wie? Schritt für Schritt",ref_breakdown:"🧩 Beispielanalyse",ref_trick:"🧠 So merkst du es dir",ref_reallife:"🏠 Aus dem Leben",ref_practice:"📝 Teste dich",ref_diff_easy:"🟢 Leicht",ref_diff_mid:"🟡 Mittel",ref_diff_hard:"🔴 Schwer",ref_your_pick:"Deine Wahl",ref_mastery:"Beherrschung",ref_read:"📖 Gelesen",ref_save:"⭐ Speichern",ref_unsave:"⭐ Gespeichert",ref_notfound:"Thema nicht gefunden",ref_notfound_back:"Zurück zur Referenz",ref_clear_filter:"✖ Alle zeigen",ref_correct_is:"Richtige Antwort"});
+  Object.assign(I18N.ar,{reference:"المرجع الألماني الشامل",title_reference:"📚 المرجع الألماني الشامل",ref_search_ph:"ابحث في المرجع: mit / Dativ / ماضي / gestern / ضمائر...",ref_search_label:"🔍 بحث المرجع",ref_paths:"المسارات المعرفية",ref_topics:"مواضيع المسار",ref_back_paths:"← كل المسارات",ref_back_path:"← مواضيع المسار",ref_what:"ما هو؟",ref_rule:"القاعدة",ref_examples:"أمثلة",ref_notes:"ملاحظات مهمة",ref_mistakes:"أخطاء شائعة",ref_related:"🔗 موضوعات مرتبطة",ref_quiz:"📝 تدريب سريع",ref_no_results:"لا توجد نتائج مطابقة — جرّب كلمة أخرى",ref_grammar_hub:"📐 فتح القواعد المرتبطة",ref_open_lesson:"📖 فتح الشرح المفصل",ref_prev:"→ السابق",ref_next:"التالي ←",ref_topic_of:"الموضوع",ref_of:"من",ref_level_a1:"🟢 A1 أساسي",ref_level_a2:"🟡 A2 بعده",ref_level_b1:"🔵 B1 متقدم",ref_b1_closed:"🔵 محتوى متقدم — اضغط للفتح",ref_correct:"صحيح ✅",ref_wrong:"خطأ ❌",ref_home:"المرجع",ref_saved:"⭐ المحفوظة",ref_recent:"🕘 الأخيرة",ref_featured:"🌟 ابدأ من هنا",ref_next_up:"🎯 اقتراح لك",ref_filter_all:"الكل",ref_quick:"💡 الخلاصة",ref_why:"❓ لماذا؟",ref_when:"🕒 متى أستخدمه؟",ref_how:"🪜 كيف؟ خطوة بخطوة",ref_breakdown:"🧩 تفكيك مثال",ref_trick:"🧠 احفظها بهذه الطريقة",ref_reallife:"🏠 من الحياة",ref_practice:"📝 اختبر نفسك",ref_diff_easy:"🟢 سهل",ref_diff_mid:"🟡 متوسط",ref_diff_hard:"🔴 تحدي",ref_your_pick:"اختيارك",ref_mastery:"إتقان",ref_read:"📖 تمت القراءة",ref_save:"⭐ حفظ",ref_unsave:"⭐ محفوظ",ref_notfound:"الموضوع غير موجود",ref_notfound_back:"عودة إلى المرجع",ref_clear_filter:"✖ إظهار الكل",ref_correct_is:"الإجابة الصحيحة",ref_what_is:"ما هو المرجع الألماني الشامل؟",ref_what_is_d:"هذا هو المكان الذي ترجع إليه لفهم أي قاعدة أو كلمة أو تركيب ألماني بطريقة منظمة — من الصفر حتى B1.",ref_start_path:"🗺️ طريق المبتدئ: ابدأ من هنا بالترتيب",ref_start_path_d:"لو أن لغتك صفر، اتبع هذه الخطوات بالترتيب. يمكنك تصفح كل شيء بحرية، لكن هذا هو الترتيب الموصى به.",ref_you_here:"أنت هنا",ref_in_section:"في هذا القسم ستتعلم",ref_why_matters:"لماذا يهمك هذا القسم؟",ref_after_done:"بعد إنهاء هذا القسم ستستطيع",ref_start_with:"🚀 ابدأ من",ref_next_section:"الخطوة التالية",ref_roadmap:"🗺️ خارطة القسم",ref_outcomes:"🎯 ماذا ستخرج به؟",ref_compare:"❗ لا تخلط بين",ref_lesson_plan:"ستتعلم في هذا الدرس",ref_continue:"📖 أكمل من حيث توقفت",ref_table_note:"كيف تقرأ هذا الجدول",ref_rule_is:"📏 القاعدة",ref_another_ex:"📌 مثال آخر",ref_done:"تم ✓",ref_fresh:"لم يبدأ",ref_opened:"قُرئ",ref_lessons:"درس",ref_why_care:"💡 لماذا يهمك؟"});
+  Object.assign(I18N.en,{reference:"Complete German Reference",title_reference:"📚 Complete German Reference",ref_search_ph:"Search the reference: mit / Dativ / past / gestern / pronouns...",ref_search_label:"🔍 Reference search",ref_paths:"Knowledge paths",ref_topics:"Path topics",ref_back_paths:"← All paths",ref_back_path:"← Path topics",ref_what:"What is it?",ref_rule:"The rule",ref_examples:"Examples",ref_notes:"Important notes",ref_mistakes:"Common mistakes",ref_related:"🔗 Related topics",ref_quiz:"📝 Quick practice",ref_no_results:"No matches — try another word",ref_grammar_hub:"📐 Open related grammar",ref_open_lesson:"📖 Open full lesson",ref_prev:"→ Previous",ref_next:"Next ←",ref_topic_of:"Topic",ref_of:"of",ref_level_a1:"🟢 A1 basic",ref_level_a2:"🟡 A2 next",ref_level_b1:"🔵 B1 advanced",ref_b1_closed:"🔵 Advanced — tap to open",ref_correct:"Correct ✅",ref_wrong:"Wrong ❌",ref_home:"Reference",ref_saved:"⭐ Saved",ref_recent:"🕘 Recent",ref_featured:"🌟 Start here",ref_next_up:"🎯 Suggested for you",ref_filter_all:"All",ref_quick:"💡 Takeaway",ref_why:"❓ Why?",ref_when:"🕒 When to use it?",ref_how:"🪜 How? Step by step",ref_breakdown:"🧩 Example breakdown",ref_trick:"🧠 Remember it like this",ref_reallife:"🏠 Real life",ref_practice:"📝 Test yourself",ref_diff_easy:"🟢 Easy",ref_diff_mid:"🟡 Medium",ref_diff_hard:"🔴 Challenge",ref_your_pick:"Your pick",ref_mastery:"Mastery",ref_read:"📖 Read",ref_save:"⭐ Save",ref_unsave:"⭐ Saved",ref_notfound:"Topic not found",ref_notfound_back:"Back to Reference",ref_clear_filter:"✖ Show all",ref_correct_is:"Correct answer",ref_what_is:"What is the Complete German Reference?",ref_what_is_d:"The place to return to for any German rule, word or pattern — organized from zero to B1.",ref_start_path:"🗺️ Beginner path: start here in order",ref_start_path_d:"If you start from zero, follow these steps in order. Browse freely, but this order is recommended.",ref_you_here:"You are here",ref_in_section:"In this section you will learn",ref_why_matters:"Why does this section matter?",ref_after_done:"After finishing you will be able to",ref_start_with:"🚀 Start with",ref_next_section:"Next step",ref_roadmap:"🗺️ Section roadmap",ref_outcomes:"🎯 What you will gain?",ref_compare:"❗ Do not confuse",ref_lesson_plan:"In this lesson you will learn",ref_continue:"📖 Continue where you left off",ref_table_note:"How to read this table",ref_rule_is:"📏 The rule",ref_another_ex:"📌 Another example",ref_done:"Done ✓",ref_fresh:"Not started",ref_opened:"Read",ref_lessons:"lessons",ref_why_care:"💡 Why it matters for you?"});
+  Object.assign(I18N.de,{reference:"Deutsche Komplettreferenz",title_reference:"📚 Deutsche Komplettreferenz",ref_search_ph:"Referenz durchsuchen: mit / Dativ / Vergangenheit / gestern / Pronomen...",ref_search_label:"🔍 Referenzsuche",ref_paths:"Wissenspfade",ref_topics:"Pfadthemen",ref_back_paths:"← Alle Pfade",ref_back_path:"← Pfadthemen",ref_what:"Was ist das?",ref_rule:"Die Regel",ref_examples:"Beispiele",ref_notes:"Wichtige Hinweise",ref_mistakes:"Häufige Fehler",ref_related:"🔗 Verwandte Themen",ref_quiz:"📝 Kurztraining",ref_no_results:"Keine Treffer — versuch ein anderes Wort",ref_grammar_hub:"📐 Verwandte Grammatik öffnen",ref_open_lesson:"📖 Lektion öffnen",ref_prev:"→ Zurück",ref_next:"Weiter ←",ref_topic_of:"Thema",ref_of:"von",ref_level_a1:"🟢 A1 Basis",ref_level_a2:"🟡 A2 danach",ref_level_b1:"🔵 B1 fortgeschritten",ref_b1_closed:"🔵 Fortgeschritten — tippen zum Öffnen",ref_correct:"Richtig ✅",ref_wrong:"Falsch ❌",ref_home:"Referenz",ref_saved:"⭐ Gespeichert",ref_recent:"🕘 Zuletzt",ref_featured:"🌟 Starte hier",ref_next_up:"🎯 Vorschlag für dich",ref_filter_all:"Alle",ref_quick:"💡 Kurzfassung",ref_why:"❓ Warum?",ref_when:"🕒 Wann?",ref_how:"🪜 Wie? Schritt für Schritt",ref_breakdown:"🧩 Beispielanalyse",ref_trick:"🧠 So merkst du es dir",ref_reallife:"🏠 Aus dem Leben",ref_practice:"📝 Teste dich",ref_diff_easy:"🟢 Leicht",ref_diff_mid:"🟡 Mittel",ref_diff_hard:"🔴 Schwer",ref_your_pick:"Deine Wahl",ref_mastery:"Beherrschung",ref_read:"📖 Gelesen",ref_save:"⭐ Speichern",ref_unsave:"⭐ Gespeichert",ref_notfound:"Thema nicht gefunden",ref_notfound_back:"Zurück zur Referenz",ref_clear_filter:"✖ Alle zeigen",ref_correct_is:"Richtige Antwort",ref_what_is:"Was ist die Komplettreferenz?",ref_what_is_d:"Der Ort für jede deutsche Regel, jedes Wort, jede Struktur — von Null bis B1.",ref_start_path:"🗺️ Anfängerpfad: hier in Reihenfolge starten",ref_start_path_d:"Bei Null anfangen? Folge diesen Schritten. Freies Stöbern ok, diese Reihenfolge ist empfohlen.",ref_you_here:"Du bist hier",ref_in_section:"In diesem Abschnitt lernst du",ref_why_matters:"Warum ist das wichtig?",ref_after_done:"Danach kannst du",ref_start_with:"🚀 Starte mit",ref_next_section:"Nächster Schritt",ref_roadmap:"🗺️ Abschnittsplan",ref_outcomes:"🎯 Dein Ergebnis?",ref_compare:"❗ Nicht verwechseln",ref_lesson_plan:"In dieser Lektion lernst du",ref_continue:"📖 Weiterlernen",ref_table_note:"So liest du die Tabelle",ref_rule_is:"📏 Die Regel",ref_another_ex:"📌 Weiteres Beispiel",ref_done:"Fertig ✓",ref_fresh:"Nicht begonnen",ref_opened:"Gelesen",ref_lessons:"Lektionen",ref_why_care:"💡 Warum wichtig für dich?"});
 }catch(e){}
 
 /* ---------- 16 knowledge paths ---------- */
@@ -61,6 +61,60 @@ function refEncy(){try{if(typeof window!=="undefined"&&window.DMRefEncy&&typeof 
 function refOverlay(id){try{const E=refEncy();if(E&&E.overlays&&E.overlays[id])return E.overlays[id];}catch(e){}return null;}
 function refAliasHay(id){try{const E=refEncy();if(E&&E.aliases&&E.aliases[id]&&E.aliases[id].length)return " "+E.aliases[id].join(" ");}catch(e){}return "";}
 function refFeatured(){try{const E=refEncy();if(E&&Array.isArray(E.featured))return E.featured.filter(id=>!!refTopicById(id));}catch(e){}return ["d-akkusativ","d-dativ","b-artikel-bestimmt","c-personal"];}
+function refJourney(){try{const E=refEncy();if(E&&Array.isArray(E.journey))return E.journey.filter(id=>!!refTopicById(id));}catch(e){}return ["c-personal","b-artikel-bestimmt","b-artikel-unbestimmt","d-nominativ","d-akkusativ","d-dativ","f-grundlagen","m-verbstellung","i-negation","i-fragen","h-dativ","g-perfekt"];}
+function refPathMeta(pid){try{const E=refEncy();if(E&&E.pathMeta&&E.pathMeta[pid])return E.pathMeta[pid];}catch(e){}return null;}
+function refNextPath(pid){try{const m=refPathMeta(pid);if(m&&m.next&&refPathById(m.next))return refPathById(m.next);}catch(e){}const i=REF_PATHS.findIndex(p=>p.id===pid);if(i>=0&&i<REF_PATHS.length-1)return REF_PATHS[i+1];return null;}
+function refPathLevel(pid){try{const m=refPathMeta(pid);if(m&&m.level)return m.level;}catch(e){}const ts=refPathTopics(pid);const lv=ts.length&&ts[0].level;return (lv==="A1"||lv==="A2"||lv==="B1")?lv:"A1";}
+/* Fallback depth: topics without a hand-written overlay still get a full
+   encyclopedia experience synthesized from their own validated data
+   (what/rule/notes/mistakes/examples/related) — never filler, always
+   derived from the topic itself. Hand overlays (refOverlay) win when present. */
+function refRichOverlay(tid){
+  const ov=refOverlay(tid)||{};
+  if(ov.quick||ov.why||(ov.when&&ov.when.length)||(ov.how&&ov.how.length))return ov;
+  const f=refTopicById(tid);if(!f)return ov;
+  const tp=f.topic;const out=Object.assign({},ov);
+  if(!out.quick)out.quick=refFirstSentence(tp.what);
+  if(!out.why&&tp.rule)out.why=tp.rule;
+  if(!out.when||!out.when.length){
+    const w=[];
+    (tp.notes||[]).slice(0,3).forEach(n=>w.push(n));
+    if(!w.length&&(tp.keywords||[]).length)w.push(tp.what||"");
+    if(w.length)out.when=w.slice(0,4);
+  }
+  if(!out.how||!out.how.length){
+    const h=[];
+    if(tp.rule)h.push(tp.rule);
+    (tp.notes||[]).slice(0,2).forEach(n=>{if(h.indexOf(n)<0)h.push(n);});
+    if(h.length)out.how=h.slice(0,4);
+  }
+  if(!out.trick&&(tp.mistakes||[]).length){
+    const m=tp.mistakes[0];
+    out.trick="انتبه للخطأ الأشهر: "+m.w+" ← الصحيح: "+m.r+" — "+m.why;
+  }
+  if(!out.reallife||!out.reallife.length)out.reallife=(tp.examples||[]).slice(0,2);
+  if(!out.breaks||!out.breaks.length){
+    const e=(tp.examples||[])[0];
+    if(e&&e[0]){
+      const toks=String(e[0]).split(" ").filter(Boolean).slice(0,5);
+      if(toks.length>=2)out.breaks=[{de:e[0],ar:e[1]||"",parts:toks.map((tk,i)=>[tk,"","كلمة "+(i+1)+" من الجملة"])}];
+    }
+  }
+  return out;
+}
+function refTopicState(tid){
+  try{
+    const P=refProg();const m=refMastery(tid);
+    if(m>=80)return "done";
+    if(m>=0||P.opened[tid])return "opened";
+  }catch(e){}
+  return "fresh";
+}
+function refStateChip(st){
+  if(st==="done")return '<span class="ref-st done">'+refEsc(refT("ref_done"))+'</span>';
+  if(st==="opened")return '<span class="ref-st opened">'+refEsc(refT("ref_opened"))+'</span>';
+  return '<span class="ref-st fresh">'+refEsc(refT("ref_fresh"))+'</span>';
+}
 
 /* ---------- progress + bookmarks (guarded localStorage, own namespace) ---------- */
 var REF_PROG_KEY="deutsch_master_ref_v1";
@@ -254,9 +308,22 @@ function wireTopicBtns(root){
 function paintRefHome(restore){
   const box=refBoxEl();if(!box)return;
   try{refProg();}catch(e){}
-  let h='<div class="panel glass ref-search-panel"><label class="ref-search-label" for="refSearch">'+refEsc(refT("ref_search_label"))+'</label>';
+  let h='<section class="panel glass ref-whatis" aria-label="about"><h3>'+refEsc(refT("ref_what_is"))+'</h3><p class="muted">'+refEsc(refT("ref_what_is_d"))+'</p></section>';
+  h+='<div class="panel glass ref-search-panel"><label class="ref-search-label" for="refSearch">'+refEsc(refT("ref_search_label"))+'</label>';
   h+='<input type="text" id="refSearch" class="full-input" data-i18n-ph="ref_search_ph" placeholder="'+refEsc(refT("ref_search_ph"))+'" autocomplete="off">';
   h+='<div id="refResults" class="ref-results" role="listbox"></div></div>';
+  /* guided beginner journey: numbered Start-Here path (free browsing stays open) */
+  try{
+    const jn=refJourney();
+    if(jn.length){
+      h+='<section class="panel glass ref-journey" aria-label="start"><h3>'+refEsc(refT("ref_start_path"))+'</h3><p class="muted">'+refEsc(refT("ref_start_path_d"))+'</p><ol class="ref-journey-list">';
+      jn.forEach((id,i)=>{
+        const f=refTopicById(id);if(!f)return;
+        h+='<li><button type="button" class="ref-jstep" data-topic="'+refEsc(id)+'"><span class="ref-jnum" aria-hidden="true">'+(i+1)+'</span><span class="ref-jtxt"><b>'+refEsc(refTopicTitle(f.topic))+'</b><span class="muted"> '+refEsc(f.topic.de||"")+' • '+refEsc(f.path.id+" • "+refPathTitle(f.path))+'</span></span> '+refStateChip(refTopicState(id))+'</button></li>';
+      });
+      h+='</ol></section>';
+    }
+  }catch(e){}
   /* featured */
   const feat=refFeatured();
   if(feat.length){
@@ -306,7 +373,31 @@ function openRefPath(pid,opts){
 function paintRefPath(pid,restore){
   const p=refPathById(pid);const box=refBoxEl();if(!p||!box){paintRefHome(false);return;}
   const topics=refPathTopics(pid);
+  const meta=refPathMeta(pid);
+  const nx=refNextPath(pid);
+  let doneN=0;try{const P0=refProg();topics.forEach(tp=>{if(P0.opened[tp.id])doneN++;});}catch(e){}
   let h=refCrumb([{label:refPathTitle(p)}]);
+  h+='<p class="ref-youhere muted">'+refEsc(refT("ref_you_here"))+': '+refEsc(refT("ref_home"))+' → '+refEsc(refPathTitle(p))+'</p>';
+  h+='<header class="panel glass ref-path-hero" style="border-top:4px solid '+p.color+'"><div class="ref-path-hero-top"><span class="ref-ico" aria-hidden="true">'+p.icon+'</span><div><h2>'+refEsc(refPathTitle(p))+'</h2><div class="ref-de-line" dir="ltr">'+refEsc(p.de)+' • '+refEsc(p.en||"")+'</div></div></div>';
+  if(meta&&meta.intro)h+='<p class="ref-path-intro">'+refEsc(meta.intro)+'</p>';
+  h+='<div class="ref-meta-row"><span class="'+refLvlClass(refPathLevel(pid))+'">'+refEsc(refLvlLabel(refPathLevel(pid)))+'</span><span class="muted">'+topics.length+' '+refEsc(refT("ref_lessons"))+'</span>'+(doneN?'<span class="muted">'+refEsc(refT("ref_done"))+': '+doneN+'/'+topics.length+'</span><span class="ref-progress"><span style="width:'+Math.round(doneN/Math.max(1,topics.length)*100)+'%"></span></span>':"")+'</div>';
+  if(meta&&meta.startWith&&refTopicById(meta.startWith)){
+    const sw=refTopicById(meta.startWith).topic;
+    h+='<div class="row-flex"><button type="button" class="btn btn-primary sm" data-topic="'+refEsc(meta.startWith)+'">'+refEsc(refT("ref_start_with"))+': '+refTopicTitle(sw)+'</button>'+(nx?'<button type="button" class="btn btn-ghost sm" data-jump="'+nx.id+'">'+refEsc(refT("ref_next_section"))+': '+nx.icon+' '+refEsc(refPathTitle(nx))+'</button>':"")+'</div>';
+  }
+  h+='</header>';
+  if(meta&&(meta.willLearn||meta.why||meta.outcomes)){
+    if(meta.willLearn&&meta.willLearn.length){
+      h+='<section class="panel glass" aria-label="roadmap"><h4>'+refEsc(refT("ref_roadmap"))+' — '+refEsc(refT("ref_in_section"))+'…</h4><ol class="ref-roadmap">';
+      topics.forEach((tp,i)=>{
+        const st=refTopicState(tp.id);
+        h+='<li><button type="button" class="ref-jstep sm" data-topic="'+refEsc(tp.id)+'"><span class="ref-jnum" aria-hidden="true">'+(i+1)+'</span><span class="ref-jtxt"><b>'+refEsc(refTopicTitle(tp))+'</b></span> '+refStateChip(st)+'</button></li>';
+      });
+      h+='</ol></section>';
+    }
+    if(meta.why)h+='<section class="panel glass"><h4>'+refEsc(refT("ref_why_matters"))+'</h4><p>'+refEsc(meta.why)+'</p></section>';
+    if(meta.outcomes&&meta.outcomes.length)h+='<section class="panel glass ref-outcomes"><h4>'+refEsc(refT("ref_after_done"))+':</h4><ul class="ex-ul">'+meta.outcomes.map(o=>'<li>✓ '+refEsc(o)+'</li>').join("")+'</ul></section>';
+  }
   h+='<div class="ref-path-head" style="border-top:4px solid '+p.color+'"><span class="ref-ico" aria-hidden="true">'+p.icon+'</span><h3>'+refEsc(refPathTitle(p))+' <span class="muted">'+refEsc(p.de)+'</span></h3>';
   h+='<div class="row-flex"><button type="button" class="btn btn-ghost sm" id="refBackPaths">'+refEsc(refT("ref_back_paths"))+'</button><button type="button" class="btn btn-ghost sm" id="refGrammarHub">'+refEsc(refT("ref_grammar_hub"))+'</button></div></div>';
   h+='<div class="ref-chips" role="navigation">'+REF_PATHS.map(x=>'<button type="button" class="mini-btn'+(x.id===pid?" on":"")+'" data-jump="'+x.id+'" aria-label="'+refEsc(refPathTitle(x))+'">'+x.icon+' '+x.id+'</button>').join("")+'</div>';
@@ -352,7 +443,7 @@ function paintRefTopic(tid,restore){
     return;
   }
   const {path:p,topic:tp}=found;
-  const ov=refOverlay(tp.id)||{};
+  const ov=refRichOverlay(tp.id);
   const topics=refPathTopics(p.id);
   const idx=topics.findIndex(x=>x.id===tid);
   const prev=idx>0?topics[idx-1]:null, next=(idx>=0&&idx<topics.length-1)?topics[idx+1]:null;
@@ -360,19 +451,24 @@ function paintRefTopic(tid,restore){
   const saved=refIsSaved(tid);
   const mastery=refMastery(tid);
   let h=refCrumb([{id:p.id,label:p.id+" • "+refPathTitle(p)},{label:refTopicTitle(tp)}]);
+  h+='<p class="ref-youhere muted">'+refEsc(refT("ref_you_here"))+': '+refEsc(refT("ref_home"))+' → '+refEsc(refPathTitle(p))+' → '+refEsc(refTopicTitle(tp))+'</p>';
   h+='<article class="panel glass ref-hero"><div class="ref-hero-top"><span class="'+refLvlClass(tp.level||"A1")+'">'+refEsc(refLvlLabel(tp.level||"A1"))+'</span>';
   h+='<button type="button" class="mini-btn ref-savebtn" id="refSaveBtn" aria-pressed="'+(saved?"true":"false")+'">'+refEsc(refT(saved?"ref_unsave":"ref_save"))+'</button></div>';
   h+='<h2 dir="ltr">'+refEsc(tp.de||"")+'</h2><div class="ref-hero-ar">'+refEsc(tp.ar||"")+(tp.en?' <span class="muted">• '+refEsc(tp.en)+'</span>':"")+'</div>';
-  h+='<div class="muted">'+refEsc(refT("ref_topic_of"))+' '+(idx+1)+' '+refEsc(refT("ref_of"))+' '+topics.length+' • '+refEsc(p.id)+(mastery>=0?' • '+refEsc(refT("ref_mastery"))+' '+mastery+'%':"")+'</div></article>';
+  h+='<div class="muted">'+refEsc(refT("ref_topic_of"))+' '+(idx+1)+' '+refEsc(refT("ref_of"))+' '+topics.length+' • '+refEsc(p.id+" • "+refPathTitle(p))+(mastery>=0?' • '+refEsc(refT("ref_mastery"))+' '+mastery+'%':"")+'</div></article>';
   const quick=ov.quick||refFirstSentence(tp.what);
   if(quick)h+='<div class="panel glass ref-quick"><h4>'+refEsc(refT("ref_quick"))+'</h4><p><b>'+refEsc(quick)+'</b></p></div>';
+  if(ov.why)h+='<section class="panel glass ref-whycare"><h4>'+refEsc(refT("ref_why_care"))+'</h4><p>'+refEsc(ov.why)+'</p></section>';
+  h+='<section class="panel glass ref-plan"><h4>'+refEsc(refT("ref_lesson_plan"))+':</h4><ul class="ex-ul"><li>✓ '+refEsc(refT("ref_when"))+'</li><li>✓ '+refEsc(refT("ref_how"))+'</li><li>✓ '+refEsc(refT("ref_examples"))+'</li><li>✓ '+refEsc(refT("ref_breakdown"))+'</li><li>✓ '+refEsc(refT("ref_mistakes"))+'</li><li>✓ '+refEsc(refT("ref_practice"))+'</li></ul></section>';
   if(tp.what)h+='<section class="panel glass" aria-label="what"><h4>1️⃣ '+refEsc(refT("ref_what"))+'</h4><p>'+refEsc(tp.what)+'</p></section>';
-  if(ov.why)h+='<section class="panel glass"><h4>'+refEsc(refT("ref_why"))+'</h4><p>'+refEsc(ov.why)+'</p></section>';
   if(ov.when&&ov.when.length)h+='<section class="panel glass"><h4>'+refEsc(refT("ref_when"))+'</h4><ul class="ex-ul">'+ov.when.map(x=>'<li>'+refEsc(x)+'</li>').join("")+'</ul></section>';
   if(ov.how&&ov.how.length)h+='<section class="panel glass"><h4>'+refEsc(refT("ref_how"))+'</h4><ol class="ex-ol">'+ov.how.map(x=>'<li>'+refEsc(x)+'</li>').join("")+'</ol></section>';
   if(tp.rule)h+='<section class="panel glass ref-rulebox"><h4>2️⃣ '+refEsc(refT("ref_rule"))+'</h4><p><b>'+refEsc(tp.rule)+'</b></p></section>';
+  if(ov.vs&&ov.vs.title){
+    h+='<section class="panel glass ref-vsbox"><h4>'+refEsc(refT("ref_compare"))+': '+refEsc(ov.vs.title)+'</h4><div class="ref-vs-a">🅰️ '+refEsc(ov.vs.a)+'</div><div class="ref-vs-b">🅱️ '+refEsc(ov.vs.b)+'</div>'+(ov.vs.tip?'<div class="muted">💡 '+refEsc(ov.vs.tip)+'</div>':"")+'</section>';
+  }
   (tp.tables||[]).forEach(tb=>{
-    h+='<section class="panel glass"><h4>📊 '+refEsc(tb.cap)+'</h4><div class="tbl-wrap"><table class="ex-table"><tr>'+tb.head.map(x=>'<th>'+refEsc(x)+'</th>').join("")+'</tr>';
+    h+='<section class="panel glass"><h4>📊 '+refEsc(tb.cap)+'</h4><p class="muted ref-table-hint">'+refEsc(refT("ref_table_note"))+': اقرأ الصف من اليمين (المعنى) ثم طابق العمود (الحالة/الجنس) — والأمثلة تحت الجدول تثبّت كل خلية.</p><div class="tbl-wrap"><table class="ex-table"><tr>'+tb.head.map(x=>'<th>'+refEsc(x)+'</th>').join("")+'</tr>';
     tb.rows.forEach(r=>{h+='<tr>'+r.map(c=>'<td>'+refLinkCell(c,tp.id)+'</td>').join("")+'</tr>';});
     h+='</table></div></section>';
   });
@@ -446,8 +542,9 @@ function paintRefTopic(tid,restore){
       wrap.querySelectorAll(".quiz-opt").forEach(x=>{x.disabled=true;});
       const fb=wrap.querySelector(".quiz-feedback");fb.classList.remove("hidden");
       const ok=oi===q.correct;
-      if(ok){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent=refT("ref_correct")+" "+(q.why||"");}
-      else{btn.classList.add("wrong");const cb=Array.from(wrap.querySelectorAll(".quiz-opt")).find(x=>parseInt(x.getAttribute("data-oi"),10)===q.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" "+refT("ref_correct_is")+": "+q.opts[q.correct]+" — "+(q.why||"")+" ("+refT("ref_your_pick")+": "+(q.opts[oi]||"")+")";}
+      const extra=refQuizExtra(tid);
+      if(ok){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent=refT("ref_correct")+" "+(q.why||"")+extra;}
+      else{btn.classList.add("wrong");const cb=Array.from(wrap.querySelectorAll(".quiz-opt")).find(x=>parseInt(x.getAttribute("data-oi"),10)===q.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" "+refT("ref_correct_is")+": "+q.opts[q.correct]+" — "+(q.why||"")+extra+" ("+refT("ref_your_pick")+": "+(q.opts[oi]||"")+")";}
       try{refRecordQuizAnswer(wrap,tid,validQ.length,ok);}catch(e){}
       try{if(typeof markStudyDay==="function")markStudyDay(false);}catch(e){}
     }));
@@ -456,6 +553,17 @@ function paintRefTopic(tid,restore){
   if(prev){const pb=document.getElementById("refPrevBtn");if(pb)pb.addEventListener("click",()=>openRefTopic(prev.id));}
   if(next){const nb=document.getElementById("refNextBtn");if(nb)nb.addEventListener("click",()=>openRefTopic(next.id));}
   if(restore)refRestoreScroll("t:"+tid);
+}
+/* Enriched post-attempt feedback: why + rule + another example (revealed only after attempt). */
+function refQuizExtra(tid){
+  try{
+    const f=refTopicById(tid);if(!f||!f.topic)return "";
+    const tp=f.topic;let s="";
+    if(tp.rule)s+=" — "+refT("ref_rule_is")+": "+tp.rule;
+    const ex=(tp.examples||[])[0];
+    if(ex&&ex[0])s+=" — "+refT("ref_another_ex")+": "+ex[0]+(ex[1]?" ("+ex[1]+")":"");
+    return s;
+  }catch(e){return "";}
 }
 /* Per-question mastery: recompute topic score from answered questions in this view. */
 function refRecordQuizAnswer(wrap,tid,total,justOk){
@@ -496,8 +604,9 @@ function wireRefOrder(wrap,q,tid,total){
     const got=picks().join(" ");
     fb.classList.remove("hidden");
     const ok=got===q.answer;
-    if(ok){fb.className="quiz-feedback ok";fb.textContent=refT("ref_correct")+" "+(q.why||"");bank.forEach(b=>{b.disabled=true;});}
-    else{fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" "+refT("ref_correct_is")+": "+q.answer+" — "+(q.why||"");}
+    const extra2=refQuizExtra(tid);
+    if(ok){fb.className="quiz-feedback ok";fb.textContent=refT("ref_correct")+" "+(q.why||"")+extra2;bank.forEach(b=>{b.disabled=true;});}
+    else{fb.className="quiz-feedback no";fb.textContent=refT("ref_wrong")+" "+refT("ref_correct_is")+": "+q.answer+" — "+(q.why||"")+extra2;}
     try{if(tid)refRecordQuizAnswer(wrap,tid,total,ok);}catch(e){}
     try{if(typeof markStudyDay==="function")markStudyDay(false);}catch(e){}
   });
@@ -589,7 +698,13 @@ function runRefSearch(){
   const top=scored.slice(0,12);
   if(!top.length){out.innerHTML='<div class="search-hit">'+refEsc(refT("ref_no_results"))+'</div>';out.classList.add("show");return;}
   out.innerHTML=top.map((r,i)=>{
-    const label=r.e.kind==="path"?("🗂️ "+refEsc(refPathTitle(r.e.path))):("📄 "+refEsc(refTopicTitle(r.e.topic))+" <span class='muted'>("+r.e.path.id+" • "+refEsc(refPathTitle(r.e.path))+")</span> <span class='"+refLvlClass(r.e.topic.level||"A1")+"'>"+refEsc(r.e.topic.level||"A1")+"</span>");
+    let why="";
+    try{
+      if(r.e.kind==="topic"&&r.kb===2)why=" <span class='muted'>≡ "+refEsc(rawQ)+"</span>";
+      else if(r.e.kind==="topic"&&r.e.topic.de)why=" <span class='muted'>"+refEsc(r.e.topic.de)+"</span>";
+      else if(r.e.kind==="path")why=" <span class='muted'>"+refEsc(r.e.path.de)+"</span>";
+    }catch(e){}
+    const label=r.e.kind==="path"?("🗂️ "+refEsc(refPathTitle(r.e.path))+why):("📄 "+refEsc(refTopicTitle(r.e.topic))+why+" <span class='muted'>("+r.e.path.id+" • "+refEsc(refPathTitle(r.e.path))+")</span> <span class='"+refLvlClass(r.e.topic.level||"A1")+"'>"+refEsc(r.e.topic.level||"A1")+"</span>");
     return '<div class="search-hit" role="option" data-h="'+i+'">'+label+'</div>';
   }).join("");
   out.classList.add("show");
