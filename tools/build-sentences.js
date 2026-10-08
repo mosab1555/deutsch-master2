@@ -5,6 +5,8 @@ const fs = require("fs");
 const path = require("path");
 const { rng, pick, shuffle, normDE } = require("./clib/util");
 const { SUBJ, TIMES, PLACES, VG_TRAN, VG_INTRAN, VG_DITRAN, VG_MODAL, PATS, STEMS } = require("./clib/sentgen");
+const BIGS = require("./clib/bigsen");
+const BIGP = require("./clib/bigsenp");
 const gate = require("./content-quality-gate");
 
 const vocab = JSON.parse(fs.readFileSync(path.join(__dirname, "clib", ".cache", "vocab.json"), "utf8"));
@@ -28,10 +30,12 @@ function conjCore(inf, person) {
   if (inf === "wissen") return { ich: "weiß", du: "weißt", er: "weiß", wir: "wissen", ihr: "wisst", sie: "wissen" }[person];
   if (MODALS[inf]) { const m = MODALS[inf]; const r = { ich: m[0], du: m[1], er: m[2], wir: inf, ihr: inf + "t", sie: inf }; return r[person]; }
   const stem = inf.replace(/en$/, "");
-  const eln = /(el|er)n$/.test(inf);
+  /* -eln/-ern keep e (bummelt); -Cnen/-Cmen after obstruents keeps e (öffnet, atmet),
+     but -rnen/-lnen/-hnen/-enen drop it (lernt, wohnt, gähnt, dient) */
+  const eln = /(el|er)n$/.test(inf) || /(ch|[bcdfgjkpqtvwxzß])[mn]en$/.test(inf);
   if (eln) {
     const full = inf.slice(0, -1), short = full.replace(/e([lr])$/, "$1");
-    if (person === "ich") return short + "e";
+    if (person === "ich") return short === full ? full : short + "e";
     if (person === "du") return full + "st";
     if (person === "er") return full + "t";
     if (person === "wir" || person === "sie") return inf;
@@ -63,24 +67,110 @@ function participleOf(inf) {
 }
 function auxOf(inf) {
   const c = inf.replace(/^sich /, "");
-  if (/^(gehen|kommen|fahren|laufen|fliegen|bleiben|sein|werden|aufstehen|ankommen|abfahren|einsteigen|aussteigen|umsteigen|mitkommen|zurückkommen|einschlafen|aufwachen|umziehen|einziehen|ausziehen|scheinen|wachsen|fallen|fliehen|schwimmen|wandern|passieren|reisen)$/.test(c)) return "sein";
+  // inseparable sein-verbs (no prefix stripping applies to them)
+  if (c === "entkommen" || c === "verschwinden" || c === "verreisen") return "sein";
+  const sp = splitSep(c);
+  const base = sp ? c.slice(sp.pref.length) : c;
+  if (/^(gehen|kommen|fahren|laufen|fliegen|reisen|verreisen|steigen|schwimmen|wandern|fallen|fliehen|eilen|rennen|klettern|stolpern|reiten|segeln|tauchen|joggen|spazieren|bummeln|bleiben|sein|werden|passieren|gelingen|scheinen|wachsen|aufblühen|aufwachsen)$/.test(base)) return "sein";
+  // full prefixed forms whose base alone takes haben
+  if (/^(aufstehen|einschlafen|aufwachen|ankommen|abfahren|einsteigen|aussteigen|umsteigen|mitkommen|zurückkommen|zurückkehren|zurückfliegen|heimfahren|losfahren|fortfahren|weiterfahren|weiterfliegen|wegfliegen|anreisen|abreisen|durchreisen|weiterreisen|auswandern|einwandern|zuwandern|abwandern|umziehen|einziehen|ausziehen|vergehen|einbrechen|ausbrechen|zusammenbrechen|aufbrechen|durchbrechen)$/.test(c)) return "sein";
   return "haben";
 }
-function arVerb(base, cperson, fem) {
-  const stem = base.replace(/^ي/, "");
+function arVerb(base, cperson, fem, pl) {
+  const rawStem = base.replace(/^ي/, "");
+  const stem = rawStem;
+  const defective = /ى$/.test(rawStem);
+  const dstem = defective ? rawStem.slice(0, -1) : rawStem;
   if (cperson === "ich") return "أ" + stem;
   if (cperson === "wir") return "ن" + stem;
   if (cperson === "du" || cperson === "ihr") return "ت" + stem + (cperson === "ihr" ? "ون" : "");
-  if (cperson === "sie") return fem === "pl" ? "ي" + stem + "ون" : "ت" + stem;
+  if (cperson === "sie") {
+    if (pl === "dual") return (fem ? "ت" + stem + "ان" : "ي" + stem + "ان");
+    if (pl === "pl") return "ي" + dstem + "ون";
+    return fem === "pl" ? "ي" + stem + "ون" : "ت" + stem;
+  }
   return (fem ? "ت" + stem : "ي" + stem);
+}
+/* name gender heuristic for adjective agreement (fem names end ة/ى or in list) */
+const FEMNAMES = new Set(["Mona", "Sara", "Layla", "Fatima", "Dina", "Heba", "Lena", "Emma", "Marie", "Nour", "Anna"]);
+function nameFem(n) { return FEMNAMES.has(n[0]) || /[ةى]$/.test(n[1]) ? true : false; }
+/* dative-person Arabic suffixes for wehtun */
+const DATSUF = { "mir": "ني", "dir": "ك", "ihm": "ه", "ihr": "ها", "uns": "نا", "Ihnen": "كم" };
+const DUAL_SUBJ = new Set(["Meine Eltern", "Meine Großeltern", "Die Zwillinge", "Beide", "Das Paar"]);
+function plurality(S) { if (!S) return null; if (S[2] === "siepl" || S[2] === "wir" || S[2] === "ihr") return S[2] === "siepl" && DUAL_SUBJ.has(S[0]) ? "dual" : "pl"; return null; }
+/* infinitive Arabic with full subject agreement (أن يعملوا / أن تعمل / أن أعمل) */
+function arInfPl(base, S) {
+  const stem = base.replace(/^[يأت]/, "");
+  const defective = /ى$/.test(stem);
+  const dstem = defective ? stem.slice(0, -1) : stem;
+  const cp = CKEY[cpersonFull(S)], fem = subjFem(S), pl = plurality(S);
+  if (cp === "ich") return "أ" + stem;
+  if (cp === "wir") return "ن" + stem;
+  if (cp === "du" || cp === "ihr") return "ت" + stem + (cp === "ihr" ? "ون" : "");
+  if (pl === "pl") return "ي" + dstem + "ون";
+  if (pl === "dual") return (fem ? "ت" + stem + "ان" : "ي" + stem + "ان");
+  if (cp === "sie" || fem) return "ت" + stem;
+  return base;
+}
+/* mid-sentence subject: lowercase first letter (formal Sie stays capitalized) */
+function lowS(S) { if (!S) return ""; if (S[2] === "Sie") return S[0]; return S[0].charAt(0).toLowerCase() + S[0].slice(1); }
+/* predicative adjective agreement with a German-gendered object (heuristic:
+   der/das -> base masculine, die -> feminine; plural -> sound plural) */
+function adjAgr(base, art, isPl) {
+  if (isPl) {
+    if (/ة$/.test(base)) return base.replace(/ة$/, "ات");
+    if (/ى$|اء$|ين$|ون$/.test(base)) return base;
+    return art === "die" ? base + "ات" : base + "ون";
+  }
+  if (art !== "die" || /ة$/.test(base) || /ى$|اء$|ين$|ون$/.test(base)) return base;
+  return base + "ة";
+}
+/* plural Arabic gloss for plural German objects (regular feminine only; else singular) */
+function arPlObj(ar) {
+  const base = String(ar).split("/")[0].trim();
+  if (/ة$/.test(base)) return base.replace(/ة$/, "ات");
+  return ar;
+}
+/* قادم agreement with subject */
+function qadmAr(S) {
+  const fem = subjFem(S), pl = plurality(S);
+  if (pl === "pl") return "قادمون";
+  if (pl === "dual") return fem ? "قادمتان" : "قادمان";
+  return fem ? "قادمة" : "قادم";
+}
+/* راض agreement with subject (defective morphology, explicit) */
+function zufriedenAr(S) {
+  const fem = subjFem(S), pl = plurality(S);
+  if (pl === "pl") return "راضون";
+  if (pl === "dual") return fem ? "راضيتان" : "راضيان";
+  return fem ? "راضية" : "راضٍ";
+}
+/* sick/tired adjective agreement for subordinate subjects */
+function sickAr(S) {
+  const fem = subjFem(S), pl = plurality(S);
+  if (pl === "pl") return "مرضى";
+  if (pl === "dual") return fem ? "مريضتان" : "مريضان";
+  return fem ? "مريضة" : "مريض";
+}
+function muedeAr(S) {
+  const fem = subjFem(S), pl = plurality(S);
+  if (pl === "pl") return "متعبون";
+  if (pl === "dual") return fem ? "متعبتان" : "متعبان";
+  return fem ? "متعبة" : "متعب";
 }
 function arPast(base, fem) {
   if (!fem) return base;
   if (/ت$/.test(base)) return base;
   return base + "ت";
 }
-function arAdj(base, fem) {
-  if (!fem || /ة$/.test(base) || /ى$|اء$/.test(base)) return base;
+function arAdj(base, fem, pl) {
+  if (!fem || /ة$/.test(base) || /ى$|اء$/.test(base)) {
+    if (pl === "pl" && !/ة$/.test(base) && !/ى$|اء$/.test(base)) return base + "ون";
+    if (pl === "dual") return base + "ان";
+    return base;
+  }
+  if (pl === "pl") return base.replace(/ة$/, "") + "ات";
+  if (pl === "dual") return base.replace(/ة$/, "") + "تان";
   return base + "ة";
 }
 /* articles */
@@ -111,7 +201,7 @@ const nouns = vocab.filter((w) => w.type === "noun" && ["der", "die", "das"].inc
 const verbs = vocab.filter((w) => w.type === "verb");
 const adjs = vocab.filter((w) => w.type === "adj");
 const FEMSUB = { "Meine Schwester": 1, "Meine Freundin": 1, "Meine Mutter": 1, "Die Ärztin": 1, "Die Nachbarin": 1, "Die Chefin": 1, "Sie|she": 1 };
-function subjFem(S) { return /Schwester|Freundin|Mutter|Ärztin|Nachbarin|Chefin|^Sie$/.test(S[0]) && S[2] !== "siepl" ? true : false; }
+function subjFem(S) { return /Schwester|Freundin|Mutter|Ärztin|Nachbarin|Chefin|Tante|Cousine|Enkelin|Schwiegertochter|Braut|Verkäuferin|Polizistin|Studentin|Schülerin|Kellnerin|Köchin|Friseurin|Kundin|Touristin|Rentnerin|Lehrerin|Sekretärin|Apothekerin|Hebamme|Krankenschwester|Dame|Katze|^Sie$/.test(S[0]) && S[2] !== "siepl" ? true : false; }
 function cpersonOf(S) {
   const k = S[2];
   if (k === "ich" || k === "du" || k === "wir" || k === "ihr") return k;
@@ -124,7 +214,8 @@ function cpersonFull(S) {
   return "er";
 }
 const CKEY = { ich: "ich", du: "du", er: "er", wir: "wir", ihr: "ihr", sie: "sie" };
-const PERSON_NOUNS = nouns.filter((w) => ["family", "people", "relationships"].includes(w.cat));
+const PERSON_CATS = ["family", "people", "relationships", "jobs", "profi"];
+const PERSON_NOUNS = nouns.filter((w) => PERSON_CATS.includes(w.cat));
 const THING_NOUNS = nouns.filter((w) => !["family", "people", "relationships"].includes(w.cat));
 const BODY = nouns.filter((w) => w.cat === "body");
 const MASC = nouns.filter((w) => w.art === "der");
@@ -161,6 +252,51 @@ Object.assign(STEMS, {
   "stehlen": ["stiehlt", "stiehlt"], "befehlen": ["befiehlst", "befiehlt"], "gebären": ["gebierst", "gebiert"],
 });
 function isSepInf(inf) { return !!splitSep(inf.replace(/^sich /, "")); }
+/* pool expansion (additive; deterministic order preserved) */
+SUBJ.push(...BIGS.BIGSUBJ);
+TIMES.push(...BIGS.BIGTIMES);
+PLACES.push(...BIGS.BIGPLACES);
+VG_TRAN[0].push(...BIGS.BIGTRAN1);
+VG_TRAN[1].push(...BIGS.BIGTRAN2);
+VG_INTRAN[0].push(...BIGS.BIGINTRAN1);
+VG_INTRAN[1].push(...BIGS.BIGINTRAN2);
+VG_DITRAN[0].push(...BIGS.BIGDITRAN);
+Object.assign(STEMS, BIGS.BIGSTEMS);
+NAMES.push(...BIGS.BIGNAMES);
+ADV_DE.push(...BIGS.BIGADV);
+ZU_INF.push(...BIGS.BIGZU);
+WIE_POOL.push(...BIGS.BIGWIE);
+WO_POOL.push(...BIGS.BIGWO);
+IMPV.push(...BIGS.BIGIMPV);
+PATS.push(...BIGP.BIGPATS);
+/* tripwire: stem-changing verbs MUST have STEMS coverage (else du/er forms break).
+   Separable verbs are safe (filtered from conjugated slots; trennbar uses stems). */
+(function () {
+  const NEED_STEM = new Set(["messen", "lassen", "verlassen", "fressen", "saufen", "geschehen", "verderben", "gebären"]);
+  const stemOK = new Set(Object.keys(STEMS));
+  [VG_TRAN[0], VG_TRAN[1], VG_INTRAN[0], VG_INTRAN[1], VG_DITRAN[0]].forEach((g) => {
+    for (let i = g.length - 1; i >= 0; i--) {
+      const inf = g[i][0];
+      if (isSepInf(inf)) continue;
+      if (NEED_STEM.has(inf) && !stemOK.has(inf)) { rej("pool:" + inf, "stem-changing verb without STEMS cover, dropped"); g.splice(i, 1); }
+    }
+  });
+})();
+/* PERFV auto-extension: verified participles (curated parts) + hand-checked past Arabic */
+(function () {
+  const pmap = new Map();
+  verbs.forEach((w) => {
+    const inf = w.de.replace(/^sich /, "");
+    if (/^sich /.test(w.de)) return; // reflexive needs pronoun handling
+    if (!w.parts || w.parts.indexOf(",") < 0) return;
+    const pp = w.parts.split(",")[1].trim();
+    if (!pp || pp === "-") return;
+    pmap.set(inf, pp);
+  });
+  Object.keys(BIGS.BIGPERFV_AR).forEach((inf) => {
+    if (pmap.has(inf) && !PERFV.some(([i]) => i === inf)) PERFV.push([inf, pmap.get(inf), BIGS.BIGPERFV_AR[inf]]);
+  });
+})();
 /* verb pools by valency (infinitive + ar base) */
 function poolRaw(group) {
   if (group === 0) return VG_TRAN[0].concat(VG_TRAN[1]);
@@ -171,9 +307,39 @@ function poolRaw(group) {
 /* conjugated slots must never use separable verbs (word-order breakage) */
 function poolOf(group) { return poolRaw(group).filter(([i]) => !isSepInf(i)); }
 function poolInf(group) { return poolRaw(group); } // infinitive slots may use any verb
+/* transitive-only PERFV picker for object patterns (intransitive PPs + object = broken).
+   Built lazily so expanded pools are included. */
+let TRANS_OK = null;
+function transOk() {
+  if (!TRANS_OK) TRANS_OK = new Set(VG_TRAN[0].concat(VG_TRAN[1]).map(([i]) => i).concat(["essen", "trinken", "sehen", "lesen", "schreiben", "kaufen", "haben", "finden", "verlieren", "gewinnen", "vergessen", "empfehlen", "geben", "nehmen", "bringen", "bestellen", "bezahlen", "verkaufen", "reparieren", "öffnen", "schließen", "waschen", "kochen", "backen", "schneiden", "probieren", "reservieren", "buchen"]));
+  return TRANS_OK;
+}
+function pickTransPv(rr) {
+  const ok = transOk();
+  for (let k = 0; k < 20; k++) { const pv = pickN(rr, PERFV); if (ok.has(pv[0])) return pv; }
+  return pickN(rr, PERFV);
+}
+/* verb-aware object pools: person-verbs take persons, picky verbs take fitted
+   categories/allowlists, everything else takes any non-country thing */
+const PERSON_SET = new Set(BIGS.PERSON_V.map(([i]) => i));
+function thingPoolFor(inf) {
+  const base = () => THING_NOUNS.filter((w) => w.cat !== "germany");
+  const nopeople = (arr) => arr.filter((w) => PERSON_CATS.indexOf(w.cat) < 0);
+  if (!inf) return base();
+  if (PERSON_SET.has(inf)) return PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS;
+  const rule = BIGS.OBJCATS[inf];
+  if (!rule) return base();
+  if (rule.person) return PERSON_NOUNS.length ? PERSON_NOUNS : base();
+  let pool = [];
+  if (rule.cats) pool = pool.concat(THING_NOUNS.filter((w) => rule.cats.indexOf(w.cat) >= 0));
+  if (rule.allow) pool = pool.concat(nouns.filter((w) => rule.allow.indexOf(w.de) >= 0));
+  if (rule.nopeople) pool = nopeople(pool.length ? pool : base());
+  const ded = [...new Map(pool.map((w) => [w.id, w])).values()];
+  return ded.length ? ded : THING_NOUNS;
+}
 /* ---------- subject-aware helpers ---------- */
 function C2(inf, who) { const c = conjPresent(inf, CKEY[cpersonFull(who)]); return c.core + c.tail; }
-function AR2(inf, who) { return arVerb(verbArOf(inf), CKEY[cpersonFull(who)], subjFem(who)); }
+function AR2(inf, who) { return arVerb(verbArOf(inf), CKEY[cpersonFull(who)], subjFem(who), plurality(who)); }
 const REFLPRON = { ich: "mich", du: "dich", er: "sich", wir: "uns", ihr: "euch", sie: "sich" };
 function reflConj(inf, who) {
   // present reflexive full form: "freue mich", "interessiert euch"...
@@ -182,28 +348,42 @@ function reflConj(inf, who) {
   return c.core + " " + REFLPRON[CKEY[cpersonFull(who)]] + tail;
 }
 function AR2refl(arInf, who) {
-  // arabic reflexive approx: base verb + reflexive pronoun
+  // arabic reflexive approx: base verb + reflexive pronoun (number/gender aware)
   const cp = CKEY[cpersonFull(who)];
-  const v = arVerb(arInf, cp, subjFem(who));
-  const pro = { ich: "نفسي", du: "نفسك", er: "نفسه", wir: "أنفسنا", ihr: "أنفسكم", sie: "أنفسهم" }[cp];
+  const fem = subjFem(who), pl = plurality(who);
+  const v = arVerb(arInf, cp, fem, pl);
+  let pro;
+  if (cp === "ich") pro = "نفسي";
+  else if (cp === "du") pro = "نفسك";
+  else if (cp === "wir") pro = "أنفسنا";
+  else if (cp === "ihr") pro = "أنفسكم";
+  else if (pl === "dual") pro = "أنفسهما";
+  else if (pl === "pl") pro = "أنفسهم";
+  else pro = fem ? "نفسها" : "نفسه";
   return v + " " + pro;
 }
 function arPastFull(base, who) {
-  // arabic past-tense agreement for sound verbs + كان/لدي maps
+  // arabic past-tense agreement (sound + defective ى-verbs) for all persons/numbers
   const cp = CKEY[cpersonFull(who)], fem = subjFem(who);
-  const pl = who[2] === "siepl";
+  const pl = plurality(who);
+  const siepl = who[2] === "siepl";
+  const defective = /ى$/.test(base);
+  const stem = defective ? base.slice(0, -1) : base;
   if (base === "كان") {
     if (cp === "ich" || cp === "du") return "كنت";
     if (cp === "wir") return "كنا";
     if (cp === "ihr") return "كنتم";
-    if (pl) return "كانوا";
+    if (pl === "dual") return fem ? "كانتا" : "كانا";
+    if (siepl) return "كانوا";
     return fem ? "كانت" : "كان";
   }
   if (cp === "ich" || cp === "du") return base + "ت";
   if (cp === "wir") return base + "نا";
   if (cp === "ihr") return base + "تم";
-  if (pl) return base + "وا";
-  return fem ? (/ت$/.test(base) ? base : base + "ت") : base;
+  if (pl === "dual") return base + (fem ? "تا" : "ا");
+  if (siepl) return stem + "وا";
+  if (fem) return /ت$/.test(base) ? base : stem + "ت";
+  return base;
 }
 function hatteAr(who) {
   const cp = CKEY[cpersonFull(who)], fem = subjFem(who), pl = who[2] === "siepl";
@@ -211,6 +391,7 @@ function hatteAr(who) {
   if (cp === "du") return "كان لديك";
   if (cp === "wir") return "كان لدينا";
   if (cp === "ihr") return "كان لديكم";
+  if (plurality(who) === "dual") return "كان لديهما";
   if (pl) return "كان لديهم";
   return fem ? "كان لديها" : "كان لديه";
 }
@@ -234,13 +415,13 @@ function akkPhrase(rr, pool, pluralOk) {
   const pl = pluralOk && rr() < 0.25 && w.plural !== "-";
   if (pl) {
     const plDe = /^(der|die|das)\s/.test(w.plural) ? w.plural.replace(/^(der|die|das)\s/, "") : w.plural;
-    return { de: "die " + plDe, ar: w.ar, w, plural: true };
+    return { de: "die " + plDe, ar: arPlObj(w.ar), w, plural: true };
   }
   return { de: declArt(w.art, "A", false) + " " + w.de, ar: w.ar, w, plural: false };
 }
 function datPhrase(rr, pool, pluralOk) {
   const w = pickN(rr, pool.length ? pool : THING_NOUNS);
-  if (pluralOk && rr() < 0.2 && w.plural !== "-") return { de: "den " + pluralDat(w), ar: w.ar, w, plural: true };
+  if (pluralOk && rr() < 0.2 && w.plural !== "-") return { de: "den " + pluralDat(w), ar: arPlObj(w.ar), w, plural: true };
   return { de: declArt(w.art, "D", false) + " " + w.de, ar: w.ar, w, plural: false };
 }
 function nomPhrase(rr, pool) {
@@ -262,26 +443,26 @@ function conjSubj(inf, S) {
 }
 function arSubj(inf, S) {
   const cp = CKEY[cpersonFull(S)];
-  return arVerb(verbArOf(inf), cp, subjFem(S));
+  return arVerb(verbArOf(inf), cp, subjFem(S), plurality(S));
 }
 
 function fillGeneric(rr, deTpl, arTpl, S) {
   // generic slot fill for straightforward patterns
   const S2 = pickN(rr, SUBJ);
   let V = pickN(rr, poolOf(0)), V2 = pickN(rr, poolOf(1));
-  const O = akkPhrase(rr, THING_NOUNS, true), O1 = nomPhrase(rr, THING_NOUNS), O2 = nomPhrase(rr, THING_NOUNS);
+  const O = akkPhrase(rr, thingPoolFor(V[0]), true), O1 = nomPhrase(rr, THING_NOUNS), O2 = nomPhrase(rr, THING_NOUNS);
   const O2d = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
-  const O3 = datPhrase(rr, THING_NOUNS, false), O4 = akkPhrase(rr, THING_NOUNS, false), O5 = datPhrase(rr, THING_NOUNS, false);
+  const O3 = datPhrase(rr, thingPoolFor(null), false), O4 = akkPhrase(rr, thingPoolFor(V[0]), false), O5 = datPhrase(rr, thingPoolFor(null), false);
   const O6 = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
-  const O7 = akkPhrase(rr, THING_NOUNS, false);
+  const O7 = akkPhrase(rr, thingPoolFor(V[0]), false);
   const O8 = pickN(rr, NAMES);
   const Og = genForm(pickN(rr, THING_NOUNS));
   const T = pickN(rr, TIMES), P = pickN(rr, PLACES);
   const A = pickN(rr, adjs.length ? adjs : [{ de: "gut", ar: "جيد" }]);
   const fem = subjFem(S), fem2 = subjFem(S2);
   const map = {
-    "{S}": S[0], "{Sa}": S[1],
-    "{S2}": S2[0], "{S2a}": S2[1],
+    "{S}": S[0], "{Sa}": S[1], "{Sl}": lowS(S),
+    "{S2}": lowS(S2), "{S2a}": S2[1],
     "{V}": conjSubj(V[0], S), "{Va}": arSubj(V[0], S),
     "{V2}": conjSubj(V2[0], S2), "{V2a}": arSubj(V2[0], S2),
     "{V3}": conjSubj(V[0], S), "{Va3}": arSubj(V[0], S),
@@ -295,11 +476,11 @@ function fillGeneric(rr, deTpl, arTpl, S) {
     "{O7}": O7.de, "{O7a}": O7.ar, "{O8}": O8[0], "{O8a}": O8[1],
     "{Og}": Og.de, "{Oga}": Og.ar,
     "{T}": T[0], "{Ta}": T[1], "{P}": P[0], "{Pa}": P[1],
-    "{A}": A.de, "{Aa}": arAdj(A.ar, fem),
+    "{A}": A.de, "{Aa}": arAdj(A.ar, fem, plurality(S)),
   };
   let de = deTpl, ar = arTpl;
   Object.keys(map).forEach((k) => { de = de.split(k).join(map[k]); ar = ar.split(k).join(map[k]); });
-  return { de, ar, refs: { v: [V[0]], w: [O.w.id, O1.w.id], fem } };
+  return { de, ar, refs: { v: [V[0]], w: [O.w.id, O1.w.id], fem, s2: S2 } };
 }
 
 function buildOne(rr, pat, idx) {
@@ -311,7 +492,7 @@ function buildOne(rr, pat, idx) {
   const cp = CKEY[cpersonFull(S)];
   function Vconj(inf) { return conjSubj(inf, S); }
   function Var(inf) { return arSubj(inf, S); }
-  const O = () => akkPhrase(rr, THING_NOUNS, true);
+  const O = () => akkPhrase(rr, thingPoolFor(null), true);
   const P = () => pickN(rr, PLACES);
   const T = () => pickN(rr, TIMES);
   const A = () => pickN(rr, adjs);
@@ -320,14 +501,35 @@ function buildOne(rr, pat, idx) {
   const OV_GONE = 0;
   void OV_GONE;
 
-  /* modal reorder */
+  /* modal reorder (fixed: transitive infinitive LAST, object before it) */
   if (/modal|konjunktiv/.test(gram) && deTpl.includes("{Vm}")) {
     const Vm = pickN(rr, Object.keys(MODAL_AR));
-    const Vi = pickN(rr, poolInf(3).concat(poolInf(1)));
-    const o = O(), t = T(), p = P();
-    de = deTpl.split("{S}").join(S[0]).split("{Vm}").join(conjSubj(Vm, S)).split("{Vi}").join(Vi[0]).split("{O}").join(o.de).split("{T}").join(t[0]).split("{P}").join(p[0]);
-    ar = MODAL_AR[Vm] + " " + S[1] + " أن " + Vi[1] + (arTpl.includes("{Oa}") ? " " + o.ar : "") + (arTpl.includes("{Ta}") ? " " + t[1] : "") + (arTpl.includes("{Pa}") ? " " + p[1] : "") + ".";
+    const Vi = pickN(rr, poolInf(0));
+    const o = akkPhrase(rr, thingPoolFor(Vi[0]), true), t = T(), p = P();
+    de = S[0] + " " + conjSubj(Vm, S) + " " + o.de + " " + Vi[0] + ".";
+    ar = MODAL_AR[Vm] + " " + S[1] + " أن " + arInfPl(Vi[1], S) + " " + o.ar + ".";
     vocabRefs.push(o.w.id);
+  } else if (gram === "modal-muessen" || gram === "modal-koennen" || gram === "modal-wollen" || gram === "modal-sollen") {
+    const Vm = { "modal-muessen": "müssen", "modal-koennen": "können", "modal-wollen": "wollen", "modal-sollen": "sollen" }[gram];
+    const Vi = pickN(rr, poolInf(0));
+    const o = akkPhrase(rr, thingPoolFor(Vi[0]), true), t = T(), p = P();
+    const tail = gram === "modal-koennen" ? " " + t[0] : gram === "modal-wollen" ? " " + p[0] : "";
+    const tailA = gram === "modal-koennen" ? " " + t[1] : gram === "modal-wollen" ? " " + p[1] : "";
+    de = S[0] + " " + conjSubj(Vm, S) + " " + o.de + " " + Vi[0] + tail + ".";
+    ar = MODAL_AR[Vm] + " " + S[1] + " أن " + arInfPl(Vi[1], S) + " " + o.ar + tailA + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "modal-duerfen") {
+    const Vi = pickN(rr, poolInf(1));
+    de = S[0] + " " + conjSubj("dürfen", S) + " hier nicht " + Vi[0] + ".";
+    ar = "لا يجوز لـ" + S[1] + " أن " + arInfPl(Vi[1], S) + " هنا.";
+  } else if (gram === "konjunktiv-hoeflich") {
+    const o = O();
+    de = S[0] + " " + conjSubj("möchten", S) + " " + o.de + ".";
+    ar = S[1] + " " + AR2("möchten", S) + " " + o.ar + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "konjunktiv-bitte") {
+    if (rr() < 0.5) { de = "Könnten Sie mir bitte helfen?"; ar = "هل يمكنكم مساعدتي من فضلك؟"; }
+    else { de = "Könntest du mir bitte helfen?"; ar = "هل يمكنك مساعدتي من فضلك؟"; }
   } else if (gram === "wehtun") {
     const person = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
     const part = pickN(rr, BODY.length ? BODY : THING_NOUNS);
@@ -345,17 +547,17 @@ function buildOne(rr, pat, idx) {
     vocabRefs.push(o.w.id);
   } else if (gram === "modal-partikel") {
     const V = pickN(rr, poolOf(1)); const t = T();
-    de = "Leider " + Vconj(V[0]) + " " + S[0] + " " + t[0] + " nicht.";
+    de = "Leider " + Vconj(V[0]) + " " + lowS(S) + " " + t[0] + " nicht.";
     ar = "للأسف لا " + Var(V[0]) + " " + S[1] + " " + t[1] + ".";
   } else if (gram === "um-zu" || gram === "statt-zu" || gram === "ohne-zu" || gram === "um-zu-zweck") {
     const Vi = pickN(rr, poolInf(3).concat(poolInf(1)));
     const sp = splitSep(Vi[0]);
     const zu = sp ? sp.pref + "zu" + sp.stem : "zu " + Vi[0];
     const V = pickN(rr, poolOf(0)); const o = O(); const t = T();
-    if (gram === "um-zu-zweck") { de = S[0] + " " + C2("lernen", S) + " Deutsch, um in Deutschland zu arbeiten."; ar = S[1] + " يتعلم الألمانية ليعمل في ألمانيا."; }
-    else if (gram === "um-zu") { de = "Um " + zu + ", " + Vconj(V[0]) + " " + S[0] + " " + t[0] + "."; ar = "لكي " + Vi[1] + " " + Var(V[0]) + " " + S[1] + " " + t[1] + "."; vocabRefs.push(o.w.id); }
+    if (gram === "um-zu-zweck") { de = S[0] + " " + C2("lernen", S) + " Deutsch, um in Deutschland zu arbeiten."; ar = S[1] + " " + AR2("lernen", S) + " الألمانية ليعمل في ألمانيا."; }
+    else if (gram === "um-zu") { de = "Um " + zu + ", " + Vconj(V[0]) + " " + lowS(S) + " " + t[0] + "."; ar = "لكي " + Vi[1] + " " + Var(V[0]) + " " + S[1] + " " + t[1] + "."; vocabRefs.push(o.w.id); }
     else if (gram === "statt-zu") { de = S[0] + " " + Vconj(V[0]) + " " + o.de + ", statt " + zu + "."; ar = S[1] + " " + Var(V[0]) + " " + o.ar + " بدل أن " + Vi[1] + "."; vocabRefs.push(o.w.id); }
-    else { de = "Ohne " + zu + " " + Vconj(V[0]) + " " + S[0] + " " + o.de + "."; ar = "بدون أن " + Vi[1] + " " + Var(V[0]) + " " + S[1] + " " + o.ar + "."; vocabRefs.push(o.w.id); }
+    else { de = "Ohne " + zu + " " + Vconj(V[0]) + " " + lowS(S) + " " + o.de + "."; ar = "بدون أن " + Vi[1] + " " + Var(V[0]) + " " + S[1] + " " + o.ar + "."; vocabRefs.push(o.w.id); }
   } else if (gram === "es-ist-wichtig-zu" || gram === "es-ist-schwer-zu") {
     const z = pickN(rr, ZU_INF);
     de = gram === "es-ist-wichtig-zu" ? "Es ist wichtig, " + z[0] + "." : "Es ist schwer, " + z[0] + ".";
@@ -370,27 +572,39 @@ function buildOne(rr, pat, idx) {
     ar = "تعلم الألمانية يمتع " + s3[1] + ".";
   } else if (gram === "falls") {
     const V = pickN(rr, poolOf(0));
-    de = "Falls " + S[0] + " " + Vconj(V[0]) + ", " + C2("sagen", S) + " " + S[0] + " mir Bescheid.";
+    de = "Falls " + S[0] + " " + Vconj(V[0]) + ", " + C2("sagen", S) + " " + lowS(S) + " mir Bescheid.";
     ar = "إن " + Var(V[0]) + " " + S[1] + " فليخبرني.";
   } else if (gram === "sobald") {
     const V = pickN(rr, poolOf(1));
-    const per = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
+    const per = akkPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
     const c = conjPresent("anrufen", CKEY[cpersonFull(S)]);
-    de = "Sobald " + S[0] + " " + Vconj(V[0]) + ", " + c.core + " " + S[0] + " " + per.w.de + " " + c.tail.trim() + ".";
+    de = "Sobald " + S[0] + " " + Vconj(V[0]) + ", " + c.core + " " + lowS(S) + " " + per.de + " " + c.tail.trim() + ".";
     ar = "حالما " + Var(V[0]) + " " + S[1] + " يتصل بـ" + per.ar + ".";
     vocabRefs.push(per.w.id);
   } else if (gram === "wenn") {
     const V = pickN(rr, poolOf(1));
-    de = "Wenn " + S[0] + " " + Vconj(V[0]) + ", " + reflConj("freuen", S) + ".";
-    ar = "إذا " + Var(V[0]) + " " + S[1] + " يفرح.";
+    de = "Wenn " + S[0] + " " + Vconj(V[0]) + ", " + reflConj("freuen", S) + " " + lowS(S) + ".";
+    ar = "إذا " + Var(V[0]) + " " + S[1] + " " + AR2("freuen", S) + " " + S[1] + ".";
+  } else if (gram === "bevor" || gram === "nachdem") {
+    // verb-final subordinate (intransitive, or transitive + object), full main clause
+    const o = O();
+    const useTrans = rr() < 0.5;
+    const V = pickN(rr, useTrans ? poolOf(0) : poolOf(1));
+    const sub = useTrans ? S[0] + " " + o.de + " " + Vconj(V[0]) : S[0] + " " + Vconj(V[0]);
+    const subA = useTrans ? Var(V[0]) + " " + S[1] + " " + o.ar : Var(V[0]) + " " + S[1];
+    const main = reflConj("freuen", S) + " " + lowS(S);
+    const mainA = AR2("freuen", S) + " " + S[1];
+    if (gram === "bevor") { de = "Bevor " + sub + ", " + main + "."; ar = "قبل أن " + subA + " " + mainA + "."; }
+    else { de = "Nachdem " + sub + ", " + main + "."; ar = "بعد أن " + subA + " " + mainA + "."; }
+    if (useTrans) vocabRefs.push(o.w.id);
   } else if (gram === "reihung") {
-    const V = pickN(rr, poolOf(0)); const o = O(); const p = P();
-    de = S[0] + " " + Vconj(V[0]) + " " + o.de + " und danach " + C2("gehen", S) + " " + S[0] + " " + p[0] + ".";
+    const V = pickN(rr, poolOf(0)); const o = akkPhrase(rr, thingPoolFor(V[0]), false); const p = P();
+    de = S[0] + " " + Vconj(V[0]) + " " + o.de + " und danach " + C2("gehen", S) + " " + lowS(S) + " " + p[0] + ".";
     ar = S[1] + " " + Var(V[0]) + " " + o.ar + " وبعدها " + AR2("gehen", S) + " " + p[1] + ".";
     vocabRefs.push(o.w.id);
   } else if (gram === "lassen-passiv-sinn") {
     const V = pickN(rr, [["machen", "يفعل"], ["reparieren", "يصلح"], ["lösen", "يحل"], ["ändern", "يغير"]]);
-    const o = O();
+    const o = nomPhrase(rr, THING_NOUNS);
     de = o.de.charAt(0).toUpperCase() + o.de.slice(1) + " lässt sich nicht " + V[0] + ".";
     ar = o.ar + " لا يمكن " + V[1] + ".";
     vocabRefs.push(o.w.id);
@@ -400,48 +614,50 @@ function buildOne(rr, pat, idx) {
     ar = S[1] + " يُصلح " + pair[0][2] + " عند مختص.";
   } else if (gram === "w-frage" || gram === "w-frage-wie" || gram === "w-frage-wo" || gram === "w-frage-wann" || gram === "w-frage-warum") {
     const t = T();
+    const Ssg = S[2] === "siepl" ? pickN(rr, SUBJ.filter((s) => s[2] !== "siepl")) : S;
     if (gram === "w-frage") {
-      const qs = [["Wer kommt " + t[0] + "?", "من يأتي " + t[1] + "؟"], ["Was passiert " + t[0] + "?", "ماذا يحدث " + t[1] + "؟"], ["Wo wohnst du?", "أين تسكن؟"], ["Wo wohnt " + S[0] + "?", "أين يسكن " + S[1] + "؟"], ["Wann kommt " + S[0] + "?", "متى يأتي " + S[1] + "؟"], ["Warum weint " + S[0] + "?", "لماذا يبكي " + S[1] + "؟"], ["Wie geht es dir?", "كيف حالك؟"], ["Woher kommst du?", "من أين أنت؟"], ["Wohin gehst du?", "إلى أين تذهب؟"]];
+      const qs = [["Wer kommt " + t[0] + "?", "من يأتي " + t[1] + "؟"], ["Was passiert " + t[0] + "?", "ماذا يحدث " + t[1] + "؟"], ["Wo wohnst du?", "أين تسكن؟"], ["Wo " + C2("wohnen", Ssg) + " " + lowS(Ssg) + "?", "أين " + AR2("wohnen", Ssg) + " " + Ssg[1] + "؟"], ["Wann " + C2("kommen", Ssg) + " " + lowS(Ssg) + "?", "متى " + AR2("kommen", Ssg) + " " + Ssg[1] + "؟"], ["Warum " + C2("weinen", Ssg) + " " + lowS(Ssg) + "?", "لماذا " + AR2("weinen", Ssg) + " " + Ssg[1] + "؟"], ["Wie geht es dir?", "كيف حالك؟"], ["Woher kommst du?", "من أين أنت؟"], ["Wohin gehst du?", "إلى أين تذهب؟"]];
       const q = pickN(rr, qs); de = q[0]; ar = q[1];
     } else if (gram === "w-frage-wie") { const w = pickN(rr, WIE_POOL); de = "Wie ist " + w[0] + "?"; ar = "كيف " + w[1] + "؟"; }
     else if (gram === "w-frage-wo") { const w = pickN(rr, WO_POOL); de = "Wo ist " + w[0] + "?"; ar = "أين " + w[1] + "؟"; }
-    else if (gram === "w-frage-wann") { const V = pickN(rr, poolOf(1)); de = "Wann " + Vconj(V[0]) + " " + S[0] + "?"; ar = "متى " + Var(V[0]) + " " + S[1] + "؟"; }
-    else { const V = pickN(rr, poolOf(0)); const o = O(); de = "Warum " + Vconj(V[0]) + " " + S[0] + " " + o.de + "?"; ar = "لماذا " + Var(V[0]) + " " + S[1] + " " + o.ar + "؟"; vocabRefs.push(o.w.id); }
+    else if (gram === "w-frage-wann") { const V = pickN(rr, poolOf(1)); de = "Wann " + Vconj(V[0]) + " " + lowS(S) + "?"; ar = "متى " + Var(V[0]) + " " + S[1] + "؟"; }
+    else { const V = pickN(rr, poolOf(0)); const o = akkPhrase(rr, thingPoolFor(V[0]), false); de = "Warum " + Vconj(V[0]) + " " + lowS(S) + " " + o.de + "?"; ar = "لماذا " + Var(V[0]) + " " + S[1] + " " + o.ar + "؟"; vocabRefs.push(o.w.id); }
   } else if (gram === "was-fuer" || gram === "welch-akk") {
     const V = pickN(rr, poolOf(0));
     if (gram === "was-fuer") {
       const mode = rr();
-      if (mode < 0.4) { const w = pickN(rr, MASC.length ? MASC : THING_NOUNS); de = "Was für " + declArt(w.art, "A", false) + " " + w.de + " " + Vconj(V[0]) + " " + S[0] + "?"; ar = "أي " + w.ar + " " + Var(V[0]) + " " + S[1] + "؟"; vocabRefs.push(w.id); }
-      else if (mode < 0.7) { const w = pickN(rr, nouns.filter((x) => x.art === "die")); de = "Was für eine " + w.de + " " + Vconj(V[0]) + " " + S[0] + "?"; ar = "أي " + w.ar + " " + Var(V[0]) + " " + S[1] + "؟"; vocabRefs.push(w.id); }
-      else { const w = pickN(rr, nouns.filter((x) => x.plural && x.plural !== "-")); const pl = /^(der|die|das)\s/.test(w.plural) ? w.plural.replace(/^(der|die|das)\s/, "") : w.plural; de = "Was für " + pl + " " + Vconj(V[0]) + " " + S[0] + "?"; ar = "أي " + w.ar + " (جمع) " + Var(V[0]) + " " + S[1] + "؟"; vocabRefs.push(w.id); }
+      if (mode < 0.4) { const w = pickN(rr, MASC.length ? MASC : THING_NOUNS); de = "Was für " + declArt(w.art, "A", false) + " " + w.de + " " + Vconj(V[0]) + " " + lowS(S) + "?"; ar = "أي " + w.ar + " " + Var(V[0]) + " " + S[1] + "؟"; vocabRefs.push(w.id); }
+      else if (mode < 0.7) { const w = pickN(rr, nouns.filter((x) => x.art === "die")); de = "Was für eine " + w.de + " " + Vconj(V[0]) + " " + lowS(S) + "?"; ar = "أي " + w.ar + " " + Var(V[0]) + " " + S[1] + "؟"; vocabRefs.push(w.id); }
+      else { const w = pickN(rr, nouns.filter((x) => x.plural && x.plural !== "-")); const pl = /^(der|die|das)\s/.test(w.plural) ? w.plural.replace(/^(der|die|das)\s/, "") : w.plural; de = "Was für " + pl + " " + Vconj(V[0]) + " " + lowS(S) + "?"; ar = "أي " + w.ar + " (جمع) " + Var(V[0]) + " " + S[1] + "؟"; vocabRefs.push(w.id); }
     }
     else {
       const pick = rr();
       const w = pick < 0.5 ? pickN(rr, MASC.length ? MASC : THING_NOUNS) : pickN(rr, nouns.filter((x) => x.art !== "der"));
       const det = w.art === "der" ? "Welchen" : w.art === "die" ? "Welche" : "Welches";
-      de = det + " " + w.de + " " + Vconj(V[0]) + " " + S[0] + "?"; ar = "أي " + w.ar + " " + Var(V[0]) + " " + S[1] + "؟";
+      de = det + " " + w.de + " " + Vconj(V[0]) + " " + lowS(S) + "?"; ar = "أي " + w.ar + " " + Var(V[0]) + " " + S[1] + "؟";
       vocabRefs.push(w.id);
     }
   } else if (gram === "obwohl-voran") {
     const S2 = pickN(rr, SUBJ);
     const V = pickN(rr, poolOf(1)); const p = P();
     const mode = rr();
-    if (mode < 0.5) { de = "Obwohl " + S2[0] + " müde " + C2("sein", S2) + ", " + Vconj(V[0]) + " " + S[0] + " " + p[0] + "."; ar = "رغم أن " + S2[1] + " متعب " + Var(V[0]) + " " + S[0] + " " + p[1] + "."; }
-    else { const opens = [["Obwohl es regnet", "رغم المطر"], ["Obwohl es kalt ist", "رغم البرد"], ["Obwohl es spät ist", "رغم التأخر"], ["Obwohl es dunkel ist", "رغم الظلام"]]; const op = pickN(rr, opens); de = op[0] + ", " + Vconj(V[0]) + " " + S[0] + " " + p[0] + "."; ar = op[1] + " " + Var(V[0]) + " " + S[1] + " " + p[1] + "."; }
+    if (mode < 0.5) { de = "Obwohl " + S2[0] + " müde " + C2("sein", S2) + ", " + Vconj(V[0]) + " " + lowS(S) + " " + p[0] + "."; ar = "رغم أن " + S2[1] + " " + muedeAr(S2) + " " + Var(V[0]) + " " + S[1] + " " + p[1] + "."; }
+    else { const opens = [["Obwohl es regnet", "رغم المطر"], ["Obwohl es kalt ist", "رغم البرد"], ["Obwohl es spät ist", "رغم التأخر"], ["Obwohl es dunkel ist", "رغم الظلام"]]; const op = pickN(rr, opens); de = op[0] + ", " + Vconj(V[0]) + " " + lowS(S) + " " + p[0] + "."; ar = op[1] + " " + Var(V[0]) + " " + S[1] + " " + p[1] + "."; }
   } else if (gram === "perfekt" || gram === "nachdem-satz" || gram === "bevor-satz" || gram === "perfekt-inversion") {
     const pv = pickN(rr, PERFV);
     const aux = auxOf(pv[0]);
     const auxC = conjCore(aux, cp);
     const past = arPast(pv[2], fem);
     if (gram === "perfekt") { de = S[0] + " " + auxC + " " + pv[1] + "."; ar = S[1] + " " + arPastFull(pv[2], S) + "."; }
-    else if (gram === "perfekt-inversion") { const t = T(); de = t[0].charAt(0).toUpperCase() + t[0].slice(1) + " " + auxC + " " + S[0] + " " + pv[1] + "."; ar = t[1] + " " + arPastFull(pv[2], S) + " " + S[1] + "."; }
-    else if (gram === "nachdem-satz") { const S2 = pickN(rr, SUBJ); const auxPast = aux === "sein" ? (cp === "ich" ? "war" : (cp === "wir" || S[2] === "siepl") ? "waren" : "war") : (cp === "ich" ? "hatte" : (cp === "wir" || S[2] === "siepl") ? "hatten" : "hatte"); const rc = conjPresent("ausruhen", CKEY[cpersonFull(S2)]); de = "Nachdem " + S[0] + " " + pv[1] + " " + auxPast + ", " + rc.core + " " + S2[0] + " sich " + rc.tail.trim() + "."; ar = "بعد أن " + arPastFull(pv[2], S) + " " + S[1] + " يرتاح " + S2[1] + "."; }
-    else { const S2 = pickN(rr, SUBJ); const V = pickN(rr, poolOf(0)); de = "Bevor " + S[0] + " " + Vconj(V[0]) + ", " + C2("trinken", S2) + " " + S2[0] + " einen Kaffee."; ar = "قبل أن " + Var(V[0]) + " " + S[1] + " يشرب " + S2[1] + " قهوة."; }
+    else if (gram === "perfekt-inversion") { const t = T(); de = t[0].charAt(0).toUpperCase() + t[0].slice(1) + " " + auxC + " " + lowS(S) + " " + pv[1] + "."; ar = t[1] + " " + arPastFull(pv[2], S) + " " + S[1] + "."; }
+    else if (gram === "nachdem-satz") { const S2 = pickN(rr, SUBJ); const auxPast = aux === "sein" ? (cp === "ich" ? "war" : (cp === "wir" || S[2] === "siepl") ? "waren" : "war") : (cp === "ich" ? "hatte" : (cp === "wir" || S[2] === "siepl") ? "hatten" : "hatte"); const rc = conjPresent("ausruhen", CKEY[cpersonFull(S2)]); de = "Nachdem " + S[0] + " " + pv[1] + " " + auxPast + ", " + rc.core + " " + lowS(S2) + " sich " + rc.tail.trim() + "."; ar = "بعد أن " + arPastFull(pv[2], S) + " " + S[1] + " " + arSubj("ausruhen", S2) + " " + S2[1] + "."; }
+    else { const S2 = pickN(rr, SUBJ); const V = pickN(rr, poolOf(0)); de = "Bevor " + S[0] + " " + Vconj(V[0]) + ", " + C2("trinken", S2) + " " + lowS(S2) + " einen Kaffee."; ar = "قبل أن " + Var(V[0]) + " " + S[1] + " يشرب " + S2[1] + " قهوة."; }
   } else if (gram === "passiv" || gram === "passiv-modal") {
     const pv = pickN(rr, PASSV);
-    const o = O();
-    if (gram === "passiv") { de = o.de.charAt(0).toUpperCase() + o.de.slice(1) + " wird " + pv[1] + "."; ar = o.ar + " " + pv[2] + "."; }
-    else { de = o.de.charAt(0).toUpperCase() + o.de.slice(1) + " kann " + pv[1] + " werden."; ar = "يمكن " + pv[2] + " " + o.ar + "."; }
+    const o = nomPhrase(rr, thingPoolFor(null));
+    const wird = "wird", kann = "kann";
+    if (gram === "passiv") { de = o.de.charAt(0).toUpperCase() + o.de.slice(1) + " " + wird + " " + pv[1] + "."; ar = o.ar + " " + pv[2] + "."; }
+    else { de = o.de.charAt(0).toUpperCase() + o.de.slice(1) + " " + kann + " " + pv[1] + " werden."; ar = "يمكن " + pv[2] + " " + o.ar + "."; }
     vocabRefs.push(o.w.id);
   } else if (gram === "imperativ" || gram === "imperativ-pl") {
     const iv = pickN(rr, IMPV);
@@ -458,14 +674,14 @@ function buildOne(rr, pat, idx) {
     const t = T();
     de = S[0] + " " + core + " " + t[0] + " " + pref + ".";
     de = (S[0] + " " + core + " " + (t[0] ? t[0] + " " : "") + pref + ".").replace(/\s+/g, " ");
-    ar = S[1] + " " + arVerb(sv.ar, cp, fem) + " " + t[1] + ".";
+    ar = S[1] + " " + arVerb(sv.ar, cp, fem, plurality(S)) + " " + t[1] + ".";
     vocabRefs.push(sv.id);
   } else if (gram === "sein-adj" || gram === "werden" || gram === "praeteritum-sein") {
     const a = A();
     const isPl = (cp === "wir" || S[2] === "siepl");
     const verb = gram === "werden" ? conjCore("werden", cp) : gram === "praeteritum-sein" ? (cp === "ich" ? "war" : cp === "du" ? "warst" : isPl ? "waren" : cp === "ihr" ? "wart" : "war") : conjCore("sein", cp);
     de = S[0] + " " + verb + " " + a.de + ".";
-    ar = (gram === "praeteritum-sein" ? arPastFull("كان", S) + " " + S[1] + " " : S[1] + " ") + arAdj(a.ar, fem) + ".";
+    ar = (gram === "praeteritum-sein" ? arPastFull("كان", S) + " " + S[1] + " " : S[1] + " ") + arAdj(a.ar, fem, plurality(S)) + ".";
     vocabRefs.push(a.id);
   } else if (gram === "haben" || gram === "praeteritum-haben") {
     const o = O();
@@ -485,12 +701,170 @@ function buildOne(rr, pat, idx) {
     else if (gram === "superlativ") { de = o1.de + " ist am " + compDe + "sten."; ar = o1.ar + " هو " + "ال" + COMP_AR[k] + "."; }
     else if (gram === "komparativ-adv") { const p = P(); const vv = pickN(rr, poolOf(1)); de = S[0] + " " + Vconj(vv[0]) + " lieber " + p[0] + "."; ar = S[1] + " " + ({ ich: "أفضل", du: "تفضل", er: "يفضل", wir: "نفضل", ihr: "تفضلون", sie: "يفضلون" })[cp] + " " + p[1] + "."; }
     else if (gram === "superlativ-adv") { const t = T(); const vv = pickN(rr, poolOf(1)); de = S[0] + " " + Vconj(vv[0]) + " am liebsten " + t[0] + "."; ar = S[1] + " " + ({ ich: "أفضل", du: "تفضل", er: "يفضل", wir: "نفضل", ihr: "تفضلون", sie: "يفضلون" })[cp] + " " + t[1] + "."; }
-    else { de = "Je mehr " + S[0] + " übt, desto besser wird es."; ar = "كلما تدرب " + S[1] + " أكثر صار أفضل."; }
+    else { de = "Je mehr " + S[0] + " " + C2("üben", S) + ", desto besser wird es."; ar = "كلما " + AR2("üben", S) + " " + S[1] + " أكثر صار أفضل."; }
     vocabRefs.push(o1.w.id, o2.w.id);
   } else if (gram === "futur") {
     const Vi = pickN(rr, poolInf(3).concat(poolInf(1))); const t = T();
     de = S[0] + " " + conjCore("werden", cp) + " " + t[0] + " " + Vi[0] + ".";
-    ar = S[1] + " سوف " + Vi[1] + " " + t[1] + ".";
+    ar = S[1] + " سوف " + arInfPl(Vi[1], S) + " " + t[1] + ".";
+  } else if (gram === "futur-tr" || gram === "futur-frage") {
+    const Vi = pickN(rr, poolInf(0)); const o = akkPhrase(rr, thingPoolFor(Vi[0]), true); const t = T();
+    if (gram === "futur-tr") { de = S[0] + " " + conjCore("werden", cp) + " " + t[0] + " " + o.de + " " + Vi[0] + "."; ar = S[1] + " سوف " + arInfPl(Vi[1], S) + " " + o.ar + " " + t[1] + "."; }
+    else { de = conjCore("werden", cp).charAt(0).toUpperCase() + conjCore("werden", cp).slice(1) + " " + lowS(S) + " " + t[0] + " " + o.de + " " + Vi[0] + "?"; ar = "هل سوف " + arInfPl(Vi[1], S) + " " + S[1] + " " + o.ar + " " + t[1] + "؟"; }
+    vocabRefs.push(o.w.id);
+  } else if (gram === "wer-frage") {
+    const V = pickN(rr, poolOf(0)); const o = akkPhrase(rr, thingPoolFor(V[0]), true);
+    const c = conjPresent(V[0], "er");
+    de = "Wer " + c.core + c.tail + " " + o.de + "?";
+    ar = "من " + arVerb(verbArOf(V[0]), "er", false, null) + " " + o.ar + "؟";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "findet-neu" || gram === "findet-einfach") {
+    const o = akkPhrase(rr, thingPoolFor("finden"), true);
+    const fev = adjs.filter((a) => BIGS.FINDEVAL.indexOf(a.de) >= 0);
+    const a = pickN(rr, fev.length ? fev : adjs);
+    de = S[0] + " " + C2("finden", S) + " " + o.de + " " + a.de + ".";
+    ar = S[1] + " " + AR2("finden", S) + " " + o.ar + " " + adjAgr(a.ar, o.w.art, o.plural) + ".";
+    vocabRefs.push(o.w.id, a.id);
+  } else if (gram === "macht-adj") {
+    const o = akkPhrase(rr, thingPoolFor(null), true);
+    const mev = adjs.filter((a) => BIGS.MACHEVAL.indexOf(a.de) >= 0);
+    const a = pickN(rr, mev.length ? mev : adjs);
+    de = S[0] + " " + C2("machen", S) + " " + o.de + " " + a.de + ".";
+    ar = S[1] + " " + AR2("machen", S) + " " + o.ar + " " + adjAgr(a.ar, o.w.art, o.plural) + ".";
+    vocabRefs.push(o.w.id, a.id);
+  } else if (gram === "macht-name") {
+    const per = pickN(rr, NAMES); const a = A();
+    de = S[0] + " " + C2("machen", S) + " " + per[0] + " " + a.de + ".";
+    ar = S[1] + " " + AR2("machen", S) + " " + per[1] + " " + arAdj(a.ar, nameFem(per), null) + ".";
+  } else if (gram === "macht-name") {
+    const per = pickN(rr, NAMES); const a = A();
+    de = S[0] + " " + C2("machen", S) + " " + per[0] + " " + a.de + ".";
+    ar = S[1] + " " + AR2("machen", S) + " " + per[1] + " " + arAdj(a.ar, nameFem(per), null) + ".";
+  } else if (gram === "imperativ-neu") {
+    const iv = pickN(rr, IMPV); const o = akkPhrase(rr, thingPoolFor(iv[0]), true);
+    if (rr() < 0.5) { de = iv[1] + " " + o.de + "!"; ar = iv[2] + " " + o.ar + "!"; }
+    else { de = "Bitte " + iv[1].toLowerCase() + " " + o.de + "!"; ar = "من فضلك " + iv[2] + " " + o.ar + "!"; }
+    vocabRefs.push(o.w.id);
+  } else if (gram === "koennten-bitte" || gram === "wuerden-bitte") {
+    const Vi = pickN(rr, poolInf(1));
+    const aux = gram === "koennten-bitte" ? "Könnten Sie bitte " : "Würden Sie bitte ";
+    de = aux + Vi[0] + "?";
+    ar = "هل يمكنكم " + Vi[1] + "وا من فضلك؟";
+  } else if (gram === "man-satz") {
+    const V = pickN(rr, poolOf(1)); const t = T();
+    de = "Man " + conjCore(V[0], "er") + " " + t[0] + " nicht.";
+    ar = "لا " + arVerb(verbArOf(V[0]), "er", false, null) + " " + t[1] + ".";
+  } else if (gram === "entschuldigung-wo") {
+    const w = pickN(rr, WO_POOL);
+    de = "Entschuldigung, wo ist " + w[0] + "?";
+    ar = "عذرا، أين " + w[1] + "؟";
+  } else if (gram === "muss-voll" || gram === "kann-voll" || gram === "will-voll" || gram === "soll-voll") {
+    const Vm = { "muss-voll": "müssen", "kann-voll": "können", "will-voll": "wollen", "soll-voll": "sollen" }[gram];
+    const Vi = pickN(rr, poolInf(0)); const o = O(); const t = T();
+    de = S[0] + " " + conjSubj(Vm, S) + " " + t[0] + " " + o.de + " " + Vi[0] + ".";
+    ar = MODAL_AR[Vm] + " " + S[1] + " أن " + arInfPl(Vi[1], S) + " " + o.ar + " " + t[1] + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "darf-hier") {
+    const Vi = pickN(rr, poolInf(1));
+    de = S[0] + " " + conjSubj("dürfen", S) + " hier nicht " + Vi[0] + ".";
+    ar = "لا يجوز لـ" + S[1] + " أن " + arInfPl(Vi[1], S) + " هنا.";
+  } else if (gram === "perfekt-tr" || gram === "perfekt-frage") {
+    const pv = pickTransPv(rr); const aux = auxOf(pv[0]); const auxC = conjCore(aux, cp);
+    const o = akkPhrase(rr, thingPoolFor(pv[0]), true); const t = T();
+    if (gram === "perfekt-tr") { de = S[0] + " " + auxC + " " + t[0] + " " + o.de + " " + pv[1] + "."; ar = arPastFull(pv[2], S) + " " + S[1] + " " + o.ar + " " + t[1] + "."; }
+    else { de = auxC.charAt(0).toUpperCase() + auxC.slice(1) + " " + S[0] + " " + t[0] + " " + o.de + " " + pv[1] + "?"; ar = "ماذا " + arPastFull(pv[2], S) + " " + S[1] + " " + o.ar + " " + t[1] + "؟"; }
+    vocabRefs.push(o.w.id);
+  } else if (gram === "perfekt-sein") {
+    const seinPv = PERFV.filter(([i]) => auxOf(i) === "sein");
+    const pv = pickN(rr, seinPv.length ? seinPv : PERFV); const auxC = conjCore("sein", cp);
+    const p = P(); const t = T();
+    de = S[0] + " " + auxC + " " + t[0] + " " + p[0] + " " + pv[1] + ".";
+    ar = arPastFull(pv[2], S) + " " + S[1] + " " + p[1] + " " + t[1] + ".";
+  } else if (gram === "perfekt-inv-neu") {
+    const pv = pickTransPv(rr); const aux = auxOf(pv[0]); const auxC = conjCore(aux, cp);
+    const o = akkPhrase(rr, thingPoolFor(pv[0]), true); const t = T();
+    de = t[0].charAt(0).toUpperCase() + t[0].slice(1) + " " + auxC + " " + lowS(S) + " " + o.de + " " + pv[1] + ".";
+    ar = t[1] + " " + arPastFull(pv[2], S) + " " + S[1] + " " + o.ar + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "will-zukunft" || gram === "moechte-zukunft") {
+    const Vm = gram === "will-zukunft" ? "wollen" : "möchten";
+    const Vi = pickN(rr, poolInf(0)); const o = akkPhrase(rr, thingPoolFor(Vi[0]), true); const t = T();
+    de = S[0] + " " + conjSubj(Vm, S) + " " + t[0] + " " + o.de + " " + Vi[0] + ".";
+    ar = MODAL_AR[Vm] + " " + S[1] + " أن " + arInfPl(Vi[1], S) + " " + o.ar + " " + t[1] + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "gibt-es-kein") {
+    const o = O(); const p = P();
+    const kein = o.w.art === "die" ? "keine" : o.w.art === "der" ? "keinen" : "kein";
+    const oIndef = String(o.w.ar).split("/")[0].trim().replace(/^ال/, "");
+    de = "Es gibt " + kein + " " + o.w.de + " " + p[0] + ".";
+    ar = "لا يوجد أي " + oIndef + " " + p[1] + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "riecht-nach") {
+    const pool = nouns.filter((w) => w.cat === "food" || w.cat === "drinks");
+    const w = pickN(rr, pool.length ? pool : THING_NOUNS);
+    de = "Es riecht hier nach " + w.de + ".";
+    ar = "تفوح هنا رائحة " + w.ar + ".";
+    vocabRefs.push(w.id);
+  } else if (gram === "wehtut-neu") {
+    const d = pickN(rr, S3_DAT); const o1 = nomPhrase(rr, THING_NOUNS);
+    const verb = o1.w.art === "die" ? "تؤلم" : "يؤلم";
+    de = o1.de.charAt(0).toUpperCase() + o1.de.slice(1) + " tut " + d[0] + " weh.";
+    ar = o1.ar + " " + verb + DATSUF[d[0]] + ".";
+    vocabRefs.push(o1.w.id);
+  } else if (gram === "kommt-an") {
+    const c = conjPresent("ankommen", CKEY[cpersonFull(S)]); const t = T(); const p = P();
+    de = S[0] + " " + c.core + " " + t[0] + " " + p[0] + " " + c.tail.trim() + ".";
+    ar = S[1] + " " + AR2("ankommen", S) + " " + t[1] + " " + p[1] + ".";
+  } else if (gram === "steigt-um") {
+    const c = conjPresent("umsteigen", CKEY[cpersonFull(S)]); const p = P();
+    de = S[0] + " " + c.core + " " + p[0] + " " + c.tail.trim() + ".";
+    ar = S[1] + " " + AR2("umsteigen", S) + " " + p[1] + ".";
+  } else if (gram === "holt-ab") {
+    const c = conjPresent("abholen", CKEY[cpersonFull(S)]); const per = pickN(rr, NAMES); const p = P();
+    de = S[0] + " " + c.core + " " + per[0] + " " + p[0] + " " + c.tail.trim() + ".";
+    ar = S[1] + " " + AR2("abholen", S) + " " + per[1] + " " + p[1] + ".";
+  } else if (gram === "ruft-an") {
+    const c = conjPresent("anrufen", CKEY[cpersonFull(S)]); const per = pickN(rr, NAMES); const t = T();
+    de = S[0] + " " + c.core + " " + per[0] + " " + t[0] + " " + c.tail.trim() + ".";
+    ar = S[1] + " " + AR2("anrufen", S) + " " + per[1] + " " + t[1] + ".";
+  } else if (gram === "bringt-name") {
+    const per = pickN(rr, NAMES); const o = O();
+    de = S[0] + " " + Vconj("bringen") + " " + per[0] + " " + o.de + ".";
+    ar = S[1] + " " + AR2("bringen", S) + " لـ" + per[1] + " " + o.ar + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "gruesst" || gram === "dankt" || gram === "gratuliert" || gram === "besucht-name") {
+    const inf = gram === "gruesst" ? "grüßen" : gram === "dankt" ? "danken" : gram === "gratuliert" ? "gratulieren" : "besuchen";
+    const per = pickN(rr, NAMES); const t = T();
+    const tail = gram === "besucht-name" ? " " + t[0] : "";
+    const tailA = gram === "besucht-name" ? " " + t[1] : "";
+    de = S[0] + " " + C2(inf, S) + " " + per[0] + tail + ".";
+    ar = S[1] + " " + AR2(inf, S) + " " + per[1] + tailA + ".";
+  } else if (gram === "werden-adj") {
+    const a = A(); const t = T();
+    de = S[0] + " " + conjCore("werden", cp) + " " + t[0] + " " + a.de + ".";
+    ar = S[1] + " سوف " + AR2("werden", S) + " " + t[1] + " " + arAdj(a.ar, subjFem(S), plurality(S)) + ".";
+    vocabRefs.push(a.id);
+  } else if (gram === "uebt-obj" || gram === "wiederholt") {
+    const pool = nouns.filter((w) => ["school", "study", "education", "university"].includes(w.cat));
+    const w = pickN(rr, pool.length ? pool : THING_NOUNS); const t = T();
+    const inf = gram === "uebt-obj" ? "üben" : "wiederholen";
+    de = S[0] + " " + C2(inf, S) + " " + t[0] + " " + declArt(w.art, "A", false) + " " + w.de + ".";
+    ar = S[1] + " " + AR2(inf, S) + " " + t[1] + (gram === "uebt-obj" ? " على " : " ") + w.ar + ".";
+    vocabRefs.push(w.id);
+  } else if (gram === "schreibt-zeit") {
+    const allow = new Set(["Brief", "E-Mail", "Hausaufgabe", "Geschichte", "Liste", "Nachricht"]);
+    const pool = nouns.filter((w) => allow.has(w.de));
+    const w = pickN(rr, pool.length ? pool : THING_NOUNS); const t = T();
+    de = S[0] + " " + C2("schreiben", S) + " " + t[0] + " " + declArt(w.art, "A", false) + " " + w.de + ".";
+    ar = S[1] + " " + AR2("schreiben", S) + " " + t[1] + " " + w.ar + ".";
+    vocabRefs.push(w.id);
+  } else if (gram === "plant") {
+    const allow = new Set(["Urlaub", "Reise", "Party", "Fest", "Hochzeit", "Ausflug", "Wochenende", "Picknick", "Geburtstag"]);
+    const pool = nouns.filter((w) => allow.has(w.de));
+    const w = pickN(rr, pool.length ? pool : THING_NOUNS); const t = T();
+    de = S[0] + " " + C2("planen", S) + " " + t[0] + " " + declArt(w.art, "A", false) + " " + w.de + ".";
+    ar = S[1] + " " + AR2("planen", S) + " " + t[1] + " " + w.ar + ".";
+    vocabRefs.push(w.id);
   } else if (gram === "praeteritum-gehen") {
     const p = P(); const t = T();
     const isPl = (cp === "wir" || S[2] === "siepl");
@@ -502,7 +876,7 @@ function buildOne(rr, pat, idx) {
     if (gram === "wetter-es") { const a = pickN(rr, [["schön", "جميل"], ["kalt", "بارد"], ["warm", "دافئ"], ["gut", "جيد"], ["schlecht", "سيئ"], ["windig", "عاصف"], ["neblig", "ضبابي"], ["sonnig", "مشمس"], ["regnerisch", "ماطر"], ["wolkig", "غائم"], ["heiß", "حار"], ["kühl", "منعش"]]); de = "Es ist " + a[0] + " " + t[0] + "."; ar = "الجو " + a[1] + " " + t[1] + "."; }
     else { const v = pickN(rr, [["regnet", "تمطر"], ["schneit", "تثلج"]]); de = "Es " + v[0] + " " + t[0] + "."; ar = "إنها " + v[1] + " " + t[1] + "."; }
   } else if (gram === "es-gibt") {
-    const o = akkPhrase(rr, THING_NOUNS, true); const p = P();
+    const o = akkPhrase(rr, thingPoolFor(null), true); const p = P();
     de = "Es gibt " + o.de + " " + p[0] + ".";
     ar = "يوجد " + o.ar + " " + p[1] + ".";
     vocabRefs.push(o.w.id);
@@ -521,6 +895,97 @@ function buildOne(rr, pat, idx) {
     else if (gram === "besuchen") { de = S[0] + " " + Vconj("besuchen") + " " + per.de + " " + t[0] + "."; ar = S[1] + " " + AR2("besuchen", S) + " " + per.ar + " " + t[1] + "."; }
     else { const c = conjPresent("anrufen", cp); de = S[0] + " " + c.core + " " + per.de + " " + t[0] + " " + c.tail.trim() + "."; ar = S[1] + " " + AR2("anrufen", S) + " " + per.ar + " " + t[1] + "."; }
     vocabRefs.push(per.w.id);
+  } else if (gram === "person-akk") {
+    const PV = BIGS.PERSON_V.filter(([i]) => !isSepInf(i));
+    const V = pickN(rr, PV.length ? PV : poolOf(0));
+    const per = akkPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
+    const t = T(); const p = P();
+    const mode = rr();
+    if (mode < 0.5) { de = S[0] + " " + Vconj(V[0]) + " " + per.de + " " + t[0] + " " + p[0] + "."; ar = S[1] + " " + AR2(V[0], S) + " " + per.ar + " " + t[1] + " " + p[1] + "."; }
+    else if (mode < 0.8) { const q = cap(conjSubj(V[0], S)); de = q + " " + S[0] + " " + per.de + " " + t[0] + "?"; ar = "هل " + AR2(V[0], S) + " " + S[1] + " " + per.ar + " " + t[1] + "؟"; }
+    else { de = S[0] + " " + Vconj(V[0]) + " " + per.de + " nicht."; ar = S[1] + " لا " + AR2(V[0], S) + " " + per.ar + "."; }
+    vocabRefs.push(per.w.id);
+  } else if (gram === "relativ-subjekt") {
+    const RELATIV_BLOCK = new Set(["Stelle", "Ausbildung", "Prüfung", "Arbeit", "Beruf", "Job", "Praktikum", "Gehalt", "Urlaub", "Schicht", "Lehrstelle", "Ausbildungsplatz", "Arbeitsplatz"]);
+    const np = nouns.filter((w) => PERSON_CATS.indexOf(w.cat) >= 0 && !RELATIV_BLOCK.has(w.de));
+    const n = nomPhrase(rr, np.length ? np : THING_NOUNS);
+    const rel = n.w.art === "die" ? "die" : n.w.art === "das" ? "das" : "der";
+    const femN = n.w.art === "die";
+    const Vs = pickN(rr, poolOf(1)); const t = T();
+    const Vm = pickN(rr, poolOf(0)); const o = akkPhrase(rr, thingPoolFor(Vm[0]), false);
+    const cs = conjPresent(Vs[0], "er"), cm = conjPresent(Vm[0], "er");
+    de = cap(n.de) + ", " + rel + " " + t[0] + " " + cs.core + cs.tail + ", " + cm.core + " " + o.de + ".";
+    ar = n.ar + " " + (femN ? "التي" : "الذي") + " " + arVerb(verbArOf(Vs[0]), "er", femN, null) + " " + t[1] + " " + arVerb(verbArOf(Vm[0]), "er", femN, null) + " " + o.ar + ".";
+    vocabRefs.push(n.w.id, o.w.id);
+  } else if (gram === "indirekt-frage") {
+    const frames = [["Weißt du, wo", "هل تعرف أين"], ["Weißt du, wann", "هل تعرف متى"], ["Sag mir, wo", "قل لي أين"], ["Sag mir, wann", "قل لي متى"], ["Ich weiß nicht, wo", "لا أعرف أين"], ["Ich weiß nicht, wann", "لا أعرف متى"]];
+    const f = pickN(rr, frames);
+    const o = akkPhrase(rr, THING_NOUNS, false);
+    const useTrans = rr() < 0.5;
+    const V = pickN(rr, useTrans ? poolOf(0) : poolOf(1));
+    const sub = useTrans ? lowS(S) + " " + o.de + " " + Vconj(V[0]) : lowS(S) + " " + Vconj(V[0]);
+    const subA = useTrans ? Var(V[0]) + " " + S[1] + " " + o.ar : Var(V[0]) + " " + S[1];
+    de = f[0] + " " + sub + "?";
+    ar = f[1] + " " + subA + "؟";
+    if (useTrans) vocabRefs.push(o.w.id);
+  } else if (gram === "seit-praesens") {
+    const vinfo = pickN(rr, [["wohnen", "يسكن"], ["arbeiten", "يعمل"], ["lernen", "يتعلم"], ["leben", "يعيش"]]);
+    const tg = pickN(rr, T_DAUER); const p = P();
+    de = S[0] + " " + C2(vinfo[0], S) + " seit " + tg[0] + " " + p[0] + ".";
+    ar = S[1] + " " + AR2(vinfo[0], S) + " منذ " + tg[1] + " " + p[1] + ".";
+  } else if (gram === "praet-modal") {
+    const MT = { "müssen": ["musste", "musstest", "musste", "mussten", "musstet", "mussten", "اضطر"], "können": ["konnte", "konntest", "konnte", "konnten", "konntet", "konnten", "استطاع"], "wollen": ["wollte", "wolltest", "wollte", "wollten", "wolltet", "wollten", "أراد"], "sollen": ["sollte", "solltest", "sollte", "sollten", "solltet", "sollten", "كان ينبغي"], "dürfen": ["durfte", "durftest", "durfte", "durften", "durftet", "durften", "سُمح له"] };
+    const Vm = pickN(rr, Object.keys(MT));
+    const Vi = pickN(rr, poolInf(0)); const o = akkPhrase(rr, thingPoolFor(Vi[0]), true); const t = T();
+    const mc = { ich: 0, du: 1, er: 2, wir: 3, ihr: 4, sie: 5 }[cp];
+    let mAr;
+    if (Vm === "dürfen") { const dpl = plurality(S), dfem = subjFem(S); mAr = dpl === "dual" ? "سُمح لهما" : dpl === "pl" ? "سُمح لهم" : dfem ? "سُمح لها" : "سُمح له"; }
+    else mAr = arPastFull(MT[Vm][6], S);
+    de = S[0] + " " + MT[Vm][mc] + " " + t[0] + " " + o.de + " " + Vi[0] + ".";
+    ar = mAr + " " + S[1] + " أن " + arInfPl(Vi[1], S) + " " + o.ar + " " + t[1] + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "praet-ankommen") {
+    const KT = { ich: "kam", du: "kamst", er: "kam", wir: "kamen", ihr: "kamt", sie: "kamen" };
+    const t = T(); const p = P();
+    de = S[0] + " " + KT[cp] + " " + t[0] + " " + p[0] + " an.";
+    ar = arPastFull("أتى", S) + " " + S[1] + " " + t[1] + " " + p[1] + ".";
+  } else if (gram === "praet-geben") {
+    const GT = { ich: "gab", du: "gabst", er: "gab", wir: "gaben", ihr: "gabt", sie: "gaben" };
+    const o1 = akkPhrase(rr, thingPoolFor(null), false); const o2 = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
+    de = S[0] + " " + GT[cp] + " " + o2.de + " " + o1.de + ".";
+    ar = arPastFull("أعطى", S) + " " + S[1] + " " + o2.ar + " " + o1.ar + ".";
+    vocabRefs.push(o1.w.id, o2.w.id);
+  } else if (gram === "praet-sehen") {
+    const ST = { ich: "sah", du: "sahst", er: "sah", wir: "sahen", ihr: "saht", sie: "sahen" };
+    const o = akkPhrase(rr, thingPoolFor(null), true); const t = T();
+    de = S[0] + " " + ST[cp] + " " + o.de + " " + t[0] + ".";
+    ar = arPastFull("رأى", S) + " " + S[1] + " " + o.ar + " " + t[1] + ".";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "formell-transitiv") {
+    const INFS = [["ausfüllen", "يملأ", "documents"], ["unterschreiben", "يوقع", "documents"], ["abgeben", "يسلم", "documents"], ["erklären", "يشرح", null], ["vorlesen", "يقرأ", null], ["zeigen", "يري", null]];
+    const fi = pickN(rr, INFS);
+    const pool = fi[2] ? THING_NOUNS.filter((w) => w.cat === fi[2]) : thingPoolFor(null);
+    const o = akkPhrase(rr, pool.length ? pool : THING_NOUNS, false);
+    de = "Könnten Sie " + o.de + " " + fi[0] + "?";
+    ar = "هل يمكنكم أن " + fi[1] + "وا " + o.ar + "؟";
+    vocabRefs.push(o.w.id);
+  } else if (gram === "vor-angst") {
+    const o5 = datPhrase(rr, thingPoolFor(null), false);
+    de = "Vor " + o5.de + " " + C2("haben", S) + " " + lowS(S) + " Angst.";
+    ar = "أمام " + o5.ar + " " + arVerb("يخاف", CKEY[cpersonFull(S)], subjFem(S), plurality(S)) + " " + S[1] + ".";
+    vocabRefs.push(o5.w.id);
+  } else if (gram === "bei-wetter") {
+    const WETTERADJ = [["schön", "جميل"], ["kalt", "بارد"], ["warm", "دافئ"], ["gut", "جيد"], ["schlecht", "سيئ"], ["windig", "عاصف"], ["neblig", "ضبابي"], ["sonnig", "مشمس"], ["regnerisch", "ماطر"], ["wolkig", "غائم"], ["heiß", "حار"], ["kühl", "منعش"], ["schwül", "رطب"], ["heiter", "صحو"], ["trüb", "غائم"], ["mild", "معتدل"], ["frostig", "متجمد"], ["stürmisch", "عاصف"], ["bedeckt", "مغطى"], ["klar", "صاف"]];
+    const o5 = datPhrase(rr, thingPoolFor(null), false); const a = pickN(rr, WETTERADJ);
+    de = "Bei " + o5.de + " ist es " + a[0] + ".";
+    ar = "عند " + o5.ar + " الجو " + a[1] + ".";
+    vocabRefs.push(o5.w.id);
+  } else if (gram === "nach-zeit") {
+    const o5 = datPhrase(rr, thingPoolFor(null), false);
+    const V = pickN(rr, poolOf(1)); const p = P();
+    de = "Nach " + o5.de + " " + Vconj(V[0]) + " " + lowS(S) + " " + p[0] + ".";
+    ar = "بعد " + o5.ar + " " + Var(V[0]) + " " + S[1] + " " + p[1] + ".";
+    vocabRefs.push(o5.w.id);
   } else if (gram === "abholen" || gram === "bringen-zu" || gram === "begleiten") {
     const per = akkPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
     const p3 = pickN(rr, P_AB);
@@ -532,7 +997,7 @@ function buildOne(rr, pat, idx) {
     const per = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
     const o = akkPhrase(rr, THING_NOUNS, false);
     const v = gram === "vorstellen" ? conjPresent("vorstellen", cp) : null;
-    if (gram === "vorstellen") { de = S[0] + " " + v.core + " " + o.de + " " + per.de + " " + v.tail.trim() + "."; ar = S[1] + " " + AR2("vorstellen", S) + " " + o.ar + " لـ" + per.ar + "."; }
+    if (gram === "vorstellen") { const po = akkPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false); de = S[0] + " " + v.core + " " + po.de + " " + per.de + " " + v.tail.trim() + "."; ar = S[1] + " " + AR2("vorstellen", S) + " " + po.ar + " لـ" + per.ar + "."; vocabRefs.push(po.w.id); }
     else if (gram === "erklaeren") { de = S[0] + " " + Vconj("erklären") + " " + per.de + " " + o.de + "."; ar = S[1] + " " + AR2("erklären", S) + " لـ" + per.ar + " " + o.ar + "."; }
     else if (gram === "zeigen") { de = S[0] + " " + Vconj("zeigen") + " " + per.de + " " + o.de + "."; ar = S[1] + " " + AR2("zeigen", S) + " " + per.ar + " " + o.ar + "."; }
     else if (gram === "helfen-bei") { const n = pickN(rr, N_ACT); de = S[0] + " " + C2("helfen", S) + " " + per.de + " beim " + n[0] + "."; ar = S[1] + " " + AR2("helfen", S) + " " + per.ar + " في " + n[1] + "."; }
@@ -541,21 +1006,62 @@ function buildOne(rr, pat, idx) {
   } else if (gram === "wuenschen" || gram === "einkaufen-fuer" || gram === "kochen-fuer" || gram === "sparen-fuer") {
     const per = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
     if (gram === "wuenschen") { const n = pickN(rr, N_WUNSCH); de = S[0] + " " + C2("wünschen", S) + " " + per.de + " viel " + n[0] + "."; ar = S[1] + " " + AR2("wünschen", S) + " لـ" + per.ar + " الكثير من " + n[1] + "."; }
-    else if (gram === "sparen-fuer") { const o = O(); de = S[0] + " " + Vconj("sparen") + " für " + o.de + "."; ar = S[1] + " " + AR2("sparen", S) + " لـ" + o.ar + "."; vocabRefs.push(o.w.id); }
+    else if (gram === "sparen-fuer") { const o = akkPhrase(rr, thingPoolFor("sparen"), true); de = S[0] + " " + Vconj("sparen") + " für " + o.de + "."; ar = S[1] + " " + AR2("sparen", S) + " لـ" + o.ar + "."; vocabRefs.push(o.w.id); }
     else { const o = O(); const v = gram === "einkaufen-fuer" ? conjPresent("einkaufen", cp) : { core: Vconj("kochen"), tail: "" }; de = S[0] + " " + v.core + " für " + per.de + " " + o.de + (v.tail ? " " + v.tail.trim() : "") + "."; ar = S[1] + " " + AR2(gram === "einkaufen-fuer" ? "einkaufen" : "kochen", S) + " لـ" + per.ar + " " + o.ar + "."; vocabRefs.push(o.w.id); }
     vocabRefs.push(per.w.id);
   } else if (gram === "zahlen-mit" || gram === "bar-zahlen" || gram === "kosten") {
-    const o = O();
-    if (gram === "kosten") { const pr = pickN(rr, O_PREIS); de = o.de.charAt(0).toUpperCase() + o.de.slice(1) + " kostet " + pr[0] + "."; ar = o.ar + " يكلف " + pr[1] + "."; }
-    else if (gram === "bar-zahlen") { de = S[0] + " " + Vconj("bezahlen") + " " + o.de + " bar."; ar = S[1] + " " + AR2("bezahlen", S) + " " + o.ar + " نقدًا."; }
-    else { const z = pickN(rr, O_ZAHL); de = S[0] + " " + Vconj("zahlen") + " " + o.de + " " + z[0] + "."; ar = S[1] + " " + AR2("zahlen", S) + " " + o.ar + " " + z[1] + "."; }
-    vocabRefs.push(o.w.id);
-  } else if (gram === "sein-fuer" || gram === "sein-von" || gram === "lust-auf" || gram === "angst-vor" || gram === "stolz-auf" || gram === "zufrieden-mit" || gram === "beginnen-mit" || gram === "aufhoeren-mit" || gram === "warten-auf-seit" || gram === "kuemmern-um" || gram === "bewerben-um" || gram === "beschweren-ueber" || gram === "informieren-ueber" || gram === "freuen-auf" || gram === "danken-fuer" || gram === "gratulieren-zu" || gram === "verb-praep-auf" || gram === "verb-praep-an" || gram === "verb-praep-nach" || gram === "sprechen-ueber" || gram === "praeposition-mit" || gram === "praeposition-fuer" || gram === "reflexiv-freuen" || gram === "reflexiv-interesse" || gram === "reflexiv-beeilen" || gram === "reflexiv-aergern" || gram === "denn-kausal" || gram === "weil-kausal" || gram === "damit-final" || gram === "trotz" || gram === "trotz-nominal" || gram === "waehrend" || gram === "bevor" || gram === "nachdem" || gram === "bevor-satz" || gram === "waehrend-satz" || gram === "sobald" || gram === "seit-dauer" || gram === "bis-zeit" || gram === "von-bis" || gram === "herkunft-wohnen" || gram === "seit-lernen" || gram === "te-ka-mo-lo" || gram === "adverb-voran" || gram === "lokal-voran" || gram === "lokal-voran-2" || gram === "inversion" || gram === "praesens" || gram === "negation" || gram === "kein" || gram === "ja-nein-frage" || gram === "akk-doppelt" || gram === "finden-adj" || gram === "und-koordination" || gram === "dativ" || gram === "genitiv-praep" || gram === "obwohl" || gram === "zwar-aber" || gram === "nicht-nur-sondern" || gram === "sowohl-als-auch" || gram === "entweder-oder" || gram === "dativ" || gram === "possessiv-sein") {
+    if (gram === "kosten") { const pr = pickN(rr, O_PREIS); const ok = nomPhrase(rr, THING_NOUNS); de = ok.de.charAt(0).toUpperCase() + ok.de.slice(1) + " kostet " + pr[0] + "."; ar = ok.ar + " يكلف " + pr[1] + "."; vocabRefs.push(ok.w.id); }
+    else { const o = akkPhrase(rr, thingPoolFor(null), true);
+      if (gram === "bar-zahlen") { de = S[0] + " " + Vconj("bezahlen") + " " + o.de + " bar."; ar = S[1] + " " + AR2("bezahlen", S) + " " + o.ar + " نقدًا."; }
+      else { const z = pickN(rr, O_ZAHL); de = S[0] + " " + Vconj("zahlen") + " " + o.de + " " + z[0] + "."; ar = S[1] + " " + AR2("zahlen", S) + " " + o.ar + " " + z[1] + "."; }
+      vocabRefs.push(o.w.id);
+    }
+  } else if (gram === "sein-fuer" || gram === "sein-von" || gram === "lust-auf" || gram === "angst-vor" || gram === "stolz-auf" || gram === "zufrieden-mit" || gram === "beginnen-mit" || gram === "aufhoeren-mit" || gram === "warten-auf-seit" || gram === "kuemmern-um" || gram === "bewerben-um" || gram === "beschweren-ueber" || gram === "informieren-ueber" || gram === "freuen-auf" || gram === "danken-fuer" || gram === "gratulieren-zu" || gram === "verb-praep-auf" || gram === "verb-praep-an" || gram === "verb-praep-nach" || gram === "sprechen-ueber" || gram === "praeposition-mit" || gram === "praeposition-fuer" || gram === "reflexiv-freuen" || gram === "reflexiv-interesse" || gram === "reflexiv-beeilen" || gram === "reflexiv-aergern" || gram === "denn-kausal" || gram === "weil-kausal" || gram === "damit-final" || gram === "trotz" || gram === "trotz-nominal" || gram === "waehrend" || gram === "bevor" || gram === "nachdem" || gram === "bevor-satz" || gram === "waehrend-satz" || gram === "sobald" || gram === "seit-dauer" || gram === "bis-zeit" || gram === "von-bis" || gram === "herkunft-wohnen" || gram === "seit-lernen" || gram === "te-ka-mo-lo" || gram === "adverb-voran" || gram === "lokal-voran" || gram === "lokal-voran-2" || gram === "inversion" || gram === "praesens" || gram === "negation" || gram === "kein" || gram === "ja-nein-frage" || gram === "akk-doppelt" || gram === "finden-adj" || gram === "und-koordination" || gram === "dativ" || gram === "genitiv-praep" || gram === "obwohl" || gram === "zwar-aber" || gram === "nicht-nur-sondern" || gram === "sowohl-als-auch" || gram === "entweder-oder" || gram === "dativ" || gram === "possessiv-sein" || gram === "kauft-ort" || gram === "bestellt-ort" || gram === "kocht-zeit" || gram === "trinkt-ort" || gram === "isst-zeit" || gram === "bezahlt-zeit" || gram === "arbeitet-ort" || gram === "lernt-obj" || gram === "braucht-neu" || gram === "faehrt-ort" || gram === "fliegt-ort" || gram === "bucht-zeit" || gram === "reserviert-ort" || gram === "nennt-name" || gram === "bleibt-haus" || gram === "bleibt-haus-t" || gram === "ist-krank" || gram === "ist-krank-2" || gram === "keine-zeit-t" || gram === "viel-zeit-t" || gram === "haben-zeit" || gram === "haben-inversion" || gram === "haben-koerper" || gram === "nimmt-med" || gram === "glaubt-dass" || gram === "hofft-dass" || gram === "weiss-dass" || gram === "denkt-dass" || gram === "sagt-dass" || gram === "moechte-voll") {
     const r = fillGeneric(rr, deTpl, arTpl, S);
     de = r.de; ar = r.ar; vocabRefs.push(...r.refs.w);
-    // fix verb slot for ditransitive/dativ patterns needing specific verbs
+    // obwohl: agree subordinate verb + Arabic with the SAME S2 fillGeneric used
+    if (gram === "obwohl") {
+      const S2o = r.refs.s2;
+      de = de.replace("müde ist", C2("sein", S2o) + " müde");
+      ar = ar.replace("تعبان", muedeAr(S2o));
+    }
+    // kein: gender/case-correct negation (keinen/keine/kein) + indefinite Arabic
+    if (gram === "kein") {
+      const V = pickN(rr, poolOf(0)); const o = akkPhrase(rr, thingPoolFor(V[0]), true); const t = T();
+      const kein = o.w.art === "die" ? "keine" : o.w.art === "der" ? "keinen" : "kein";
+      const oIndef = String(o.w.ar).split("/")[0].trim().replace(/^ال/, "");
+      de = S[0] + " " + Vconj(V[0]) + " " + t[0] + " " + kein + " " + o.w.de + ".";
+      ar = S[1] + " لا " + Var(V[0]) + " أي " + oIndef + " " + t[1] + ".";
+      vocabRefs.push(o.w.id);
+    }
+    // LITVERBS: template literal verbs -> subject-conjugated + Arabic agreement
+    const LITVERBS = {
+      "kauft-ort": ["kauft", "kaufen", "يشتري"], "bestellt-ort": ["bestellt", "bestellen", "يطلب"],
+      "kocht-zeit": ["kocht", "kochen", "يطبخ"], "trinkt-ort": ["trinkt", "trinken", "يشرب"],
+      "isst-zeit": ["isst", "essen", "يأكل"], "bezahlt-zeit": ["bezahlt", "bezahlen", "يدفع"],
+      "arbeitet-ort": ["arbeitet", "arbeiten", "يعمل"], "lernt-obj": ["lernt", "lernen", "يتعلم"],
+      "braucht-neu": ["braucht", "brauchen", "يحتاج"], "faehrt-ort": ["fährt", "fahren", "يسافر"],
+      "fliegt-ort": ["fliegt", "fliegen", "يطير"], "bucht-zeit": ["bucht", "buchen", "يحجز"],
+      "reserviert-ort": ["reserviert", "reservieren", "يحجز"], "nennt-name": ["nennt", "nennen", "يسمي"],
+      "bleibt-haus": ["bleibt", "bleiben", "يبقى"], "bleibt-haus-t": ["bleibt", "bleiben", "يبقى"],
+      "keine-zeit-t": ["hat", "haben", null], "viel-zeit-t": ["hat", "haben", null],
+      "haben-zeit": ["hat", "haben", null], "haben-inversion": ["hat", "haben", null],
+      "haben-koerper": ["hat", "haben", null], "nimmt-med": ["nimmt", "nehmen", "يأخذ"],
+      "glaubt-dass": ["glaubt", "glauben", "يعتقد"], "hofft-dass": ["hofft", "hoffen", "يأمل"],
+      "weiss-dass": ["weiß", "wissen", "يعرف"], "denkt-dass": ["denkt", "denken", "يظن"],
+      "sagt-dass": ["sagt", "sagen", "يقول"], "moechte-voll": ["möchte", "möchten", "يود"],
+    };
+    if (LITVERBS[gram]) {
+      const lb = LITVERBS[gram];
+      de = de.split(" " + lb[0] + " ").join(" " + conjSubj(lb[1], S) + " ").split(lb[0] + ",").join(conjSubj(lb[1], S) + ",");
+      if (lb[2]) ar = ar.split(" " + lb[2] + " ").join(" " + AR2(lb[1], S) + " ");
+    }
+    if (gram === "ist-krank") { de = de.split(" ist ").join(" " + C2("sein", S) + " "); ar = ar.split("مريض").join(sickAr(S)); }
+    if (gram === "ist-krank-2") { const S2o = r.refs.s2; de = de.split(" ist ").join(" " + C2("sein", S2o) + " "); ar = ar.split("مريض").join(sickAr(S2o)); }
     if (gram === "dativ") {
-      const V = pickN(rr, poolOf(2)); const o1 = akkPhrase(rr, THING_NOUNS, false); const o2 = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
+      const V = pickN(rr, poolOf(2));
+      const o1pool = thingPoolFor(V[0]).filter((w) => PERSON_CATS.indexOf(w.cat) < 0);
+      const o1 = akkPhrase(rr, o1pool.length ? o1pool : thingPoolFor(null), false); const o2 = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
       de = S[0] + " " + Vconj(V[0]) + " " + o2.de + " " + o1.de + ".";
       ar = S[1] + " " + AR2(V[0], S) + " " + o2.ar + " " + o1.ar + ".";
       vocabRefs.push(o1.w.id, o2.w.id);
@@ -563,13 +1069,13 @@ function buildOne(rr, pat, idx) {
     if (gram === "akk-doppelt") {
       const o1 = akkPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false); const n = pickN(rr, NAMES);
       de = S[0] + " " + C2("nennen", S) + " " + o1.de + " " + n[0] + ".";
-      ar = S[1] + " يسمي " + o1.ar + " " + n[1] + ".";
+      ar = S[1] + " " + AR2("nennen", S) + " " + o1.ar + " " + n[1] + ".";
       vocabRefs.push(o1.w.id);
     }
     if (gram === "finden-adj") {
       const o = O(); const a = A();
       de = S[0] + " " + C2("finden", S) + " " + o.de + " " + a.de + ".";
-      ar = S[1] + " يجد " + o.ar + " " + a.ar + ".";
+      ar = S[1] + " " + AR2("finden", S) + " " + o.ar + " " + adjAgr(a.ar, o.w.art) + ".";
       vocabRefs.push(o.w.id, a.id);
     }
     if (gram === "von-bis") {
@@ -580,12 +1086,12 @@ function buildOne(rr, pat, idx) {
     if (gram === "herkunft-wohnen") {
       const p1 = pickN(rr, P_CITY), p2 = pickN(rr, PLACES);
       de = S[0] + " " + C2("kommen", S) + " aus " + p1[0] + " und " + C2("wohnen", S) + " jetzt " + p2[0] + ".";
-      ar = S[1] + " قادم من " + p1[1] + " ويسكن الآن " + p2[1] + ".";
+      ar = S[1] + " " + qadmAr(S) + " من " + p1[1] + " و" + AR2("wohnen", S) + " الآن " + p2[1] + ".";
     }
     if (gram === "seit-lernen") {
       const tg = pickN(rr, T_DAUER);
       de = S[0] + " " + C2("lernen", S) + " seit " + tg[0] + " Deutsch.";
-      ar = S[1] + " يتعلم الألمانية منذ " + tg[1] + ".";
+      ar = S[1] + " " + AR2("lernen", S) + " الألمانية منذ " + tg[1] + ".";
     }
     if (gram === "seit-dauer") {
       const tg = pickN(rr, T_DAUER); const V = pickN(rr, poolOf(0)); const o = O();
@@ -596,17 +1102,17 @@ function buildOne(rr, pat, idx) {
     if (gram === "bis-zeit") {
       const tg = pickN(rr, T_DAUER);
       de = S[0] + " " + C2("bleiben", S) + " bis " + tg[0] + ".";
-      ar = S[1] + " يبقى حتى " + tg[1] + ".";
+      ar = S[1] + " " + AR2("bleiben", S) + " حتى " + tg[1] + ".";
     }
-    if (gram === "je-desto" || gram === "je-desto-2") { de = "Je öfter " + S[0] + " " + C2("üben", S) + ", desto besser wird es."; ar = "كلما تدرب " + S[1] + " أكثر صار أفضل."; }
+    if (gram === "je-desto" || gram === "je-desto-2") { de = "Je öfter " + S[0] + " " + C2("üben", S) + ", desto besser wird es."; ar = "كلما " + AR2("üben", S) + " " + S[1] + " أكثر صار أفضل."; }
     if (gram === "possessiv-sein") { de = de.replace("für seine Familie", "für " + (fem ? "ihre" : "seine") + " Familie"); }
     if (gram === "verb-praep-auf" || gram === "lust-auf" || gram === "stolz-auf" || gram === "freuen-auf" || gram === "reflexiv-freuen") {
       const o = akkPhrase(rr, THING_NOUNS, false);
-      if (gram === "verb-praep-auf") { de = S[0] + " " + Vconj("warten") + " auf " + o.de + "."; ar = S[1] + " ينتظر " + o.ar + "."; }
+      if (gram === "verb-praep-auf") { de = S[0] + " " + Vconj("warten") + " auf " + o.de + "."; ar = S[1] + " " + AR2("warten", S) + " " + o.ar + "."; }
       else if (gram === "lust-auf") { de = S[0] + " " + C2("haben", S) + " Lust auf " + o.de + "."; ar = "لدى " + S[1] + " رغبة في " + o.ar + "."; }
-      else if (gram === "stolz-auf") { de = S[0] + " " + conjCore("sein", cp) + " stolz auf " + o.de + "."; ar = S[1] + " فخور بـ" + o.ar + "."; }
-      else if (gram === "freuen-auf") { de = S[0] + " " + reflConj("freuen", S) + " auf " + o.de + "."; ar = S[1] + " متشوق لـ" + o.ar + "."; }
-      else { de = S[0] + " " + reflConj("freuen", S) + " über " + o.de + "."; ar = S[1] + " سعيد بـ" + o.ar + "."; }
+      else if (gram === "stolz-auf") { de = S[0] + " " + conjCore("sein", cp) + " stolz auf " + o.de + "."; ar = S[1] + " " + arAdj("فخور", subjFem(S), plurality(S)) + " بـ" + o.ar + "."; }
+      else if (gram === "freuen-auf") { de = S[0] + " " + reflConj("freuen", S) + " auf " + o.de + "."; ar = S[1] + " " + arAdj("متشوق", subjFem(S), plurality(S)) + " لـ" + o.ar + "."; }
+      else { de = S[0] + " " + reflConj("freuen", S) + " über " + o.de + "."; ar = S[1] + " " + arAdj("سعيد", subjFem(S), plurality(S)) + " بـ" + o.ar + "."; }
       vocabRefs.push(o.w.id);
     }
     if (gram === "verb-praep-an" || gram === "denken" || gram === "verb-praep-nach" || gram === "sprechen-ueber" || gram === "praeposition-mit" || gram === "praeposition-fuer" || gram === "beschweren-ueber" || gram === "informieren-ueber" || gram === "reflexiv-interesse" || gram === "reflexiv-beeilen" || gram === "reflexiv-aergern" || gram === "angst-vor" || gram === "zufrieden-mit" || gram === "beginnen-mit" || gram === "aufhoeren-mit" || gram === "warten-auf-seit" || gram === "kuemmern-um" || gram === "bewerben-um" || gram === "danken-fuer" || gram === "gratulieren-zu") {
@@ -627,8 +1133,8 @@ function buildOne(rr, pat, idx) {
         vocabRefs.push(per.w.id, o.w.id);
       } else if (gram === "reflexiv-beeilen") {
         const S2 = pickN(rr, SUBJ);
-        de = S[0] + " " + reflConj("beeilen", S) + ", weil " + S2[0] + " spät dran ist.";
-        ar = S[1] + " مستعجل لأن " + S2[1] + " متأخر.";
+        de = S[0] + " " + reflConj("beeilen", S) + ", weil " + lowS(S2) + " " + C2("sein", S2) + " spät dran ist.";
+        ar = S[1] + " " + arAdj("مستعجل", subjFem(S), plurality(S)) + " لأن " + S2[1] + " " + AR2("sein", S2) + " متأخر.";
       } else if (gram === "reflexiv-aergern") {
         const o = akkPhrase(rr, THING_NOUNS, false);
         de = S[0] + " " + C2("haben", S) + " " + REFLPRON[CKEY[cpersonFull(S)]] + " über " + o.de + " geärgert.";
@@ -664,6 +1170,13 @@ function buildOne(rr, pat, idx) {
         const o = f[2] === "dat" ? datPhrase(rr, THING_NOUNS, false) : akkPhrase(rr, THING_NOUNS, false);
         const INF_OF = { "verb-praep-an": "denken", "verb-praep-nach": "fragen", "beschweren-ueber": "beschweren", "informieren-ueber": "informieren", "beginnen-mit": "beginnen", "kuemmern-um": "kümmern", "bewerben-um": "bewerben" };
         let vd = f[0], va = f[1];
+        /* subject agreement for fixed Arabic verbs/adjectives */
+        if (gram === "verb-praep-an") va = AR2("denken", S) + " في";
+        else if (gram === "reflexiv-interesse") va = arAdj("مهتم", subjFem(S), plurality(S)) + " بـ";
+        else if (gram === "angst-vor") va = arAdj("خائف", subjFem(S), plurality(S)) + " من";
+        else if (gram === "zufrieden-mit") va = zufriedenAr(S) + " عن";
+        else if (gram === "danken-fuer") va = AR2("danken", S);
+        else if (gram === "gratulieren-zu") va = AR2("gratulieren", S);
         if (gram === "praeposition-mit" || gram === "praeposition-fuer") { const V = pickN(rr, poolOf(0)); vd = Vconj(V[0]) + (gram === "praeposition-mit" ? " mit" : " für"); va = Var(V[0]); }
         else if (INF_OF[gram]) va = AR2(INF_OF[gram], S);
         de = S[0] + " " + vd + " " + o.de + ".";
@@ -674,18 +1187,16 @@ function buildOne(rr, pat, idx) {
     if (gram === "adverb-art" || gram === "praesens" || gram === "inversion" || gram === "adverb-voran" || gram === "lokal-voran" || gram === "lokal-voran-2" || gram === "te-ka-mo-lo") {
       if (gram === "adverb-art") { const a = pickN(rr, ADV_DE); de = S[0] + " " + C2("sprechen", S) + " " + a[0] + " Deutsch."; ar = S[1] + " يتحدث الألمانية " + a[1] + "."; }
     }
-    if (gram === "denn-kausal") { const S2 = pickN(rr, SUBJ); de = S[0] + " bleibt zu Hause, denn " + S2[0] + " " + C2("sein", S2) + " krank."; ar = S[1] + " يبقى في البيت لأن " + S2[1] + " مريض."; }
-    if (gram === "weil-kausal") { const S2 = pickN(rr, SUBJ); de = S[0] + " hat keine Zeit, weil " + S2[0] + " viel " + C2("arbeiten", S2) + "."; ar = "ليس لدى " + S[1] + " وقت لأن " + S2[1] + " يعمل كثيرًا."; }
-    if (gram === "damit-final") { const S2 = pickN(rr, SUBJ); de = S[0] + " spart Geld, damit " + S2[0] + " " + C2("reisen", S2) + " kann."; ar = S[1] + " يدخر المال لكي يستطيع " + S2[1] + " السفر."; }
+    if (gram === "denn-kausal") { const S2 = pickN(rr, SUBJ); de = S[0] + " " + C2("bleiben", S) + " zu Hause, denn " + lowS(S2) + " " + C2("sein", S2) + " krank."; ar = S[1] + " " + AR2("bleiben", S) + " في البيت لأن " + S2[1] + " " + sickAr(S2) + "."; }
+    if (gram === "weil-kausal") { const S2 = pickN(rr, SUBJ); de = S[0] + " " + C2("haben", S) + " keine Zeit, weil " + lowS(S2) + " viel " + C2("arbeiten", S2) + "."; ar = "ليس لدى " + S[1] + " وقت لأن " + S2[1] + " " + arSubj("arbeiten", S2) + " كثيرًا."; }
+    if (gram === "damit-final") { const S2 = pickN(rr, SUBJ); de = S[0] + " " + C2("sparen", S) + " Geld, damit " + lowS(S2) + " reisen " + C2("können", S2) + "."; ar = S[1] + " " + AR2("sparen", S) + " المال لكي " + AR2("können", S2) + " السفر."; }
     if (gram === "trotz" || gram === "trotz-nominal") { const g = genForm(pickN(rr, THING_NOUNS)); const p = P(); const V = pickN(rr, poolOf(1)); de = S[0] + " " + Vconj(V[0]) + " trotz " + g.de + " " + p[0] + "."; ar = S[1] + " " + Var(V[0]) + " رغم " + g.ar + " " + p[1] + "."; }
-    if (gram === "waehrend") { const g = genForm(pickN(rr, THING_NOUNS)); const o = O(); const V = pickN(rr, poolOf(0)); de = "Während " + g.de + " " + Vconj(V[0]) + " " + S[0] + " " + o.de + "."; ar = "خلال " + g.ar + " " + Var(V[0]) + " " + S[1] + " " + o.ar + "."; vocabRefs.push(o.w.id); }
+    if (gram === "waehrend") { const g = genForm(pickN(rr, THING_NOUNS)); const o = O(); const V = pickN(rr, poolOf(0)); de = "Während " + g.de + " " + Vconj(V[0]) + " " + lowS(S) + " " + o.de + "."; ar = "خلال " + g.ar + " " + Var(V[0]) + " " + S[1] + " " + o.ar + "."; vocabRefs.push(o.w.id); }
     if (gram === "genitiv-praep") { const g = genForm(pickN(rr, THING_NOUNS)); const o = O(); const t = T(); const V = pickN(rr, poolOf(0)); de = S[0] + " " + Vconj(V[0]) + " " + t[0] + " wegen " + g.de + "."; ar = S[1] + " " + Var(V[0]) + " " + t[1] + " بسبب " + g.ar + "."; vocabRefs.push(o.w.id); }
-    if (gram === "bevor") { const V = pickN(rr, poolOf(0)); de = "Bevor " + S[0] + " " + Vconj(V[0]) + ", " + reflConj("freuen", S) + "."; ar = "قبل أن " + Var(V[0]) + " " + S[1] + " يفرح."; }
-    if (gram === "nachdem") { const V = pickN(rr, poolOf(0)); de = "Nachdem " + S[0] + " " + Vconj(V[0]) + ", " + reflConj("freuen", S) + "."; ar = "بعد أن " + Var(V[0]) + " " + S[1] + " يفرح."; }
-    if (gram === "obwohl") { const S2 = pickN(rr, SUBJ); de = de.replace("müde ist", C2("sein", S2) + " müde"); }
+    if (gram === "bevor" || gram === "nachdem" || gram === "obwohl") { /* handled in main chain */ }
   } else {
-    const r = fillGeneric(rr, deTpl, arTpl, S);
-    de = r.de; ar = r.ar; vocabRefs.push(...r.refs.w);
+    const r2 = fillGeneric(rr, deTpl, arTpl, S);
+    de = r2.de; ar = r2.ar; vocabRefs.push(...r2.refs.w);
   }
 
   // final sanity + packaging
@@ -704,9 +1215,9 @@ let target = 0;
 PATS.forEach((p) => { target += 80; });
 console.log("patterns:", PATS.length, "target~", target);
 let guard = 0;
-outer: for (let round = 0; round < 120; round++) {
+outer: for (let round = 0; round < 1600; round++) {
   for (const pat of PATS) {
-    if (sentences.length >= 12150) break outer;
+    if (sentences.length >= 150000) break outer;
     guard++;
     try {
       const s = buildOne(rr, pat, guard);

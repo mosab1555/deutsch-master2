@@ -2,164 +2,7303 @@
  "errors": [],
  "warnings": [
   {
-   "id": "-",
-   "reason": "sentences: template cluster x15 head=[der kollege ist]"
+   "id": "lv01130",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv02263",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv02315",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv02563",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv02833",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv02879",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv02911",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03060",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03081",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03103",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03554",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03616",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03794",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03900",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv03904",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv04060",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
+  },
+  {
+   "id": "lv04383",
+   "reason": "vocab: plural identical to singular (no article prefix?)"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x16 head=[viele leute haben]"
+   "reason": "sentences: template cluster x40 head=[dreimal am tag]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x29 head=[es gibt den]"
+   "reason": "sentences: template cluster x39 head=[das baby ist]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x17 head=[mein vater hat]"
+   "reason": "sentences: template cluster x65 head=[der kellner hat]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[die nachbarin wird]"
+   "reason": "sentences: template cluster x60 head=[meine geschwister haben]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[nicht nur meine]"
+   "reason": "sentences: template cluster x14 head=[der hund kann]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x14 head=[meine eltern kochen]"
+   "reason": "sentences: template cluster x20 head=[der tierarzt will]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x38 head=[was für den]"
+   "reason": "sentences: template cluster x13 head=[die hebamme spricht]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x26 head=[die kinder haben]"
+   "reason": "sentences: template cluster x15 head=[nachdem die friseurin]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x17 head=[meine freundin hat]"
+   "reason": "sentences: template cluster x327 head=[es gibt den]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[bevor viele leute]"
+   "reason": "sentences: template cluster x39 head=[es ist warm]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x28 head=[was für eine]"
+   "reason": "sentences: template cluster x46 head=[die einwohner haben]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x16 head=[die chefin wartet]"
+   "reason": "sentences: template cluster x26 head=[die braut wird]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x48 head=[es gibt die]"
+   "reason": "sentences: template cluster x17 head=[die leute nennen]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x22 head=[die nachbarin hat]"
+   "reason": "sentences: template cluster x136 head=[nicht nur der]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x25 head=[nicht nur der]"
+   "reason": "sentences: template cluster x29 head=[die sekretärin bleibt]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x17 head=[mein bruder hat]"
+   "reason": "sentences: template cluster x14 head=[die apothekerin lernt]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x20 head=[die ärztin hat]"
+   "reason": "sentences: template cluster x68 head=[die freunde haben]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x14 head=[obwohl es spät]"
+   "reason": "sentences: template cluster x54 head=[die polizistin hat]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x23 head=[der chef hat]"
+   "reason": "sentences: template cluster x31 head=[der schüler ist]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x14 head=[mein bruder bezahlt]"
+   "reason": "sentences: template cluster x24 head=[meine enkelin ist]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x14 head=[der kollege hat]"
+   "reason": "sentences: template cluster x16 head=[die kundin wartet]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[die kinder freuen]"
+   "reason": "sentences: template cluster x15 head=[der tourist freut]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[es gibt das]"
+   "reason": "sentences: template cluster x14 head=[die kellnerin gratuliert]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x21 head=[die chefin hat]"
+   "reason": "sentences: template cluster x15 head=[die lehrerin hilft]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x19 head=[meine schwester hat]"
+   "reason": "sentences: template cluster x13 head=[die krankenschwester besucht]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x19 head=[meine mutter hat]"
+   "reason": "sentences: template cluster x15 head=[der apotheker ruft]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x15 head=[die nachbarin spricht]"
+   "reason": "sentences: template cluster x18 head=[die kellnerin holt]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x19 head=[der lehrer hat]"
+   "reason": "sentences: template cluster x18 head=[der bräutigam bringt]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[nicht nur die]"
+   "reason": "sentences: template cluster x15 head=[die dame kauft]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x15 head=[obwohl es dunkel]"
+   "reason": "sentences: template cluster x15 head=[die kinder kochen]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x14 head=[obwohl es kalt]"
+   "reason": "sentences: template cluster x28 head=[es ist wichtig,]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[viele leute sind]"
+   "reason": "sentences: template cluster x28 head=[es ist schwer,]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x17 head=[das kind hat]"
+   "reason": "sentences: template cluster x29 head=[meine enkelin bleibt]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[der kellner hat]"
+   "reason": "sentences: template cluster x68 head=[obwohl es kalt]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x25 head=[mein freund hat]"
+   "reason": "sentences: template cluster x38 head=[je mehr die]"
   },
   {
    "id": "-",
-   "reason": "sentences: template cluster x13 head=[die kinder sind]"
+   "reason": "sentences: template cluster x13 head=[meine cousine braucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[obwohl die frauen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl die krankenschwester]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine eltern werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x199 head=[wem gehört der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x508 head=[wie viel kostet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die lehrerin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bitte wasch die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x68 head=[könnten sie bitte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x67 head=[würden sie bitte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x102 head=[wie geht es]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x225 head=[wie schmeckt die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x120 head=[was braucht man]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[entschuldigung, wo ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x520 head=[entschuldigung, wie viel]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x519 head=[ich lerne deutsch,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x197 head=[es gibt das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x101 head=[gibt es das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x208 head=[es gibt keine]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x505 head=[wie lange dauert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x329 head=[es riecht hier]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x513 head=[ich freue mich]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x507 head=[wir freuen uns]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x182 head=[danke für den]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x502 head=[vielen dank für]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x47 head=[viel erfolg im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[alles gute zum]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x47 head=[herzlich willkommen im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x60 head=[die sekretärin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[zwei stunden lang]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[meine freundin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die krankenschwester wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der ingenieur muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die köchin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[mein cousin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[hat die verkäuferin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[meine tante ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x32 head=[vor dem mittagessen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der chef findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die hebamme möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x48 head=[der rentner hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der krankenpfleger bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[der tourist ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[der tierarzt ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[das paar kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der lehrer arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die frauen lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[mein vater holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x111 head=[die sonne scheint]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der polizist bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x268 head=[sag mir, wann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x524 head=[ich weiß nicht,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x290 head=[könnten sie den]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x150 head=[könnten sie das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[meine cousine ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x53 head=[die krankenschwester hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[die touristen sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der koch möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der polizist muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die männer können]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine tante soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[bevor die studenten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der gast hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x36 head=[es ist regnerisch]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der tourist wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[mein onkel wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[die ärztin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[das paar lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x62 head=[der schüler hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x52 head=[das baby hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die leute sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[die gäste sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[sie freut sich]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die studenten holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine tante kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der apotheker kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der zahnarzt spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der gast bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x54 head=[der hausmeister hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[das land bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine freundin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x79 head=[obwohl es spät]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[seit einem monat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die polizistin ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[die sekretärin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die freunde werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x204 head=[wem gehört die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein onkel findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x181 head=[wie schmeckt der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[wie gefällt heba]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[es blitzt im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[hast du im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x277 head=[gibt es die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x48 head=[viel spaß im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[viel glück in]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[viel erfolg auf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[herzlich willkommen in]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x64 head=[die herren haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[nach der schule]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x38 head=[der ingenieur ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[meine schwester wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[meine cousine bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die touristen wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der lehrer darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[mein freund möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x55 head=[die kollegen haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[meine großeltern sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[im oktober hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der elektriker nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine cousine will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der herr möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die polizistin plant]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x47 head=[der bäcker hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[der apotheker bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[der lehrer ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die kundin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der student holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[meine freundin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x59 head=[mein schwiegersohn hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der verein braucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der zahnarzt kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine freundin reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die studentin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x299 head=[sag mir, wo]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der fahrer arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine eltern bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[mein bruder ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x50 head=[die studentin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[vor der arbeit]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die polizistin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die lehrerin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der zahnarzt soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine geschwister warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[nachdem der hausmeister]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[um zu arbeiten,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[ohne zu warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine freundin hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x37 head=[es ist kalt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x70 head=[die dame hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[der koch wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die damen werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x234 head=[was für den]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die studenten bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x52 head=[mein freund hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[man ist stolz]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[mein schwiegersohn ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der fahrer freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine schwiegertochter besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der elektriker ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[das kind holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die einwohner kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x56 head=[der gast hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der hund bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die krankenschwester spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[obwohl der student]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[je mehr der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x32 head=[vor einer woche]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der ingenieur hört]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[obwohl der elektriker]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der schüler wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[wie gefällt dina]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x167 head=[gibt es den]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x199 head=[es gibt keinen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x240 head=[danke für die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[viel spaß in]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x52 head=[der bräutigam hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[der verein wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die kellnerin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der bäcker muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die hebamme kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die schüler wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein bruder darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der ingenieur möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x62 head=[der tourist hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x35 head=[der krankenpfleger ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die familie findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die gäste machen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein vater braucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der zahnarzt möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x59 head=[der tierarzt hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die männer bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der gast ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[die köchin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein bruder gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die frauen rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die großfamilie holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine enkelin bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[das team kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine schwiegertochter holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x52 head=[der student hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[unsere nachbarn kommen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die braut bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die verkäuferin arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die rentnerin bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x38 head=[pünktlich um 8]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die frauen möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der hausmeister ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[warum weint die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein schwiegersohn ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine eltern sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x61 head=[meine eltern haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x71 head=[mein onkel hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[schon lange hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die krankenschwester möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der rentner muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[meine schwester will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die leute sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die familie darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der mechaniker hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x35 head=[es ist kühl]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die schülerin freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x63 head=[der arzt hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[der bäcker wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[das team findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x60 head=[nicht nur meine]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die apothekerin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[das team kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x63 head=[der elektriker hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x59 head=[der verein hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[viele leute sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein onkel wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der chef freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der mechaniker dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die familie besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die verkäuferin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine schwiegertochter kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die herren kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die leute bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor mein schwiegersohn]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem die frauen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der rentner bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[das baby wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der apotheker findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[viele leute machen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[wie gefällt marie]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x48 head=[viel glück im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x53 head=[der kollege hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[die friseurin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[mein vater wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[der schüler bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die studenten müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der hausmeister will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der koch soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die rentnerin darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der fahrer möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x63 head=[der mechaniker hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[mein enkel ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[im september hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein schwiegersohn macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der student nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x56 head=[meine freundin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x57 head=[meine cousine hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die männer sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die freunde rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die schülerin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die touristen kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die touristen lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x62 head=[die apothekerin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der mechaniker bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x267 head=[weißt du, wann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x230 head=[könnten sie die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[warum weint der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[die schülerin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x68 head=[die braut hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine eltern möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der kollege will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine enkelin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das team kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der kollege wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das baby hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x56 head=[mein cousin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[mein schwiegersohn wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine tante findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[der fahrer bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die hebamme kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[die hebamme ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der rentner wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die zwillinge gratulieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die touristen helfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die studenten besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der mechaniker ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der schüler holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[das baby stellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarn kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine freundin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der student bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x53 head=[die verkäuferin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[die katze bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl die touristen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die schüler]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[nachdem das kind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x32 head=[zweimal pro woche]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der rentner findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl mein onkel]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[das land wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die herren machen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x108 head=[wie schmeckt das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[wie gefällt emma]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[haben sie im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x566 head=[es gibt die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x60 head=[das paar hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x37 head=[vor einem monat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[die großfamilie bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die verkäuferin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die köchin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[das team möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x70 head=[der chef hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x41 head=[das paar ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[kurz vor 12]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[mein bruder bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die kinder sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[der elektriker ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine schwester kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein onkel kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der arzt bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[das team lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[das land holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[der tierarzt bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x263 head=[weißt du, wo]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die herren wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[die ärztin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die damen möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die katze kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der mechaniker will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[bevor der bräutigam]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem unsere nachbarn]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x35 head=[es ist schlecht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[es regnet im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der verein freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x58 head=[die friseurin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[das paar wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die touristin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die damen bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die sekretärin kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein schwiegersohn spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x69 head=[die touristin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die damen sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine eltern warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine eltern freuen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die köchin ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die verkäuferin bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[unsere nachbarn kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kellnerin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x65 head=[die familie hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die touristen bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein bruder spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der tourist spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die apothekerin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[obwohl mein cousin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die rentnerin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x85 head=[danke für das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x59 head=[die touristen haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[die katze ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die lehrerin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[das baby muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[der fahrer will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[mein cousin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hund darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die studentin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die dame nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die schülerin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x57 head=[die kundin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die katze findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[die verkäuferin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[der bäcker ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[die studentin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der elektriker gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die frauen holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kinder bringen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die friseurin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die nachbarin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die chefin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der rentner arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die touristin lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[meine schwester bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[viele leute besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[unsere nachbarn brauchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das land schreibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[vor der schule]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die friseurin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die krankenschwester muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine schwiegertochter will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der tourist darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die verkäuferin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der lehrer kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor meine eltern]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[um zu tanzen,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x41 head=[es ist windig]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die männer freuen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[mein freund wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[der polizist findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[die kundin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der tierarzt kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x57 head=[die männer haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x66 head=[die gäste haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[die nachbarn sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein cousin freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein schwiegersohn dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die touristen gratulieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kollegen helfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die köchin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die rentnerin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die damen kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x69 head=[der hund hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[meine schwiegertochter bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein bruder lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das kind spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[nachdem der koch]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der apotheker braucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[nach dem frühstück]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl die dame]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[obwohl die ärztin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[die nachbarn werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein onkel macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[wie gefällt yusuf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[es donnert im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[viel spaß auf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[viel glück auf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[die schülerin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[das baby will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kundin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[mein onkel möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[seit zwei jahren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die rentnerin macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die studenten wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der arzt möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x62 head=[die leute haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[mein onkel bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der verein ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[meine schwiegertochter ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die touristin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[viele leute holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[das kind kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die leute bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der herr lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der herr holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die nachbarn lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[eine stunde lang]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der kellner darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[die freunde sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die einwohner bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x55 head=[das land hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[mein enkel möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der krankenpfleger will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kollegen sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein onkel darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der herr spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[um zu warten,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tourist hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die köchin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[man findet die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[unsere nachbarn bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[der zahnarzt ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[der student ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der rentner gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der tourist besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[der verein holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der gast kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der kunde lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die braut spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[obwohl meine enkelin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[bevor das paar]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[nachdem die männer]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kollege ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[nach dem mittagessen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die polizistin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[obwohl der herr]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x111 head=[wem gehört das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[wie gefällt felix]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[viel erfolg in]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x49 head=[der kunde hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[jede nacht hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der kunde wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der hausmeister bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die kollegen müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der tourist will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der fahrer soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[mein bruder möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x50 head=[mein enkel hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[mein schwiegersohn findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die apothekerin macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine eltern nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[mein schwiegersohn will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die leute möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x53 head=[die ärztin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine eltern rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die herren bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[unsere nachbarn holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[der rentner bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x55 head=[meine mutter hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[meine mutter ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die großfamilie will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[keiner darf hier]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein cousin wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[um zu schlafen,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[der polizist kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein enkel hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x41 head=[es ist wolkig]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine schwiegertochter wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der rentner wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die männer finden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die polizistin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x196 head=[nicht nur die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x158 head=[was für eine]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[der elektriker bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine mutter spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x53 head=[unsere nachbarn haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x65 head=[die hebamme hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine cousine freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der gast ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die touristin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der tourist bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der ingenieur kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der tierarzt spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die schüler bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der tourist bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die männer lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[nachdem die lehrerin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die apothekerin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[warum wäscht der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[obwohl der apotheker]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl die studentin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der tierarzt macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[wie gefällt samir]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[passt sara der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x55 head=[die lehrerin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der tierarzt wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[das team bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine schwester muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die kundin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die hebamme will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x50 head=[der apotheker hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x54 head=[die köchin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kundin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der arzt ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die leute kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der zahnarzt kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der fahrer holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die touristin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der koch wünscht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die kollegen wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der apotheker spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[ohne zu lachen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x62 head=[die frauen haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[sie findet die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[das kind kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x69 head=[die zwillinge haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[mein freund ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[die nachbarin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die männer warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein vater dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der arzt besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die gäste kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine tante kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein onkel spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[der student bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[obwohl die sekretärin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl meine großeltern]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der kellner findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[wie gefällt ahmed]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x60 head=[mein bruder hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der fahrer wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der gast kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die touristin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[meine geschwister möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die polizistin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine tante möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x54 head=[der koch hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[der hund ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die hebamme gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der schüler kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kollegen lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der apotheker holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kellnerin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x62 head=[viele leute haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x54 head=[die rentnerin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die ärztin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der bäcker will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[nachdem der kollege]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die männer helfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x44 head=[es ist heiß]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[viele leute werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die hebamme findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die zwillinge nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der kollege ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[unsere nachbarn sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[unsere nachbarn warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der bräutigam dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein enkel holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die katze bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die familie bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die kellnerin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[das paar spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x39 head=[um 8 uhr]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[das baby findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[mein bruder wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[der elektriker will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die lehrerin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der rentner ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der fahrer findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein onkel nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[das baby möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine cousine schreibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die kinder bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der mechaniker gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine enkelin ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine cousine bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die zwillinge kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[sie bezahlt die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der apotheker kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein enkel kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[vor einem jahr]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die schüler möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die friseurin muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die kellnerin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die katze soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der fahrer wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein freund findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[es ist neblig]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der arzt wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[meine freundin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der chef reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der zahnarzt spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die dame lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die apothekerin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[das paar hört]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der kunde freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die lehrerin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das land kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der kellner kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[die hebamme bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x70 head=[obwohl es regnet,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[sie glaubt, dass]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[obwohl der krankenpfleger]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die hebamme wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[wird die apothekerin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die leute finden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x39 head=[wie gefällt fatima]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[das kind ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine cousine muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die sekretärin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x55 head=[der polizist hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x43 head=[die großfamilie ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine geschwister nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die polizistin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kundin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarin nimmt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[mein vater ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das team gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die männer rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die polizistin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein onkel bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die katze kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die rentnerin kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[der gast bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die großfamilie besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[im mai hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der kellner will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[bevor das land]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[um zu weinen,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[ohne zu lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die friseurin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die touristin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[der kollege bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die herren lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x68 head=[die schülerin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tierarzt hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[das paar holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der fahrer bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die krankenschwester kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der bräutigam lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[bevor die apothekerin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[in einem jahr]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein bruder ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[das baby kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[vor dem frühstück]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kellnerin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[wie gefällt mona]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x139 head=[es gibt kein]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[passt marie der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[herzlich willkommen auf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die kundin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die braut nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die chefin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x66 head=[die katze hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der herr hört]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x37 head=[der hausmeister ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[die schüler sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die einwohner besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[mein freund bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der tourist kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der kellner arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die friseurin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x54 head=[die nachbarin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die chefin reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die friseurin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine großeltern besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der krankenpfleger nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die frauen sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die kinder möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die studentin wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die damen freuen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[die touristen werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die herren finden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hund nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x32 head=[nicht nur mein]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine cousine bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x46 head=[die kinder haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kellnerin wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der bäcker freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der lehrer holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[nachdem die ärztin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl mein freund]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[wie gefällt omar]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die familie wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die touristen müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x44 head=[mein onkel ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[letzte woche hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der polizist macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die frauen nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein bruder will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der fahrer besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die sekretärin ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die männer kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die studenten bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die schüler lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die nachbarn bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die friseurin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die freunde kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[wo wohnt der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die touristin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der arzt muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der elektriker spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die rentnerin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[nachdem der kunde]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[um zu lernen,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die leute freuen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x55 head=[die damen haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die studentin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die schüler sparen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der hausmeister lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x58 head=[meine enkelin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x63 head=[das team hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine schwester gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die großfamilie ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl die braut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der ingenieur wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die rentnerin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[wie gefällt sara]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[im november hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[mein cousin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[meine tante bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die nachbarin darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der elektriker möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die ärztin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[unsere nachbarn finden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine eltern wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[die studenten möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der krankenpfleger bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der rentner kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der student arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine tante lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine schwiegertochter reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der ingenieur bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein onkel spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[bevor die friseurin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[es ist sonnig]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der mechaniker wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die zwillinge werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der lehrer nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die sekretärin spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x47 head=[die chefin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[der kellner ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[viele leute warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die damen rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der krankenpfleger holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kollegen bringen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x52 head=[der lehrer hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl der kellner]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[nachdem der hund]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x32 head=[kurz nach 6]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der bräutigam reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[das ganze jahr]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl das paar]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl meine geschwister]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die kinder werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die apothekerin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[der student wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine tante kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die großfamilie darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[am mittwoch hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[mein vater findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der bräutigam will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[das team ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der chef kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein onkel holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der mechaniker reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x37 head=[meine freundin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x48 head=[der zahnarzt hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der bräutigam möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die sekretärin muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[sie darf hier]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[ohne zu spielen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[das team wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der bräutigam findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der mechaniker nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[nicht nur das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der bräutigam bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der zahnarzt lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x46 head=[die rentnerin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[sie beginnt mit]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der krankenpfleger wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die damen danken]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hund gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der student bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[sie kauft für]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der hund kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die polizistin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die kinder bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem der gast]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl die rentnerin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die katze wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[das paar findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[meine geschwister sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der gast will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x66 head=[die großfamilie hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[die verkäuferin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[die krankenschwester ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine großeltern bringen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die freunde holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die ärztin nimmt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die rentnerin reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[die krankenschwester bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[in der mittagspause]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der arzt will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die touristen möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die köchin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[ohne zu trainieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[es schneit im]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die männer werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die männer nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[zu hause fotografiert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x55 head=[der herr hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarin freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der bräutigam ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die lehrerin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kollege spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der koch spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem der ingenieur]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[in der schulzeit]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die damen brauchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die apothekerin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[wie gefällt jonas]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[um halb 9]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die rentnerin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die kinder machen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der koch nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die apothekerin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x36 head=[das land ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die schülerin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die studenten kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der herr bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der mechaniker lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die touristin bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der lehrer bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x42 head=[das kind hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der verein möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein onkel kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tierarzt wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein freund kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kellner lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine schwester dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der ingenieur gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die dame holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die herren sparen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die sekretärin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl der tourist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[bevor der arzt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[nachdem der tourist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die ärztin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine enkelin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[obwohl der rentner]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[wie gefällt paul]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[meine großeltern werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die damen sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine großeltern dürfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine schwiegertochter möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der fahrer macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der ingenieur nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der kunde will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der ingenieur holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die großfamilie kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der bräutigam arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der fahrer lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der kunde bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein freund muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die nachbarin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die lehrerin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hund ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[bevor die damen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die sekretärin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der bräutigam freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kollegen werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der koch findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die schülerin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine mutter ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die sekretärin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein vater spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x65 head=[obwohl es dunkel]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die kollegen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[mein schwiegersohn spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[passt ahmed der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die verkäuferin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[unsere nachbarn müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der apotheker kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x48 head=[die nachbarn haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die einwohner sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der bäcker macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die chefin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die dame will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[der arzt bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die krankenschwester bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der verein kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der herr bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein schwiegersohn lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[der elektriker holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein freund lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine großeltern möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die köchin spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[um zu reisen,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hund freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die lehrerin dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[der verein bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die einwohner lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die touristen reservieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[viele leute sparen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die damen machen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[im januar hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[jedes wochenende hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die dame findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die studentin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[die dame bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der elektriker besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die großfamilie kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die apothekerin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine cousine kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die köchin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die lehrerin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x52 head=[der ingenieur hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die hebamme soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die studentin spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x43 head=[es ist schön]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[viele leute nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x65 head=[meine schwester hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der polizist ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die touristen freuen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die herren helfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die krankenschwester ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der zahnarzt holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der ingenieur bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein enkel bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x46 head=[meine großeltern haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die nachbarin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[obwohl die friseurin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem der chef]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine enkelin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die großfamilie macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[meine schwester ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[die frauen werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die freunde wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die verkäuferin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die nachbarn nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der gast möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der ingenieur bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der polizist nimmt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der lehrer bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der krankenpfleger kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die apothekerin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[wir dürfen hier]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kollegen kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[um zu lachen,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der rentner freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die schüler bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine enkelin spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[die kollegen sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die familie ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die hebamme besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der polizist ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine eltern bringen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die lehrerin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[gegen mittag hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die herren werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[die polizistin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die chefin muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die gäste dürfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die herren sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der mechaniker ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die touristen holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x60 head=[der krankenpfleger hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die chefin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der kollege möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die apothekerin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die kollegen können]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die kellnerin darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine cousine wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor mein onkel]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[nachdem meine großeltern]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die ärztin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die einwohner nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kunde holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarin kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die zwillinge sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die sekretärin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine geschwister kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[mein cousin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[obwohl die leute]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der tourist findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[passt marie die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[das baby bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die dame möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der ingenieur findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine geschwister bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die sekretärin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die kellnerin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die herren bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die braut dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der polizist lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der gast kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die krankenschwester lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x38 head=[mein cousin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[anfang juni hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein onkel will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem meine geschwister]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[es ist gut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein vater nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der arzt bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine eltern bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die katze kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die touristen warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein schwiegersohn holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das baby spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der kollege bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die chefin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der gast wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine geschwister machen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die herren müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die frauen besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine schwester holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der arzt soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der schüler will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine tante darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[jeder freut sich]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der kollege findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der fahrer nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[das land spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[die sekretärin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der gast spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der chef bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der tierarzt lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl die nachbarin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die köchin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die chefin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der bäcker möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine tante nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x33 head=[die dame ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine enkelin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die krankenschwester bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das paar kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kollegen brauchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kundin reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der kellner kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die sekretärin lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x35 head=[der fahrer ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[sie informiert sich]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein freund gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der lehrer besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die einwohner bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine schwiegertochter spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[obwohl die familie]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem die schülerin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die schülerin nimmt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der mechaniker kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die kellnerin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der koch besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der lehrer ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine großeltern holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der mechaniker bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine cousine lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die krankenschwester holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die friseurin lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tierarzt kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der kunde findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der kollege darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[nachdem meine cousine]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der student findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die verkäuferin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der bäcker bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der mechaniker kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[die studenten sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der fahrer gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die damen holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine eltern kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der apotheker bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die kollegen bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[bevor der schüler]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der elektriker findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[wie gefällt anna]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die friseurin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die katze will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[im winter hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der hausmeister findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die großfamilie möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kundin bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die kundin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der bräutigam kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der rentner soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der verein darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor unsere nachbarn]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die ärztin freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein schwiegersohn nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die nachbarn holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[seit einem jahr]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die familie bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der hausmeister macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[unsere nachbarn werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[das kind will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der hausmeister soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die braut möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[der herr ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x51 head=[meine tante hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die friseurin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der koch holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein enkel kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[um zu diskutieren,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[der elektriker wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein bruder findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x66 head=[die kellnerin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kundin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die freunde lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[wie gefällt nour]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[mein freund bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hausmeister darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die nachbarin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[die braut ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der arzt findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der herr kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der koch will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die männer möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der bäcker dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der lehrer gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die katze holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die herren kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die schülerin kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[mein schwiegersohn bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die schüler nehmen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die lehrerin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die damen wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der elektriker soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die großfamilie wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem mein freund]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die herren warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die studentin hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[meine cousine ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kellnerin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[bevor die nachbarn]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[obwohl der zahnarzt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der tierarzt möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kellnerin reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die schülerin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der tourist möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der bäcker holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die braut arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine geschwister wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die großfamilie findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die köchin hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der polizist holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein bruder kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die polizistin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die ärztin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die krankenschwester macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die kundin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die kellnerin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die herren gratulieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der polizist kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[viele leute bestellen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die dame kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die leute reservieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[die frauen bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[wann kommt der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die apothekerin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der zahnarzt darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der zahnarzt bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[mein enkel bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die chefin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die schüler holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die polizistin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der bäcker spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die damen kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[in einem monat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl die großfamilie]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine geschwister werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[ist die köchin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[der polizist wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der bäcker soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[der chef ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die nachbarin macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der apotheker möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x46 head=[die studenten haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine tante bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x30 head=[um viertel vor]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine großeltern wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die köchin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die studenten kommen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[sie ist stolz]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der bäcker ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine eltern kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die friseurin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl der ingenieur]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die nachbarin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[wie gefällt layla]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x36 head=[in einer woche]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die apothekerin muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[das paar will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die nachbarn möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die ärztin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[mein cousin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der arzt holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das paar darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die rentnerin muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine großeltern warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine großeltern sparen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die lehrerin freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die krankenschwester findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die nachbarin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die schüler hören]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die polizistin freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der elektriker kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein vater lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[einen monat lang]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[obwohl der fahrer]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die schülerin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[meine großeltern finden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kollegen gratulieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der hausmeister holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem die herren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die gäste werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kunde kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der hausmeister kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine geschwister bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die krankenschwester gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das team ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der gast holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kunde bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[viele leute bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hund lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der hund wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die rentnerin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der tierarzt findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine freundin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der krankenpfleger ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der chef bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die damen lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der chef isst]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[meine cousine möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[der verein will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[um zu trainieren,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x31 head=[meine cousine wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der gast findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine cousine kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die frauen bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[nachdem mein schwiegersohn]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[warum bezahlt der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tierarzt glaubt,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl die zwillinge]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der elektriker muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[unsere nachbarn können]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die verkäuferin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die touristin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der hausmeister nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die zwillinge möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[das paar kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[mein vater bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[seit letzter woche]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der apotheker trinkt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die chefin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die studenten danken]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der lehrer hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die touristen bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem meine mutter]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[eine woche lang]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der bräutigam holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der krankenpfleger möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[die chefin ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[der zahnarzt bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die katze ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine schwiegertochter kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die verkäuferin lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x60 head=[meine schwiegertochter hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die gäste möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die großfamilie]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[viele leute finden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der tierarzt nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine großeltern danken]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[das land besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein freund holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die köchin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl der hund]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kundin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die braut will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der hausmeister möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der zahnarzt besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein enkel bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder kommen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die leute müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[ohne zu weinen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die studenten gratulieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das paar ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die männer holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[viele leute kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die damen sparen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die rentnerin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die friseurin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der lehrer möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die hebamme kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein onkel braucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x32 head=[in den ferien]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[viele leute können]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[das team darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der kunde dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine enkelin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die nachbarin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[unsere nachbarn kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[mein freund macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[wie gefällt lena]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[die lehrerin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der lehrer muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die zwillinge können]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor der apotheker]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[nachdem mein enkel]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[ohne zu schlafen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der krankenpfleger findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein enkel ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die chefin dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der kollege wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[der bräutigam ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die katze muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[hat die katze]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine großeltern kommen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[meine mutter bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[nach der arbeit]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der polizist soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[unsere nachbarn wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[das team wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine mutter besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[das land bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl mein bruder]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine schwester findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[unsere nachbarn sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein freund nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine schwester bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der student will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[meine freundin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein onkel besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der hund holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der tierarzt holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die touristin spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die ärztin dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine cousine hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die rentnerin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die leute werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[das land will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die freunde möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der kellner möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x36 head=[der apotheker ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[mein vater will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[ohne zu feiern]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der arzt nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine eltern helfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die zwillinge rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die touristin bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der herr wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der lehrer will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x50 head=[die schüler haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x27 head=[der arzt ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder lernen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein cousin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die zwillinge sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die gäste]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[ohne zu reisen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der schüler findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die nachbarn kommen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der verein ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl der kollege]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der hund macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x64 head=[mein vater hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die sekretärin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der kellner bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die rentnerin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein bruder bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[die großfamilie wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine schwester kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[sie hilft der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein enkel trifft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der ingenieur ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein vater möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine eltern danken]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die gäste holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[der ingenieur lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das kind hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die nachbarn rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine großeltern kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[das kind bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein schwiegersohn muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der schüler soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der mechaniker möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[das paar bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine schwester besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die nachbarin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die rentnerin lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die rentnerin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x52 head=[der fahrer hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der ingenieur kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die touristin kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der student spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[nachdem die krankenschwester]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der zahnarzt wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[mein cousin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die studentin holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die krankenschwester kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der ingenieur will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[bitte übe die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der elektriker kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[viele leute wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die friseurin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die köchin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die rentnerin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die herren holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine schwiegertochter gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die leute holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das team bestellt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine schwiegertochter muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der krankenpfleger spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der bräutigam kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein cousin lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine großeltern rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der chef will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[der lehrer findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der kollege macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der mechaniker holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der verein soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der kunde möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarin muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine freundin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der rentner holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[das team bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die freunde kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der kollege kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der mechaniker wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der lehrer dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die dame besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kollegen bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die rentnerin bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[den ganzen tag]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl die katze]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[meine tante wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die familie muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das team will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[meine großeltern bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die verkäuferin fragt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine mutter wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tierarzt freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die zwillinge bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine cousine nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der zahnarzt findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die einwohner dürfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die gäste arbeiten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der student lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die familie holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein schwiegersohn möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[mein enkel wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein enkel freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die studenten bringen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die köchin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl die verkäuferin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der bäcker findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die schülerin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die männer wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der chef möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[der hund findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der fahrer dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der elektriker braucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[sie sagt, dass]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl der verein]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein onkel kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein bruder holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der koch reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die herren reservieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die krankenschwester reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[passt omar die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x34 head=[der ingenieur bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[meine enkelin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der elektriker macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die köchin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine freundin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der schüler reserviert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die hebamme ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der rentner zeigt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die schüler werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die chefin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die freunde bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[der koch ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[im dezember hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der lehrer wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine schwiegertochter wünscht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der rentner ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine großeltern kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die gäste bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[das baby liest]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine schwiegertochter findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl die chefin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl der hausmeister]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein enkel findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kollege nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die gäste müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der herr findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der herr wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die rentnerin bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine freundin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der bäcker bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die studentin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die katze möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein vater besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die kollegen holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine tante holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bitte sieh die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die einwohner möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[ohne zu bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die studenten freuen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der tourist wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[das kind bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl mein vater]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[der kellner wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der verein findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der bräutigam macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[mein onkel ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die gäste bringen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[das team holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die einwohner werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die nachbarn warten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der rentner will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein cousin kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[in der arbeitszeit]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die nachbarin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die touristen sparen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die dame wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der herr will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein cousin bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die touristin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die einwohner müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die touristin ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[morgen mittag hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die krankenschwester will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der krankenpfleger soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem der zahnarzt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[sie findet den]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine cousine holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die lehrerin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl die köchin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die braut muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die frauen dürfen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die verkäuferin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[die nachbarin kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die katze arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der apotheker freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[wie gefällt tarek]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der student kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[der chef wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der tourist holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kellnerin macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine tante ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die zwillinge reservieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der tierarzt kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl der koch]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[meine tante will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die polizistin lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die dame spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die katze hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der mechaniker findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der bräutigam wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die nachbarn finden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[meine schwester ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der kellner holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das land bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die hebamme lernt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die studentin dankt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die krankenschwester isst]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die schülerin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die nachbarn bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der hund möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der verein hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der schüler nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die sekretärin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der schüler bringt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die köchin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[um zu telefonieren,]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl meine freundin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[obwohl die kollegen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein freund wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x24 head=[der krankenpfleger wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die köchin wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl das team]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kinder müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarin arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der arzt hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der hausmeister wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die lehrerin gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der chef bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine eltern besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die friseurin kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kellnerin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die sekretärin spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die einwohner sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die nachbarn kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[das paar möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein freund kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine eltern trinken]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die studentin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die touristin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die studenten werden]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der kunde ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der koch kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die frauen müssen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die chefin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der student möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bitte geh die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die männer machen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der chef holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein bruder kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der bäcker nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[nachdem der verein]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die hebamme bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl die herren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[bevor die katze]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der koch bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[heute mittag hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der polizist möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[keiner freut sich]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine mutter liest]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der koch bleibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[passt mona die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die gäste bleiben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine eltern sollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die zwillinge holen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[viele leute möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tourist kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein vater hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[meine enkelin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die verkäuferin wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine mutter kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[mein freund kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die zwillinge wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine mutter muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die lehrerin ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die gäste kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der mechaniker arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der student darf]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine freundin besucht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[viele leute bezahlen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[die ganze woche]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine enkelin bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der herr spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die zwillinge kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[die frauen wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die lehrerin kümmert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der koch hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor meine tante]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der zahnarzt will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die kellnerin hört]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die touristen nennen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die verkäuferin möchte]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[das land kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[meine mutter arbeitet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der lehrer kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[wie gefällt hassan]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein cousin gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kollege kann]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor die kundin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die großfamilie nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine mutter will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der bräutigam bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die familie ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[das baby holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[viele leute reservieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die polizistin gratuliert]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die einwohner gratulieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die kellnerin ruft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[meine freundin will]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die hebamme holt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der tierarzt kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die nachbarin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[obwohl viele leute]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die touristin kommt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der koch muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der gast wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[der lehrer wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die kinder wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die verkäuferin soll]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der zahnarzt muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die studenten rufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[bevor der bäcker]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der bäcker zeigt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[die braut findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die damen können]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nachdem die braut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die herren möchten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der mechaniker kauft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine geschwister kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl unsere nachbarn]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine eltern können]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine geschwister besuchen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[das paar bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der apotheker muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarn wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der krankenpfleger trinkt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[mein vater macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[jeden abend hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der kunde hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die ärztin spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine schwiegertochter kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor mein bruder]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[nachdem die sekretärin]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der mechaniker kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der hausmeister spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[der mechaniker muss]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[jede woche hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die einwohner bringen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die gäste wollen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der polizist hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[meine tante freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die frauen kaufen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x18 head=[die polizistin findet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der fahrer bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der rentner spart]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein schwiegersohn bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die lehrerin nennt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die polizistin macht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die apothekerin freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[mein schwiegersohn hilft]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[die einwohner danken]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein schwiegersohn kocht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[das baby freut]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[viele leute gratulieren]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[obwohl die studenten]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[der tourist schreibt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die chefin hatte]"
   }
  ],
  "dist": {
-  "vocab": 4321,
-  "sentences": 12148,
-  "grammar": 900,
-  "exercises": 30200,
-  "dialogues": 1000
+  "vocab": 14901,
+  "sentences": 150000,
+  "grammar": 3069,
+  "exercises": 604873,
+  "dialogues": 10000,
+  "reading": 5000,
+  "listening": 10000,
+  "exams": 10000
  },
  "levelDist": {
-  "A1": 16248,
-  "A2": 23609,
-  "B1": 8712
+  "A1": 313761,
+  "A2": 339668,
+  "B1": 154414
  }
 }

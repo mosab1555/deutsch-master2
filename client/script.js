@@ -3685,6 +3685,12 @@ function dmLev(a,b){
   return p[b.length];
 }
 if(typeof window!=="undefined")window.dmLev=dmLev;
+/* إحماء فهرس البحث أثناء الخمول: أول ضغطة بحث تصبح فورية مع البنك الكبير */
+try{
+  var _dmWarmWordIdx=function(){try{if(typeof dmWordHits==="function")dmWordHits("der","mixed");}catch(e){}};
+  if(typeof requestIdleCallback==="function"){try{requestIdleCallback(_dmWarmWordIdx,{timeout:6000});}catch(e){setTimeout(_dmWarmWordIdx,2500);}}
+  else{setTimeout(_dmWarmWordIdx,2500);}
+}catch(e){}
 /* Instant prefix search with strict deterministic ranking:
    0 exact > 10 prefix (shorter first) > 20 word-boundary > 30 substring >
    40 translation > 50 fuzzy-fallback (only when tiers 0-30 are empty).
@@ -3694,18 +3700,19 @@ function dmWordHits(qn,level){
   let words=[];
   try{words=allWords();}catch(e){return out;}
   if(!qn)qn="";
-  /* ---- cached index (auto-rebuilds on vocabulary change, never stale) ---- */
+  /* ---- cached index (incremental append on growth; full rebuild only on shrink) ---- */
   let idx=dmWordHits._idx;
-  if(!idx||idx.n!==words.length){
-    idx={n:words.length,rows:words.map(w=>{
-      const full=(w.art&&w.art!=="-"?w.art+" ":"")+w.de;
-      const nde=dmNorm(w.de),nfull=dmNorm(full),npl=dmNorm(w.plural||"");
-      return {w:w,wl:w.level||"A1",nde:nde,nfull:nfull,npl:npl,
-        toks:(nde+" "+nfull+" "+npl).split(/[\s\-/]+/).filter(Boolean),
-        nar:dmNorm(w.ar||""),nen:dmNorm(w.en||""),npr:dmNorm(w.pron||""),nex:dmNorm(w.ex||"")};
-    })};
-    dmWordHits._idx=idx;
+  function mkrow(w){
+    const full=(w.art&&w.art!=="-"?w.art+" ":"")+w.de;
+    const nde=dmNorm(w.de),nfull=dmNorm(full),npl=dmNorm(w.plural||"");
+    return {w:w,wl:w.level||"A1",nde:nde,nfull:nfull,npl:npl,
+      toks:(nde+" "+nfull+" "+npl).split(/[\s\-/]+/).filter(Boolean),
+      nar:dmNorm(w.ar||""),nen:dmNorm(w.en||""),npr:dmNorm(w.pron||""),nex:dmNorm(w.ex||"")};
   }
+  if(!idx){idx={n:0,rows:[]};}
+  if(idx.n<words.length){for(let k=idx.n;k<words.length;k++){try{idx.rows.push(mkrow(words[k]));}catch(e){}}idx.n=words.length;}
+  else if(idx.n>words.length){idx={n:words.length,rows:words.map(mkrow)};}
+  dmWordHits._idx=idx;
   let hasDirect=false;
   for(let i=0;i<idx.rows.length;i++){
     const r=idx.rows[i];

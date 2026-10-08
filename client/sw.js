@@ -1,5 +1,5 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v50";
+var DM_CACHE = "german-academy-v51";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./reference.css", "./home.css", "./premium.css", "./radical.css", "./lux.css", "./sovereign.css", "./obsidian.css", "./dm-ultimate.css", "./lux.js", "./sovereign.js", "./dm-ultimate.js", "./back-handler.js", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
@@ -15,7 +15,8 @@ var DM_FILES = [
   "./curriculum.js",
   "./content/dm-vocab-01.js", "./content/dm-vocab-02.js",
   "./content/dm-sent-01.js", "./content/dm-sent-02.js", "./content/dm-sent-03.js",
-  "./content/dm-gram-01.js", "./content/dm-dlg-01.js", "./content/dm-lib.js",
+  "./content/dm-gram-01.js", "./content/dm-dlg-01.js",   "./content/dm-lib.js",
+  "./content/dm-lazy.js",
   "./content/dm-ex-01.js", "./content/dm-ex-02.js", "./content/dm-ex-03.js", "./content/dm-ex-04.js",
   "./progress.js", "./career.js", "./home.js", "./page-state.js", "./ankidroid.js",
   "./auth.js", "./cloud-sync.js", "./profile.js", "./app-init.js",

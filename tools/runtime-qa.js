@@ -179,10 +179,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(1200);
   const cards = await E("document.querySelectorAll('.word-card').length");
   rec("VOC-001", "vocab cards render with article+arabic", Number(cards) > 100, "cards=" + cards);
+  const pillBefore = await E("+document.getElementById('vocabCount').textContent");
   await cdp.ev("(()=>{const s=document.getElementById('vocabSearch');s.value='Tisch';s.dispatchEvent(new Event('input',{bubbles:true}));})()");
   await sleep(800);
   const searchN = await E("document.querySelectorAll('.word-card').length");
-  rec("VOC-004a", "vocab search filters live", Number(searchN) < Number(cards) && Number(searchN) >= 1, "filtered=" + searchN);
+  const searchPill = await E("+document.getElementById('vocabCount').textContent");
+  rec("VOC-004a", "vocab search filters live", Number(searchPill) < Number(pillBefore) && Number(searchPill) >= 1, "filtered=" + searchN + " pill=" + searchPill + "/" + pillBefore);
   await cdp.ev("(()=>{const s=document.getElementById('vocabSearch');s.value='';s.dispatchEvent(new Event('input',{bubbles:true}));})()");
   await sleep(800);
   /* pick a real category value dynamically (robust to dataset renames) */

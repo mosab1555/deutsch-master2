@@ -78,7 +78,7 @@ const TRANSP=[
 ["Medikament","Schmerz:دواء الألم:painkiller,Husten:دواء السعال:cough medicine"],
 ["Miete","Kalt:الإيجار البارد:base rent,Warm:الإيجار الشامل:warm rent"],
 ["Milch","Voll:الحليب الكامل:whole milk,Frisch:الحليب الطازج:fresh milk"],
-["Mittagessen","Geschäfts:غداء العمل:business lunch,Schnelles:الغداء السريع:quick lunch"],
+ ["Mittagessen","Geschäfts:غداء العمل:business lunch"],
 ["Museum","Kunst:متحف الفن:art museum,Natur:متحف الطبيعة:natural history museum"],
 ["Musik","Pop:موسيقى البوب:pop music,Klassik:الموسيقى الكلاسيكية:classical music,Hintergrund:موسيقى الخلفية:background music"],
 ["Nachbar","Zimmer:جار الغرفة:room neighbour,Tisch:جار الطاولة:table neighbour"],

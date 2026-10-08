@@ -19,6 +19,7 @@ const { IDIOMS } = require("./clib/idioms");
 const { STEMS, SUBJ, TIMES, PLACES, VG_TRAN, VG_INTRAN, VG_DITRAN, VG_MODAL, PATS } = require("./clib/sentgen");
 const { GT1 } = require("./clib/grammar1");
 const { GT2 } = require("./clib/grammar2");
+const BIG = require("./clib/bigvocab");
 const { SITS, POOLS } = require("./clib/dialogs");
 const { EXTRA } = require("./clib/dialogs2");
 const gate = require("./content-quality-gate");
@@ -55,6 +56,19 @@ function pluralN(noun, plural) {
   if (/^(der|die|das)\s/.test(plural)) return plural;
   return plural;
 }
+/* shared compounding guards: heads that must never compound (calendar words,
+   directions, units, proper-noun-like entries, attested bad outputs) */
+const BLOCKHEADS = new Set(["januar", "februar", "märz", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "dezember", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag", "frühling", "sommer", "herbst", "winter", "norden", "süden", "osten", "westen", "kilometer", "meter", "zentimeter", "gramm", "kilogramm", "liter", "prozent", "grad", "euro", "cent", "bohrer", "streichholz", "aufzug", "größe", "vorname", "tochter", "münze", "glühlampe", "schufa", "fernseher", "feuerzeug", "belag", "heim", "sohn", "sonne", "mond", "party", "eimer", "husten", "kamm", "strand", "insel", "lärm", "bäcker", "bäckerin", "croissant", "schraube", "feier", "vitamin", "problem", "gürtel", "müsli", "steuer", "massage", "schloss", "heizung", "ring", "dichter", "schirm", "wand", "tafel", "fenster", "visum", "meer", "sprache", "scheidung", "licht", "messe", "klavier", "lieferung", "baby", "schule", "fischer"]);
+function badHead(h, maxLen) {
+  if (h.de.length > (maxLen || 9)) return true;
+  if (BLOCKHEADS.has(normDE(h.de))) return true;
+  if (h.de.toLowerCase().startsWith("sich ")) return true;
+  const har = String(h.ar).split("/")[0].trim();
+  if (/\s/.test(har)) return true; // multi-word Arabic -> compositional translation breaks
+  return false;
+}
+/* exact-output denylist: grammatical but nonsensical qualifier combos (audited) */
+const DENY_DE = new Set(["kleinvater", "kleinmutter", "neuvater", "neumutter", "altvater", "altmutter", "großkind", "neukind", "altkind", "wollschuh", "kleinplatz", "großplatz", "neuplatz", "altplatz", "passreise"]);
 /* verb conjugation */
 const SEPPREF = ["zurück", "zusammen", "vorbei", "weiter", "herunter", "wieder", "voll", "fern", "statt", "teil", "heim", "raus", "rein", "runter", "rauf", "los", "fest", "ab", "an", "auf", "aus", "bei", "ein", "mit", "nach", "vor", "zu", "weg"];
 function splitSep(inf) {
@@ -72,10 +86,12 @@ function conjCore(stemInf, person) {
   if (inf === "wissen") return { ich: "weiß", du: "weißt", er: "weiß", wir: "wissen", ihr: "wisst", sie: "wissen" }[person];
   if (MODALS[inf]) { const m = MODALS[inf]; return { ich: m[0], du: m[1], er: m[2], wir: inf, ihr: inf + "t", sie: inf }[person]; }
   let stem = inf.replace(/en$/, "");
-  const eln = /([lr])$/.test(inf.replace(/en$/, "")) && /(el|er)n$/.test(inf);
+  /* -eln/-ern keep e (bummelt); -Cnen/-Cmen after obstruents keeps e (öffnet, atmet),
+     but -rnen/-lnen/-hnen/-enen drop it (lernt, wohnt, gähnt, dient) */
+  const eln = (/([lr])$/.test(stem) && /(el|er)n$/.test(inf)) || /(ch|[bcdfgjkpqtvwxzß])[mn]en$/.test(inf);
   if (eln) {
     const full = inf.slice(0, -1), short = full.replace(/e([lr])$/, "$1");
-    if (person === "ich") return short + "e";
+    if (person === "ich") return short === full ? full : short + "e";
     if (person === "du") return full + "st";
     if (person === "er") return full + "t";
     if (person === "wir" || person === "sie") return inf;
@@ -165,6 +181,7 @@ function parseNounRow(row, extraType) {
 NOUNS.forEach((r) => parseNounRow(r));
 HEADS.forEach((r) => parseNounRow(r));
 NOUNS2.forEach((r) => parseNounRow(r));
+BIG.BIGBASE.forEach((r) => parseNounRow(r));
 stats.nounsBase = vocab.length;
 
 /* noun lookup for compounds */
@@ -189,7 +206,84 @@ function addCompound(headRaw, pairStr) {
 }
 COMP.forEach(function ([h, pairs]) { addCompound(h, pairs); });
 TRANSP.forEach(function ([h, pairs]) { addCompound(h, pairs); });
+BIG.BIGCOMP.forEach(function ([h, pairs]) { addCompound(h, pairs); });
 stats.afterCompounds = vocab.length;
+/* MODGEN: category-constrained productive compounding (deterministic order).
+   Arabic: "<headAr> <modAr>"; English: "<modEn> <headEn>". */
+(function () {
+  const mg = rng("modgen-v1");
+  /* adjectival modifiers: Arabic without ال (مدينة كبيرة not مدينة الكبير) */
+  const MODADJ = new Set(["Sommer", "Winter", "Woll", "Leder", "Holz", "Glas", "Metall", "Stein", "Stoff", "Seiden", "Baumwoll", "Bio", "Öko", "Super", "Mini", "Groß", "Klein", "Neu", "Alt", "Ober", "Unter", "Neben", "Hinter", "Vorder", "Morgen", "Abend", "Nacht", "Wochen", "Jahres", "Tages"]);
+  let made = 0, skipped = 0;
+  BIG.MODGEN.forEach(function ([mod, modAr, modEn, cats, cap]) {
+    const heads = vocab.filter((w) => w.type === "noun" && !w.head && cats.indexOf(w.cat) >= 0 && ["der", "die", "das"].indexOf(w.art) >= 0);
+    const order = shuffle(mg, heads);
+    let n = 0;
+    for (const h of order) {
+      if (n >= cap) break;
+      if (mg() < 0.30) continue; // deterministic variety spread
+      if (h.de.toLowerCase().startsWith(mod.toLowerCase())) continue; // Schul+Schule -> nonsense
+      if (badHead(h)) { skipped++; continue; }
+      const headBase = h.de.replace(/^[A-ZÄÖÜ]/, (c) => c.toLowerCase());
+      const de = mod.charAt(0).toUpperCase() + mod.slice(1) + headBase;
+      if (de.length > 30) { skipped++; continue; }
+      if (vSeen.has(normDE(de) + "|verb")) { rej(de, "compound: collides with verb infinitive"); skipped++; continue; }
+      if (DENY_DE.has(normDE(de))) { rej(de, "compound: denied output"); skipped++; continue; }
+      const har = String(h.ar).split("/")[0].trim().replace(/^ال/, "");
+      const ar = har + " " + (MODADJ.has(mod) ? modAr.replace(/^ال/, "") : modAr);
+      const en = modEn + " " + String(h.en || h.de).toLowerCase();
+      const before = vocab.length;
+      addCompound(h.de, mod + ":" + ar + ":" + en);
+      // addCompound rebuilds de from mod+head itself; count success:
+      if (vocab.length > before) { made++; n++; }
+    }
+  });
+  /* QMOD second pass over BASE nouns (flagged via absence of .head link) */
+  const qg = rng("qmod-v1");
+  BIG.QMOD.forEach(function ([mod, modAr, modEn, cats, cap]) {
+    const heads = vocab.filter((w) => w.type === "noun" && !w.head && cats.indexOf(w.cat) >= 0 && ["der", "die", "das"].indexOf(w.art) >= 0);
+    const order = shuffle(qg, heads);
+    let n = 0;
+    for (const h of order) {
+      if (n >= cap) break;
+      if (qg() < 0.45) continue;
+      if (h.de.toLowerCase().startsWith(mod.toLowerCase())) continue;
+      if (badHead(h)) { skipped++; continue; }
+      const har = String(h.ar).split("/")[0].trim().replace(/^ال/, "");
+      const before = vocab.length;
+      addCompound(h.de, mod + ":" + har + " " + modAr.replace(/^ال/, "") + ":" + modEn + " " + String(h.en || h.de).toLowerCase());
+      if (vocab.length > before) { made++; n++; }
+    }
+  });
+  stats.modgen = made; stats.modgenSkipped = skipped;
+  /* MODHEADS: food modifiers with curated head allowlists (genitive Arabic).
+     Curated heads bypass BLOCKHEADS (explicit human choice); length + single-word
+     Arabic still enforced. */
+  let mhMade = 0;
+  BIG.MODHEADS.forEach(function ([mod, modAr, modEn, heads]) {
+    heads.forEach(function (hn) {
+      const h = nounByDe.get(normDE(hn));
+      if (!h) { rej(mod + "+" + hn, "modheads: unknown head " + hn); return; }
+      if (h.de.length > 12) return;
+      const har0 = String(h.ar).split("/")[0].trim();
+      if (/\s/.test(har0)) return;
+      const har = har0.replace(/^ال/, "");
+      const before = vocab.length;
+      addCompound(h.de, mod + ":" + har + " " + modAr + ":" + modEn + " " + String(h.en || h.de).toLowerCase());
+      if (vocab.length > before) mhMade++;
+    });
+  });
+  stats.modheads = mhMade;
+  /* honest B1 marking: abstract-domain modifiers live at B1 (CEFR: work/study/admin domains) */
+  const MODB1 = new Set(["Berufs", "Betriebs", "Versicherungs", "Bewerbungs", "Prüfungs", "Ausbildungs", "Studien", "Vorlesungs", "Kunden", "Antrags", "Steuer", "Kredit", "Not", "Patienten", "Krankenhaus"]);
+  let b1marked = 0;
+  vocab.forEach((w) => {
+    if (w.type === "noun" && w.head && w.level !== "B1") {
+      for (const m of MODB1) if (w.de.startsWith(m)) { w.level = "B1"; b1marked++; break; }
+    }
+  });
+  stats.modgenB1 = b1marked;
+})();
 
 /* verbs */
 const verbByInf = new Map();
@@ -202,7 +296,7 @@ function parseVerbRow(row) {
   const o = addVocab({ de: inf, art: "-", ar, en, level: lvl, cat, type: "verb", sep: sep === "1", reg: reg === "I" ? "irr" : "reg", parts });
   if (o) verbByInf.set(normDE(inf.replace(/^sich /, "")), o);
 }
-VERBS.forEach(parseVerbRow);
+VERBS.concat(BIG.BIGVERBS).forEach(parseVerbRow);
 const PREFLIST = ["zurück", "zusammen", "vorbei", "weiter", "herunter", "wieder", "voll", "fern", "statt", "teil", "heim", "raus", "rein", "runter", "rauf", "hoch", "los", "ab", "an", "auf", "aus", "bei", "ein", "mit", "nach", "vor", "zu", "weg", "be", "ver", "er", "ent", "emp", "miss", "zer", "ge", "über", "unter", "um", "durch", "wider", "hinter", "dahinter"];
 PREFIXVERBS.forEach((row) => {
   const p = row.split("|");
@@ -219,7 +313,9 @@ PREFIXVERBS.forEach((row) => {
       const b = verbByInf.get(base);
       if (b && b.parts && b.parts.includes(",")) {
         const [prät, pp] = b.parts.split(",");
-        if (sep === "1") parts = prät + " " + pr + "," + pr + pp.replace(/^ge/, "");
+        /* separable: ge stays after the prefix (an+gerufen=angerufen);
+           inseparable: no ge after prefix (be+kommen=bekommen) */
+        if (sep === "1") parts = prät + " " + pr + "," + pr + pp;
         else parts = prät + "," + pr + pp.replace(/^ge/, "");
         break;
       } else if (b) { parts = "-"; break; }
@@ -227,11 +323,34 @@ PREFIXVERBS.forEach((row) => {
   }
   addVocab({ de: inf, art: "-", ar, en: "", level: "A2", cat: "verbs", type: "verb", sep: sep === "1", reg: reg === "I" ? "irr" : "reg", parts });
 });
+/* BIG prefix verbs: inseparable (abstract) ones level B1, everyday separable A2 */
+BIG.BIGPREFIX.forEach((row) => {
+  const p = row.split("|");
+  let [inf, sep, reg, ar] = [stripNum((p[0] || "").trim()), p[1], p[2], (p[3] || "").trim()];
+  if (!inf || !ar) { rej(row.slice(0, 30), "verb: malformed bigprefix row"); return; }
+  if (vSeen.has(normDE(inf) + "|verb")) return;
+  let parts = "-";
+  const low = inf.replace(/^sich /, "").toLowerCase();
+  const prefs = PREFLIST.slice().sort((a, b) => b.length - a.length);
+  for (const pr of prefs) {
+    if (low.startsWith(pr) && low.length > pr.length + 2) {
+      const base = low.slice(pr.length);
+      const b = verbByInf.get(base);
+      if (b && b.parts && b.parts.includes(",")) {
+        const [prät, pp] = b.parts.split(",");
+        if (sep === "1") parts = prät + " " + pr + "," + pr + pp;
+        else parts = prät + "," + pr + pp.replace(/^ge/, "");
+        break;
+      } else if (b) { parts = "-"; break; }
+    }
+  }
+  addVocab({ de: inf, art: "-", ar, en: "", level: sep === "1" ? "A2" : "B1", cat: "verbs", type: "verb", sep: sep === "1", reg: reg === "I" ? "irr" : "reg", parts });
+});
 stats.afterVerbs = vocab.length;
 
 /* adjectives */
 const adjByBase = new Map();
-ADJ.forEach((row) => {
+ADJ.concat(BIG.BIGADJ).forEach((row) => {
   const p = row.split("|");
   if (p.length < 4) { rej(row.slice(0, 30), "vocab: malformed adj row"); return; }
   let [base, ar, en, lvl] = p.map((x) => (x || "").trim());
@@ -286,7 +405,7 @@ function addPhraseRow(row) {
   de = stripNum(de);
   addVocab({ de, art: "-", ar, en, level: lvl || "A1", cat: cat || "general", type: "phrase" });
 }
-PHRASES.forEach(addPhraseRow);
+PHRASES.concat(BIG.BIGPHR).forEach(addPhraseRow);
 IDIOMS.forEach(addPhraseRow);
 VPREP.forEach((row) => {
   const p = row.split("|");
@@ -342,6 +461,7 @@ const COLLOC = [
   ["schicken", "communication", 6], ["leihen", "general", 4], ["verkaufen", "shopping", 6], ["mieten", "home", 4], ["buchen", "travel", 6],
   ["besuchen", "family", 6], ["treffen", "relationships", 6], ["anrufen", "phones", 4], ["abholen", "travel", 4], ["putzen", "routine", 4]
 ];
+COLLOC.push(...BIG.BIGCOLL);
 (function () {
   const vmap = new Map();
   vocab.filter((w) => w.type === "verb").forEach((w) => { const b = w.de.replace(/^sich /, ""); if (!vmap.has(b)) vmap.set(b, w); });
@@ -372,13 +492,13 @@ const COLLOC = [
 /* attr adj+noun phrases: der/die/das + adj-e + noun */
 (function () {
   const rr = rng("adjphr");
-  const adjs = vocab.filter((w) => w.type === "adj" && /^[a-zäöü]/.test(w.de) && w.de.length > 3).slice(0, 70);
-  const nouns = shuffle(rr, vocab.filter((w) => w.type === "noun" && ["der", "die", "das"].includes(w.art))).slice(0, 400);
+  const adjs = vocab.filter((w) => w.type === "adj" && /^[a-zäöü]/.test(w.de) && w.de.length > 3).slice(0, 220);
+  const nouns = shuffle(rr, vocab.filter((w) => w.type === "noun" && ["der", "die", "das"].includes(w.art))).slice(0, 1600);
   let made = 0;
   outer: for (const a of adjs) {
     for (const o of nouns) {
-      if (made >= 640) break outer;
-      if (R() < 0.75) continue;
+      if (made >= 6000) break outer;
+      if (R() < 0.55) continue;
       const de = declArt(o.art, "N", false) + " " + a.de + "e " + o.de;
       if (vSeen.has(normDE(de) + "|phrase")) continue;
       const adjDef = /^(ال|غير|أكثر|أقل|ذو|ذات)/.test(a.ar) ? a.ar : "ال" + a.ar;
@@ -389,7 +509,7 @@ const COLLOC = [
   stats.adjPhrases = made;
 })();
 /* prep phrases from templates */
-const PREPPHR = [
+const PREPPHR = BIG.BIGPREP.concat([
   ["mit dem Bus", "بالحافلة", "transport"], ["mit dem Auto", "بالسيارة", "transport"], ["mit dem Fahrrad", "بالدراجة", "transport"],
   ["mit dem Zug", "بالقطار", "transport"], ["zu Fuß", "سيرًا على الأقدام", "transport"], ["mit Freunden", "مع الأصدقاء", "relationships"],
   ["bei meinen Eltern", "عند والديّ", "family"], ["beim Arzt", "عند الطبيب", "doctor"], ["in der Schule", "في المدرسة", "school"],
@@ -403,9 +523,80 @@ const PREPPHR = [
   ["wegen des Wetters", "بسبب الطقس", "weather"], ["trotz des Regens", "رغم المطر", "weather"], ["während des Films", "أثناء الفيلم", "time"],
   ["seit einer Woche", "منذ أسبوع", "time"], ["vor dem Essen", "قبل الأكل", "food"], ["nach dem Essen", "بعد الأكل", "food"],
   ["zwischen den Stühlen", "بين الكراسي", "general"], ["neben der Tür", "بجانب الباب", "home"], ["hinter dem Haus", "خلف البيت", "home"],
-  ["vor dem Haus", "أمام البيت", "home"], ["über der Stadt", "فوق المدينة", "city"], ["unter dem Tisch", "تحت الطاولة", "home"]
-];
+  ["vor dem Haus", "أمام البيت", "home"], ["über der Stadt", "فوق المدينة", "city"],   ["unter dem Tisch", "تحت الطاولة", "home"]
+]);
 PREPPHR.forEach(([de, ar, cat]) => addVocab({ de, art: "-", ar, en: de, level: "A1", cat, type: "phrase" }));
+/* PREPGEN: compositional prep + declined-article + noun phrases (case-safe via declArt).
+   [prepDe, prepAr, prepEn, kase, cats, cap] — deterministic, deduped by addVocab. */
+(function () {
+  const pg = rng("prepgen-v1");
+  const PREPGEN = [
+    ["mit", "مع", "with", "D", ["family", "people", "relationships", "work", "school"], 500],
+    ["bei", "عند", "at", "D", ["family", "doctor", "work", "school"], 400],
+    ["für", "لـ", "for", "A", ["family", "people", "health", "school", "work"], 500],
+    ["ohne", "بدون", "without", "A", ["food", "drinks", "health", "general"], 300],
+    ["gegen", "ضد", "against", "A", ["health", "weather", "sports"], 200],
+    ["durch", "عبر", "through", "A", ["city", "travel", "nature"], 250],
+    ["um", "حول", "around", "A", ["city", "home", "time"], 250],
+    ["entlang", "على طول", "along", "A", ["roads", "city", "nature"], 150],
+    ["aus", "من", "from", "D", ["city", "germany", "food", "general"], 300],
+    ["von", "من", "from", "D", ["people", "family", "city", "work"], 400],
+    ["zu", "إلى", "to", "D", ["doctor", "school", "work", "family"], 350],
+    ["nach", "إلى / بعد", "to/after", "D", ["travel", "city", "time", "food"], 300],
+    ["vor", "قبل / أمام", "before/in front of", "D", ["time", "home", "school"], 300],
+    ["hinter", "خلف", "behind", "D", ["home", "city"], 200],
+    ["neben", "بجانب", "next to", "D", ["home", "people", "school"], 250],
+    ["zwischen", "بين", "between", "D", ["people", "family", "general"], 200],
+  ];
+  let made = 0;
+  PREPGEN.forEach(function ([prep, prepAr, prepEn, kase, cats, cap]) {
+    const heads = vocab.filter((w) => w.type === "noun" && !w.head && !badHead(w, 12) && cats.indexOf(w.cat) >= 0 && ["der", "die", "das"].indexOf(w.art) >= 0 && !/ /.test(w.de));
+    const order = shuffle(pg, heads);
+    let n = 0;
+    for (const h of order) {
+      if (n >= cap) break;
+      if (pg() < 0.35) continue;
+      const art = kase === "G" ? declArt(h.art, "G", false) : declArt(h.art, kase, false);
+      const de = prep + " " + art + " " + h.de;
+      if (de.length > 42) continue;
+      const before = vocab.length;
+      addVocab({ de, art: "-", ar: prepAr + " " + h.ar, en: prepEn + " " + (h.en || h.de), level: h.level, cat: h.cat, type: "phrase" });
+      if (vocab.length > before) { made++; n++; }
+    }
+  });
+  stats.prepgen = made;
+  /* PREPGEN-ACC: direction/motion (Wechselpräpositionen + Akkusativ) — core A1 contrast.
+     in die Schule vs in der Schule. Always grammatical via declArt. */
+  let madeA = 0;
+  const PREPGENA = [
+    ["in", "إلى", "into", ["school", "work", "city", "hotel", "restaurant", "hospital", "university"], 400],
+    ["auf", "إلى / على", "onto", ["city", "travel", "nature", "sports"], 300],
+    ["an", "إلى", "to", ["travel", "nature", "city", "station"], 300],
+    ["über", "عبر / فوق", "over", ["city", "roads", "nature"], 200],
+    ["unter", "تحت", "under", ["home", "city"], 150],
+    ["vor", "أمام", "in front of", ["home", "school", "city"], 200],
+    ["hinter", "خلف", "behind", ["home", "city"], 150],
+    ["neben", "بجانب", "next to", ["home", "school"], 150],
+    ["zwischen", "بين", "between", ["people", "home"], 120],
+    ["um", "حول", "around", ["city", "home"], 150],
+  ];
+  PREPGENA.forEach(function ([prep, prepAr, prepEn, cats, cap]) {
+    const heads = vocab.filter((w) => w.type === "noun" && !w.head && !badHead(w, 12) && cats.indexOf(w.cat) >= 0 && ["der", "die", "das"].indexOf(w.art) >= 0 && !/ /.test(w.de));
+    const order = shuffle(pg, heads);
+    let n = 0;
+    for (const h of order) {
+      if (n >= cap) break;
+      if (pg() < 0.35) continue;
+      const de = prep + " " + declArt(h.art, "A", false) + " " + h.de;
+      if (de.length > 42) continue;
+      const before = vocab.length;
+      addVocab({ de, art: "-", ar: prepAr + " " + h.ar, en: prepEn + " " + (h.en || h.de), level: h.level, cat: h.cat, type: "phrase" });
+      if (vocab.length > before) { madeA++; n++; }
+    }
+  });
+  stats.prepgenAcc = madeA;
+})();
+/* XB-APPEND */
 /* honest B1 leveling: professional/academic A2 items move to B1 (workplace,
    applications, university, formal services = B1 domains in the CEFR) */
 (function () {
