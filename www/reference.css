@@ -49,3 +49,37 @@
   #page-reference .ex-table{font-size:13px}
   #page-reference .ref-hero h2{font-size:20px}
 }
+
+/* v3 encyclopedia additions (scoped, additive) */
+#page-reference{padding-bottom:96px}
+#page-reference .ref-strip{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+#page-reference .ref-feat{font-weight:800;padding:8px 14px}
+#page-reference .ref-suggest{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0;padding:10px 14px}
+#page-reference .ref-levels{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+#page-reference .ref-levels .mini-btn.on{background:var(--grad);color:#fff;border-color:transparent}
+#page-reference .ref-card.dim{opacity:.38}
+#page-reference .ref-progress{display:block;height:5px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:6px;overflow:hidden;width:100%}
+#page-reference .ref-progress span{display:block;height:100%;background:var(--grad)}
+#page-reference .ref-hero-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#page-reference .ref-savebtn{white-space:nowrap}
+#page-reference .ref-quick{border-right:4px solid var(--gold,#f5c451)}
+#page-reference .ref-rulebox{border-right:4px solid var(--cyan,#00d4ff)}
+#page-reference .ref-trickbox{border-right:4px solid #22c55e}
+#page-reference .ref-diff{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:800;white-space:nowrap;margin-right:6px}
+#page-reference .ref-diff.d1{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.5)}
+#page-reference .ref-diff.d2{background:rgba(245,196,81,.13);border:1px solid rgba(245,196,81,.5)}
+#page-reference .ref-diff.d3{background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.5)}
+#page-reference .ref-master{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:800;white-space:nowrap}
+#page-reference .ref-master.m-hi{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.5)}
+#page-reference .ref-master.m-mid{background:rgba(245,196,81,.13);border:1px solid rgba(245,196,81,.5)}
+#page-reference .ref-master.m-lo{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.45)}
+#page-reference .ref-master.m-read{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted)}
+#page-reference .ex-ol{margin:8px 0;padding-right:22px;display:flex;flex-direction:column;gap:6px}
+#page-reference .tbl-wrap{overflow-x:auto;max-width:100%}
+#page-reference .ex-table{border-collapse:collapse}
+#page-reference .ref-topic-open .muted{overflow-wrap:anywhere}
+#page-reference button:focus-visible,#page-reference input:focus-visible{outline:2px solid var(--cyan,#00d4ff);outline-offset:2px}
+@media (max-width:480px){
+  #page-reference .ref-strip{gap:6px}
+  #page-reference .ref-feat{padding:7px 11px;font-size:13px}
+}

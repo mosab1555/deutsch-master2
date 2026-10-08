@@ -226,6 +226,18 @@ function handleBack(/* source: "capacitor" | "backbutton" | "escape" | "manual" 
   try { if (closeTopOverlay()) { clearExitWindow(); return "overlay-closed"; } } catch (e) {}
   /* Priority 2 — meaningful in-app history: go back inside the app. */
   try {
+    /* Reference encyclopedia sub-navigation first: an open topic returns to
+       its path, an open path returns to the reference home. Only when the
+       reference has no inner history do we fall through to page navigation
+       (reference -> dashboard), so double-back-to-exit stays intact. */
+    try {
+      var __cur = currentPage();
+      if (__cur === "reference" && window.DMRef && typeof window.DMRef.back === "function" && typeof window.DMRef.canBack === "function" && window.DMRef.canBack()) {
+        clearExitWindow();
+        window.DMRef.back();
+        return "navigated";
+      }
+    } catch (eSub) {}
     syncStack();
     if (stack.length > 1) {
       stack.pop();

@@ -341,12 +341,19 @@ function js(sb, expr) { return vm.runInContext(expr, sb); }
   check("Test13: clear is scoped to one section", goneV && keptS);
 })();
 
-/* ---------- 14. openRefTopic keeps refState (regression) ---------- */
+/* ---------- 14. openRefTopic keeps refState (regression) ----------
+ * Since the v3 encyclopedia upgrade, reference topics render as independent
+ * views (no stacked #refDetail). Invariant: refGo assigns the new state
+ * BEFORE painting, and paintRefView resets to home ONLY for unknown views —
+ * a topic/path state is therefore never wiped by its own render. */
 (function () {
   const ref = RD("client/reference.js");
-  const setIdx = ref.indexOf("refState={path:p.id,topic:tid};");
-  const detIdx = ref.indexOf('if(!det){renderReference();det=document.getElementById("refDetail");}');
-  check("Test14: refState assigned after detail ensure (not wiped)", setIdx > detIdx && detIdx >= 0, setIdx + "/" + detIdx);
+  const setIdx = ref.indexOf("refState={view:next.view");
+  const paintIdx = ref.indexOf("paintRefView(false)");
+  check("Test14: refState assigned before paint (not wiped)", setIdx >= 0 && paintIdx > setIdx, setIdx + "/" + paintIdx);
+  const keepsTopic = /if\(st\.view==="topic"&&st\.topic\)\{paintRefTopic\(st\.topic,!!restore\);return;\}/.test(ref);
+  const homeOnlyFallback = /refState=\{view:"home",path:null,topic:null\};\s*paintRefHome/.test(ref);
+  check("Test14: topic state survives its own render", keepsTopic && homeOnlyFallback);
 })();
 
 /* ---------- 15. wrapper stays outermost despite late module wraps ---------- */
