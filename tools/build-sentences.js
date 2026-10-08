@@ -303,7 +303,9 @@ function fillGeneric(rr, deTpl, arTpl, S) {
 }
 
 function buildOne(rr, pat, idx) {
-  const [deTpl, arTpl, lvl, topic, gram] = pat;
+  const [deTpl, arTpl, patLvl, topic, gram] = pat;
+  const B1GRAMS = new Set(("weil dass wenn genitiv-praep trotz trotz-nominal waehrend waehrend-satz obwohl obwohl-voran bevor bevor-satz nachdem nachdem-satz um-zu um-zu-zweck statt-zu ohne-zu es-ist-wichtig-zu es-ist-schwer-zu infinitiv-floskel infinitiv-floskel-2 subjekt-satz passiv passiv-modal lassen-passiv-sinn man-passiv-sinn je-desto je-desto-2 entweder-oder sowohl-als-auch nicht-nur-sondern zwar-aber konjunktiv-hoeflich konjunktiv-bitte futur damit-final weil-kausal sobald falls lassen finden-adj akk-doppelt modal-sollen modal-duerfen").split(" "));
+  const lvl = B1GRAMS.has(gram) ? "B1" : patLvl;
   const S = pickN(rr, SUBJ);
   const fem = subjFem(S);
   const cp = CKEY[cpersonFull(S)];

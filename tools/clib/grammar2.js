@@ -17,7 +17,7 @@ const GT2=[
 ["الأمر والتوكيد doch/mal.","Komm doch mit!","تعال معنا إذن!","Schau mal her!","انظر هنا!","الجسيمات تلطف.","الجسيمات تلطف."],
 ["أخطاء الأمر.","Gehe nicht (رسمي زائد).","رسمي.","Geh nicht!","لا تذهب!","الزيادة e اختيارية."],
 ["اختبر: كوّن أمرًا.","kommen (du) → ___!","تعال!","aufstehen (ihr) → ___!","انهضوا!","Kommt / Steht auf","Komm! / Steht auf!"]]],
-["g32","Konjunktiv II","الشرطي الثاني","A2","konjunktiv",["g14","g33"],[
+["g32","Konjunktiv II","الشرطي الثاني","B1","konjunktiv",["g14","g33"],[
 ["للتمني والافتراض.","Ich wäre gern da.","ليتني هناك.","Hätte ich Zeit!","لو كان لدي وقت!","التمني ماضٍ صوري."],
 ["würde + مصدر للاحتمال.","Ich würde helfen.","سأساعد.","Würdest du kommen?","هل ستأتي؟","الأشيع محكيًا."],
 ["wäre/hätte/ginge الشاذة.","wäre, hätte, könnte","لكان، لكان لديه، لاستطاع.","würde sein (بديل).","الأصل أرقى."],
@@ -33,7 +33,7 @@ const GT2=[
 ["الشرطي في الفرعية.","dass er käme.","أنه سيأتي.","الفعل أخير.","الفعل أخير."],
 ["الأخطاء: würde مزدوج.","würde kommen würde.","خطأ.","würde kommen.","يكفي واحدة."],
 ["اختبر: أكمل.","Wenn ich Zeit ___ (hätte).","لو كان لدي وقت.","Ich ___ helfen. (würde)","سأساعد."]]],
-["g33","Passiv","المبني للمجهول","A2","passiv",["g18","g32"],[
+["g33","Passiv","المبني للمجهول","B1","passiv",["g18","g32"],[
 ["werden + الثالث.","Das Haus wird gebaut.","يُبنى البيت.","Es wird gemacht.","يُفعل.","التركيز على الحدث."],
 ["الفاعل بـ von.","Von wem? — Von mir.","من؟ — مني.","Das Buch wurde von ihm geschrieben.","كُتب بواسطته.","von للفاعل."],
 ["الوسيلة بـ mit.","mit dem Bus fahren (نشط).","بالحافلة.","Mit Wasser waschen.","بالماء.","mit للوسيلة."],
@@ -113,7 +113,7 @@ const GT2=[
 ["التدريب: ركّب.","Haus + Tür → ___","باب البيت.","die Haustür.","الرأس مؤنث."],
 ["المركبات والكتابة.","كلمة واحدة بلا مسافة.","كلمة واحدة.","Getrennt = خطأ.","ملتصقة."],
 ["اختبر: حدد الجنس.","Bahnhof → ___ (der).","المحطة.","Krankenkasse → ___ (die).","التأمين الصحي."]]],
-["g38","Partizipien als Adjektive","التصاريف كصفات","A2","adjektiv",["g18","g39"],[
+["g38","Partizipien als Adjektive","التصاريف كصفات","B1","adjektiv",["g18","g39"],[
 ["الثالث كصفة: -t/-en.","gekocht, gelesen","مطبوخ، مقروء.","das gekochte Ei","البيضة المسلوقة.","يُعرب كالصفة."],
 ["الحاضر كصفة: -d.","lachend, schlafend","ضاحك، نائم.","das lachende Kind","الطفل الضاحك.","-d الحاضر."],
 ["الترتيب قبل الاسم.","die geöffnete Tür","الباب المفتوح.","der verlorene Schlüssel","المفتاح المفقود.","يُعرب."],
@@ -129,7 +129,7 @@ const GT2=[
 ["الاستعمال الأدبي.","die untergehende Sonne","الشمس الغاربة.","die strahlende Zukunft","المستقبل المشرق."],
 ["الحدود: ليس كل فعل يصلح.","*der gegangene Mann (نادر).","نادر.","الحركة تُقيد.","الحركة تُقيد."],
 ["اختبر: اختر.","___ Kind (lachend).","الطفل الضاحك.","das lachende Kind.","-d + إعراب."]]],
-["g39","Modalpartikeln","جسيمات المحكي","A2","stil",["g34","g40"],[
+["g39","Modalpartikeln","جسيمات المحكي","B1","stil",["g34","g40"],[
 ["doch للتوكيد والتعارض.","Komm doch mit!","تعال إذن!","Das ist doch klar.","هذا واضح حقًا.","التلطيف والتوكيد."],
 ["mal للتخفيف.","Schau mal!","انظر!","Warte mal!","انتظر قليلًا!","الأمر اللطيف."],
 ["denn في السؤال.","Was ist denn los?","ما الأمر؟","Wo bist du denn?","أين أنت؟","الفضول اللطيف."],
@@ -145,7 +145,7 @@ const GT2=[
 ["الموضع: الوسط.","الفعل ثم الجسيم.","الفعل ثم الجسيم.","Komm doch mal!","الوسط."],
 ["الكتابي يتجنبها.","نادرًا في الرسميات.","نادرًا.","المحكي فقط."],
 ["اختبر: لطّف الأمر.","Komm her! → ___","تعال هنا!","Komm doch mal her!","الجسيمات."]]],
-["g40","Indirekte Rede","الكلام غير المباشر","A2","konjunktiv",["g32","g41"],[
+["g40","Indirekte Rede","الكلام غير المباشر","B1","konjunktiv",["g32","g41"],[
 ["er sagt, dass...","Er sagt, dass er krank ist.","يقول إنه مريض.","الهيكل الأساسي."],
 ["السؤال غير المباشر ob.","Er fragt, ob du kommst.","يسأل إن كنت ستأتي.","ob للـja/nein."],
 ["السؤال بـ W.","Er fragt, wo du wohnst.","يسأل أين تسكن.","الأداة + فعل أخير."],
@@ -177,7 +177,7 @@ const GT2=[
 ["hoffen + zu.","Ich hoffe zu bestehen.","آمل النجاح.","الأمل + zu."],
 ["الأخطاء: zu بعد lassen.","Lass zu schlafen (خطأ).","خطأ.","Lass schlafen.","lassen بلا zu."],
 ["اختبر: أكمل.","Lass mich ___ (schlafen).","دعني أنام.","Du brauchst nicht ___ (zu kommen).","لا حاجة للمجيء."]]],
-["g42","Vergleiche & Proportional","التناسب والمقارنة المتقدمة","A2","adjektiv",["g22","g43"],[
+["g42","Vergleiche & Proportional","التناسب والمقارنة المتقدمة","B1","adjektiv",["g22","g43"],[
 ["immer + مقارنة.","immer besser","يتحسن.","immer teurer","يزداد غلاءً.","التقدم."],
 ["je...desto/je...umso.","Je mehr, umso besser.","كلما أكثر كان أفضل.","desto/umso سيان."],
 ["Vergleich mit Satz.","größer, als ich dachte.","أكبر مما ظننت.","als + جملة.","als + جملة."],
@@ -321,7 +321,7 @@ const GT2=[
 ["إنهاء الحديث.","Ich muss leider los.","للأسف يجب أن أذهب.","War nett!","كان لطيفًا!"],
 ["الرسمي مقابل العامي.","Guten Tag vs Hallo.","طاب يومك مقابل مرحبًا.","Sie vs du.","المقام."],
 ["اختبر: اختر.","Fremder → ___ (Guten Tag).","طاب يومك.","Freund → ___ (Hallo).","مرحبًا."]]],
-["g51","Wortstellung Fallen","مصائد الترتيب","A2","syntax",["g02","g52"],[
+["g51","Wortstellung Fallen","مصائد الترتيب","B1","syntax",["g02","g52"],[
 ["nicht الموضعية.","Er arbeitet nicht heute (بل غدًا).","لا يعمل اليوم.","Er arbeitet heute nicht (أبدًا).","لا يعمل اليوم أصلًا.","الموضع يغيّر المعنى."],
 ["auch الموضعية.","Auch ich komme (أنا أيضًا).","أنا أيضًا آتي.","Ich komme auch (بالإضافة).","آتي أيضًا.","التركيز يتحرك."],
 ["nur الموضعية.","Nur ich weiß es (وحدي).","وحدي أعرف.","Ich weiß es nur (فقط أعرف).","فقط أعرف.","نطاق nur."],
@@ -385,7 +385,7 @@ const GT2=[
 ["viel/sehr.","viel للكمية، sehr للشدة.","كثير/جدًا.","Ich lerne viel (خطأ شائع).","sehr للشدة."],
 ["letzte/nächste.","letzte ماضٍ، nächste قادم.","الماضي/القادم.","الاتجاه."],
 ["اختبر: اختر.","Ich ___ ihn. (kenne, شخص)","أعرفه.","Ich ___ es. (weiß, معلومة)","أعرفه."]]],
-["g55","Verb + Präposition","الأفعال مع حروف الجر","A2","verben",["g54","g56"],[
+["g55","Verb + Präposition","الأفعال مع حروف الجر","B1","verben",["g54","g56"],[
 ["warten auf + akk.","warten auf den Bus.","انتظار الحافلة.","Worauf wartest du?","ماذا تنتظر؟"],
 ["denken an + akk.","denken an die Familie.","التفكير بالعائلة.","Woran denkst du?","بم تفكر؟"],
 ["sich freuen auf/über.","freuen auf (قادم).","متشوق لقادم.","freuen über (حاضر).","سعيد بحاضر."],
@@ -401,7 +401,7 @@ const GT2=[
 ["zweifeln an + dat.","zweifeln am Erfolg.","الشك بالنجاح.","Woran zweifeln?","بم تشك؟"],
 ["riechen/schmecken nach.","Es riecht nach Kaffee.","رائحة قهوة.","Nach für Geruch.","الرائحة nach."],
 ["اختبر: أكمل.","warten ___ (auf).","ينتظر.","denken ___ (an).","يفكر في."]]],
-["g56","Satzverbindungen","ربط الجمل","A2","konjunktion",["g55","g57"],[
+["g56","Satzverbindungen","ربط الجمل","B1","konjunktion",["g55","g57"],[
 ["Hauptsatz + Hauptsatz.","Ich koche, und er hilft.","أطبخ ويساعد.","الفاصلة اختيارية قصيرًا."],
 ["Hauptsatz + Nebensatz.","Ich bleibe, weil...","أبقى لأن...","الفاصلة إلزامية."],
 ["Nebensatz voran.","Weil..., bleibe ich.","لأن... أبقى.","القلب بعد الفاصلة."],

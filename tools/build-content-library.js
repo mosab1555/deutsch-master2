@@ -406,6 +406,12 @@ const PREPPHR = [
   ["vor dem Haus", "أمام البيت", "home"], ["über der Stadt", "فوق المدينة", "city"], ["unter dem Tisch", "تحت الطاولة", "home"]
 ];
 PREPPHR.forEach(([de, ar, cat]) => addVocab({ de, art: "-", ar, en: de, level: "A1", cat, type: "phrase" }));
+/* honest B1 leveling: professional/academic A2 items move to B1 (workplace,
+   applications, university, formal services = B1 domains in the CEFR) */
+(function () {
+  const B1CATS = new Set(["profi", "applications", "interviews", "services", "university", "ausbildung", "worktalk", "banking", "documents"]);
+  vocab.forEach((w) => { if (w.level === "A2" && B1CATS.has(w.cat)) w.level = "B1"; });
+})();
 stats.vocabTotal = vocab.length;
 console.log("vocab built:", vocab.length, "(nounsBase=" + stats.nounsBase + " compounds→" + stats.afterCompounds + " verbs→" + stats.afterVerbs + " adj→" + stats.afterAdj + ")");
 /* ---- stage-1 gate: vocab only ---- */

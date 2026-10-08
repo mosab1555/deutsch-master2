@@ -133,10 +133,12 @@ console.log("grammar units:", grammar.length);
 /* ---------- DIALOGUES ---------- */
 const ALL_SITS = SITS.concat(EXTRA);
 console.log("dialogue situations:", ALL_SITS.length);
+const B1DTOPICS = new Set(["interviews", "services", "university", "worktalk", "banking", "documents"]);
 const dialogues = [];
 let seqD = 0;
 ALL_SITS.forEach((sit, si) => {
-  const [topic, lvl, titleDe, titleAr, lines] = sit;
+  const [topic, sitLvl, titleDe, titleAr, lines] = sit;
+  const lvl = B1DTOPICS.has(topic) ? "B1" : sitLvl;
   for (let v = 0; v < 8; v++) {
     seqD++;
     const sub = (s) => s.split("{N}").join(POOLS.N[v % POOLS.N.length][0])

@@ -434,7 +434,7 @@ const GT1=[
 ["الفرعية والفواصل.","الفاصلة قبل الرابط إلزامية.","،.","dass/weil/wenn.","الفاصلة إلزامية."],
 ["التدريب: ادمج.","Ich bin krank. Ich bleibe. → weil.","أنا مريض. أبقى.","Ich bleibe, weil ich krank bin.","أبقى لأني مريض.","الدمج بالرابط."],
 ["اختبر: أكمل.","Ich weiß, ___ er kommt. (dass)","أعرف أنه يأتي.","___ es regnet, bleibe ich. (Weil/Wenn)","إن مطرت أبقى.","was / Als","dass / Weil-Wenn."]]],
-["g28","obwohl damit bevor nachdem","روابط متقدمة","A2","konjunktion",["g27","g29"],[
+["g28","obwohl damit bevor nachdem","روابط متقدمة","B1","konjunktion",["g27","g29"],[
 ["obwohl + تناقض.","Obwohl er krank ist, arbeitet er.","رغم مرضه يعمل.","الفعل أخير في الفرعية.","الفعل أخير."],
 ["trotzdem الرئيسية المقابلة.","Er ist krank, trotzdem arbeitet er.","مريض لكنه يعمل.","obwohl فرعية وتrotzdem رئيسية.","الزوج المتقابل."],
 ["damit الغرض.","Ich lerne, damit ich bestehe.","أتعلم لأنجح.","Er spart, damit er reist.","يدخر ليسافر.","الفاعلان مختلفان غالبًا.","الفاعلان مختلفان."],
@@ -450,7 +450,7 @@ const GT1=[
 ["ohne dass/außer dass.","Er ging, ohne dass er grüßte.","ذهب دون أن يحيّي.","الاستثناء ohne dass.","الاستثناء."],
 ["الفرق damit/um-zu.","فاعلان مختلفان damit.","لكي.","فاعل واحد um-zu.","لكي.","الفاعل يحدد."],
 ["اختبر: اختر.","Ich lerne, ___ ich bestehe. (damit)","لأنجح.","___ er krank ist, arbeitet er. (Obwohl)","رغم مرضه يعمل.","um zu / Weil","damit / Obwohl."]]],
-["g29","Infinitiv mit zu","المصدر مع zu","A2","infinitiv",["g28","g30"],[
+["g29","Infinitiv mit zu","المصدر مع zu","B1","infinitiv",["g28","g30"],[
 ["zu بعد معظم الأفعال.","Ich versuche zu schlafen.","أحاول النوم.","Er beginnt zu arbeiten.","يبدأ العمل.","Ich versuche schlafen.","zu إلزامية."],
 ["أفعال بلا zu: الناقصة والحواس.","Ich sehe ihn kommen.","أراه يأتي.","Lass mich schlafen.","دعني أنام.","Ich sehe ihn zu kommen.","الحواس بلا zu."],
 ["zu + منفصل في الوسط.","anzurufen, aufzustehen","أن يتصل، أن ينهض.","Er versucht anzurufen.","يحاول الاتصال.","zu anrufen.","zu الوسطى."],
@@ -466,7 +466,7 @@ const GT1=[
 ["التدريب: أكمل بـzu.","versuchen ___ (zu schlafen).","أن ينام.","beginnen ___ (zu arbeiten).","أن يعمل.","بلا zu.","zu."],
 ["القائمة الذهبية.","anfangen, aufhören, versuchen","يبدأ، يتوقف، يحاول.","hoffen, vergessen, versprechen","يأمل، ينسى، يعد.","كلها + zu."],
 ["اختبر: zu أم لا؟","Ich kann ___ (kommen, بلا).","أستطيع المجيء.","Ich versuche ___ (zu kommen).","أحاول المجيء.","zu / بلا","بلا / zu."]]],
-["g30","Relativsätze","جمل الوصل","A2","relativ",["g27","g31"],[
+["g30","Relativsätze","جمل الوصل","B1","relativ",["g27","g31"],[
 ["der/die/das كضمير وصل.","Der Mann, der dort steht, ...","الرجل الواقف هناك...","Die Frau, die lacht, ...","المرأة التي تضحك...","الوصل يطابق الموصوف جنسًا وعددًا."],
 ["الوصل في النصب: den/die/das.","Den Film, den ich sah, ...","الفيلم الذي رأيته...","Das Buch, das ich lese, ...","الكتاب الذي أقرؤه...","الحالة من وظيفة الوصل."],
 ["الوصل في الجر: dem/der.","Der Freund, dem ich helfe, ...","الصديق الذي أساعده...","Die Stadt, in der ich wohne, ...","المدينة التي أسكنها...","الحرف يحدد الحالة."],
