@@ -3,3 +3,4 @@ dist/
 android/.gradle/
 android/app/build/
 supabase/.temp/
+tools/clib/.cache/

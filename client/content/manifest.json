@@ -1,0 +1,80 @@
+{
+ "version": 1,
+ "seed": "deutsch-master-library-v1",
+ "generated": "2026-10-08T11:35:27.032Z",
+ "files": [
+  {
+   "src": "content/src/vocab-01.json",
+   "runtime": "content/dm-vocab-01.js",
+   "kind": "vocab",
+   "count": 2161
+  },
+  {
+   "src": "content/src/vocab-02.json",
+   "runtime": "content/dm-vocab-02.js",
+   "kind": "vocab",
+   "count": 2160
+  },
+  {
+   "src": "content/src/sent-01.json",
+   "runtime": "content/dm-sent-01.js",
+   "kind": "sent",
+   "count": 4050
+  },
+  {
+   "src": "content/src/sent-02.json",
+   "runtime": "content/dm-sent-02.js",
+   "kind": "sent",
+   "count": 4050
+  },
+  {
+   "src": "content/src/sent-03.json",
+   "runtime": "content/dm-sent-03.js",
+   "kind": "sent",
+   "count": 4048
+  },
+  {
+   "src": "content/src/gram-01.json",
+   "runtime": "content/dm-gram-01.js",
+   "kind": "gram",
+   "count": 900
+  },
+  {
+   "src": "content/src/ex-01.json",
+   "runtime": "content/dm-ex-01.js",
+   "kind": "ex",
+   "count": 7550
+  },
+  {
+   "src": "content/src/ex-02.json",
+   "runtime": "content/dm-ex-02.js",
+   "kind": "ex",
+   "count": 7550
+  },
+  {
+   "src": "content/src/ex-03.json",
+   "runtime": "content/dm-ex-03.js",
+   "kind": "ex",
+   "count": 7550
+  },
+  {
+   "src": "content/src/ex-04.json",
+   "runtime": "content/dm-ex-04.js",
+   "kind": "ex",
+   "count": 7550
+  },
+  {
+   "src": "content/src/dlg-01.json",
+   "runtime": "content/dm-dlg-01.js",
+   "kind": "dlg",
+   "count": 1000
+  }
+ ],
+ "counts": {
+  "vocab": 4321,
+  "sent": 12148,
+  "gram": 900,
+  "ex": 30200,
+  "dlg": 1000
+ }
+}

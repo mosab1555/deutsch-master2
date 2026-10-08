@@ -1,0 +1,164 @@
+{
+ "errors": [],
+ "warnings": [
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[der kollege ist]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[viele leute haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x29 head=[es gibt den]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein vater hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die nachbarin wird]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nicht nur meine]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[meine eltern kochen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x38 head=[was für den]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x26 head=[die kinder haben]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[meine freundin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[bevor viele leute]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x28 head=[was für eine]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x16 head=[die chefin wartet]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x48 head=[es gibt die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x22 head=[die nachbarin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[nicht nur der]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[mein bruder hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x20 head=[die ärztin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl es spät]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x23 head=[der chef hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[mein bruder bezahlt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[der kollege hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder freuen]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[es gibt das]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x21 head=[die chefin hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine schwester hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[meine mutter hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[die nachbarin spricht]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x19 head=[der lehrer hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[nicht nur die]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x15 head=[obwohl es dunkel]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x14 head=[obwohl es kalt]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[viele leute sind]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x17 head=[das kind hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[der kellner hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x25 head=[mein freund hat]"
+  },
+  {
+   "id": "-",
+   "reason": "sentences: template cluster x13 head=[die kinder sind]"
+  }
+ ],
+ "dist": {
+  "vocab": 4321,
+  "sentences": 12148,
+  "grammar": 900,
+  "exercises": 30200,
+  "dialogues": 1000
+ },
+ "levelDist": {
+  "A1": 16544,
+  "A2": 32025
+ }
+}

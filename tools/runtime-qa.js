@@ -184,11 +184,17 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const searchN = await E("document.querySelectorAll('.word-card').length");
   rec("VOC-004a", "vocab search filters live", Number(searchN) < Number(cards) && Number(searchN) >= 1, "filtered=" + searchN);
   await cdp.ev("(()=>{const s=document.getElementById('vocabSearch');s.value='';s.dispatchEvent(new Event('input',{bubbles:true}));})()");
+  await sleep(800);
   /* pick a real category value dynamically (robust to dataset renames) */
+  /* NOTE: the count pill (vocabCount = FULL filtered total) is the correct narrowing
+     signal. Rendered .word-card counts are pagination-capped (60/page) and include
+     hidden grids, so they cannot verify filtering on large banks. */
+  const pill0 = await E("+document.getElementById('vocabCount').textContent");
   await cdp.ev("(()=>{const c=document.getElementById('filterCategory');if(c&&c.options.length>1){c.selectedIndex=1;c.dispatchEvent(new Event('input',{bubbles:true}));}})()");
   await sleep(900);
-  const catN = await E("document.querySelectorAll('.word-card').length");
-  rec("VOC-004b", "category filter narrows", Number(catN) >= 1 && Number(catN) < Number(cards), "catFiltered=" + catN);
+  const catN = await E("+document.getElementById('vocabCount').textContent");
+  const catVis = await E("document.querySelectorAll('#page-vocab.active #vocabGrid .word-card').length");
+  rec("VOC-004b", "category filter narrows", Number(catN) >= 1 && Number(catN) < Number(pill0) && Number(catVis) >= 1, "catFiltered=" + catN + "/" + pill0 + " vis=" + catVis);
   await cdp.ev("(()=>{const c=document.getElementById('filterCategory');if(c){c.value='';c.dispatchEvent(new Event('input',{bubbles:true}));}})()");
   await cdp.ev("(()=>{const d=document.querySelector('.word-card .de-line');if(d)d.click();})()");
   await sleep(600);
