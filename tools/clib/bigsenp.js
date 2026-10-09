@@ -28,10 +28,10 @@ const BIGPATS = [
   ["{Vq} {Sl} {O} {P}?", "هل {Va} {Sa} {Oa} {Pa}؟", "A1", "general", "ja-nein-ort"],
   ["{Vq} {Sl} {T} {P}?", "هل {Va} {Sa} {Ta} {Pa}؟", "A1", "general", "ja-nein-kurz"],
   // ---- w-questions (fillGeneric-safe) ----
-  ["Warum {V} {S} {O}?", "لماذا {Va} {Sa} {Oa}؟", "A1", "general", "warum-neu"],
-  ["Warum {V} {S} {T} {P}?", "لماذا {Va} {Sa} {Ta} {Pa}؟", "A2", "general", "warum-voll"],
-  ["Wann {V} {S} {O}?", "متى {Va} {Sa} {Oa}؟", "A1", "general", "wann-neu"],
-  ["Wen {V} {S} {T}?", "من {Va} {Sa} {Ta}؟", "A2", "general", "wen-neu"],
+  ["Warum {V} {Sl} {O}?", "لماذا {Va} {Sa} {Oa}؟", "A1", "general", "warum-neu"],
+  ["Warum {V} {Sl} {T} {P}?", "لماذا {Va} {Sa} {Ta} {Pa}؟", "A2", "general", "warum-voll"],
+  ["Wann {V} {Sl} {O}?", "متى {Va} {Sa} {Oa}؟", "A1", "general", "wann-neu"],
+  ["Wen {V} {Sl} {T}?", "من {Va} {Sa} {Ta}؟", "A2", "general", "wen-neu"],
   // ---- opinions + dass (B1) ----
   ["{S} glaubt, dass {S2} {V2}.", "{Sa} يعتقد أن {S2a} {V2a}.", "B1", "general", "glaubt-dass"],
   ["{S} hofft, dass {S2} {V2}.", "{Sa} يأمل أن {S2a} {V2a}.", "B1", "general", "hofft-dass"],
@@ -54,7 +54,7 @@ const BIGPATS = [
   ["Könnten Sie {V}?", "", "B1", "polite", "koennten-bitte"],
   ["Würden Sie {V}?", "", "B1", "polite", "wuerden-bitte"],
   ["Man {V} hier nicht.", "", "B1", "general", "man-satz"],
-  ["Wie geht es {S}?", "كيف حال {Sa}؟", "A1", "general", "geht-es"],
+  ["Wie geht es {Sl}?", "كيف حال {Sa}؟", "A1", "general", "geht-es"],
   ["Wie schmeckt {O1}?", "كيف طعم {O1a}؟", "A1", "food", "schmeckt-neu"],
   ["Wie gefällt {O8} {O1}?", "هل يعجب {O8a} {O1a}؟", "A2", "general", "gefaellt-neu"],
   ["Was braucht man {P}?", "ماذا يحتاج المرء {Pa}؟", "A2", "general", "braucht-man"],
@@ -86,7 +86,7 @@ const BIGPATS = [
   ["Herzlich willkommen {P}!", "أهلا بك {Pa}!", "A1", "general", "willkommen"],
   // ---- haben/sein/werden families ----
   ["{S} hat {T} {O}.", "لدى {Sa} {Ta} {Oa}.", "A1", "general", "haben-zeit"],
-  ["{T} hat {S} {O}.", "{Ta} لدى {Sa} {Oa}.", "A1", "general", "haben-inversion"],
+  ["{T} hat {Sl} {O}.", "{Ta} لدى {Sa} {Oa}.", "A1", "general", "haben-inversion"],
   ["{S} ist {T} {P}.", "{Sa} {Ta} {Pa}.", "A1", "general", "sein-ort-zeit"],
   ["Ist {Sl} {T} {P}?", "هل {Sa} {Ta} {Pa}؟", "A1", "general", "sein-frage"],
   ["{S} wird {T} {A}.", "{Sa} سيصبح {Ta} {Aa}.", "A2", "general", "werden-adj"],
@@ -125,7 +125,7 @@ const BIGPATS = [
   ["{S} ist krank.", "{Sa} مريض.", "A1", "health", "ist-krank"],
   ["{S2} ist krank.", "{S2a} مريض.", "A1", "health", "ist-krank-2"],
   // ---- formal/informal ----
-  ["Bitte {V} {S} {O}.", "من فضلك {Va} {Sa} {Oa}.", "A2", "polite", "bitte-imperativ"],
+  ["Bitte {V} {Sl} {O}.", "من فضلك {Va} {Sa} {Oa}.", "A2", "polite", "bitte-imperativ"],
   ["{S} grüßt {O8}.", "{Sa} يحيي {O8a}.", "A1", "relationships", "gruesst"],
   ["{S} dankt {O8}.", "{Sa} يشكر {O8a}.", "A1", "relationships", "dankt"],
   ["{S} gratuliert {O8}.", "{Sa} يهنئ {O8a}.", "A1", "relationships", "gratuliert"],

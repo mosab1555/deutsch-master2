@@ -262,11 +262,31 @@ const lazyJs = `"use strict";
       return base.slice(0, opt.limit || 60);
     } catch (e) { return base; }
   };
-  /* bounded idle prefetch: smallest lazy packs first (never exercises), cap ~12MB */
+  /* Bounded idle prefetch (hardened 2026-10-09 for network usage):
+     - honors navigator.connection.saveData (no prefetch when user asked to
+       save data);
+     - skips prefetch on slow connections (slow-2g/2g): core packs already
+       boot the app; extended pools load explicitly via loadPack/loadKind;
+     - narrows the default prefetch to ~8MB smallest-first (was ~12MB);
+     - NEVER idle-fetches exercise packs ("ex": 176MB across 84 packs);
+     - defers while the tab is hidden (no background radio use).
+     Core search/flashcards/quiz/Smart Training run on boot packs; prefetch
+     only extends their pools opportunistically. */
+  function connOK() {
+    try {
+      var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (!c) return true;
+      if (c.saveData) return false;
+      var t = c.effectiveType || "";
+      if (t === "slow-2g" || t === "2g") return false;
+    } catch (e) {}
+    return true;
+  }
   function idlePrefetch() {
     try {
+      if (!connOK()) return;
       var cands = PACKS.filter(function (p) { return p.kind !== "ex"; }).sort(function (a, b) { return a.bytes - b.bytes; });
-      var budget = 12 * 1024 * 1024, chain = Promise.resolve(true);
+      var budget = 8 * 1024 * 1024, chain = Promise.resolve(true);
       cands.forEach(function (p) {
         if (p.bytes > budget) return;
         budget -= p.bytes;
@@ -274,10 +294,25 @@ const lazyJs = `"use strict";
       });
     } catch (e) {}
   }
+  function schedulePrefetch() {
+    try {
+      if (typeof document !== "undefined" && document.hidden) {
+        var onVis = function () {
+          if (!document.hidden) {
+            try { document.removeEventListener("visibilitychange", onVis); } catch (e) {}
+            setTimeout(idlePrefetch, 4000);
+          }
+        };
+        document.addEventListener("visibilitychange", onVis);
+        return;
+      }
+    } catch (e) {}
+    setTimeout(idlePrefetch, 4000);
+  }
   try { mergeAll(); } catch (e) {}
   try {
-    if (document.readyState === "complete") setTimeout(idlePrefetch, 4000);
-    else window.addEventListener("load", function () { setTimeout(idlePrefetch, 4000); });
+    if (document.readyState === "complete") schedulePrefetch();
+    else window.addEventListener("load", function () { schedulePrefetch(); });
   } catch (e) {}
 })();
 `;

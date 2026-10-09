@@ -37,6 +37,13 @@
     sp.classList.add("dm-hide");
     setTimeout(function () { sp.remove(); if (!welcomed()) showWelcome(); }, 480);
   }, 1500);
+  function dismissWelcome(w) {
+    if (!w || w._dmDone) return;
+    w._dmDone = true;
+    try { localStorage.setItem("dm_welcomed", "1"); } catch (e) {}
+    w.classList.add("dm-hide");
+    setTimeout(function () { try { w.remove(); } catch (e) {} }, 480);
+  }
   function showWelcome() {
     var w = document.createElement("div");
     w.id = "dmWelcome";
@@ -47,10 +54,25 @@
       '<div class="dm-feats"><span>📚 800+ كلمة</span><span>📝 اختبارات</span><span>🔥 Streak</span></div>' +
       '<button class="dm-start" id="dmStartBtn">Start Learning →</button></div>';
     document.body.appendChild(w);
-    document.getElementById("dmStartBtn").addEventListener("click", function () {
-      try { localStorage.setItem("dm_welcomed", "1"); } catch (e) {}
-      w.classList.add("dm-hide");
-      setTimeout(function () { w.remove(); }, 480);
-    });
+    document.getElementById("dmStartBtn").addEventListener("click", function () { dismissWelcome(w); });
+    /* Search-recovery: the welcome overlay (z-index 99999) otherwise covers
+       the header search input until dismissed. Backdrop click / Escape
+       dismisses identically (same dm_welcomed flag, same removal) so keyboard
+       and pointer users can always reach search. */
+    w.addEventListener("click", function (ev) { try { if (ev.target === w) dismissWelcome(w); } catch (e) {} });
+    try {
+      if (!w._dmEscWired) {
+        w._dmEscWired = true;
+        document.addEventListener("keydown", function onEsc(ev) {
+          try {
+            var k = ev && (ev.key || ev.keyCode);
+            if (k === "Escape" || k === "Esc" || k === 27) {
+              var cur = document.getElementById("dmWelcome");
+              if (cur) { dismissWelcome(cur); document.removeEventListener("keydown", onEsc); }
+            }
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
   }
 })();

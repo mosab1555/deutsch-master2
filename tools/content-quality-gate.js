@@ -74,12 +74,20 @@ function validateDataset(ds) {
           // compounds headed by a tantum/invariable noun are likewise exempt
           // (audited 2026-10-09: Hausshorts/Wintershorts/… -> shorts;
           //  Familieneltern/Spieleltern/… -> eltern; Spätzle/Käsespätzle/… ->
-          //  spätzle, invariable). Suffix match is narrowly scoped to these
-          //  verified heads only.
+          //  spätzle, invariable; *ananas -> ananas). Suffix match is
+          //  narrowly scoped to these verified heads only.
+          // Verified zero-plural loanwords/diminutives/plural-lemmas
+          // (audited 2026-10-09 against DWDS/Duden/ÖWB: das Knie Pl. Knie;
+          //  der Campus Pl. Campus(e); der Kaiserschmarrn (österr.);
+          //  die Globuli (plural-only); die Gänge/die Drillinge (plural
+          //  lemmas like Zwillinge/Eltern); das Spinngewebe (Gewebe-class);
+          //  österr. -erl/-endl diminutives Sackerl/Pickerl/Kipferl/Weckerl/
+          //  Mohnflesserl/Hendl/Backhendl; initialisms SMS/AGB).
           const TANTUM = ["eltern", "leute", "ferien", "jeans", "shorts", "ananas", "kosten", "niederlande", "usa", "philippinen", "vereinigte arabische emirate"];
-          const TANTUM_TAIL = ["eltern", "shorts", "spätzle", "leute", "ferien", "jeans"];
+          const TANTUM_TAIL = ["eltern", "shorts", "spätzle", "leute", "ferien", "jeans", "ananas", "kosten"];
+          const ZERO_PL_WORDS = ["knie", "globuli", "campus", "notfall-sms", "agb", "kaiserschmarrn", "gänge", "drillinge", "spinngewebe", "sackerl", "pickerl", "kipferl", "weckerl", "mohnflesserl", "hendl", "backhendl"];
           const tailHit = TANTUM_TAIL.some((t) => n === t || n.endsWith(t));
-          if (!/(er|el|en)$/.test(w.de) && TANTUM.indexOf(n) < 0 && !tailHit) W(w.id, "vocab: plural identical to singular (no article prefix?)");
+          if (!/(er|el|en)$/.test(w.de) && TANTUM.indexOf(n) < 0 && !tailHit && ZERO_PL_WORDS.indexOf(n) < 0) W(w.id, "vocab: plural identical to singular (no article prefix?)");
         }
       }
       const k = n + "|" + w.art;

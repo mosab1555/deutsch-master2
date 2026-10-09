@@ -64,7 +64,7 @@ const levSrc = grab("dmLev");
 const dmLevFn = new Function("a", "b", levSrc
   .replace(/^function dmLev\(a,b\)\s*\{/, "")
   .replace(/\}\s*$/, ""));
-const dmWordHitsFn = new Function("qn", "level", "allWords", "dmNorm", "dmLev", "__box", hitsSrc
+const dmWordHitsFn = new Function("qn", "level", "allWords", "dmNorm", "dmLev", "__box", "dmWords", hitsSrc
   .replace(/^function dmWordHits\(qn,level\)\s*\{/, "")
   .replace(/\}\s*$/, "")
   .replace(/dmWordHits\._idx/g, "__box.v"));
@@ -72,7 +72,9 @@ const __box = { v: null };
 function search(q, level) {
   const qn = norm(q);
   if (!qn.length) return [];
-  return dmWordHitsFn(qn, level || "mixed", allWords, norm, dmLevFn, __box);
+  /* dmWords is the app's cached view over allWords (same contents); the
+     harness wires it to the same stub so the REAL extracted engine runs. */
+  return dmWordHitsFn(qn, level || "mixed", allWords, norm, dmLevFn, __box, allWords);
 }
 function has(q, de, level) { return search(q, level).some(h => h.w.de === de); }
 

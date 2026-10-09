@@ -17,9 +17,17 @@ function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 /* ---------- conjugation (same rules as stage 1) ---------- */
 const SEPPREF = ["zurück", "zusammen", "vorbei", "weiter", "herunter", "wieder", "voll", "fern", "statt", "teil", "heim", "raus", "rein", "runter", "rauf", "los", "fest", "ab", "an", "auf", "aus", "bei", "ein", "mit", "nach", "vor", "zu", "weg"];
+/* audited separable verbs the prefix guesser misses (2026-10-09: "um" is
+   absent from SEPPREF, fusing umsteigen/umziehen in conjugated slots).
+   Narrowly scoped to verified verbs so inseparable um-/an-/ab- verbs
+   (umarmen, antworten, abonnieren, …) keep their fused treatment. */
+const SEP_MISS = ["umsteigen", "umziehen"];
 function splitSep(inf) {
-  const low = inf.toLowerCase();
-  for (const p of SEPPREF) if (low.startsWith(p) && low.length > p.length + 2) return { stem: inf.slice(p.length), pref: inf.slice(0, p.length) };
+  const clean = inf.replace(/^sich /, "");
+  const low = clean.toLowerCase();
+  if (SEP_MISS.indexOf(low) >= 0) return { stem: clean.slice(2), pref: clean.slice(0, 2) };
+  const lowFull = inf.toLowerCase();
+  for (const p of SEPPREF) if (lowFull.startsWith(p) && lowFull.length > p.length + 2) return { stem: inf.slice(p.length), pref: inf.slice(0, p.length) };
   return null;
 }
 const MODALS = { "können": ["kann", "kannst", "kann"], "müssen": ["muss", "musst", "muss"], "dürfen": ["darf", "darfst", "darf"], "sollen": ["soll", "sollst", "soll"], "wollen": ["will", "willst", "will"], "möchten": ["möchte", "möchtest", "möchte"] };
@@ -484,7 +492,14 @@ function fillGeneric(rr, deTpl, arTpl, S) {
   const O8 = pickN(rr, NAMES);
   const Og = genForm(pickN(rr, THING_NOUNS));
   const T = pickN(rr, TIMES), P = pickN(rr, PLACES);
-  const A = pickN(rr, adjs.length ? adjs : [{ de: "gut", ar: "جيد" }]);
+  // hardening 2026-10-09: manner slot of "spricht X Deutsch" only takes
+  // manner adverbs (not any adjective: *spricht krank/hoch/ägyptisch).
+  // Predicative {A} slots keep the full adjective pool.
+  const MANNER_OK = ["gut", "schnell", "langsam", "deutlich", "laut", "leise"];
+  const mannerPool = adjs.filter((w) => MANNER_OK.indexOf(w.de) >= 0);
+  const A = /spricht \{A\} Deutsch/.test(deTpl) && mannerPool.length
+    ? pickN(rr, mannerPool)
+    : pickN(rr, adjs.length ? adjs : [{ de: "gut", ar: "جيد" }]);
   const fem = subjFem(S), fem2 = subjFem(S2);
   const map = {
     "{S}": S[0], "{Sa}": S[1], "{Sl}": lowS(S),
@@ -729,7 +744,7 @@ function buildOne(rr, pat, idx) {
     else if (gram === "superlativ") { de = o1.de + " ist am " + compDe + "sten."; ar = o1.ar + " هو " + "ال" + COMP_AR[k] + "."; }
     else if (gram === "komparativ-adv") { const p = P(); const vv = pickN(rr, poolOf(1)); de = S[0] + " " + Vconj(vv[0]) + " lieber " + p[0] + "."; ar = S[1] + " " + ({ ich: "أفضل", du: "تفضل", er: "يفضل", wir: "نفضل", ihr: "تفضلون", sie: "يفضلون" })[cp] + " " + p[1] + "."; }
     else if (gram === "superlativ-adv") { const t = T(); const vv = pickN(rr, poolOf(1)); de = S[0] + " " + Vconj(vv[0]) + " am liebsten " + t[0] + "."; ar = S[1] + " " + ({ ich: "أفضل", du: "تفضل", er: "يفضل", wir: "نفضل", ihr: "تفضلون", sie: "يفضلون" })[cp] + " " + t[1] + "."; }
-    else { de = "Je mehr " + S[0] + " " + C2("üben", S) + ", desto besser wird es."; ar = "كلما " + AR2("üben", S) + " " + S[1] + " أكثر صار أفضل."; }
+    else { de = "Je mehr " + lowS(S) + " " + C2("üben", S) + ", desto besser wird es."; ar = "كلما " + AR2("üben", S) + " " + S[1] + " أكثر صار أفضل."; }
     vocabRefs.push(o1.w.id, o2.w.id);
   } else if (gram === "futur") {
     const Vi = pickN(rr, poolInf(3).concat(poolInf(1))); const t = T();
@@ -800,7 +815,7 @@ function buildOne(rr, pat, idx) {
     const pv = pickTransPv(rr); const aux = auxOf(pv[0]); const auxC = conjCore(aux, cp);
     const o = akkPhrase(rr, thingPoolFor(pv[0]), true); const t = T();
     if (gram === "perfekt-tr") { de = S[0] + " " + auxC + " " + t[0] + " " + o.de + " " + pv[1] + "."; ar = arPastFull(pv[2], S) + " " + S[1] + " " + o.ar + " " + t[1] + "."; }
-    else { de = auxC.charAt(0).toUpperCase() + auxC.slice(1) + " " + S[0] + " " + t[0] + " " + o.de + " " + pv[1] + "?"; ar = "ماذا " + arPastFull(pv[2], S) + " " + S[1] + " " + o.ar + " " + t[1] + "؟"; }
+    else { de = auxC.charAt(0).toUpperCase() + auxC.slice(1) + " " + lowS(S) + " " + t[0] + " " + o.de + " " + pv[1] + "?"; ar = "ماذا " + arPastFull(pv[2], S) + " " + S[1] + " " + o.ar + " " + t[1] + "؟"; }
     vocabRefs.push(o.w.id);
   } else if (gram === "perfekt-sein") {
     const seinPv = PERFV.filter(([i]) => auxOf(i) === "sein");
@@ -930,7 +945,7 @@ function buildOne(rr, pat, idx) {
     const t = T(); const p = P();
     const mode = rr();
     if (mode < 0.5) { de = S[0] + " " + Vconj(V[0]) + " " + per.de + " " + t[0] + " " + p[0] + "."; ar = S[1] + " " + AR2(V[0], S) + " " + per.ar + " " + t[1] + " " + p[1] + "."; }
-    else if (mode < 0.8) { const q = cap(conjSubj(V[0], S)); de = q + " " + S[0] + " " + per.de + " " + t[0] + "?"; ar = "هل " + AR2(V[0], S) + " " + S[1] + " " + per.ar + " " + t[1] + "؟"; }
+    else if (mode < 0.8) { const q = cap(conjSubj(V[0], S)); de = q + " " + lowS(S) + " " + per.de + " " + t[0] + "?"; ar = "هل " + AR2(V[0], S) + " " + S[1] + " " + per.ar + " " + t[1] + "؟"; }
     else { de = S[0] + " " + Vconj(V[0]) + " " + per.de + " nicht."; ar = S[1] + " لا " + AR2(V[0], S) + " " + per.ar + "."; }
     vocabRefs.push(per.w.id);
   } else if (gram === "relativ-subjekt") {
@@ -1225,6 +1240,12 @@ function buildOne(rr, pat, idx) {
   } else {
     const r2 = fillGeneric(rr, deTpl, arTpl, S);
     de = r2.de; ar = r2.ar; vocabRefs.push(...r2.refs.w);
+    // hardening 2026-10-09: literal-verb templates conjugate per subject
+    // (sein-ort-zeit/sein-frage/bleiben-ort reach only this fallback).
+    // Arabic is nominal here (no verb), so German-only change.
+    if (gram === "sein-ort-zeit") { de = de.split(" ist ").join(" " + C2("sein", S) + " "); }
+    if (gram === "bleiben-ort") { de = de.split(" bleibt ").join(" " + C2("bleiben", S) + " "); }
+    if (gram === "sein-frage") { const sc = C2("sein", S); de = de.replace(/^Ist /, sc.charAt(0).toUpperCase() + sc.slice(1) + " "); }
   }
 
   // final sanity + packaging

@@ -199,6 +199,20 @@ function afterMergeRefresh(){
   try{if(typeof renderAll==="function")renderAll();}catch(e){}
   try{if(typeof refreshFlashList==="function")refreshFlashList();}catch(e){}
   try{currRefreshHooks();}catch(e){}
+  /* Idle search-index warm: every merge grows VOCAB/SENTENCES, and the next
+     keystroke would otherwise pay the full incremental index build (thousands
+     of mkrow normalizations) synchronously mid-typing. Build it while idle so
+     the next search stays at indexOf-only cost. Idempotent + incremental. */
+  try{
+    var _warm=function(){
+      try{ if(typeof dmWordHits==="function")dmWordHits("der","mixed"); }catch(e){}
+      try{ if(typeof sentA1SearchRows==="function")sentA1SearchRows(); }catch(e){}
+      try{ if(typeof dmVerbRows==="function")dmVerbRows(); }catch(e){}
+      try{ if(typeof dmGramRows==="function")dmGramRows(); }catch(e){}
+    };
+    if(typeof requestIdleCallback==="function"){ try{requestIdleCallback(_warm,{timeout:8000});}catch(e){ setTimeout(_warm,2000); } }
+    else{ setTimeout(_warm,2000); }
+  }catch(e){}
 }
 /* ensure a whole LEVEL (base + extras, in file order) */
 Curriculum.ensure=function(L,cb){
@@ -256,7 +270,17 @@ function idlePreload(){
 }
 function currRefreshHooks(){
   try{if(document.querySelector("#page-dashboard.active"))currRenderPath();}catch(e){}
-  try{currApplySentFilter(false);}catch(e){}
+  /* Perf guard: dataset merges (idle preload + on-demand level loads) must
+     never render 45k hidden sentence cards into #sentList at boot. Refresh
+     sentences only when the page is visible or was already visited; the
+     paginated renderer (sent-a1) handles the visible case on showPage. */
+  try{
+    var active=false, visited=false;
+    try{ active=!!document.querySelector("#page-sentences.active"); }catch(e){ active=false; }
+    try{ visited=!!(window.DMPageState&&window.DMPageState.mem&&window.DMPageState.mem.sentences); }catch(e){ visited=false; }
+    try{ if(typeof dmRendered!=="undefined"&&dmRendered&&dmRendered.sentences)visited=true; }catch(e){}
+    if(active||visited)currApplySentFilter(false);
+  }catch(e){}
 }
 window.currRefreshHooks=currRefreshHooks;
 
@@ -266,8 +290,13 @@ try{idlePreload();}catch(e){}
 
 /* ================= SENTENCE LEVEL TABS ================= */
 window.currSentLevel="all";
-function currApplySentFilter(announce){
+/* Paginated fallback (sent-a1.js replaces this with its indexed unified
+   renderer at load; this version only runs if sent-a1 is unavailable).
+   Never renders more than CURR_SENT_PAGE cards per call. */
+var currSentShown=80;var CURR_SENT_PAGE=80;
+function currApplySentFilter(announce, more){
   try{
+    if(!more){ try{ currSentShown=CURR_SENT_PAGE; }catch(e){} }
     var box=$("sentList");if(!box)return;
     var q=($("sentenceSearch").value||"").toLowerCase();
     var k=$("sentenceKapitel")?$("sentenceKapitel").value:"";
@@ -281,13 +310,22 @@ function currApplySentFilter(announce){
     });
     box.innerHTML="";
     if(!list.length){box.innerHTML='<div class="panel glass">لا توجد جمل هنا بعد.</div>';return;}
-    list.forEach(function(s,i){
+    var frag=document.createDocumentFragment();
+    list.slice(0,currSentShown).forEach(function(s,i){
       var d=document.createElement("div");d.className="sent-card glass";
       var pron=s.pron?'<div class="sent-pron">🔊 '+esc(s.pron)+'</div>':'';
       d.innerHTML='<div class="sent-num">'+(i+1)+'</div><div style="flex:1"><div class="sent-de">'+esc(s.de)+'</div><div class="sent-ar">'+esc(s.ar)+'</div>'+pron+'<div><span class="tag kap-tag">'+esc(kapName(s.kap))+'</span> <span class="tag">'+esc(s.level||"A1")+'</span></div></div><button class="icon-btn" title="استماع">🔊</button>';
       d.querySelector("button").addEventListener("click",function(){speakOf(s.de);try{markStudyDay();}catch(e){}});
-      box.appendChild(d);
+      frag.appendChild(d);
     });
+    box.appendChild(frag);
+    if(list.length>currSentShown){
+      var b=document.createElement("button");
+      b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
+      b.textContent="عرض المزيد ("+(list.length-currSentShown)+" ⬇)";
+      b.addEventListener("click",function(){ currSentShown+=CURR_SENT_PAGE; try{currApplySentFilter(false,true);}catch(e){} });
+      box.appendChild(b);
+    }
   }catch(e){if(window.console)console.error(e);}
 }
 window.currApplySentFilter=currApplySentFilter;

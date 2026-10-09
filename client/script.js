@@ -1489,6 +1489,54 @@ try{
 try{Object.defineProperty(window,"S",{configurable:true,get:function(){return S;}});}catch(e){try{window.S=S;}catch(e2){}}
 function todayStr(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
 function allWords(){return VOCAB.concat(S.customWords||[]);}
+/* Perf: cached word-bank views (invalidated by bank growth only).
+   allWords() allocates a 22k+ concat per call and is invoked several times
+   per keystroke (dmWordHits, verbs, global search); allVerbs() additionally
+   re-conjugates every verb per call. These caches make repeat calls O(1);
+   merges only ever append, so a length check correctly invalidates them. */
+let _dmWordsCache=null,_dmWordsCacheN=-1,_dmWordsCacheC=-1;
+function dmWords(){
+  try{
+    var n=(typeof VOCAB!=="undefined"&&VOCAB)?VOCAB.length:-1;
+    var c=0; try{ c=(S&&S.customWords)?S.customWords.length:0; }catch(e){}
+    if(_dmWordsCache&&_dmWordsCacheN===n&&_dmWordsCacheC===c)return _dmWordsCache;
+    var w=allWords(); _dmWordsCache=w; _dmWordsCacheN=n; _dmWordsCacheC=c; return w;
+  }catch(e){ try{return allWords();}catch(e2){return [];} }
+}
+let _dmVerbCache=null,_dmVerbCacheN=-1;
+function dmVerbs(){
+  try{
+    var w=dmWords(), n=w.length;
+    if(_dmVerbCache&&_dmVerbCacheN===n)return _dmVerbCache;
+    _dmVerbCache=allVerbs(); _dmVerbCacheN=n; return _dmVerbCache;
+  }catch(e){ try{return allVerbs();}catch(e2){return [];} }
+}
+/* Incremental normalized rows for the small banks scanned per keystroke
+   (verbs ~900, grammar ~1000): append-on-growth like dmWordHits._idx /
+   sentA1SearchRows, so per-keystroke work is indexOf-only with zero dmNorm
+   or string-concat cost per item. */
+let _dmVerbRows=null,_dmVerbRowsN=0;
+function dmVerbRows(){
+  try{
+    var vs=dmVerbs(), rows=_dmVerbRows||[], start=0;
+    if(!_dmVerbRows||_dmVerbRowsN>vs.length){ rows=[]; start=0; }
+    else{ start=_dmVerbRowsN; }
+    for(var i=start;i<vs.length;i++){ try{ var v=vs[i]; rows.push({v:v,n:dmNorm((v.inf||"")+" "+(v.ar||""))}); }catch(e){} }
+    _dmVerbRows=rows; _dmVerbRowsN=vs.length; return rows;
+  }catch(e){ return []; }
+}
+let _dmGramRows=null,_dmGramRowsN=0;
+function dmGramRows(){
+  try{
+    if(typeof GRAMMAR==="undefined")return [];
+    var rows=_dmGramRows||[], start=0, n=GRAMMAR.length;
+    if(!_dmGramRows||_dmGramRowsN>n){ rows=[]; start=0; }
+    else{ start=_dmGramRowsN; }
+    for(var i=start;i<n;i++){ try{ var g=GRAMMAR[i]; rows.push({g:g,n:dmNorm((g.title||"")+" "+(g.body||""))}); }catch(e){} }
+    _dmGramRows=rows; _dmGramRowsN=n; return rows;
+  }catch(e){ return []; }
+}
+if(typeof window!=="undefined"){ try{window.dmWords=dmWords;window.dmVerbs=dmVerbs;window.dmVerbRows=dmVerbRows;window.dmGramRows=dmGramRows;}catch(e){} }
 function getStatus(id){try{return ((S&&S.status)||{})[id]||"new";}catch(e){return "new";}}
 function setStatus(id,st){try{if(!S.status||typeof S.status!=="object")S.status={};S.status[id]=st;save();}catch(e){}}
 const STATUS_AR={new:"🆕 جديدة",review:"🔁 مراجعة",hard:"🔴 صعبة",known:"✅ محفوظة",later:"⏳ لاحقًا"};
@@ -2235,7 +2283,7 @@ function renderVocab(more){
   }
 }
 function renderVocabSoon(){try{clearTimeout(vocabT);}catch(e){}vocabT=setTimeout(()=>{try{renderVocab();}catch(e){console.error(e);}},160);}
-["vocabSearch","filterCategory","filterType","filterStatus","filterArticle","filterKapitel","filterLevel"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",renderVocabSoon);});
+["vocabSearch","filterCategory","filterType","filterStatus","filterArticle","filterKapitel","filterLevel"].forEach(id=>{const el=$(id);if(el&&!el._dmVocabWired){el._dmVocabWired=true;el.addEventListener("input",renderVocabSoon);}});
 /* Delegated vocab-grid clicks: attached once (survives innerHTML rebuilds),
    replaces ~9 listeners per card. */
 try{
@@ -2745,7 +2793,13 @@ document.querySelectorAll("[data-flash-rate]").forEach(b=>b.addEventListener("cl
 }));
 
 /* ============ SENTENCES ============ */
-function renderSentences(){
+/* Paginated fallback renderer (used only when sent-a1.js unified renderer is
+   unavailable; sent-a1.js replaces this function at load with its own
+   paginated version). Renders max SENT_PAGE cards so a 45k-sentence bank can
+   never flood the DOM and freeze/crash mobile. */
+let sentPageLimit=80;const SENT_PAGE=80;
+function renderSentences(more){
+  if(!more)sentPageLimit=SENT_PAGE;
   const raw=($("sentenceSearch").value||"");
   const q=typeof dmNorm==="function"?dmNorm(raw):raw.toLowerCase();
   const k=$("sentenceKapitel")?$("sentenceKapitel").value:"";
@@ -2763,13 +2817,22 @@ function renderSentences(){
   const list=scored;
   const box=$("sentList");box.innerHTML="";
   if(!list.length){box.innerHTML='<div class="panel glass">لا توجد جمل هنا بعد.</div>';return;}
-  list.forEach((s,i)=>{
+  const frag=document.createDocumentFragment();
+  list.slice(0,sentPageLimit).forEach((s,i)=>{
     const d=document.createElement("div");d.className="sent-card glass";
     const pron=s.pron?'<div class="sent-pron">🔊 '+escapeHtml(s.pron)+'</div>':'';
     d.innerHTML='<div class="sent-num">'+(i+1)+'</div><div style="flex:1"><div class="sent-de">'+escapeHtml(s.de)+'</div><div class="sent-ar">'+escapeHtml(s.ar)+'</div>'+pron+'<div><span class="tag kap-tag">'+kapName(s.kap)+'</span></div></div><button class="icon-btn" title="استماع">🔊</button>';
     d.querySelector("button").addEventListener("click",()=>{speak(s.de);});
-    box.appendChild(d);
+    frag.appendChild(d);
   });
+  box.appendChild(frag);
+  if(list.length>sentPageLimit){
+    const b=document.createElement("button");
+    b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
+    b.textContent="عرض المزيد ("+(list.length-sentPageLimit)+" ⬇)";
+    b.addEventListener("click",()=>{sentPageLimit+=SENT_PAGE;try{renderSentences(true);}catch(e){console.error(e);}});
+    box.appendChild(b);
+  }
 }
 /* Debounced sentence search: per-keystroke full renders jank mobile.
    When sent-a1.js has taken over (#sentList unified renderer), its own
@@ -2786,16 +2849,22 @@ function renderSentencesSoon(){
     }catch(e){console.error(e);}
   },160);
 }
-$("sentenceSearch").addEventListener("input",renderSentencesSoon);
-$("sentenceKapitel").addEventListener("change",renderSentencesSoon);
+try{
+  var _ss=$("sentenceSearch"); if(_ss&&!_ss._dmSentWired){_ss._dmSentWired=true;_ss.addEventListener("input",renderSentencesSoon);}
+  var _sk=$("sentenceKapitel"); if(_sk&&!_sk._dmSentWired){_sk._dmSentWired=true;_sk.addEventListener("change",renderSentencesSoon);}
+}catch(e){}
 
 /* ============ VERBS ============ */
-function renderVerbs(){
+/* Paginated (60/page + show-more): conjugation tables are expensive DOM, and
+   the bank (~900 verbs) must never render unbounded per keystroke. */
+let verbPageLimit=60;const VERB_PAGE=60;
+function renderVerbs(more){
+  if(!more)verbPageLimit=VERB_PAGE;
   const raw=($("verbSearch").value||"");
   const q=typeof dmNorm==="function"?dmNorm(raw):raw.toLowerCase();
   const k=$("verbKapitel")?$("verbKapitel").value:"";
   const box=$("verbGrid");box.innerHTML="";
-  const scored=allVerbs().filter(v=>(!k||v.kap===k)).map(v=>{
+  const scored=dmVerbs().filter(v=>(!k||v.kap===k)).map(v=>{
     if(!q)return{score:0,v:v};
     const inf=typeof dmNorm==="function"?dmNorm(v.inf):v.inf.toLowerCase();
     const ar=(v.ar||"").toLowerCase();
@@ -2810,7 +2879,7 @@ function renderVerbs(){
   if(!list.length){box.innerHTML='<div class="panel glass">لا توجد أفعال هنا بعد.</div>';return;}
   /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
   const vfrag=document.createDocumentFragment();
-  list.slice(0,120).forEach(v=>{
+  list.slice(0,verbPageLimit).forEach(v=>{
     const d=document.createElement("div");d.className="word-card glass";
     let body="";
     if(v.conj){
@@ -2826,21 +2895,36 @@ function renderVerbs(){
     vfrag.appendChild(d);
   });
   box.appendChild(vfrag);
+  if(list.length>verbPageLimit){
+    const b=document.createElement("button");
+    b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
+    b.textContent="عرض المزيد ("+(list.length-verbPageLimit)+" ⬇)";
+    b.addEventListener("click",()=>{verbPageLimit+=VERB_PAGE;try{renderVerbs(true);}catch(e){console.error(e);}});
+    box.appendChild(b);
+  }
 }
 /* Debounced verb search (same 160ms pattern as vocab): full-list renders
    with conjugation tables must not run on every keystroke. */
 let verbT=null;
 function renderVerbsSoon(){try{clearTimeout(verbT);}catch(e){}verbT=setTimeout(()=>{try{renderVerbs();}catch(e){console.error(e);}},160);}
-$("verbSearch").addEventListener("input",renderVerbsSoon);
-$("verbKapitel").addEventListener("change",renderVerbs);
+try{
+  var _vs=$("verbSearch"); if(_vs&&!_vs._dmVerbWired){_vs._dmVerbWired=true;_vs.addEventListener("input",renderVerbsSoon);}
+  var _vk=$("verbKapitel"); if(_vk&&!_vk._dmVerbWired){_vk._dmVerbWired=true;_vk.addEventListener("change",renderVerbs);}
+}catch(e){}
 
 /* ============ GRAMMAR ============ */
-function renderGrammar(){
+/* Paginated (60/page + show-more): the rule bank (~1000 entries, each card
+   with examples + quiz + ~5 listeners) rendered unbounded — 22k DOM nodes
+   and a ~1.4s main-thread freeze on first visit. Identical cards, one reflow. */
+let gramPageLimit=60;const GRAM_PAGE=60;
+function renderGrammar(more){
+  if(!more)gramPageLimit=GRAM_PAGE;
   const box=$("grammarList");box.innerHTML="";
   const k=$("grammarKapitel")?$("grammarKapitel").value:"";
   const list=GRAMMAR.filter(g=>!k||g.kap===k);
   if(!list.length){box.innerHTML='<div class="panel glass">لا توجد قواعد هنا بعد.</div>';return;}
-  list.forEach((g,gi)=>{
+  const gfrag=document.createDocumentFragment();
+  list.slice(0,gramPageLimit).forEach((g,gi)=>{
     const d=document.createElement("div");d.className="grammar-card glass";
     const ex=g.ex.map(e=>'<div class="grammar-ex"><div style="direction:ltr;text-align:left;font-weight:800">'+escapeHtml(e[0])+'</div><div style="color:var(--gold)">'+escapeHtml(e[1])+'</div></div>').join("");
     d.innerHTML='<h3>📐 '+escapeHtml(g.title)+'</h3><div style="margin-bottom:8px"><span class="tag kap-tag">'+kapName(g.kap)+'</span>'+(function(){try{const m=gramMastery(g.id);return m?'<span class="tag">'+m.badge+' إتقان '+m.pct+'% ('+m.ok+'/'+m.n+')</span>':'<span class="tag">⚪ لم تُختبر بعد</span>';}catch(e){return "";}})()+'</div><div class="grammar-body">'+escapeHtml(g.body)+'</div>'+ex+
@@ -2862,11 +2946,20 @@ function renderGrammar(){
       else{r.el.classList.add("wrong");d.querySelectorAll(".quiz-opt")[gOrder.indexOf(g.quiz.correct)].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;gramRecord(g.id,false);}
       S.totalAnswered++;save();renderDashboard();renderStats();
     }));
-    box.appendChild(d);
+    gfrag.appendChild(d);
   });
+  box.appendChild(gfrag);
+  if(list.length>gramPageLimit){
+    const b=document.createElement("button");
+    b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
+    b.textContent="عرض المزيد ("+(list.length-gramPageLimit)+" ⬇)";
+    b.addEventListener("click",()=>{gramPageLimit+=GRAM_PAGE;try{renderGrammar(true);}catch(e){console.error(e);}});
+    box.appendChild(b);
+  }
 }
 
-if($("grammarKapitel"))$("grammarKapitel").addEventListener("change",renderGrammar);
+/* Single-wiring guard (same HMR/double-eval pattern as vocab/sentences). */
+try{var _gk=$("grammarKapitel");if(_gk&&!_gk._dmGramWired){_gk._dmGramWired=true;_gk.addEventListener("change",function(){try{renderGrammar();}catch(e){console.error(e);}});}}catch(e){}
 
 /* ============ EXPLAIN (📚 الشرح - A1 book) ============ */
 function explainOrder(){
@@ -3698,7 +3791,7 @@ try{
 function dmWordHits(qn,level){
   const out=[];
   let words=[];
-  try{words=allWords();}catch(e){return out;}
+  try{words=dmWords();}catch(e){return out;}
   if(!qn)qn="";
   /* ---- cached index (incremental append on growth; full rebuild only on shrink) ---- */
   let idx=dmWordHits._idx;
@@ -3781,10 +3874,26 @@ function runGlobalSearch(){
   const raw=inp.value,level=window.gsLevel||"mixed";
   const qn=dmNorm(raw);
   if(!qn.length){box.classList.remove("show");box.innerHTML="";return;}
-  /* pull lazy levels in background so later keystrokes include them, then refresh */
+  /* pull lazy levels in background so later keystrokes include them, then refresh.
+     Quiet + once per level per session: the loud Curriculum.ensure (toast +
+     renderAll) fired on EVERY keystroke while a level was still loading —
+     toast spam plus a full re-render mid-typing. The single in-flight guard
+     also prevents the 300ms poll-interval pile-up in ensureDs. The completion
+     flag resets when the level is still missing so a later keystroke retries. */
   try{
     if(window.Curriculum&&window.Curriculum.ensure){
-      ["A2","B1","B2"].forEach(L=>{if(!window.Curriculum.loaded[L])window.Curriculum.ensure(L,()=>{try{if(dmNorm($("globalSearch").value)===qn)runGlobalSearch();}catch(e){}});});
+      window._dmGsBgPull=window._dmGsBgPull||{};
+      ["A2","B1","B2"].forEach(function(L){
+        try{
+          if(window.Curriculum.loaded&&window.Curriculum.loaded[L])return;
+          if(window._dmGsBgPull[L])return;
+          window._dmGsBgPull[L]=1;
+          window.Curriculum.ensure(L,function(){
+            try{ if(window.Curriculum.loaded&&!window.Curriculum.loaded[L])window._dmGsBgPull[L]=0; }catch(e){}
+            try{if(dmNorm($("globalSearch").value)===qn)runGlobalSearch();}catch(e){}
+          });
+        }catch(e){}
+      });
     }
   }catch(e){}
   const hits=dmWordHits(qn,level).slice(0,8);
@@ -3823,19 +3932,55 @@ function runGlobalSearch(){
   });
   try{
     const ql=qn;
-    allVerbs().filter(v=>dmNorm(v.inf+" "+v.ar).indexOf(ql)>=0).slice(0,2).forEach(v=>{
-      const d=document.createElement("div");d.className="search-hit";
-      d.textContent="⚡ "+v.inf+" — "+v.ar+" ["+v.kap+"]";
-      d.addEventListener("click",()=>{showPage("verbs");$("verbSearch").value=v.inf;renderVerbs();gsClose(box);});
-      box.appendChild(d);
-    });
-    SENTENCES.filter(s=>dmNorm(s.de+" "+s.ar).indexOf(ql)>=0).slice(0,2).forEach(s=>{
-      const d=document.createElement("div");d.className="search-hit";
-      d.textContent="💬 "+s.de+" ["+s.kap+"]";
-      d.addEventListener("click",()=>{showPage("sentences");$("sentenceSearch").value=s.de;if(typeof currApplySentFilter==="function")currApplySentFilter(false);else renderSentences();gsClose(box);});
-      box.appendChild(d);
-    });
-    const gs=GRAMMAR.filter(g=>dmNorm(g.title+" "+g.body).indexOf(ql)>=0);
+    /* Bounded secondary scans: stop after 2 hits so a 45k-sentence bank can
+       never block the main thread per keystroke. Verbs/grammar reuse the
+       cached normalized rows (dmVerbRows/dmGramRows, append-on-growth like
+       dmWordHits._idx) — indexOf-only per item, zero dmNorm/concat cost;
+       sentences reuse the cached sent-a1 index when present. Input value is
+       never touched here. */
+    try{
+      var vHits=[];
+      var _vr=[]; try{ _vr=dmVerbRows(); }catch(e){ _vr=[]; }
+      for(var _vi=0;_vi<_vr.length&&vHits.length<2;_vi++){
+        try{ if(_vr[_vi].n.indexOf(ql)>=0)vHits.push(_vr[_vi].v); }catch(e){}
+      }
+      vHits.forEach(function(w){
+        const d=document.createElement("div");d.className="search-hit";
+        d.textContent="⚡ "+w.de+" — "+w.ar+" ["+w.kap+"]";
+        d.addEventListener("click",()=>{showPage("verbs");$("verbSearch").value=w.de;renderVerbs();gsClose(box);});
+        box.appendChild(d);
+      });
+    }catch(e){}
+    try{
+      var sHits=[];
+      var _rows=null;
+      try{ if(typeof sentA1SearchRows==="function")_rows=sentA1SearchRows(); }catch(e){ _rows=null; }
+      if(_rows&&_rows.length){
+        for(var _si=0;_si<_rows.length&&sHits.length<2;_si++){
+          try{
+            if(_rows[_si].nde.indexOf(ql)>=0||_rows[_si].nar.indexOf(raw.trim().toLowerCase())>=0)sHits.push(_rows[_si].s);
+          }catch(e){}
+        }
+      }else{
+        for(var _sj=0;_sj<SENTENCES.length&&sHits.length<2;_sj++){
+          var _s=SENTENCES[_sj];
+          try{ if(dmNorm((_s.de||"")+" "+(_s.ar||"")).indexOf(ql)>=0)sHits.push(_s); }catch(e){}
+        }
+      }
+      sHits.forEach(function(s){
+        const d=document.createElement("div");d.className="search-hit";
+        d.textContent="💬 "+s.de+" ["+s.kap+"]";
+        d.addEventListener("click",()=>{showPage("sentences");$("sentenceSearch").value=s.de;if(typeof currApplySentFilter==="function")currApplySentFilter(false);else renderSentences();gsClose(box);});
+        box.appendChild(d);
+      });
+    }catch(e){}
+    var gs=[];
+    try{
+      var _gr=[]; try{ _gr=dmGramRows(); }catch(e){ _gr=[]; }
+      for(var _gi=0;_gi<_gr.length&&gs.length<3;_gi++){
+        try{ if(_gr[_gi].n.indexOf(ql)>=0)gs.push(_gr[_gi].g); }catch(e){}
+      }
+    }catch(e){ gs=[]; }
     gs.slice(0,2).forEach(g=>{
       const d=document.createElement("div");d.className="search-hit";
       d.textContent="📐 "+g.title+" ["+g.kap+"]";
@@ -3852,8 +3997,13 @@ function runGlobalSearch(){
   if(box.children.length<=1){box.innerHTML='<div class="search-hit">لا نتائج لـ "'+escapeHtml(raw.trim())+'"</div>';box.appendChild(bar);}
   box.classList.add("show");
 }
-$("globalSearch").addEventListener("input",()=>{try{clearTimeout(gsTimer);}catch(e){}gsTimer=setTimeout(runGlobalSearch,120);});
-document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("searchResults").classList.remove("show");});
+/* Single-wiring guard: this classic script may be re-evaluated in tests/HMR;
+   a second input listener would fire runGlobalSearch twice per keystroke. */
+try{
+  var _gsInp=$("globalSearch");
+  if(_gsInp&&!_gsInp._dmGsWired){ _gsInp._dmGsWired=true; _gsInp.addEventListener("input",()=>{try{clearTimeout(gsTimer);}catch(e){}gsTimer=setTimeout(runGlobalSearch,120);}); }
+  if(!window._dmGsDocWired){ window._dmGsDocWired=true; document.addEventListener("click",e=>{try{if(!e.target.closest(".search-wrap"))$("searchResults").classList.remove("show");}catch(_){}}); }
+}catch(e){ try{ $("globalSearch").addEventListener("input",()=>{try{clearTimeout(gsTimer);}catch(e2){}gsTimer=setTimeout(runGlobalSearch,120);}); }catch(_){} }
 
 /* ============ ADD WORD ============ */
 $("openAddWord").addEventListener("click",()=>$("wordModal").classList.remove("hidden"));
