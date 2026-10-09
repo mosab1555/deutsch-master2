@@ -20,6 +20,7 @@ const { STEMS, SUBJ, TIMES, PLACES, VG_TRAN, VG_INTRAN, VG_DITRAN, VG_MODAL, PAT
 const { GT1 } = require("./clib/grammar1");
 const { GT2 } = require("./clib/grammar2");
 const BIG = require("./clib/bigvocab");
+const B2 = require("./clib/bigvocab2");
 const { SITS, POOLS } = require("./clib/dialogs");
 const { EXTRA } = require("./clib/dialogs2");
 const gate = require("./content-quality-gate");
@@ -58,7 +59,7 @@ function pluralN(noun, plural) {
 }
 /* shared compounding guards: heads that must never compound (calendar words,
    directions, units, proper-noun-like entries, attested bad outputs) */
-const BLOCKHEADS = new Set(["januar", "februar", "märz", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "dezember", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag", "frühling", "sommer", "herbst", "winter", "norden", "süden", "osten", "westen", "kilometer", "meter", "zentimeter", "gramm", "kilogramm", "liter", "prozent", "grad", "euro", "cent", "bohrer", "streichholz", "aufzug", "größe", "vorname", "tochter", "münze", "glühlampe", "schufa", "fernseher", "feuerzeug", "belag", "heim", "sohn", "sonne", "mond", "party", "eimer", "husten", "kamm", "strand", "insel", "lärm", "bäcker", "bäckerin", "croissant", "schraube", "feier", "vitamin", "problem", "gürtel", "müsli", "steuer", "massage", "schloss", "heizung", "ring", "dichter", "schirm", "wand", "tafel", "fenster", "visum", "meer", "sprache", "scheidung", "licht", "messe", "klavier", "lieferung", "baby", "schule", "fischer"]);
+const BLOCKHEADS = new Set(["januar", "februar", "märz", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "dezember", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag", "frühling", "sommer", "herbst", "winter", "norden", "süden", "osten", "westen", "kilometer", "meter", "zentimeter", "gramm", "kilogramm", "liter", "prozent", "grad", "euro", "cent", "bohrer", "streichholz", "aufzug", "größe", "vorname", "tochter", "münze", "glühlampe", "schufa", "fernseher", "feuerzeug", "belag", "heim", "sohn", "sonne", "mond", "party", "eimer", "husten", "kamm", "strand", "insel", "lärm", "bäcker", "bäckerin", "croissant", "schraube", "feier", "vitamin", "problem", "gürtel", "müsli", "steuer", "massage", "schloss", "heizung", "ring", "dichter", "schirm", "wand", "tafel", "fenster", "visum", "meer", "sprache", "scheidung", "licht", "messe", "klavier", "lieferung", "baby", "schule", "fischer", "eltern", "shorts", "spätzle", "leute"]);
 function badHead(h, maxLen) {
   if (h.de.length > (maxLen || 9)) return true;
   if (BLOCKHEADS.has(normDE(h.de))) return true;
@@ -595,6 +596,194 @@ PREPPHR.forEach(([de, ar, cat]) => addVocab({ de, art: "-", ar, en: de, level: "
     }
   });
   stats.prepgenAcc = madeA;
+})();
+/* ---- BATCH B2 (append-only): curated underrepresented-domain vocab.
+   Runs AFTER all existing steps so existing lv-IDs stay stable. Own RNG seeds
+   (never consumes shared streams). Every row gate-validated in stage-1. ---- */
+(function () {
+  const before = vocab.length;
+  const b2Ids = new Set();
+  const track = () => { if (vocab.length) b2Ids.add(vocab[vocab.length - 1].id); };
+  const trackN = (n0) => { for (let i = n0; i < vocab.length; i++) b2Ids.add(vocab[i].id); };
+  let n0 = vocab.length;
+  B2.B2BASE.forEach((r) => parseNounRow(r)); trackN(n0);
+  stats.b2base = vocab.length - before;
+  vocab.forEach((w) => { if (w.type === "noun" && !nounByDe.has(normDE(w.de))) nounByDe.set(normDE(w.de), w); });
+  B2.B2COMP.forEach(function ([h, pairs]) { addCompound(h, pairs); });
+  stats.b2comp = vocab.length - before - stats.b2base;
+  /* B2MODGEN / B2QMOD: category-constrained compounding over the FULL noun pool
+     (new B2BASE heads unlock fresh combos; own seed; longer-head allowance). */
+  const b2mg = rng("b2modgen-v1");
+  const B2MODADJ = new Set(["Online", "Vegan", "Glutenfrei", "Laktosefrei", "Solar", "Fair", "Mini", "Maxi", "Mega", "Super", "Top", "Star", "Profi", "Öko", "Bio"]);
+  let b2made = 0, b2skip = 0;
+  B2.B2MODGEN.forEach(function ([mod, modAr, modEn, cats, cap]) {
+    const heads = vocab.filter((w) => w.type === "noun" && !w.head && cats.indexOf(w.cat) >= 0 && ["der", "die", "das"].indexOf(w.art) >= 0);
+    const order = shuffle(b2mg, heads);
+    let n = 0;
+    for (const h of order) {
+      if (n >= cap) break;
+      if (b2mg() < 0.30) continue;
+      if (h.de.toLowerCase().startsWith(mod.toLowerCase())) continue;
+      if (badHead(h, 14)) { b2skip++; continue; }
+      const har = String(h.ar).split("/")[0].trim().replace(/^ال/, "");
+      if (/\s/.test(har)) { b2skip++; continue; }
+      const ar = har + " " + (B2MODADJ.has(mod) ? modAr.replace(/^ال/, "") : modAr);
+      const en = modEn + " " + String(h.en || h.de).toLowerCase();
+      const b4 = vocab.length;
+      addCompound(h.de, mod + ":" + ar + ":" + en);
+      if (vocab.length > b4) { b2made++; n++; trackN(b4); }
+    }
+  });
+  const b2qg = rng("b2qmod-v1");
+  B2.B2QMOD.forEach(function ([mod, modAr, modEn, cats, cap]) {
+    const heads = vocab.filter((w) => w.type === "noun" && !w.head && cats.indexOf(w.cat) >= 0 && ["der", "die", "das"].indexOf(w.art) >= 0);
+    const order = shuffle(b2qg, heads);
+    let n = 0;
+    for (const h of order) {
+      if (n >= cap) break;
+      if (b2qg() < 0.45) continue;
+      if (h.de.toLowerCase().startsWith(mod.toLowerCase())) continue;
+      if (badHead(h, 14)) { b2skip++; continue; }
+      const har = String(h.ar).split("/")[0].trim().replace(/^ال/, "");
+      if (/\s/.test(har)) { b2skip++; continue; }
+      const b4 = vocab.length;
+      addCompound(h.de, mod + ":" + har + " " + modAr.replace(/^ال/, "") + ":" + modEn + " " + String(h.en || h.de).toLowerCase());
+      if (vocab.length > b4) { b2made++; n++; trackN(b4); }
+    }
+  });
+  stats.b2modgen = b2made; stats.b2modgenSkipped = b2skip;
+  /* B1 marking for B2 compounds (abstract/professional modifiers = B1 domains). */
+  const B2MODB1 = new Set(["Patienten", "Not", "Intensiv", "Vorsorge", "Reha", "Uni", "Campus", "Semester", "Bachelor", "Master", "Doktors", "Stipendien", "Erasmus", "Azubi", "Meister", "Handwerks", "Industrie", "Personal", "Gehalts", "Renten", "Steuer", "Kredit", "Zins", "Online", "Daten", "Passwort", "Diabetes", "Krebs", "Asthma"]);
+  let b2b1 = 0;
+  vocab.forEach((w) => {
+    if (b2Ids.has(w.id) && w.type === "noun" && w.head && w.level !== "B1") {
+      for (const m of B2MODB1) if (w.de.startsWith(m)) { w.level = "B1"; b2b1++; break; }
+    }
+  });
+  stats.b2modgenB1 = b2b1;
+  /* B2 verbs (+prefix derivation) */
+  const n0v = vocab.length;
+  B2.B2VERBS.forEach(parseVerbRow);
+  vocab.forEach((w) => { if (w.type === "verb") verbByInf.set(normDE(w.de.replace(/^sich /, "")), w); });
+  B2.B2PREFIX.forEach((row) => {
+    const p = row.split("|");
+    const inf = stripNum((p[0] || "").trim()), sep = p[1], reg = p[2], ar = (p[3] || "").trim();
+    if (!inf || !ar) { rej(row.slice(0, 30), "verb: malformed b2prefix row"); return; }
+    if (vSeen.has(normDE(inf) + "|verb")) return;
+    let parts = "-";
+    const low = inf.replace(/^sich /, "").toLowerCase();
+    const prefs = PREFLIST.slice().sort((a, b) => b.length - a.length);
+    for (const pr of prefs) {
+      if (low.startsWith(pr) && low.length > pr.length + 2) {
+        const b = verbByInf.get(low.slice(pr.length));
+        if (b && b.parts && b.parts.includes(",")) {
+          const prätPp = b.parts.split(",");
+          if (sep === "1") parts = prätPp[0] + " " + pr + "," + pr + prätPp[1];
+          else parts = prätPp[0] + "," + pr + prätPp[1].replace(/^ge/, "");
+          break;
+        } else if (b) { parts = "-"; break; }
+      }
+    }
+    addVocab({ de: inf, art: "-", ar, en: "", level: sep === "1" ? "A2" : "B1", cat: "verbs", type: "verb", sep: sep === "1", reg: reg === "I" ? "irr" : "reg", parts });
+    track();
+  });
+  stats.b2verbs = vocab.length - n0v;
+  /* B2 adjectives */
+  n0 = vocab.length;
+  B2.B2ADJ.forEach((row) => {
+    const p = row.split("|");
+    if (p.length < 4) { rej(row.slice(0, 30), "vocab: malformed b2adj row"); return; }
+    const base = stripNum((p[0] || "").trim());
+    const ar = (p[1] || "").trim(), en = (p[2] || "").trim(), lvl = (p[3] || "").trim() || "A1";
+    const comp = (p[4] || "").trim(), sup = (p[5] || "").trim();
+    const o = addVocab({ de: base, art: "-", ar, en, level: lvl, cat: "adjectives", type: "adj", comp: comp && comp !== "-" ? comp : undefined, sup: sup && sup !== "-" ? sup : undefined });
+    if (o) { adjByBase.set(normDE(base), o); track(); }
+  });
+  stats.b2adj = vocab.length - n0;
+  /* B2 phrases + prep phrases */
+  n0 = vocab.length;
+  B2.B2PHR.forEach(addPhraseRow); trackN(n0);
+  B2.B2PREP.forEach(([de, ar, cat]) => { const b4 = vocab.length; addVocab({ de, art: "-", ar, en: de, level: "A1", cat, type: "phrase" }); if (vocab.length > b4) track(); });
+  stats.b2phr = vocab.length - n0;
+  /* B2 collocations verb + accusative object */
+  (function () {
+    const vmap = new Map();
+    vocab.filter((w) => w.type === "verb").forEach((w) => { const b = w.de.replace(/^sich /, ""); if (!vmap.has(b)) vmap.set(b, w); });
+    const byCat = new Map();
+    vocab.filter((w) => w.type === "noun").forEach((w) => { if (!byCat.has(w.cat)) byCat.set(w.cat, []); byCat.get(w.cat).push(w); });
+    const rr = rng("b2colloc");
+    let made = 0;
+    B2.B2COLL.forEach(([inf, cat, nn]) => {
+      const v = vmap.get(inf);
+      if (!v) return;
+      const pool = shuffle(rr, byCat.get(cat) || []).slice(0, nn * 2);
+      let m = 0;
+      for (const o of pool) {
+        if (m >= nn) break;
+        const art = declArt(o.art === "-" ? "der" : o.art, "A", false);
+        const gde = (v.de.startsWith("sich ") ? "sich " : "") + inf + " " + art + " " + o.de;
+        if (vSeen.has(normDE(gde) + "|phrase")) continue;
+        const b4 = vocab.length;
+        addVocab({ de: gde, art: "-", ar: v.ar + " " + o.ar, en: inf + " " + (o.en || ""), level: v.level, cat: o.cat, type: "phrase" });
+        if (vocab.length > b4) { made++; m++; track(); }
+      }
+    });
+    stats.b2colloc = made;
+  })();
+  /* B2 attr adj+noun phrases from NEW adjectives (capped, deterministic). */
+  (function () {
+    const rr = rng("b2adjphr");
+    const adjs = vocab.filter((w) => b2Ids.has(w.id) && w.type === "adj" && /^[a-zäöü]/.test(w.de) && w.de.length > 3).slice(0, 400);
+    const nouns = shuffle(rr, vocab.filter((w) => w.type === "noun" && ["der", "die", "das"].includes(w.art))).slice(0, 1600);
+    let made = 0;
+    outer: for (const a of adjs) {
+      for (const o of nouns) {
+        if (made >= 6000) break outer;
+        if (rr() < 0.55) continue;
+        const de = declArt(o.art, "N", false) + " " + a.de + "e " + o.de;
+        if (vSeen.has(normDE(de) + "|phrase")) continue;
+        const adjDef = /^(ال|غير|أكثر|أقل|ذو|ذات)/.test(a.ar) ? a.ar : "ال" + a.ar;
+        const b4 = vocab.length;
+        addVocab({ de, art: "-", ar: o.ar + " " + adjDef, en: a.en + " " + (o.en || ""), level: "A1", cat: o.cat, type: "phrase" });
+        if (vocab.length > b4) { made++; track(); }
+      }
+    }
+    stats.b2adjPhrases = made;
+  })();
+  /* B2 prep-gen over NEW nouns (case-safe via declArt, own caps). */
+  (function () {
+    const pg = rng("b2prepgen-v1");
+    const FRAMES = [
+      ["mit", "مع", "with", "D", ["doctor", "health", "hospital", "pharmacy", "university", "school", "ausbildung"], 300],
+      ["bei", "عند", "at", "D", ["doctor", "hospital", "university", "work"], 250],
+      ["für", "لـ", "for", "A", ["health", "study", "family", "work"], 300],
+      ["ohne", "بدون", "without", "A", ["health", "food"], 200],
+      ["aus", "من", "from", "D", ["city", "hospital", "university"], 200],
+      ["von", "من", "from", "D", ["doctor", "university", "work"], 250],
+      ["zu", "إلى", "to", "D", ["doctor", "university", "hospital"], 200],
+      ["in", "في", "in", "D", ["hospital", "university", "school", "hotel"], 300],
+    ];
+    let made = 0;
+    FRAMES.forEach(function (f) {
+      const prep = f[0], prepAr = f[1], prepEn = f[2], kase = f[3], cats = f[4], cap = f[5];
+      const heads = vocab.filter((w) => b2Ids.has(w.id) && w.type === "noun" && !w.head && cats.indexOf(w.cat) >= 0 && ["der", "die", "das"].indexOf(w.art) >= 0 && !/ /.test(w.de) && w.de.length <= 14);
+      const order = shuffle(pg, heads);
+      let n = 0;
+      for (const h of order) {
+        if (n >= cap) break;
+        if (pg() < 0.35) continue;
+        const art = declArt(h.art, kase, false);
+        const de = prep + " " + art + " " + h.de;
+        if (de.length > 42) continue;
+        const b4 = vocab.length;
+        addVocab({ de, art: "-", ar: prepAr + " " + h.ar, en: prepEn + " " + (h.en || h.de), level: h.level, cat: h.cat, type: "phrase" });
+        if (vocab.length > b4) { made++; n++; track(); }
+      }
+    });
+    stats.b2prepgen = made;
+  })();
+  stats.b2Total = vocab.length - before;
+  console.log("B2 batch: +" + stats.b2Total + " (base=" + stats.b2base + " comp=" + stats.b2comp + " modgen=" + stats.b2modgen + " verbs~=" + stats.b2verbs + " adj=" + stats.b2adj + " phr=" + stats.b2phr + " colloc=" + stats.b2colloc + " adjPhr=" + stats.b2adjPhrases + " prepgen=" + stats.b2prepgen + ")");
 })();
 /* XB-APPEND */
 /* honest B1 leveling: professional/academic A2 items move to B1 (workplace,

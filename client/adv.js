@@ -576,34 +576,56 @@ function advLisRun(){
   render();
 }
 /* ================= 6+7. SENTENCE FIX + ERROR SPOT ================= */
-/* Curated A1 banks across 10 error categories. err=wrong token index. */
+/* Curated banks across 10 error categories. err=wrong token index.
+   Every finderr-eligible item (err>=0) contains EXACTLY ONE intentional error.
+   fix = the correct replacement for the wrong token (typed by the learner in
+   step 2). lvl = A1/A2/B1 difficulty. rule = grammar rule shown AFTER solving.
+   ex/exAr = one extra correct example shown AFTER solving.
+   NOTE: cat is INTERNAL ONLY — the finderr UI must never render it (no hints). */
 const ADV_FIX=[
- {bad:"Ich gehen zur Schule.",good:"Ich gehe zur Schule.",err:1,cat:"Verb",why:"مع ich يأتي الفعل gehe (تصريف gehen).",kap:"K1"},
- {bad:"Er haben ein Auto.",good:"Er hat ein Auto.",err:1,cat:"Verb",why:"مع er يأتي hat وليس haben.",kap:"K1"},
- {bad:"Die kind spielt.",good:"Das Kind spielt.",err:0,cat:"Artikel",why:"Kind محايد: das Kind (ويُكتب بحرف كبير).",kap:"K1"},
- {bad:"Ich kaufe einen auto.",good:"Ich kaufe ein Auto.",err:2,cat:"Artikel",why:"Auto محايد: ein Auto.",kap:"K2"},
- {bad:"Ich wohne in Berlin seit drei jahren.",good:"Ich wohne seit drei Jahren in Berlin.",err:3,cat:"Word Order",why:"الترتيب: الفعل ثانيًا، والظرف الزمني قبل المكان (الوقت قبل المكان).",kap:"K3"},
- {bad:"Heute ich lerne Deutsch.",good:"Heute lerne ich Deutsch.",err:1,cat:"Word Order",why:"عند بدء الجملة بظرف (Heute) يأتي الفعل ثانيًا ثم الفاعل.",kap:"K3"},
- {bad:"Ich sehe der Mann.",good:"Ich sehe den Mann.",err:2,cat:"Akkusativ",why:"sehen يأخذ مفعولًا (Akkusativ): der → den.",kap:"K4"},
- {bad:"Sie hat ein Tasche.",good:"Sie hat eine Tasche.",err:1,cat:"Akkusativ",why:"Tasche مؤنثة في حالة المفعول: eine Tasche.",kap:"K4"},
- {bad:"Ich helfe den Mann.",good:"Ich helfe dem Mann.",err:2,cat:"Dativ",why:"helfen يأخذ Dativ: dem Mann.",kap:"K5"},
- {bad:"Das Buch gehört mir vater.",good:"Das Buch gehört meinem Vater.",err:2,cat:"Dativ",why:"gehören + Dativ: meinem Vater.",kap:"K5"},
- {bad:"Die kindern spielen.",good:"Die Kinder spielen.",err:1,cat:"Plural",why:"جمع Kind هو Kinder.",kap:"K2"},
- {bad:"Zwei Apfels bitte.",good:"Zwei Äpfel bitte.",err:1,cat:"Plural",why:"جمع Apfel هو Äpfel.",kap:"K2"},
- {bad:"Ich habe kein Auto.",good:"Ich habe kein Auto.",err:-1,cat:"Negation",why:"الجملة صحيحة! kein مع الأسماء النكرة.",kap:"K3"},
- {bad:"Ich bin nicht habe Zeit.",good:"Ich habe keine Zeit.",err:2,cat:"Negation",why:"النفي الصحيح للأسماء بـ kein وليس nicht + فعل.",kap:"K3"},
- {bad:"Ich fahre mit das Auto.",good:"Ich fahre mit dem Auto.",err:3,cat:"Prepositions",why:"mit تأخذ Dativ دائمًا: mit dem Auto.",kap:"K5"},
- {bad:"Er wartet auf dem Bus.",good:"Er wartet auf den Bus.",err:3,cat:"Prepositions",why:"warten auf تأخذ Akkusativ: auf den Bus.",kap:"K4"},
- {bad:"Mich heiße Ali.",good:"Ich heiße Ali.",err:0,cat:"Pronouns",why:"ضمير الفاعل: Ich وليس Mich (مفعول).",kap:"K1"},
- {bad:"Er gibt mir das Buch.",good:"Er gibt mir das Buch.",err:-1,cat:"Pronouns",why:"الجملة صحيحة! mir ضمير Dativ صحيح مع geben.",kap:"K5"},
- {bad:"ich lerne deutsch.",good:"Ich lerne Deutsch.",err:0,cat:"Capitalization",why:"بداية الجملة حرف كبير، وأسماء اللغات تُكتب كبيرة: Deutsch.",kap:"K1"},
- {bad:"Mein bruder wohnt in kairo.",good:"Mein Bruder wohnt in Kairo.",err:1,cat:"Capitalization",why:"الأسماء الألمانية دائمًا بحرف كبير.",kap:"K1"},
- {bad:"Wir geht ins Kino.",good:"Wir gehen ins Kino.",err:1,cat:"Verb",why:"مع wir يأتي gehen.",kap:"K1"},
- {bad:"Du hast kein Hunger?",good:"Du hast keinen Hunger?",err:2,cat:"Akkusativ",why:"Hunger مذكر في المفعول: keinen Hunger.",kap:"K4"},
- {bad:"Sie wohnt bei ihre Eltern.",good:"Sie wohnt bei ihren Eltern.",err:3,cat:"Dativ",why:"bei + Dativ جمع: ihren Eltern.",kap:"K5"},
- {bad:"Er spielt gut fußball.",good:"Er spielt gut Fußball.",err:3,cat:"Capitalization",why:"Fußball اسم ويُكتب بحرف كبير.",kap:"K1"}
+ {bad:"Ich gehen zur Schule.",good:"Ich gehe zur Schule.",err:1,fix:"gehe",lvl:"A1",cat:"Verb",why:"مع ich يأتي الفعل gehe (تصريف gehen).",rule:"مع الضمير ich يُصرَّف الفعل بإضافة e: gehen ← gehe.",ex:"Ich lerne Deutsch.",exAr:"أنا أتعلم الألمانية.",kap:"K1"},
+ {bad:"Er haben ein Auto.",good:"Er hat ein Auto.",err:1,fix:"hat",lvl:"A1",cat:"Verb",why:"مع er يأتي hat وليس haben.",rule:"مع المفرد الغائب (er/es/sie): haben ← hat.",ex:"Er spielt Fußball.",exAr:"هو يلعب كرة القدم.",kap:"K1"},
+ {bad:"Die kind spielt.",good:"Das Kind spielt.",err:0,fix:"Das",lvl:"A1",cat:"Artikel",why:"Kind محايد: das Kind (ويُكتب بحرف كبير).",rule:"كلمة Kind محايدة دائمًا: das Kind.",ex:"Das Kind lacht.",exAr:"الطفل يضحك.",kap:"K1"},
+ {bad:"Ich kaufe einen auto.",good:"Ich kaufe ein Auto.",err:2,fix:"ein",lvl:"A1",cat:"Artikel",why:"Auto محايد: ein Auto.",rule:"الاسم المحايد (das) نكرته ein وليس einen.",ex:"Ich sehe ein Auto.",exAr:"أنا أرى سيارة.",kap:"K2"},
+ {bad:"Morgen ich besuche meine Oma.",good:"Morgen besuche ich meine Oma.",err:1,fix:"besuche",lvl:"A1",cat:"Word Order",why:"عند بدء الجملة بظرف زمني يأتي الفعل ثانيًا ثم الفاعل.",rule:"الظرف أولًا ← الفعل ثانيًا ← الفاعل ثالثًا (V2).",ex:"Heute lerne ich Deutsch.",exAr:"اليوم أتعلم الألمانية.",kap:"K3"},
+ {bad:"Heute ich lerne Deutsch.",good:"Heute lerne ich Deutsch.",err:1,fix:"lerne",lvl:"A1",cat:"Word Order",why:"عند بدء الجملة بظرف (Heute) يأتي الفعل ثانيًا ثم الفاعل.",rule:"الظرف أولًا ← الفعل ثانيًا ← الفاعل ثالثًا (V2).",ex:"Morgen spiele ich Fußball.",exAr:"غدًا ألعب كرة القدم.",kap:"K3"},
+ {bad:"Ich sehe der Mann.",good:"Ich sehe den Mann.",err:2,fix:"den",lvl:"A1",cat:"Akkusativ",why:"sehen يأخذ مفعولًا (Akkusativ): der ← den.",rule:"الفعل sehen يأخذ Akkusativ، والمذكر der ← den.",ex:"Ich sehe den Hund.",exAr:"أنا أرى الكلب.",kap:"K4"},
+ {bad:"Sie hat ein Tasche.",good:"Sie hat eine Tasche.",err:1,fix:"eine",lvl:"A1",cat:"Akkusativ",why:"Tasche مؤنثة في حالة المفعول: eine Tasche.",rule:"الاسم المؤنث (die) نكرته eine.",ex:"Sie kauft eine Lampe.",exAr:"هي تشتري مصباحًا.",kap:"K4"},
+ {bad:"Ich helfe den Mann.",good:"Ich helfe dem Mann.",err:2,fix:"dem",lvl:"A2",cat:"Dativ",why:"helfen يأخذ Dativ: dem Mann.",rule:"الفعل helfen يأخذ Dativ دائمًا (وليس Akkusativ).",ex:"Ich helfe dem Kind.",exAr:"أنا أساعد الطفل.",kap:"K5"},
+ {bad:"Das Buch gehört mir Vater.",good:"Das Buch gehört meinem Vater.",err:3,fix:"meinem",lvl:"A2",cat:"Dativ",why:"gehören + Dativ: meinem Vater.",rule:"الفعل gehören يأخذ Dativ: meinem Vater.",ex:"Das gehört meiner Mutter.",exAr:"هذا يخص أمي.",kap:"K5"},
+ {bad:"Die kindern spielen.",good:"Die Kinder spielen.",err:1,fix:"Kinder",lvl:"A1",cat:"Plural",why:"جمع Kind هو Kinder.",rule:"جمع Kind الشاذ: die Kinder.",ex:"Die Kinder lachen.",exAr:"الأطفال يضحكون.",kap:"K2"},
+ {bad:"Zwei Apfels bitte.",good:"Zwei Äpfel bitte.",err:1,fix:"Äpfel",accepts:["Aepfel"],lvl:"A1",cat:"Plural",why:"جمع Apfel هو Äpfel.",rule:"جمع Apfel: die Äpfel (مع Umlaut وبدون s).",ex:"Drei Äpfel, bitte.",exAr:"ثلاث تفاحات من فضلك.",kap:"K2"},
+ {bad:"Ich habe kein Auto.",good:"Ich habe kein Auto.",err:-1,fix:"",lvl:"A1",cat:"Negation",why:"الجملة صحيحة! kein مع الأسماء النكرة.",rule:"نفي الأسماء النكرة بـ kein.",ex:"Ich habe kein Geld.",exAr:"ليس معي نقود.",kap:"K3"},
+ {bad:"Ich bin nicht habe Zeit.",good:"Ich habe keine Zeit.",err:2,fix:"keine",lvl:"A1",cat:"Negation",why:"النفي الصحيح للأسماء بـ kein وليس nicht + فعل.",rule:"الأسماء تُنفى بـ kein (وليس nicht).",ex:"Ich habe kein Geld.",exAr:"ليس معي نقود.",kap:"K3"},
+ {bad:"Ich fahre mit das Auto.",good:"Ich fahre mit dem Auto.",err:3,fix:"dem",lvl:"A1",cat:"Prepositions",why:"mit تأخذ Dativ دائمًا: mit dem Auto.",rule:"حرف الجر mit يأخذ Dativ دائمًا.",ex:"Ich komme mit dem Bus.",exAr:"آتي بالحافلة.",kap:"K5"},
+ {bad:"Er wartet auf dem Bus.",good:"Er wartet auf den Bus.",err:3,fix:"den",lvl:"A2",cat:"Prepositions",why:"warten auf تأخذ Akkusativ: auf den Bus.",rule:"التركيب warten auf يأخذ Akkusativ.",ex:"Ich warte auf den Zug.",exAr:"أنتظر القطار.",kap:"K4"},
+ {bad:"Mich heiße Ali.",good:"Ich heiße Ali.",err:0,fix:"Ich",lvl:"A1",cat:"Pronouns",why:"ضمير الفاعل: Ich وليس Mich (مفعول).",rule:"ضمير الفاعل «أنا» هو Ich؛ أما Mich ف للمفعول.",ex:"Ich komme aus Kairo.",exAr:"أنا من القاهرة.",kap:"K1"},
+ {bad:"Er gibt mir das Buch.",good:"Er gibt mir das Buch.",err:-1,fix:"",lvl:"A1",cat:"Pronouns",why:"الجملة صحيحة! mir ضمير Dativ صحيح مع geben.",rule:"الفعل geben يأخذ Dativ للشخص: mir.",ex:"Er gibt mir einen Stift.",exAr:"يعطيني قلمًا.",kap:"K5"},
+ {bad:"ich lerne Deutsch.",good:"Ich lerne Deutsch.",err:0,fix:"Ich",lvl:"A1",cat:"Capitalization",why:"بداية الجملة تُكتب بحرف كبير: Ich.",rule:"بداية الجملة الألمانية دائمًا بحرف كبير.",ex:"Ich wohne in Berlin.",exAr:"أسكن في برلين.",kap:"K1"},
+ {bad:"Mein bruder wohnt in Kairo.",good:"Mein Bruder wohnt in Kairo.",err:1,fix:"Bruder",lvl:"A1",cat:"Capitalization",why:"الأسماء الألمانية دائمًا بحرف كبير.",rule:"كل الأسماء الألمانية تُكتب بحرف كبير.",ex:"Meine Schwester kocht gut.",exAr:"أختي تطبخ جيدًا.",kap:"K1"},
+ {bad:"Wir geht ins Kino.",good:"Wir gehen ins Kino.",err:1,fix:"gehen",lvl:"A1",cat:"Verb",why:"مع wir يأتي gehen.",rule:"مع wir يبقى الفعل بصيغة المصدر: gehen.",ex:"Wir lernen Deutsch.",exAr:"نحن نتعلم الألمانية.",kap:"K1"},
+ {bad:"Du hast kein Hunger?",good:"Du hast keinen Hunger?",err:2,fix:"keinen",lvl:"A1",cat:"Akkusativ",why:"Hunger مذكر في المفعول: keinen Hunger.",rule:"نفي المفعول المذكر النكرة: keinen.",ex:"Er trinkt einen Kaffee.",exAr:"هو يشرب قهوة.",kap:"K4"},
+ {bad:"Sie wohnt bei ihre Eltern.",good:"Sie wohnt bei ihren Eltern.",err:3,fix:"ihren",lvl:"A2",cat:"Dativ",why:"bei + Dativ جمع: ihren Eltern.",rule:"حرف الجر bei يأخذ Dativ: bei ihren Eltern.",ex:"Er wohnt bei seinen Eltern.",exAr:"هو يسكن عند والديه.",kap:"K5"},
+ {bad:"Er spielt gut fußball.",good:"Er spielt gut Fußball.",err:3,fix:"Fußball",lvl:"A1",cat:"Capitalization",why:"Fußball اسم ويُكتب بحرف كبير.",rule:"كل الأسماء الألمانية تُكتب بحرف كبير.",ex:"Ich spiele gern Fußball.",exAr:"أحب لعب كرة القدم.",kap:"K1"},
+ {bad:"Ich habe einen Auto.",good:"Ich habe ein Auto.",err:2,fix:"ein",lvl:"A1",cat:"Artikel",why:"Auto محايد: ein Auto.",rule:"الاسم المحايد (das) نكرته ein.",ex:"Das ist ein Buch.",exAr:"هذا كتاب.",kap:"K2"},
+ {bad:"Ich gehe mit den Freund.",good:"Ich gehe mit dem Freund.",err:3,fix:"dem",lvl:"A2",cat:"Dativ",why:"mit تأخذ Dativ: mit dem Freund.",rule:"حرف الجر mit يأخذ Dativ دائمًا.",ex:"Ich spiele mit dem Hund.",exAr:"ألعب مع الكلب.",kap:"K5"},
+ {bad:"Heute ich gehe zur Schule.",good:"Heute gehe ich zur Schule.",err:1,fix:"gehe",lvl:"A1",cat:"Word Order",why:"عند بدء الجملة بظرف (Heute) يأتي الفعل ثانيًا ثم الفاعل.",rule:"الظرف أولًا ← الفعل ثانيًا ← الفاعل ثالثًا (V2).",ex:"Heute kaufe ich Brot.",exAr:"اليوم أشتري خبزًا.",kap:"K3"},
+ {bad:"Ich bin gestern ins Kino gehen.",good:"Ich bin gestern ins Kino gegangen.",err:5,fix:"gegangen",lvl:"A2",cat:"Verb",why:"الماضي التام: bin + التصريف الثالث gegangen آخر الجملة.",rule:"الماضي التام (Perfekt): مساعد + Partizip II في آخر الجملة.",ex:"Ich bin nach Berlin gefahren.",exAr:"سافرتُ إلى برلين.",kap:"K2"},
+ {bad:"Er kann schwimmt.",good:"Er kann schwimmen.",err:2,fix:"schwimmen",lvl:"A1",cat:"Verb",why:"بعد الفعل المساعد (kann) يأتي المصدر آخر الجملة.",rule:"الفعل المساعد + المصدر في آخر الجملة.",ex:"Sie will tanzen.",exAr:"هي تريد أن ترقص.",kap:"K5"},
+ {bad:"Ich habe gestern ein Buch lesen.",good:"Ich habe gestern ein Buch gelesen.",err:5,fix:"gelesen",lvl:"A2",cat:"Verb",why:"الماضي التام مع haben: gelesen.",rule:"الماضي التام (Perfekt): haben + Partizip II.",ex:"Er hat einen Film gesehen.",exAr:"شاهد فيلمًا.",kap:"K3"},
+ {bad:"Ich sehe ein große Haus.",good:"Ich sehe ein großes Haus.",err:3,fix:"großes",accepts:["grosses"],lvl:"B1",cat:"Akkusativ",why:"الصفة بعد ein المحايد في المفعول تأخذ es: großes.",rule:"الصفة بعد ein المحايد (Akkusativ): نهاية es.",ex:"Das ist ein kleines Kind.",exAr:"هذا طفل صغير.",kap:"K4"},
+ {bad:"Ich bleibe zu Hause, weil ich bin krank.",good:"Ich bleibe zu Hause, weil ich krank bin.",err:7,fix:"krank",lvl:"B1",cat:"Word Order",why:"بعد weil يذهب الفعل المُصرَّف إلى آخر الجملة.",rule:"الجملة الفرعية مع weil: الفعل في الآخر.",ex:"Ich lerne, weil ich Zeit habe.",exAr:"أتعلم لأن عندي وقت.",kap:"K3"},
+ {bad:"Wenn ich Zeit habe, ich besuche dich.",good:"Wenn ich Zeit habe, besuche ich dich.",err:5,fix:"besuche",lvl:"B1",cat:"Word Order",why:"بعد الجملة الفرعية تبدأ الرئيسية بالفعل.",rule:"بعد الجملة الشرطية: الفعل أولًا ثم الفاعل (V2).",ex:"Wenn es regnet, bleibe ich zu Hause.",exAr:"عندما تمطر أبقى في البيت.",kap:"K5"}
 ];
 function advFixPool(cat){const p=ADV_FIX.filter(x=>!cat||x.cat===cat);return shuffle(p.length?p:ADV_FIX.slice());}
+/* Finderr pool: exactly-one-error items (err>=0), optional level filter. */
+var ferrLevel="mix";
+function advFerrPool(lvl){
+  const L=lvl||ferrLevel||"mix";
+  let p=ADV_FIX.filter(x=>x.err>=0&&(L==="mix"||x.lvl===L));
+  if(!p.length)p=ADV_FIX.filter(x=>x.err>=0);
+  return shuffle(p.slice());
+}
 function renderFixsent(){
   ensureAdv();
   const box=$("fixsentBox");if(!box)return;
@@ -649,57 +671,141 @@ function advFixRun(i,score,pool){
 function renderFinderr(){
   ensureAdv();
   const box=$("finderrBox");if(!box)return;
-  box.innerHTML='<div class="panel glass"><h3>'+escapeHtml(t("title_finderr"))+'</h3><div class="muted">اضغط على الجزء الخطأ أولًا، ثم اختر التصحيح — ليس اختيارًا عاديًا!</div><div id="ferrBody"></div></div>';
-  advFerrRun(0,0,advFixPool());
+  const lv=ferrLevel||"mix";
+  const lvBtn=(id,label)=>'<button type="button" class="btn sm '+((lv===id)?"btn-primary":"btn-ghost")+'" data-ferrlvl="'+id+'">'+label+'</button>';
+  box.innerHTML='<div class="panel glass"><h3>'+escapeHtml(t("title_finderr"))+'</h3>'
+    +'<div class="muted">أمامك جملة ألمانية فيها خطأ واحد فقط — اكتشفه بنفسك 🔍<br>اضغط على الكلمة التي تعتقد أنها خطأ.</div>'
+    +'<div class="row-flex" id="ferrLevels" role="group" aria-label="المستوى">'
+    +lvBtn("mix","🌍 الكل")+lvBtn("A1","🟢 A1")+lvBtn("A2","🟡 A2")+lvBtn("B1","🔴 B1")
+    +'</div><div id="ferrBody"></div></div>';
+  box.querySelectorAll("[data-ferrlvl]").forEach(b=>b.addEventListener("click",()=>{
+    ferrLevel=b.getAttribute("data-ferrlvl")||"mix";
+    renderFinderr();
+  }));
+  advFerrRun(0,0,advFerrPool());
 }
+/* Genuine error-DETECTION exercise (NOT multiple choice):
+   Phase A (find): tap a word → selected state → confirm bar
+   ("هل هذا هو الجزء الذي تعتقد أنه خطأ؟" + تأكيد/تغيير). Nothing is revealed
+   before confirmation; a wrong pick only says "ليس هذا الجزء".
+   Phase B (correct): type the fix for the found part, then rich feedback
+   (corrected sentence + why + rule + extra example). Finding and correcting
+   are tracked as TWO separate skills. Never renders it.cat (no hints). */
 function advFerrRun(i,score,pool){
   const body=$("ferrBody");if(!body)return;
-  const items=pool.filter(x=>x.err>=0);
-  if(i>=Math.min(8,items.length)){
-    addXP(score*5+10,"finderr");markStudyDay();checkAch();save();advTrack("grammar",score>=5);
-    body.innerHTML='<div class="quiz-feedback ok">النتيجة: '+score+'/'+Math.min(8,items.length)+' ⭐+'+(score*5+10)+'</div><div class="row-flex"><button class="btn btn-primary sm" id="ferrAgain">'+escapeHtml(t("adv_retry"))+'</button></div>';
-    $("ferrAgain").addEventListener("click",()=>advFerrRun(0,0,advFixPool()));
+  const items=(pool||[]).filter(x=>x&&x.err>=0&&x.fix);
+  const total=Math.min(8,items.length);
+  if(!items.length){
+    body.innerHTML='<div class="quiz-feedback no">لا توجد جمل لهذا المستوى بعد — جرّب مستوى آخر 🔄</div>';
+    return;
+  }
+  if(i>=total){
+    addXP(score*5+10,"finderr");markStudyDay();checkAch();save();advTrack("grammar",score>=Math.ceil(total/2));
+    body.innerHTML='<div class="quiz-feedback ok">النتيجة: '+score+'/'+total+' (حل نظيف من أول مرة ⭐) — ⭐+'+(score*5+10)+'</div><div class="row-flex"><button class="btn btn-primary sm" id="ferrAgain">'+escapeHtml(t("adv_retry"))+'</button></div>';
+    $("ferrAgain").addEventListener("click",()=>advFerrRun(0,0,advFerrPool()));
     return;
   }
   const it=items[i];
   const toks=it.bad.replace(/([.?!,])/g," $1").split(" ").filter(Boolean);
   const errTok=toks[it.err]!==undefined?it.err:0;
-  let step=1;
-  body.innerHTML='<div class="muted">جملة '+(i+1)+'/'+Math.min(8,items.length)+' • الخطوة 1: حدد الجزء الخطأ 👆</div>'
-    +'<div class="quiz-opts" dir="ltr">'+toks.map((x,ix)=>'<button class="quiz-opt" data-k="'+ix+'">'+escapeHtml(x)+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="ferrFb"></div>';
-  body.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{
-    if(step!==1)return;
-    const k=parseInt(b.getAttribute("data-k"),10);
-    if(k===errTok){
-      // Correctly spotted the error: GREEN (correct), never red. Freeze the
-      // token row so the state can't leak, then move to the correction step.
-      step=2;b.classList.add("correct");
-      body.querySelectorAll(".quiz-opt").forEach(x=>{x.disabled=true;});
-      step2();
-    }
-    else{b.classList.add("wrong");const f=$("ferrFb");f.classList.remove("hidden");f.className="quiz-feedback no";f.textContent="ليس هذا الجزء — حاول مرة أخرى 🤔";setTimeout(()=>b.classList.remove("wrong"),700);}
+  const isPunct=x=>/^[.?!,]$/.test(x);
+  let step=1,selected=-1,wrongFind=0,wrongCorr=0;
+  const lvlBadge={A1:"🟢 A1",A2:"🟡 A2",B1:"🔴 B1"}[it.lvl]||"";
+  body.innerHTML='<div class="muted">جملة '+(i+1)+'/'+total+(lvlBadge?' • '+lvlBadge:'')+' • الخطوة 1 من 2: جد الخطأ 🕵️</div>'
+    +'<div class="ferr-sent" dir="ltr" lang="de">'
+    +toks.map((x,ix)=>isPunct(x)
+      ?'<span class="ferr-punct" aria-hidden="true">'+escapeHtml(x)+'</span>'
+      :'<button type="button" class="quiz-opt ferr-tok" data-k="'+ix+'" aria-pressed="false">'+escapeHtml(x)+'</button>').join("")
+    +'</div><div class="quiz-feedback hidden" id="ferrFb"></div>'
+    +'<div id="ferrConfirm"></div><div id="ferrStep2"></div>'
+    +'<div class="row-flex"><button type="button" class="btn btn-ghost sm" id="ferrSkip">تخطي ⏭</button></div>';
+  const fb=$("ferrFb"),cfm=$("ferrConfirm");
+  function clearSel(){
+    selected=-1;
+    try{body.querySelectorAll(".ferr-tok").forEach(x=>{x.classList.remove("selected");x.setAttribute("aria-pressed","false");});}catch(e){}
+    try{cfm.innerHTML="";}catch(e){}
+  }
+  body.querySelectorAll(".ferr-tok").forEach(b=>b.addEventListener("click",()=>{
+    if(step!==1||b.disabled)return;
+    clearSel();
+    selected=parseInt(b.getAttribute("data-k"),10);
+    b.classList.add("selected");b.setAttribute("aria-pressed","true");
+    try{fb.classList.add("hidden");}catch(e){}
+    cfm.innerHTML='<div class="ferr-confirm"><div>هل هذا هو الجزء الذي تعتقد أنه خطأ؟ «<b dir="ltr" lang="de">'+escapeHtml(toks[selected])+'</b>»</div>'
+      +'<div class="row-flex"><button type="button" class="btn btn-primary sm" id="ferrOk">تأكيد ✅</button>'
+      +'<button type="button" class="btn btn-ghost sm" id="ferrChange">غيّر اختيارك 🔄</button></div></div>';
+    $("ferrChange").addEventListener("click",clearSel);
+    $("ferrOk").addEventListener("click",()=>{
+      if(step!==1||selected<0)return;
+      const k=selected;
+      const bb=body.querySelector('[data-k="'+k+'"]');
+      if(k===errTok){
+        // Found it themselves: GREEN (correct), never pre-revealed. Freeze the
+        // token row so the state can't leak, then move to the correction step.
+        step=2;if(bb)bb.classList.add("correct");step2();
+      }
+      else{
+        wrongFind++;
+        if(bb){bb.classList.add("wrong");setTimeout(()=>{try{bb.classList.remove("wrong");}catch(e){}},700);}
+        fb.classList.remove("hidden");fb.className="quiz-feedback no";fb.textContent="❌ ليس هذا الجزء. حاول مرة أخرى 🔍";
+        clearSel();
+      }
+    });
   }));
+  $("ferrSkip").addEventListener("click",()=>{try{S.totalAnswered++;save();}catch(e){}advFerrRun(i+1,score,pool);});
   function step2(){
-    const good=it.good.replace(/[.?!,]/g,"").split(" ").filter(Boolean);
-    const cands=shuffle([toks[errTok],good[Math.min(errTok,good.length-1)],toks[(errTok+1)%toks.length]].filter((v,ix,a)=>a.indexOf(v)===ix));
-    const f=$("ferrFb");f.classList.remove("hidden");f.className="quiz-feedback ok";f.textContent="✅ أحسنت! الخطوة 2: اختر التصحيح الصحيح 👇";
-    const d=document.createElement("div");d.className="quiz-opts";d.setAttribute("dir","ltr");
-    d.innerHTML=cands.map((c,ix)=>'<button class="quiz-opt" data-c="'+ix+'">'+escapeHtml(c)+'</button>').join("");
-    body.appendChild(d);
-    const right=good[Math.min(errTok,good.length-1)];
-    d.querySelectorAll(".quiz-opt").forEach(b=>b.addEventListener("click",()=>{
-      const c=cands[parseInt(b.getAttribute("data-c"),10)];
-      d.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
-      const ok=c.toLowerCase()===String(right).toLowerCase();
-      if(ok){b.classList.add("correct");score++;}
-      else{b.classList.add("wrong");}
-      f.className=ok?"quiz-feedback ok":"quiz-feedback no";
-      f.innerHTML=(ok?"صحيح ✅ ":"❌ الصحيح: <b>"+escapeHtml(right)+"</b> — ")+escapeHtml(it.why)+"<br>✅ <b dir='ltr'>"+escapeHtml(it.good)+"</b>";
-      if(!ok){try{recordMistake({id:"ferr:"+it.cat+":"+i,de:it.bad,ar:it.why,art:"-",type:"قواعد",cat:"Grammar",kap:it.kap},toks[errTok]+"→"+c,"sentence",{q:it.bad,ok:it.good,kap:it.kap,rule:it.cat});}catch(e){}}
-      S.totalAnswered++;if(ok)S.totalCorrect++;save();
-      try{advNoteAnswer({kind:"sentence"},ok);}catch(e){}
-      setTimeout(()=>advFerrRun(i+1,score,pool),2600);
-    }));
+    step=2;
+    try{body.querySelectorAll(".ferr-tok").forEach(x=>{x.disabled=true;});}catch(e){}
+    try{cfm.innerHTML="";}catch(e){}
+    fb.classList.remove("hidden");fb.className="quiz-feedback ok";fb.textContent="✅ Correct! أحسنت — وجدت الخطأ بنفسك! 🎉";
+    const s2=$("ferrStep2");
+    s2.innerHTML='<div class="muted">الخطوة 2 من 2: صحح الجزء الخطأ ✍️</div>'
+      +'<div class="muted">الجزء الخطأ: «<b dir="ltr" lang="de">'+escapeHtml(toks[errTok])+'</b>» — اكتب الصواب مكانه:</div>'
+      +'<div class="quiz-write"><input type="text" id="ferrIn" dir="ltr" lang="de" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="...">'
+      +'<button type="button" class="btn btn-gold sm" id="ferrCheck">'+escapeHtml(t("adv_check"))+'</button></div>'
+      +'<div class="quiz-feedback hidden" id="ferrFb2"></div>';
+    const strip=s=>String(s==null?"":s).replace(/[.?!,;:\u061B\u061F]/g,"").replace(/\s+/g," ").trim();
+    const cands=[it.fix].concat(it.accepts||[]);
+    /* Capitalization errors differ from the fix by case ONLY — require exact
+       case there; all other fixes match case-insensitively (Den/den both ok). */
+    const needCase=strip(toks[errTok]).toLowerCase()===strip(it.fix).toLowerCase()&&strip(toks[errTok])!==strip(it.fix);
+    const isFix=v=>needCase
+      ?cands.some(c=>strip(v)===strip(c))
+      :cands.some(c=>strip(v).toLowerCase()===strip(c).toLowerCase());
+    const go=()=>{
+      const inp=$("ferrIn"),f2=$("ferrFb2");
+      const v=inp?inp.value:"";
+      if(!v||!v.trim()){f2.classList.remove("hidden");f2.className="quiz-feedback no";f2.textContent="اكتب التصحيح أولًا ✍️";return;}
+      if(isFix(v)){solved();}
+      else{
+        wrongCorr++;
+        f2.classList.remove("hidden");f2.className="quiz-feedback no";f2.textContent="❌ ليس صحيحًا — حاول مرة أخرى 💪";
+        try{if(inp.select)inp.select();}catch(e){}
+      }
+    };
+    $("ferrCheck").addEventListener("click",go);
+    $("ferrIn").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+    try{$("ferrIn").focus();}catch(e){}
+  }
+  function solved(){
+    const clean=(wrongFind===0&&wrongCorr===0);
+    if(clean)score++;
+    try{S.totalAnswered++;if(clean)S.totalCorrect++;save();}catch(e){}
+    try{advNoteAnswer({kind:"sentence"},clean);}catch(e){}
+    if(!clean){try{recordMistake({id:"ferr:"+(it.kap||"KX")+":"+it.bad,de:it.bad,ar:it.why,art:"-",type:"قواعد",cat:"Grammar",kap:it.kap},toks[errTok]+"→"+it.fix,"sentence",{q:it.bad,ok:it.good,kap:it.kap,rule:it.cat});}catch(e){}}
+    let goodH=escapeHtml(it.good);
+    try{
+      const gi=it.good.toLowerCase().indexOf(String(it.fix).toLowerCase());
+      if(gi>=0)goodH=escapeHtml(it.good.slice(0,gi))+'<span class="ferr-hl">'+escapeHtml(it.good.slice(gi,gi+it.fix.length))+'</span>'+escapeHtml(it.good.slice(gi+it.fix.length));
+    }catch(e){}
+    const s2=$("ferrStep2");
+    s2.innerHTML='<div class="quiz-feedback ok">✅ <b dir="ltr" lang="de">'+goodH+'</b></div>'
+      +(clean?'<div class="muted">حل نظيف من أول مرة ⭐ — وجدت الخطأ وصححته بنفسك!</div>':'<div class="muted">أحسنت الإصرار حتى الحل الكامل 💪</div>')
+      +'<div class="ferr-why">💡 '+escapeHtml(it.why)+'</div>'
+      +(it.rule?'<div class="ferr-rule">📐 القاعدة: '+escapeHtml(it.rule)+'</div>':"")
+      +(it.ex?'<div class="muted">🔁 مثال إضافي: <b dir="ltr" lang="de">'+escapeHtml(it.ex)+'</b>'+(it.exAr?' — '+escapeHtml(it.exAr):"")+'</div>':"")
+      +'<div class="row-flex"><button type="button" class="btn btn-primary sm" id="ferrNext">'+escapeHtml(t("adv_next"))+'</button></div>';
+    $("ferrNext").addEventListener("click",()=>advFerrRun(i+1,score,pool));
   }
 }
 /* ================= 10. CHALLENGE GENERATOR ================= */

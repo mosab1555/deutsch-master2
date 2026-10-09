@@ -383,6 +383,9 @@ const BIGCOMP = [
   ["Schirm", "Regen:مظلة المطر:umbrella,Sonnen:مظلة الشمس:sunshade"],
   ["Licht", "Tages:ضوء النهار:daylight,Kerzen:ضوء الشموع:candlelight"],
   ["Schule", "Abend:المدرسة المسائية:evening school"],
+  ["Shorts", "Jeans:شورت جينز:denim shorts,Sport:شورت رياضي:sports shorts"],
+  ["Spätzle", "Käse:نودلز البيض بالجبن:cheese spaetzle"],
+  ["Eltern", "Adoptiv:الوالدان بالتبني:adoptive parents,Pflege:الوالدان الحاضنان:foster parents"],
 ];
 
 /* BIGPREFIX: separable (1) / inseparable (0) prefixed verbs, "inf|sep|reg|ar".

@@ -400,36 +400,54 @@ const txt = e => (e ? e.textContent.replace(/\s+/g, " ").trim() : "");
   await sleep(60);
   ok("shadow: no console errors so far", errors.length === 0, errors.slice(0, 3).join(" || "));
 
-  /* H. finderr green/red by identity (not position) */
+  /* H. finderr: genuine detection (tap -> confirm -> type correction) */
   ok("finderr: page renders tokens", clickNav("finderr") && document.querySelectorAll("#ferrBody .quiz-opt").length >= 3);
-  // click a WRONG token first -> red, stays on step 1
-  const toks = document.querySelectorAll("#ferrBody .quiz-opt");
-  const stepInfo = js("(()=>{try{return document.querySelectorAll('#ferrBody .quiz-opt').length;}catch(e){return -1;}})()");
-  ok("finderr: tokens clickable", toks.length >= 3 && stepInfo >= 3);
-  // wrong token: pick index 0 unless it is the error token (detect via no advancement)
-  fireErr("finderr-wrong", () => toks[0].click());
-  await sleep(150);
-  // correct token: find it by trying each until step-2 UI (correction buttons) appears
-  let spotted = false;
-  for (const b of document.querySelectorAll("#ferrBody .quiz-opt")) {
-    if (document.querySelectorAll("#ferrBody .quiz-opt").some(x => x.classList.contains("correct"))) { spotted = true; break; }
-    fireErr("finderr-try", () => b.click());
-    await sleep(80);
-  }
+  // stash the shuffled pool so the test knows err/fix without touching the UI
+  fireErr("finderr-stash", () => js("__ferrPool=null; __origFerr=advFerrRun; advFerrRun=function(i,s,p){__ferrPool=p; return __origFerr(i,s,p);}; advFerrRun(0,0,advFerrPool());"));
+  await sleep(80);
+  const ferr0 = js("(__ferrPool&&__ferrPool[0])?{err:__ferrPool[0].err,fix:__ferrPool[0].fix}:null");
+  ok("finderr: pool stashed (err+fix known)", !!ferr0 && typeof ferr0.err === "number" && !!ferr0.fix, JSON.stringify(ferr0));
+  const toks0 = document.querySelectorAll("#ferrBody .quiz-opt");
+  ok("finderr: tokens clickable", toks0.length >= 3, "n=" + toks0.length);
+  const tokByK = k => document.querySelectorAll("#ferrBody .quiz-opt").find(x => x.getAttribute("data-k") === String(k));
+  const wK = ferr0.err === 0 ? 1 : 0; // guaranteed wrong token
+  // tapping a token must NOT reveal anything: it shows a confirm bar instead
+  fireErr("finderr-tap", () => tokByK(wK).click());
+  await sleep(80);
+  ok("finderr: tap asks for confirmation (no instant reveal)",
+    !!byId("ferrOk") && /هل هذا هو الجزء/.test(txt(byId("ferrConfirm"))) &&
+    !document.querySelectorAll("#ferrBody .quiz-opt").some(x => x.classList.contains("correct")),
+    txt(byId("ferrConfirm")).slice(0, 50));
+  // confirming a WRONG pick -> "ليس هذا الجزء", stays on step 1, answer hidden
+  fireErr("finderr-confirm-wrong", () => byId("ferrOk").click());
+  await sleep(120);
+  ok("finderr: wrong pick rejected without reveal",
+    /ليس هذا الجزء/.test(txt(byId("ferrBody"))) && !document.getElementById("ferrIn") &&
+    !document.querySelectorAll("#ferrBody .quiz-opt").some(x => x.classList.contains("correct")));
+  // correct pick + confirm -> GREEN only now, then TYPED correction (no MCQ)
+  fireErr("finderr-tap-right", () => tokByK(ferr0.err).click());
+  await sleep(80);
+  fireErr("finderr-confirm-right", () => byId("ferrOk").click());
+  await sleep(120);
   const greenBtn = document.querySelectorAll("#ferrBody .quiz-opt").find(x => x.classList.contains("correct"));
-  ok("finderr: correct token turns GREEN", !!greenBtn && spotted !== false);
-  // step 2: click the right correction -> advances to next question
+  ok("finderr: correct token turns GREEN only after confirm", !!greenBtn && !!byId("ferrIn"), "green=" + !!greenBtn);
+  const nOptsStep2 = document.querySelectorAll("#ferrBody .quiz-opt").length;
+  ok("finderr: correction is typed, not multiple-choice", !!byId("ferrIn") && !!byId("ferrCheck") && nOptsStep2 === toks0.length, "opts=" + nOptsStep2);
+  // wrong typed correction -> retry, stays on same question
+  fireErr("finderr-type-wrong", () => { byId("ferrIn").value = "zzzqqq"; byId("ferrCheck").click(); });
+  await sleep(80);
+  ok("finderr: wrong correction asks to retry", /ليس صحيحًا/.test(txt(byId("ferrBody"))) && !document.getElementById("ferrNext"));
+  // right typed correction -> solved panel (sentence + why + rule + example) -> next
   const qBefore = txt(byId("ferrBody")).slice(0, 40);
-  const corrBtns = document.querySelectorAll("#ferrBody .quiz-opt").filter(x => !x.disabled);
-  let advanced = false;
-  for (const b of corrBtns) {
-    fireErr("finderr-corr", () => b.click());
-    await sleep(2600);
-    if (txt(byId("ferrBody")).slice(0, 40) !== qBefore || /النتيجة/.test(txt(byId("ferrBody")))) { advanced = true; break; }
-    // wrong correction ends run only after timeout; re-query fresh buttons each round is complex - stop after first advance/finish
-    break;
-  }
-  ok("finderr: correction resolves (advance or finish)", advanced || /النتيجة/.test(txt(byId("ferrBody"))));
+  fireErr("finderr-type-right", () => { byId("ferrIn").value = ferr0.fix; byId("ferrCheck").click(); });
+  await sleep(120);
+  ok("finderr: solved shows corrected sentence + rule + example",
+    !!byId("ferrNext") && /القاعدة/.test(txt(byId("ferrBody"))) && /مثال إضافي/.test(txt(byId("ferrBody"))),
+    txt(byId("ferrBody")).slice(0, 90));
+  fireErr("finderr-next", () => byId("ferrNext").click());
+  await sleep(150);
+  ok("finderr: next advances (or finishes)", txt(byId("ferrBody")).slice(0, 40) !== qBefore || /النتيجة/.test(txt(byId("ferrBody"))));
+  fireErr("finderr-unwrap", () => js("advFerrRun=__origFerr; __ferrPool=null;"));
 
   /* I. daily challenge flow */
   ok("daily: page renders", clickNav("challenge") && !!byId("chBox"));

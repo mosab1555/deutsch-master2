@@ -664,6 +664,24 @@ function sentA1Card(s, i) {
 }
 
 /* العارض الموحد: يحترم المستوى + Kapitel + الموضوع + البحث، مع Pagination */
+/* بحث مفهرس: يُبنى مرة واحدة ويُعاد بناؤه عند نمو البنك فقط (الأداء مع 150k+ جملة) */
+var sentA1SearchIdx = null;
+function sentA1SearchRows() {
+  try {
+    if (typeof SENTENCES === "undefined") return [];
+    var n = SENTENCES.length;
+    if (sentA1SearchIdx && sentA1SearchIdx.n === n) return sentA1SearchIdx.rows;
+    var rows = (sentA1SearchIdx && sentA1SearchIdx.n < n) ? sentA1SearchIdx.rows : [];
+    var start = (sentA1SearchIdx && sentA1SearchIdx.n < n) ? sentA1SearchIdx.n : 0;
+    if (!sentA1SearchIdx || sentA1SearchIdx.n > n) { rows = []; start = 0; }
+    for (var i = start; i < n; i++) {
+      var s = SENTENCES[i];
+      rows.push({ s: s, nde: (typeof dmNorm === "function" ? dmNorm(s.de) : String(s.de || "").toLowerCase()), nar: (s.ar || "").toLowerCase() });
+    }
+    sentA1SearchIdx = { n: n, rows: rows };
+    return rows;
+  } catch (e) { return []; }
+}
 function sentA1Render() {
   try {
     sentA1Merge();
@@ -681,22 +699,24 @@ function sentA1Render() {
       box.innerHTML = '<div class="panel glass">⏳ جاري تحميل محتوى ' + lv + ' ...</div>';
       return;
     }
-    var list = SENTENCES.filter(function (s) {
-      if (lv !== "all" && (s.level || "A1") !== lv) return false;
-      if (k && s.kap !== k) return false;
-      if (tp && (s.topic || "General") !== tp) return false;
-      if (!q) return true;
-      var de = (typeof dmNorm === "function" ? dmNorm(s.de) : s.de.toLowerCase());
-      if (de.indexOf(q) >= 0) return true;
-      if ((s.ar || "").toLowerCase().indexOf(qAr) >= 0) return true;
+    var rows = sentA1SearchRows();
+    var list = [];
+    for (var ri = 0; ri < rows.length; ri++) {
+      var s = rows[ri].s;
+      if (lv !== "all" && (s.level || "A1") !== lv) continue;
+      if (k && s.kap !== k) continue;
+      if (tp && (s.topic || "General") !== tp) continue;
+      if (!q) { list.push(s); continue; }
+      var de = rows[ri].nde;
+      if (de.indexOf(q) >= 0) { list.push(s); continue; }
+      if (rows[ri].nar.indexOf(qAr) >= 0) { list.push(s); continue; }
       try {
         if (s.wid && typeof wordById === "function") {
           var w = wordById(s.wid);
-          if (w && ((w.de || "").toLowerCase().indexOf(qAr) >= 0 || (w.ar || "").indexOf(raw.trim()) >= 0)) return true;
+          if (w && ((w.de || "").toLowerCase().indexOf(qAr) >= 0 || (w.ar || "").indexOf(raw.trim()) >= 0)) { list.push(s); continue; }
         }
       } catch (e) {}
-      return false;
-    });
+    }
     try {
       var pill = document.getElementById("sentCount");
       if (pill) pill.textContent = list.length + " جملة";
@@ -763,5 +783,14 @@ try {
     try { requestIdleCallback(_dmWarmMerge, { timeout: 4000 }); } catch (e) { setTimeout(_dmWarmMerge, 1500); }
   } else {
     setTimeout(_dmWarmMerge, 1500);
+  }
+} catch (e) {}
+/* إحماء فهرس البحث أثناء الخمول: أول زيارة لصفحة الجمل تصبح فورية */
+try {
+  var _dmWarmSearch = function () { try { sentA1SearchRows(); } catch (e) {} };
+  if (typeof requestIdleCallback === "function") {
+    try { requestIdleCallback(_dmWarmSearch, { timeout: 6000 }); } catch (e) { setTimeout(_dmWarmSearch, 2500); }
+  } else {
+    setTimeout(_dmWarmSearch, 2500);
   }
 } catch (e) {}

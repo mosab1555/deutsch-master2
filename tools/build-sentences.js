@@ -211,6 +211,10 @@ function cpersonFull(S) {
   const k = S[2];
   if (k === "siepl") return "sie";
   if (k === "ich" || k === "du" || k === "wir" || k === "ihr") return k;
+  // hardening 2026-10-09: formal Sie governs 3rd-plural verbs (Sie sagen),
+  // not 3rd-singular (she says). Arabic agreement paths are unaffected
+  // (verified: identical output for cp sie vs er given fem/siepl flags).
+  if (k === "Sie") return "sie";
   return "er";
 }
 const CKEY = { ich: "ich", du: "du", er: "er", wir: "wir", ihr: "ihr", sie: "sie" };
@@ -428,6 +432,22 @@ function nomPhrase(rr, pool) {
   const w = pickN(rr, pool.length ? pool : THING_NOUNS);
   return { de: declArt(w.art, "N", false) + " " + w.de, ar: w.ar, w };
 }
+/* indefinite singular object for existential "Es gibt / Gibt es" (hardening
+   2026-10-09: definite articles are ungrammatical after "es gibt"; Arabic is
+   left as-is — definite Arabic existentials are grammatical). */
+function indefPhrase(rr, pool) {
+  const w = pickN(rr, pool.length ? pool : THING_NOUNS);
+  const art = w.art === "die" ? "eine" : w.art === "der" ? "einen" : "ein";
+  return { de: art + " " + w.de, ar: w.ar, w, plural: false };
+}
+/* purchasable goods for price questions (hardening 2026-10-09: asking the
+   price of stations/events/abstracts is semantically anomalous). Mirrors the
+   schreibt-zeit/plant allowlist precedent; falls back to any thing-noun. */
+const PURCHASE_CATS = ["food", "drinks", "clothing", "supermarket", "tech", "phones", "computers", "shopping", "furniture", "sports", "school", "restaurant", "hotel"];
+function purchasePool() {
+  const p = THING_NOUNS.filter((w) => PURCHASE_CATS.indexOf(w.cat) >= 0 && !/ /.test(w.de));
+  return p.length ? p : THING_NOUNS;
+}
 function verbArOf(inf) {
   if (AR_FB[inf]) return AR_FB[inf];
   const v = verbs.find((x) => x.de.replace(/^sich /, "") === inf);
@@ -450,7 +470,13 @@ function fillGeneric(rr, deTpl, arTpl, S) {
   // generic slot fill for straightforward patterns
   const S2 = pickN(rr, SUBJ);
   let V = pickN(rr, poolOf(0)), V2 = pickN(rr, poolOf(1));
-  const O = akkPhrase(rr, thingPoolFor(V[0]), true), O1 = nomPhrase(rr, THING_NOUNS), O2 = nomPhrase(rr, THING_NOUNS);
+  // existential templates take indefinite objects (G1); price questions take
+  // purchasable goods (G5)
+  const esGibt = /^(Es gibt|Gibt es)\b/.test(deTpl);
+  const preisFr = /wie viel kostet/.test(deTpl);
+  const O = esGibt ? indefPhrase(rr, thingPoolFor(V[0])) : akkPhrase(rr, thingPoolFor(V[0]), true);
+  const O1 = preisFr ? nomPhrase(rr, purchasePool()) : nomPhrase(rr, THING_NOUNS);
+  const O2 = nomPhrase(rr, THING_NOUNS);
   const O2d = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
   const O3 = datPhrase(rr, thingPoolFor(null), false), O4 = akkPhrase(rr, thingPoolFor(V[0]), false), O5 = datPhrase(rr, thingPoolFor(null), false);
   const O6 = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
@@ -533,7 +559,9 @@ function buildOne(rr, pat, idx) {
   } else if (gram === "wehtun") {
     const person = datPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
     const part = pickN(rr, BODY.length ? BODY : THING_NOUNS);
-    de = person.de + " tut " + declArt(part.art, "N", false) + " " + part.de + " weh.";
+    // hardening 2026-10-09: sentence-initial dative phrase is capitalized
+    const perDe = person.de.charAt(0).toUpperCase() + person.de.slice(1);
+    de = perDe + " tut " + declArt(part.art, "N", false) + " " + part.de + " weh.";
     ar = part.ar + " يؤلم " + person.ar + ".";
     vocabRefs.push(part.id);
   } else if (gram === "man-passiv-sinn") {
@@ -572,25 +600,25 @@ function buildOne(rr, pat, idx) {
     ar = "تعلم الألمانية يمتع " + s3[1] + ".";
   } else if (gram === "falls") {
     const V = pickN(rr, poolOf(0));
-    de = "Falls " + S[0] + " " + Vconj(V[0]) + ", " + C2("sagen", S) + " " + lowS(S) + " mir Bescheid.";
+    de = "Falls " + lowS(S) + " " + Vconj(V[0]) + ", " + C2("sagen", S) + " " + lowS(S) + " mir Bescheid.";
     ar = "إن " + Var(V[0]) + " " + S[1] + " فليخبرني.";
   } else if (gram === "sobald") {
     const V = pickN(rr, poolOf(1));
     const per = akkPhrase(rr, PERSON_NOUNS.length ? PERSON_NOUNS : THING_NOUNS, false);
     const c = conjPresent("anrufen", CKEY[cpersonFull(S)]);
-    de = "Sobald " + S[0] + " " + Vconj(V[0]) + ", " + c.core + " " + lowS(S) + " " + per.de + " " + c.tail.trim() + ".";
+    de = "Sobald " + lowS(S) + " " + Vconj(V[0]) + ", " + c.core + " " + lowS(S) + " " + per.de + " " + c.tail.trim() + ".";
     ar = "حالما " + Var(V[0]) + " " + S[1] + " يتصل بـ" + per.ar + ".";
     vocabRefs.push(per.w.id);
   } else if (gram === "wenn") {
     const V = pickN(rr, poolOf(1));
-    de = "Wenn " + S[0] + " " + Vconj(V[0]) + ", " + reflConj("freuen", S) + " " + lowS(S) + ".";
+    de = "Wenn " + lowS(S) + " " + Vconj(V[0]) + ", " + reflConj("freuen", S) + " " + lowS(S) + ".";
     ar = "إذا " + Var(V[0]) + " " + S[1] + " " + AR2("freuen", S) + " " + S[1] + ".";
   } else if (gram === "bevor" || gram === "nachdem") {
     // verb-final subordinate (intransitive, or transitive + object), full main clause
     const o = O();
     const useTrans = rr() < 0.5;
     const V = pickN(rr, useTrans ? poolOf(0) : poolOf(1));
-    const sub = useTrans ? S[0] + " " + o.de + " " + Vconj(V[0]) : S[0] + " " + Vconj(V[0]);
+    const sub = useTrans ? lowS(S) + " " + o.de + " " + Vconj(V[0]) : lowS(S) + " " + Vconj(V[0]);
     const subA = useTrans ? Var(V[0]) + " " + S[1] + " " + o.ar : Var(V[0]) + " " + S[1];
     const main = reflConj("freuen", S) + " " + lowS(S);
     const mainA = AR2("freuen", S) + " " + S[1];
@@ -641,7 +669,7 @@ function buildOne(rr, pat, idx) {
     const S2 = pickN(rr, SUBJ);
     const V = pickN(rr, poolOf(1)); const p = P();
     const mode = rr();
-    if (mode < 0.5) { de = "Obwohl " + S2[0] + " müde " + C2("sein", S2) + ", " + Vconj(V[0]) + " " + lowS(S) + " " + p[0] + "."; ar = "رغم أن " + S2[1] + " " + muedeAr(S2) + " " + Var(V[0]) + " " + S[1] + " " + p[1] + "."; }
+    if (mode < 0.5) { de = "Obwohl " + lowS(S2) + " müde " + C2("sein", S2) + ", " + Vconj(V[0]) + " " + lowS(S) + " " + p[0] + "."; ar = "رغم أن " + S2[1] + " " + muedeAr(S2) + " " + Var(V[0]) + " " + S[1] + " " + p[1] + "."; }
     else { const opens = [["Obwohl es regnet", "رغم المطر"], ["Obwohl es kalt ist", "رغم البرد"], ["Obwohl es spät ist", "رغم التأخر"], ["Obwohl es dunkel ist", "رغم الظلام"]]; const op = pickN(rr, opens); de = op[0] + ", " + Vconj(V[0]) + " " + lowS(S) + " " + p[0] + "."; ar = op[1] + " " + Var(V[0]) + " " + S[1] + " " + p[1] + "."; }
   } else if (gram === "perfekt" || gram === "nachdem-satz" || gram === "bevor-satz" || gram === "perfekt-inversion") {
     const pv = pickN(rr, PERFV);
@@ -650,8 +678,8 @@ function buildOne(rr, pat, idx) {
     const past = arPast(pv[2], fem);
     if (gram === "perfekt") { de = S[0] + " " + auxC + " " + pv[1] + "."; ar = S[1] + " " + arPastFull(pv[2], S) + "."; }
     else if (gram === "perfekt-inversion") { const t = T(); de = t[0].charAt(0).toUpperCase() + t[0].slice(1) + " " + auxC + " " + lowS(S) + " " + pv[1] + "."; ar = t[1] + " " + arPastFull(pv[2], S) + " " + S[1] + "."; }
-    else if (gram === "nachdem-satz") { const S2 = pickN(rr, SUBJ); const auxPast = aux === "sein" ? (cp === "ich" ? "war" : (cp === "wir" || S[2] === "siepl") ? "waren" : "war") : (cp === "ich" ? "hatte" : (cp === "wir" || S[2] === "siepl") ? "hatten" : "hatte"); const rc = conjPresent("ausruhen", CKEY[cpersonFull(S2)]); de = "Nachdem " + S[0] + " " + pv[1] + " " + auxPast + ", " + rc.core + " " + lowS(S2) + " sich " + rc.tail.trim() + "."; ar = "بعد أن " + arPastFull(pv[2], S) + " " + S[1] + " " + arSubj("ausruhen", S2) + " " + S2[1] + "."; }
-    else { const S2 = pickN(rr, SUBJ); const V = pickN(rr, poolOf(0)); de = "Bevor " + S[0] + " " + Vconj(V[0]) + ", " + C2("trinken", S2) + " " + lowS(S2) + " einen Kaffee."; ar = "قبل أن " + Var(V[0]) + " " + S[1] + " يشرب " + S2[1] + " قهوة."; }
+    else if (gram === "nachdem-satz") { const S2 = pickN(rr, SUBJ); const auxPast = aux === "sein" ? (cp === "ich" ? "war" : (cp === "wir" || S[2] === "siepl") ? "waren" : "war") : (cp === "ich" ? "hatte" : (cp === "wir" || S[2] === "siepl") ? "hatten" : "hatte"); const rc = conjPresent("ausruhen", CKEY[cpersonFull(S2)]); de = "Nachdem " + lowS(S) + " " + pv[1] + " " + auxPast + ", " + rc.core + " " + lowS(S2) + " sich " + rc.tail.trim() + "."; ar = "بعد أن " + arPastFull(pv[2], S) + " " + S[1] + " " + arSubj("ausruhen", S2) + " " + S2[1] + "."; }
+    else { const S2 = pickN(rr, SUBJ); const V = pickN(rr, poolOf(0)); de = "Bevor " + lowS(S) + " " + Vconj(V[0]) + ", " + C2("trinken", S2) + " " + lowS(S2) + " einen Kaffee."; ar = "قبل أن " + Var(V[0]) + " " + S[1] + " يشرب " + S2[1] + " قهوة."; }
   } else if (gram === "passiv" || gram === "passiv-modal") {
     const pv = pickN(rr, PASSV);
     const o = nomPhrase(rr, thingPoolFor(null));
@@ -876,7 +904,7 @@ function buildOne(rr, pat, idx) {
     if (gram === "wetter-es") { const a = pickN(rr, [["schön", "جميل"], ["kalt", "بارد"], ["warm", "دافئ"], ["gut", "جيد"], ["schlecht", "سيئ"], ["windig", "عاصف"], ["neblig", "ضبابي"], ["sonnig", "مشمس"], ["regnerisch", "ماطر"], ["wolkig", "غائم"], ["heiß", "حار"], ["kühl", "منعش"]]); de = "Es ist " + a[0] + " " + t[0] + "."; ar = "الجو " + a[1] + " " + t[1] + "."; }
     else { const v = pickN(rr, [["regnet", "تمطر"], ["schneit", "تثلج"]]); de = "Es " + v[0] + " " + t[0] + "."; ar = "إنها " + v[1] + " " + t[1] + "."; }
   } else if (gram === "es-gibt") {
-    const o = akkPhrase(rr, thingPoolFor(null), true); const p = P();
+    const o = indefPhrase(rr, thingPoolFor(null)); const p = P();
     de = "Es gibt " + o.de + " " + p[0] + ".";
     ar = "يوجد " + o.ar + " " + p[1] + ".";
     vocabRefs.push(o.w.id);
@@ -1010,7 +1038,7 @@ function buildOne(rr, pat, idx) {
     else { const o = O(); const v = gram === "einkaufen-fuer" ? conjPresent("einkaufen", cp) : { core: Vconj("kochen"), tail: "" }; de = S[0] + " " + v.core + " für " + per.de + " " + o.de + (v.tail ? " " + v.tail.trim() : "") + "."; ar = S[1] + " " + AR2(gram === "einkaufen-fuer" ? "einkaufen" : "kochen", S) + " لـ" + per.ar + " " + o.ar + "."; vocabRefs.push(o.w.id); }
     vocabRefs.push(per.w.id);
   } else if (gram === "zahlen-mit" || gram === "bar-zahlen" || gram === "kosten") {
-    if (gram === "kosten") { const pr = pickN(rr, O_PREIS); const ok = nomPhrase(rr, THING_NOUNS); de = ok.de.charAt(0).toUpperCase() + ok.de.slice(1) + " kostet " + pr[0] + "."; ar = ok.ar + " يكلف " + pr[1] + "."; vocabRefs.push(ok.w.id); }
+    if (gram === "kosten") { const pr = pickN(rr, O_PREIS); const ok = nomPhrase(rr, purchasePool()); de = ok.de.charAt(0).toUpperCase() + ok.de.slice(1) + " kostet " + pr[0] + "."; ar = ok.ar + " يكلف " + pr[1] + "."; vocabRefs.push(ok.w.id); }
     else { const o = akkPhrase(rr, thingPoolFor(null), true);
       if (gram === "bar-zahlen") { de = S[0] + " " + Vconj("bezahlen") + " " + o.de + " bar."; ar = S[1] + " " + AR2("bezahlen", S) + " " + o.ar + " نقدًا."; }
       else { const z = pickN(rr, O_ZAHL); de = S[0] + " " + Vconj("zahlen") + " " + o.de + " " + z[0] + "."; ar = S[1] + " " + AR2("zahlen", S) + " " + o.ar + " " + z[1] + "."; }

@@ -69,9 +69,17 @@ function validateDataset(ds) {
         if (!/^[A-ZÄÖÜ]/.test(w.plural.trim()) && !/^[a-zäöü]/.test(w.plural.trim())) E(w.id, "vocab: malformed plural");
         if (normDE(w.plural) === n && !/^(das\s|die\s|der\s)/.test(w.plural)) {
           // zero-plural is correct for -er/-el/-en masculines & neuters (Lehrer, Onkel, …)
-          // and for verified pluralia tantum (Eltern, Leute, Ferien, Jeans, …)
+          // and for verified pluralia tantum (Eltern, Leute, Ferien, Jeans, …).
+          // Determinative compounds inherit the head's number behavior, so
+          // compounds headed by a tantum/invariable noun are likewise exempt
+          // (audited 2026-10-09: Hausshorts/Wintershorts/… -> shorts;
+          //  Familieneltern/Spieleltern/… -> eltern; Spätzle/Käsespätzle/… ->
+          //  spätzle, invariable). Suffix match is narrowly scoped to these
+          //  verified heads only.
           const TANTUM = ["eltern", "leute", "ferien", "jeans", "shorts", "ananas", "kosten", "niederlande", "usa", "philippinen", "vereinigte arabische emirate"];
-          if (!/(er|el|en)$/.test(w.de) && TANTUM.indexOf(n) < 0) W(w.id, "vocab: plural identical to singular (no article prefix?)");
+          const TANTUM_TAIL = ["eltern", "shorts", "spätzle", "leute", "ferien", "jeans"];
+          const tailHit = TANTUM_TAIL.some((t) => n === t || n.endsWith(t));
+          if (!/(er|el|en)$/.test(w.de) && TANTUM.indexOf(n) < 0 && !tailHit) W(w.id, "vocab: plural identical to singular (no article prefix?)");
         }
       }
       const k = n + "|" + w.art;

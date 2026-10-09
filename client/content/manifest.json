@@ -1,7 +1,7 @@
 {
  "version": 2,
  "seed": "deutsch-master-library-v2",
- "generated": "2026-10-08T20:45:04.750Z",
+ "generated": "2026-10-09T10:13:54.548Z",
  "files": [
   {
    "src": "content/src/vocab-01.json",
@@ -9,7 +9,7 @@
    "kind": "vocab",
    "count": 2500,
    "load": "sync",
-   "bytes": 554522
+   "bytes": 559171
   },
   {
    "src": "content/src/vocab-02.json",
@@ -17,7 +17,7 @@
    "kind": "vocab",
    "count": 2500,
    "load": "sync",
-   "bytes": 502787
+   "bytes": 497800
   },
   {
    "src": "content/src/vocab-03.json",
@@ -25,15 +25,47 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 661063
+   "bytes": 662857
   },
   {
    "src": "content/src/vocab-04.json",
    "runtime": "content/dm-vocab-04.js",
    "kind": "vocab",
-   "count": 4901,
+   "count": 5000,
    "load": "lazy",
-   "bytes": 608780
+   "bytes": 633023
+  },
+  {
+   "src": "content/src/vocab-05.json",
+   "runtime": "content/dm-vocab-05.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 1195922
+  },
+  {
+   "src": "content/src/vocab-06.json",
+   "runtime": "content/dm-vocab-06.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 930933
+  },
+  {
+   "src": "content/src/vocab-07.json",
+   "runtime": "content/dm-vocab-07.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 801834
+  },
+  {
+   "src": "content/src/vocab-08.json",
+   "runtime": "content/dm-vocab-08.js",
+   "kind": "vocab",
+   "count": 616,
+   "load": "lazy",
+   "bytes": 76932
   },
   {
    "src": "content/src/sent-01.json",
@@ -41,7 +73,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 682725
+   "bytes": 691069
   },
   {
    "src": "content/src/sent-02.json",
@@ -49,7 +81,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 687784
+   "bytes": 699340
   },
   {
    "src": "content/src/sent-03.json",
@@ -57,7 +89,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 690890
+   "bytes": 700063
   },
   {
    "src": "content/src/sent-04.json",
@@ -65,7 +97,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 864501
+   "bytes": 876207
   },
   {
    "src": "content/src/sent-05.json",
@@ -73,7 +105,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 866545
+   "bytes": 877351
   },
   {
    "src": "content/src/sent-06.json",
@@ -81,7 +113,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 866825
+   "bytes": 880409
   },
   {
    "src": "content/src/sent-07.json",
@@ -89,7 +121,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 867610
+   "bytes": 881386
   },
   {
    "src": "content/src/sent-08.json",
@@ -97,7 +129,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 869219
+   "bytes": 883484
   },
   {
    "src": "content/src/sent-09.json",
@@ -105,7 +137,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 872488
+   "bytes": 884151
   },
   {
    "src": "content/src/sent-10.json",
@@ -113,7 +145,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 869830
+   "bytes": 884104
   },
   {
    "src": "content/src/sent-11.json",
@@ -121,7 +153,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 871020
+   "bytes": 884124
   },
   {
    "src": "content/src/sent-12.json",
@@ -129,7 +161,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 872031
+   "bytes": 885005
   },
   {
    "src": "content/src/sent-13.json",
@@ -137,7 +169,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 871796
+   "bytes": 886363
   },
   {
    "src": "content/src/sent-14.json",
@@ -145,7 +177,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 874375
+   "bytes": 885705
   },
   {
    "src": "content/src/sent-15.json",
@@ -153,7 +185,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 872627
+   "bytes": 887330
   },
   {
    "src": "content/src/sent-16.json",
@@ -161,7 +193,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 871900
+   "bytes": 885846
   },
   {
    "src": "content/src/sent-17.json",
@@ -169,7 +201,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 873538
+   "bytes": 888403
   },
   {
    "src": "content/src/sent-18.json",
@@ -177,7 +209,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 873101
+   "bytes": 887402
   },
   {
    "src": "content/src/sent-19.json",
@@ -185,7 +217,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 876319
+   "bytes": 889261
   },
   {
    "src": "content/src/sent-20.json",
@@ -193,7 +225,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 881116
+   "bytes": 891470
   },
   {
    "src": "content/src/sent-21.json",
@@ -201,7 +233,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 878357
+   "bytes": 891205
   },
   {
    "src": "content/src/sent-22.json",
@@ -209,7 +241,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 882366
+   "bytes": 892859
   },
   {
    "src": "content/src/sent-23.json",
@@ -217,7 +249,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 880515
+   "bytes": 891105
   },
   {
    "src": "content/src/sent-24.json",
@@ -225,7 +257,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 879706
+   "bytes": 895148
   },
   {
    "src": "content/src/sent-25.json",
@@ -233,7 +265,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 878532
+   "bytes": 893939
   },
   {
    "src": "content/src/sent-26.json",
@@ -241,7 +273,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 881325
+   "bytes": 892395
   },
   {
    "src": "content/src/sent-27.json",
@@ -249,7 +281,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 881099
+   "bytes": 894657
   },
   {
    "src": "content/src/sent-28.json",
@@ -257,7 +289,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 879910
+   "bytes": 893654
   },
   {
    "src": "content/src/sent-29.json",
@@ -265,7 +297,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 879183
+   "bytes": 894277
   },
   {
    "src": "content/src/sent-30.json",
@@ -273,7 +305,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 880685
+   "bytes": 894563
   },
   {
    "src": "content/src/sent-31.json",
@@ -281,7 +313,7 @@
    "kind": "sent",
    "count": 3000,
    "load": "lazy",
-   "bytes": 528516
+   "bytes": 536743
   },
   {
    "src": "content/src/gram-01.json",
@@ -305,7 +337,7 @@
    "kind": "ex",
    "count": 7550,
    "load": "defer",
-   "bytes": 1271847
+   "bytes": 1159606
   },
   {
    "src": "content/src/ex-02.json",
@@ -313,7 +345,7 @@
    "kind": "ex",
    "count": 7550,
    "load": "defer",
-   "bytes": 1224170
+   "bytes": 1342440
   },
   {
    "src": "content/src/ex-03.json",
@@ -321,7 +353,7 @@
    "kind": "ex",
    "count": 7550,
    "load": "defer",
-   "bytes": 1131087
+   "bytes": 1545064
   },
   {
    "src": "content/src/ex-04.json",
@@ -329,7 +361,7 @@
    "kind": "ex",
    "count": 7550,
    "load": "defer",
-   "bytes": 1707464
+   "bytes": 1200194
   },
   {
    "src": "content/src/ex-05.json",
@@ -337,7 +369,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1991791
+   "bytes": 1251350
   },
   {
    "src": "content/src/ex-06.json",
@@ -345,7 +377,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1864919
+   "bytes": 1233698
   },
   {
    "src": "content/src/ex-07.json",
@@ -353,7 +385,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1963735
+   "bytes": 1190618
   },
   {
    "src": "content/src/ex-08.json",
@@ -361,7 +393,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1925359
+   "bytes": 1543624
   },
   {
    "src": "content/src/ex-09.json",
@@ -369,7 +401,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1923874
+   "bytes": 2042495
   },
   {
    "src": "content/src/ex-10.json",
@@ -377,7 +409,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1493366
+   "bytes": 1951095
   },
   {
    "src": "content/src/ex-11.json",
@@ -385,7 +417,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1822257
+   "bytes": 2199211
   },
   {
    "src": "content/src/ex-12.json",
@@ -393,7 +425,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1874756
+   "bytes": 1973801
   },
   {
    "src": "content/src/ex-13.json",
@@ -401,7 +433,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1878507
+   "bytes": 2101893
   },
   {
    "src": "content/src/ex-14.json",
@@ -409,7 +441,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1886839
+   "bytes": 1948867
   },
   {
    "src": "content/src/ex-15.json",
@@ -417,7 +449,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1890719
+   "bytes": 2290819
   },
   {
    "src": "content/src/ex-16.json",
@@ -425,7 +457,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1892380
+   "bytes": 1926468
   },
   {
    "src": "content/src/ex-17.json",
@@ -433,7 +465,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1891254
+   "bytes": 2134128
   },
   {
    "src": "content/src/ex-18.json",
@@ -441,7 +473,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1893575
+   "bytes": 1960431
   },
   {
    "src": "content/src/ex-19.json",
@@ -449,7 +481,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1896516
+   "bytes": 2333440
   },
   {
    "src": "content/src/ex-20.json",
@@ -457,7 +489,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1893065
+   "bytes": 1821570
   },
   {
    "src": "content/src/ex-21.json",
@@ -465,7 +497,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1895489
+   "bytes": 1610579
   },
   {
    "src": "content/src/ex-22.json",
@@ -473,7 +505,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1903070
+   "bytes": 1622522
   },
   {
    "src": "content/src/ex-23.json",
@@ -481,7 +513,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1904363
+   "bytes": 1898944
   },
   {
    "src": "content/src/ex-24.json",
@@ -489,7 +521,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1908681
+   "bytes": 1901515
   },
   {
    "src": "content/src/ex-25.json",
@@ -497,7 +529,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1904057
+   "bytes": 1906236
   },
   {
    "src": "content/src/ex-26.json",
@@ -505,7 +537,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1905786
+   "bytes": 1910798
   },
   {
    "src": "content/src/ex-27.json",
@@ -513,7 +545,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1906290
+   "bytes": 1911241
   },
   {
    "src": "content/src/ex-28.json",
@@ -521,7 +553,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1903067
+   "bytes": 1914110
   },
   {
    "src": "content/src/ex-29.json",
@@ -529,7 +561,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1904989
+   "bytes": 1916711
   },
   {
    "src": "content/src/ex-30.json",
@@ -537,7 +569,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1900342
+   "bytes": 1914404
   },
   {
    "src": "content/src/ex-31.json",
@@ -545,7 +577,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1906841
+   "bytes": 1918179
   },
   {
    "src": "content/src/ex-32.json",
@@ -553,7 +585,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1908714
+   "bytes": 1917080
   },
   {
    "src": "content/src/ex-33.json",
@@ -561,7 +593,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1911482
+   "bytes": 1920668
   },
   {
    "src": "content/src/ex-34.json",
@@ -569,7 +601,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1914913
+   "bytes": 1923097
   },
   {
    "src": "content/src/ex-35.json",
@@ -577,7 +609,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1913901
+   "bytes": 1926168
   },
   {
    "src": "content/src/ex-36.json",
@@ -585,7 +617,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1915565
+   "bytes": 1927273
   },
   {
    "src": "content/src/ex-37.json",
@@ -593,7 +625,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1917871
+   "bytes": 1926629
   },
   {
    "src": "content/src/ex-38.json",
@@ -601,7 +633,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1915779
+   "bytes": 1927761
   },
   {
    "src": "content/src/ex-39.json",
@@ -609,7 +641,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1918309
+   "bytes": 1927238
   },
   {
    "src": "content/src/ex-40.json",
@@ -617,7 +649,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1921784
+   "bytes": 1928308
   },
   {
    "src": "content/src/ex-41.json",
@@ -625,7 +657,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1926889
+   "bytes": 1919017
   },
   {
    "src": "content/src/ex-42.json",
@@ -633,7 +665,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1930481
+   "bytes": 1923699
   },
   {
    "src": "content/src/ex-43.json",
@@ -641,7 +673,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1928102
+   "bytes": 1926070
   },
   {
    "src": "content/src/ex-44.json",
@@ -649,7 +681,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1927333
+   "bytes": 1931227
   },
   {
    "src": "content/src/ex-45.json",
@@ -657,7 +689,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1929767
+   "bytes": 1936362
   },
   {
    "src": "content/src/ex-46.json",
@@ -665,7 +697,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1927726
+   "bytes": 1935169
   },
   {
    "src": "content/src/ex-47.json",
@@ -673,7 +705,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1928991
+   "bytes": 1936191
   },
   {
    "src": "content/src/ex-48.json",
@@ -681,7 +713,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2119379
+   "bytes": 1938213
   },
   {
    "src": "content/src/ex-49.json",
@@ -689,7 +721,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2126963
+   "bytes": 1939668
   },
   {
    "src": "content/src/ex-50.json",
@@ -697,7 +729,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2130267
+   "bytes": 1939950
   },
   {
    "src": "content/src/ex-51.json",
@@ -705,7 +737,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2126087
+   "bytes": 1939710
   },
   {
    "src": "content/src/ex-52.json",
@@ -713,7 +745,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2137389
+   "bytes": 1945653
   },
   {
    "src": "content/src/ex-53.json",
@@ -721,7 +753,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2134753
+   "bytes": 1947139
   },
   {
    "src": "content/src/ex-54.json",
@@ -729,7 +761,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2062020
+   "bytes": 1947350
   },
   {
    "src": "content/src/ex-55.json",
@@ -737,7 +769,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1863981
+   "bytes": 1950729
   },
   {
    "src": "content/src/ex-56.json",
@@ -745,7 +777,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1864045
+   "bytes": 1949221
   },
   {
    "src": "content/src/ex-57.json",
@@ -753,7 +785,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1862973
+   "bytes": 1951528
   },
   {
    "src": "content/src/ex-58.json",
@@ -761,7 +793,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1863683
+   "bytes": 1950002
   },
   {
    "src": "content/src/ex-59.json",
@@ -769,7 +801,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1869626
+   "bytes": 2035796
   },
   {
    "src": "content/src/ex-60.json",
@@ -777,7 +809,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1873177
+   "bytes": 2145815
   },
   {
    "src": "content/src/ex-61.json",
@@ -785,7 +817,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1874607
+   "bytes": 2150719
   },
   {
    "src": "content/src/ex-62.json",
@@ -793,7 +825,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2315094
+   "bytes": 2147968
   },
   {
    "src": "content/src/ex-63.json",
@@ -801,7 +833,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 3504912
+   "bytes": 2153378
   },
   {
    "src": "content/src/ex-64.json",
@@ -809,7 +841,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 3499532
+   "bytes": 2157274
   },
   {
    "src": "content/src/ex-65.json",
@@ -817,7 +849,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 3513061
+   "bytes": 2157782
   },
   {
    "src": "content/src/ex-66.json",
@@ -825,7 +857,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 3503002
+   "bytes": 1938908
   },
   {
    "src": "content/src/ex-67.json",
@@ -833,7 +865,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 3511637
+   "bytes": 1884290
   },
   {
    "src": "content/src/ex-68.json",
@@ -841,7 +873,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 3507225
+   "bytes": 1883230
   },
   {
    "src": "content/src/ex-69.json",
@@ -849,7 +881,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 3917779
+   "bytes": 1886801
   },
   {
    "src": "content/src/ex-70.json",
@@ -857,7 +889,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 5621954
+   "bytes": 1887620
   },
   {
    "src": "content/src/ex-71.json",
@@ -865,7 +897,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 2019252
+   "bytes": 1893896
   },
   {
    "src": "content/src/ex-72.json",
@@ -873,7 +905,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1858136
+   "bytes": 1896653
   },
   {
    "src": "content/src/ex-73.json",
@@ -881,7 +913,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1925701
+   "bytes": 1894335
   },
   {
    "src": "content/src/ex-74.json",
@@ -889,7 +921,7 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1922558
+   "bytes": 3096050
   },
   {
    "src": "content/src/ex-75.json",
@@ -897,15 +929,111 @@
    "kind": "ex",
    "count": 8000,
    "load": "lazy",
-   "bytes": 1928523
+   "bytes": 3564082
   },
   {
    "src": "content/src/ex-76.json",
    "runtime": "content/dm-ex-76.js",
    "kind": "ex",
-   "count": 6673,
+   "count": 8000,
    "load": "lazy",
-   "bytes": 1605887
+   "bytes": 3565406
+  },
+  {
+   "src": "content/src/ex-77.json",
+   "runtime": "content/dm-ex-77.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 3564179
+  },
+  {
+   "src": "content/src/ex-78.json",
+   "runtime": "content/dm-ex-78.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 3563740
+  },
+  {
+   "src": "content/src/ex-79.json",
+   "runtime": "content/dm-ex-79.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 3555273
+  },
+  {
+   "src": "content/src/ex-80.json",
+   "runtime": "content/dm-ex-80.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 3335374
+  },
+  {
+   "src": "content/src/ex-81.json",
+   "runtime": "content/dm-ex-81.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 5910234
+  },
+  {
+   "src": "content/src/ex-82.json",
+   "runtime": "content/dm-ex-82.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 3225282
+  },
+  {
+   "src": "content/src/ex-83.json",
+   "runtime": "content/dm-ex-83.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 1894078
+  },
+  {
+   "src": "content/src/ex-84.json",
+   "runtime": "content/dm-ex-84.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 1942776
+  },
+  {
+   "src": "content/src/ex-85.json",
+   "runtime": "content/dm-ex-85.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 1948307
+  },
+  {
+   "src": "content/src/ex-86.json",
+   "runtime": "content/dm-ex-86.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 1945684
+  },
+  {
+   "src": "content/src/ex-87.json",
+   "runtime": "content/dm-ex-87.js",
+   "kind": "ex",
+   "count": 8000,
+   "load": "lazy",
+   "bytes": 1945362
+  },
+  {
+   "src": "content/src/ex-88.json",
+   "runtime": "content/dm-ex-88.js",
+   "kind": "ex",
+   "count": 3130,
+   "load": "lazy",
+   "bytes": 761373
   },
   {
    "src": "content/src/dlg-01.json",
@@ -973,10 +1101,10 @@
   }
  ],
  "counts": {
-  "vocab": 14901,
+  "vocab": 30616,
   "sent": 150000,
   "gram": 3069,
-  "ex": 604873,
+  "ex": 697330,
   "dlg": 10000,
   "read": 5000,
   "lis": 10000,
@@ -987,181 +1115,205 @@
    "file": "content/dm-vocab-03.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 661063
+   "bytes": 662857
   },
   {
    "file": "content/dm-vocab-04.js",
    "kind": "vocab",
-   "count": 4901,
-   "bytes": 608780
+   "count": 5000,
+   "bytes": 633023
+  },
+  {
+   "file": "content/dm-vocab-05.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 1195922
+  },
+  {
+   "file": "content/dm-vocab-06.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 930933
+  },
+  {
+   "file": "content/dm-vocab-07.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 801834
+  },
+  {
+   "file": "content/dm-vocab-08.js",
+   "kind": "vocab",
+   "count": 616,
+   "bytes": 76932
   },
   {
    "file": "content/dm-sent-04.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 864501
+   "bytes": 876207
   },
   {
    "file": "content/dm-sent-05.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 866545
+   "bytes": 877351
   },
   {
    "file": "content/dm-sent-06.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 866825
+   "bytes": 880409
   },
   {
    "file": "content/dm-sent-07.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 867610
+   "bytes": 881386
   },
   {
    "file": "content/dm-sent-08.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 869219
+   "bytes": 883484
   },
   {
    "file": "content/dm-sent-09.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 872488
+   "bytes": 884151
   },
   {
    "file": "content/dm-sent-10.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 869830
+   "bytes": 884104
   },
   {
    "file": "content/dm-sent-11.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 871020
+   "bytes": 884124
   },
   {
    "file": "content/dm-sent-12.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 872031
+   "bytes": 885005
   },
   {
    "file": "content/dm-sent-13.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 871796
+   "bytes": 886363
   },
   {
    "file": "content/dm-sent-14.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 874375
+   "bytes": 885705
   },
   {
    "file": "content/dm-sent-15.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 872627
+   "bytes": 887330
   },
   {
    "file": "content/dm-sent-16.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 871900
+   "bytes": 885846
   },
   {
    "file": "content/dm-sent-17.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 873538
+   "bytes": 888403
   },
   {
    "file": "content/dm-sent-18.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 873101
+   "bytes": 887402
   },
   {
    "file": "content/dm-sent-19.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 876319
+   "bytes": 889261
   },
   {
    "file": "content/dm-sent-20.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 881116
+   "bytes": 891470
   },
   {
    "file": "content/dm-sent-21.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 878357
+   "bytes": 891205
   },
   {
    "file": "content/dm-sent-22.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 882366
+   "bytes": 892859
   },
   {
    "file": "content/dm-sent-23.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 880515
+   "bytes": 891105
   },
   {
    "file": "content/dm-sent-24.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 879706
+   "bytes": 895148
   },
   {
    "file": "content/dm-sent-25.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 878532
+   "bytes": 893939
   },
   {
    "file": "content/dm-sent-26.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 881325
+   "bytes": 892395
   },
   {
    "file": "content/dm-sent-27.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 881099
+   "bytes": 894657
   },
   {
    "file": "content/dm-sent-28.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 879910
+   "bytes": 893654
   },
   {
    "file": "content/dm-sent-29.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 879183
+   "bytes": 894277
   },
   {
    "file": "content/dm-sent-30.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 880685
+   "bytes": 894563
   },
   {
    "file": "content/dm-sent-31.js",
    "kind": "sent",
    "count": 3000,
-   "bytes": 528516
+   "bytes": 536743
   },
   {
    "file": "content/dm-gram-02.js",
@@ -1173,433 +1325,505 @@
    "file": "content/dm-ex-05.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1991791
+   "bytes": 1251350
   },
   {
    "file": "content/dm-ex-06.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1864919
+   "bytes": 1233698
   },
   {
    "file": "content/dm-ex-07.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1963735
+   "bytes": 1190618
   },
   {
    "file": "content/dm-ex-08.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1925359
+   "bytes": 1543624
   },
   {
    "file": "content/dm-ex-09.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1923874
+   "bytes": 2042495
   },
   {
    "file": "content/dm-ex-10.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1493366
+   "bytes": 1951095
   },
   {
    "file": "content/dm-ex-11.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1822257
+   "bytes": 2199211
   },
   {
    "file": "content/dm-ex-12.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1874756
+   "bytes": 1973801
   },
   {
    "file": "content/dm-ex-13.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1878507
+   "bytes": 2101893
   },
   {
    "file": "content/dm-ex-14.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1886839
+   "bytes": 1948867
   },
   {
    "file": "content/dm-ex-15.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1890719
+   "bytes": 2290819
   },
   {
    "file": "content/dm-ex-16.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1892380
+   "bytes": 1926468
   },
   {
    "file": "content/dm-ex-17.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1891254
+   "bytes": 2134128
   },
   {
    "file": "content/dm-ex-18.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1893575
+   "bytes": 1960431
   },
   {
    "file": "content/dm-ex-19.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1896516
+   "bytes": 2333440
   },
   {
    "file": "content/dm-ex-20.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1893065
+   "bytes": 1821570
   },
   {
    "file": "content/dm-ex-21.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1895489
+   "bytes": 1610579
   },
   {
    "file": "content/dm-ex-22.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1903070
+   "bytes": 1622522
   },
   {
    "file": "content/dm-ex-23.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1904363
+   "bytes": 1898944
   },
   {
    "file": "content/dm-ex-24.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1908681
+   "bytes": 1901515
   },
   {
    "file": "content/dm-ex-25.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1904057
+   "bytes": 1906236
   },
   {
    "file": "content/dm-ex-26.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1905786
+   "bytes": 1910798
   },
   {
    "file": "content/dm-ex-27.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1906290
+   "bytes": 1911241
   },
   {
    "file": "content/dm-ex-28.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1903067
+   "bytes": 1914110
   },
   {
    "file": "content/dm-ex-29.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1904989
+   "bytes": 1916711
   },
   {
    "file": "content/dm-ex-30.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1900342
+   "bytes": 1914404
   },
   {
    "file": "content/dm-ex-31.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1906841
+   "bytes": 1918179
   },
   {
    "file": "content/dm-ex-32.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1908714
+   "bytes": 1917080
   },
   {
    "file": "content/dm-ex-33.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1911482
+   "bytes": 1920668
   },
   {
    "file": "content/dm-ex-34.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1914913
+   "bytes": 1923097
   },
   {
    "file": "content/dm-ex-35.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1913901
+   "bytes": 1926168
   },
   {
    "file": "content/dm-ex-36.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1915565
+   "bytes": 1927273
   },
   {
    "file": "content/dm-ex-37.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1917871
+   "bytes": 1926629
   },
   {
    "file": "content/dm-ex-38.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1915779
+   "bytes": 1927761
   },
   {
    "file": "content/dm-ex-39.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1918309
+   "bytes": 1927238
   },
   {
    "file": "content/dm-ex-40.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1921784
+   "bytes": 1928308
   },
   {
    "file": "content/dm-ex-41.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1926889
+   "bytes": 1919017
   },
   {
    "file": "content/dm-ex-42.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1930481
+   "bytes": 1923699
   },
   {
    "file": "content/dm-ex-43.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1928102
+   "bytes": 1926070
   },
   {
    "file": "content/dm-ex-44.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1927333
+   "bytes": 1931227
   },
   {
    "file": "content/dm-ex-45.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1929767
+   "bytes": 1936362
   },
   {
    "file": "content/dm-ex-46.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1927726
+   "bytes": 1935169
   },
   {
    "file": "content/dm-ex-47.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1928991
+   "bytes": 1936191
   },
   {
    "file": "content/dm-ex-48.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2119379
+   "bytes": 1938213
   },
   {
    "file": "content/dm-ex-49.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2126963
+   "bytes": 1939668
   },
   {
    "file": "content/dm-ex-50.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2130267
+   "bytes": 1939950
   },
   {
    "file": "content/dm-ex-51.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2126087
+   "bytes": 1939710
   },
   {
    "file": "content/dm-ex-52.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2137389
+   "bytes": 1945653
   },
   {
    "file": "content/dm-ex-53.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2134753
+   "bytes": 1947139
   },
   {
    "file": "content/dm-ex-54.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2062020
+   "bytes": 1947350
   },
   {
    "file": "content/dm-ex-55.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1863981
+   "bytes": 1950729
   },
   {
    "file": "content/dm-ex-56.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1864045
+   "bytes": 1949221
   },
   {
    "file": "content/dm-ex-57.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1862973
+   "bytes": 1951528
   },
   {
    "file": "content/dm-ex-58.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1863683
+   "bytes": 1950002
   },
   {
    "file": "content/dm-ex-59.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1869626
+   "bytes": 2035796
   },
   {
    "file": "content/dm-ex-60.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1873177
+   "bytes": 2145815
   },
   {
    "file": "content/dm-ex-61.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1874607
+   "bytes": 2150719
   },
   {
    "file": "content/dm-ex-62.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2315094
+   "bytes": 2147968
   },
   {
    "file": "content/dm-ex-63.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 3504912
+   "bytes": 2153378
   },
   {
    "file": "content/dm-ex-64.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 3499532
+   "bytes": 2157274
   },
   {
    "file": "content/dm-ex-65.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 3513061
+   "bytes": 2157782
   },
   {
    "file": "content/dm-ex-66.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 3503002
+   "bytes": 1938908
   },
   {
    "file": "content/dm-ex-67.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 3511637
+   "bytes": 1884290
   },
   {
    "file": "content/dm-ex-68.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 3507225
+   "bytes": 1883230
   },
   {
    "file": "content/dm-ex-69.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 3917779
+   "bytes": 1886801
   },
   {
    "file": "content/dm-ex-70.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 5621954
+   "bytes": 1887620
   },
   {
    "file": "content/dm-ex-71.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 2019252
+   "bytes": 1893896
   },
   {
    "file": "content/dm-ex-72.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1858136
+   "bytes": 1896653
   },
   {
    "file": "content/dm-ex-73.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1925701
+   "bytes": 1894335
   },
   {
    "file": "content/dm-ex-74.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1922558
+   "bytes": 3096050
   },
   {
    "file": "content/dm-ex-75.js",
    "kind": "ex",
    "count": 8000,
-   "bytes": 1928523
+   "bytes": 3564082
   },
   {
    "file": "content/dm-ex-76.js",
    "kind": "ex",
-   "count": 6673,
-   "bytes": 1605887
+   "count": 8000,
+   "bytes": 3565406
+  },
+  {
+   "file": "content/dm-ex-77.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 3564179
+  },
+  {
+   "file": "content/dm-ex-78.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 3563740
+  },
+  {
+   "file": "content/dm-ex-79.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 3555273
+  },
+  {
+   "file": "content/dm-ex-80.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 3335374
+  },
+  {
+   "file": "content/dm-ex-81.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 5910234
+  },
+  {
+   "file": "content/dm-ex-82.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 3225282
+  },
+  {
+   "file": "content/dm-ex-83.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 1894078
+  },
+  {
+   "file": "content/dm-ex-84.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 1942776
+  },
+  {
+   "file": "content/dm-ex-85.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 1948307
+  },
+  {
+   "file": "content/dm-ex-86.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 1945684
+  },
+  {
+   "file": "content/dm-ex-87.js",
+   "kind": "ex",
+   "count": 8000,
+   "bytes": 1945362
+  },
+  {
+   "file": "content/dm-ex-88.js",
+   "kind": "ex",
+   "count": 3130,
+   "bytes": 761373
   },
   {
    "file": "content/dm-dlg-02.js",
