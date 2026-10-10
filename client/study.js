@@ -71,6 +71,11 @@ function applyLang(){
     });
   }catch(e){}
   try{if(typeof populateGermanVoiceSelect==="function")populateGermanVoiceSelect();}catch(e){}
+  /* Bookkeeping for the showPage navigation fast-path below: records which
+     language the visible chrome was last stamped with, so sidebar navigation
+     can skip the full-document re-translation (plus the dashboard command
+     rebuild it triggers) when the language has not changed. */
+  try{window.__dmAppliedLang=(typeof S!=="undefined"&&S&&S.uiLang)||"ar";}catch(e){}
 }
 /* ---------- mobile header language menu (same i18n system, no new backend) ---------- */
 function setHeaderLang(v){
@@ -746,13 +751,28 @@ const STUDY_PAGES={tutor:renderTutor,roadmap:renderRoadmap,labs:renderLabs,profi
     const _sp=showPage;
     showPage=function(n){
       _sp(n);
-      try{applyLang();}catch(e){}
+      /* Perf: applyLang() walks the entire document (4 full querySelectorAll
+         passes over ~9.5k nodes plus nav-label DOM surgery) and — via the
+         home.js wrapper — rebuilds the whole dashboard command center with
+         full-bank scans on EVERY call, even when navigating between hidden
+         pages. Language output only changes when uiLang changes, so propagate
+         only then. Dashboard/settings keep their explicit per-visit refresh
+         below (fresh data needs one pass); every other page skips it. */
+      try{
+        var _nl="ar"; try{_nl=(typeof S!=="undefined"&&S&&S.uiLang)||"ar";}catch(_e0){}
+        if(window.__dmAppliedLang!==_nl){try{applyLang();}catch(_e1){}}
+      }catch(_e2){}
       try{
         /* Page-state preservation: session pages (tutor/labs/stories) keep live
            DOM on return visits; summary pages always re-render (see NEVER_SKIP). */
         try{
           if(window.DMPageState&&typeof DMPageState.skipRender==="function"&&DMPageState.skipRender(n)){
-            if(n==="tutor"||n==="labs"||n==="stories"){applyLang();}
+            if(n==="tutor"||n==="labs"||n==="stories"){
+              try{
+                var _tl="ar"; try{_tl=(typeof S!=="undefined"&&S&&S.uiLang)||"ar";}catch(_eT0){}
+                if(window.__dmAppliedLang!==_tl){try{applyLang();}catch(_eT1){}}
+              }catch(_eT2){}
+            }
           } else {
             if(STUDY_PAGES[n])STUDY_PAGES[n]();
             if(n==="stories")renderIStories();

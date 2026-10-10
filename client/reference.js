@@ -166,11 +166,35 @@ function refAllTopicsFlat(){
   }catch(e){}
   return out;
 }
+/* Perf: refTopicById() used to rescan Object.keys(window) plus all topics once
+   per PATH (16 full scans) on every single lookup — ~4ms per lookup, so the
+   journey + featured strips alone cost ~40ms per home paint (3-5x on phones).
+   Topic data is static after scripts load (never mutated), so build the
+   id/path indexes once and reuse them. refBuildIndex()/link-index warm paths
+   benefit automatically since they go through refPathTopics. */
+var _refTopicIdx=null;
+function refTopicIndex(){
+  if(_refTopicIdx)return _refTopicIdx;
+  const byId={},byPath={};
+  try{
+    const flat=refAllTopicsFlat();
+    REF_PATHS.forEach(p=>{
+      const pre=String(p.id||"").toLowerCase()+"-";
+      const arr=flat.filter(tp=>tp&&typeof tp.id==="string"&&tp.id.indexOf(pre)===0);
+      byPath[p.id]=arr;
+      arr.forEach(tp=>{if(tp&&tp.id&&!byId[tp.id])byId[tp.id]={path:p,topic:tp};});
+    });
+  }catch(e){}
+  _refTopicIdx={byId:byId,byPath:byPath};
+  return _refTopicIdx;
+}
 function refPathTopics(pid){
+  try{const idx=refTopicIndex();if(idx.byPath[pid])return idx.byPath[pid].slice();}catch(e){}
   const pre=String(pid||"").toLowerCase()+"-";
   return refAllTopicsFlat().filter(tp=>tp&&typeof tp.id==="string"&&tp.id.indexOf(pre)===0);
 }
 function refTopicById(id){
+  try{const idx=refTopicIndex();if(idx.byId[id])return idx.byId[id];}catch(e){}
   for(const p of REF_PATHS){const arr=refPathTopics(p.id);for(const tp of arr){if(tp&&tp.id===id)return {path:p,topic:tp};}
   }return null;
 }

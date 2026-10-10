@@ -768,7 +768,13 @@ try {
   showPage = function (n) {
     _sentA1SP(n);
     /* Page-state preservation: keep the filtered sentence list as-left on return visits. */
-    try { if (n === "sentences" && !(window.DMPageState && DMPageState.skipRender && DMPageState.skipRender("sentences"))) sentA1Render(); } catch (e) { if (window.console) console.error(e); }
+    /* Perf: _sentA1SP already ran ensureSection, which renders via DM_LAZY.
+       DM_LAZY.sentences points at this unified renderer (see repoint above),
+       so the first visit is already rendered — calling sentA1Render() again
+       would re-run the bank merge plus a second 80-card DOM build
+       synchronously (~200ms long task). Only render here when the lazy slot
+       still holds a different (fallback) renderer. */
+    try { if (n === "sentences" && !(window.DMPageState && DMPageState.skipRender && DMPageState.skipRender("sentences"))) { try { if (typeof DM_LAZY !== "undefined" && DM_LAZY && DM_LAZY.sentences === sentA1Render) return; } catch (_e0) {} sentA1Render(); } } catch (e) { if (window.console) console.error(e); }
   };
 } catch (e) {}
 /* Perf: the one-time sentence merge (~100ms bank scan) ran synchronously

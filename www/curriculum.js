@@ -196,9 +196,20 @@ function loadScript(src,cb){
   document.body.appendChild(el);
 }
 function afterMergeRefresh(){
+  try{
+    if(typeof document!=="undefined"&&document.hidden){
+      /* Background tab: a full renderAll here costs ~300ms+ on phones for a
+         page nobody sees. Mark dirty and re-render on return to foreground
+         (flushed by the guarded visibility listener below). No reload, no
+         state reset — purely deferred work. */
+      try{window.__dmMergeDirty=true;}catch(e){}
+      return;
+    }
+  }catch(e){}
   try{if(typeof renderAll==="function")renderAll();}catch(e){}
   try{if(typeof refreshFlashList==="function")refreshFlashList();}catch(e){}
   try{currRefreshHooks();}catch(e){}
+  try{window.__dmMergeDirty=false;}catch(e){}
   /* Idle search-index warm: every merge grows VOCAB/SENTENCES, and the next
      keystroke would otherwise pay the full incremental index build (thousands
      of mkrow normalizations) synchronously mid-typing. Build it while idle so
@@ -287,6 +298,22 @@ window.currRefreshHooks=currRefreshHooks;
 /* ---------- boot: merge A2 now, lazy B1/B2 ---------- */
 try{mergeLevelData("A2");}catch(e){if(window.console)console.error(e);}
 try{idlePreload();}catch(e){}
+/* Flush deferred merge renders when the tab returns to the foreground (see
+   afterMergeRefresh hidden-gate above). Wired once; render-only, never a
+   reload or state reset. */
+try{
+  if(typeof document!=="undefined"&&!window.__dmMergeFlushWired){
+    window.__dmMergeFlushWired=true;
+    document.addEventListener("visibilitychange",function(){
+      try{
+        if(!document.hidden&&window.__dmMergeDirty){
+          window.__dmMergeDirty=false;
+          afterMergeRefresh();
+        }
+      }catch(e){}
+    });
+  }
+}catch(e){}
 
 /* ================= SENTENCE LEVEL TABS ================= */
 window.currSentLevel="all";
@@ -343,8 +370,14 @@ function currWireSentTabs(){
     });
     ["sentenceSearch","sentenceKapitel"].forEach(function(id){
       var el=$(id);if(!el||el.dataset.currWired)return;el.dataset.currWired="1";
-      el.addEventListener("input",function(){setTimeout(function(){currApplySentFilter(false);},60);});
-      el.addEventListener("change",function(){setTimeout(function(){currApplySentFilter(false);},60);});
+      /* Perf: when sent-a1.js owns these inputs (dataset.sentA1, set at its
+         load), its own debounced handler already drives the unified renderer.
+         Firing currApplySentFilter here too would run a second full bank scan
+         + 80-card DOM rebuild on every keystroke (same mirror-guard pattern
+         as renderSentencesSoon in script.js). The fallback path below only
+         runs when sent-a1 is unavailable. */
+      el.addEventListener("input",function(){setTimeout(function(){try{var _s1=$("sentenceSearch");if(_s1&&_s1.dataset&&_s1.dataset.sentA1)return;}catch(_e){}currApplySentFilter(false);},60);});
+      el.addEventListener("change",function(){setTimeout(function(){try{var _s2=$("sentenceSearch");if(_s2&&_s2.dataset&&_s2.dataset.sentA1)return;}catch(_e){}currApplySentFilter(false);},60);});
     });
   }catch(e){}
 }
