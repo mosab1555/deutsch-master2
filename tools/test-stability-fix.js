@@ -25,7 +25,7 @@ ok("sent:script-paginated", /let sentPageLimit=80/.test(script) && /list\.slice\
 // 1b. curriculum fallback paginated
 ok("sent:curriculum-paginated", /currSentShown=80/.test(curr) && /list\.slice\(0,currSentShown\)/.test(curr));
 // 1c. curriculum refresh guard: no eager hidden render at boot
-ok("sent:no-eager-hidden-render", /#page-sentences\.active/.test(curr) && /if\(active\|\|visited\)currApplySentFilter/.test(curr.replace(/\s+/g, "")));
+ok("sent:no-eager-hidden-render", /#page-sentences\.active/.test(curr) && /if\(active\)currApplySentFilter\(false\)/.test(curr.replace(/\s+/g, "")));
 // 1d. sent-a1 unified renderer still paginated (unchanged contract)
 ok("sent:sentA1-paginated", /sentA1Limit = 80/.test(sentA1) && /list\.slice\(0, sentA1Limit\)/.test(sentA1));
 

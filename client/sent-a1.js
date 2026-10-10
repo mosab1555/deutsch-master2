@@ -633,6 +633,9 @@ function sentA1InjectUI() {
       pill.id = "sentCount";
       pill.className = "count-pill";
       pill.style.cssText = "white-space:nowrap";
+      /* Appended inside the h2 AFTER its inner [data-i18n] span (same pattern
+         as the static vocabCount pill), so applyLang's textContent stamping
+         of the span never destroys this injected pill on other pages' visits. */
       var head = document.querySelector("#page-sentences .page-head h2");
       if (head) head.appendChild(pill);
     }
@@ -695,7 +698,7 @@ function sentA1Render() {
     var tp = document.getElementById("sentenceTopic") ? document.getElementById("sentenceTopic").value : "";
     var lv = (typeof window.currSentLevel !== "undefined" ? window.currSentLevel : "all") || "all";
     if (lv !== "all" && typeof Curriculum !== "undefined" && !Curriculum.loaded[lv]) {
-      Curriculum.ensure(lv, function () { sentA1Render(); });
+      Curriculum.ensure(lv, function () { try { if (!document.querySelector("#page-sentences.active")) return; } catch (e) {} sentA1Render(); });
       box.innerHTML = '<div class="panel glass">⏳ جاري تحميل محتوى ' + lv + ' ...</div>';
       return;
     }
@@ -722,7 +725,7 @@ function sentA1Render() {
       if (pill) pill.textContent = list.length + " جملة";
     } catch (e) {}
     box.innerHTML = "";
-    if (!list.length) { box.innerHTML = '<div class="panel glass">لا توجد جمل هنا بعد.</div>'; return; }
+    if (!list.length) { box.innerHTML = '<div class="panel glass">لا توجد جمل هنا بعد.</div>'; try { if (typeof dmStampRev === "function") dmStampRev("sentences"); } catch (e) {} return; }
     var shown = list.slice(0, sentA1Limit);
     /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
     var frag = document.createDocumentFragment();
@@ -736,6 +739,7 @@ function sentA1Render() {
       b.addEventListener("click", function () { sentA1Limit += SENT_A1_PAGE; try { sentA1Render(); } catch (e) {} });
       box.appendChild(b);
     }
+    try { if (typeof dmStampRev === "function") dmStampRev("sentences"); } catch (e) {}
   } catch (e) { if (window.console) console.error("sent-a1 render", e); }
 }
 

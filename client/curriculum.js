@@ -125,9 +125,24 @@ function nextGramId(){
   return mx+1;
 }
 
+/* ---------- dataset-version tracking + merge telemetry (ADDITIVE) ----------
+   DMDataRev counts content revisions per domain. mergeDataset bumps the
+   domains it actually grew (length compare — merges only ever append, so this
+   is exact with no per-branch bookkeeping to rot). Views stamp the revisions
+   they rendered at (see dmStampRev in script.js); the merge path and showPage
+   re-render a section only on measured staleness. __dmMergeLog is a bounded
+   (30-entry) diary of merge/refresh timings for diagnostics — never grows. */
+try{window.DMDataRev=window.DMDataRev||{vocab:0,sentences:0,grammar:0,explain:0,filters:0,reading:0};}catch(e){}
+try{window.__dmMergeLog=window.__dmMergeLog||[];}catch(e){}
+function dmBumpRev(d){try{if(window.DMDataRev&&typeof window.DMDataRev[d]==="number")window.DMDataRev[d]++;}catch(e){}}
+function dmLogMerge(e){try{window.__dmMergeLog.push(e);while(window.__dmMergeLog.length>30)window.__dmMergeLog.shift();}catch(_){}}
+
 function mergeDataset(key){
   var D=window["CURR_"+key];if(!D)return 0;
   if(Curriculum.ds[key])return 0;
+  var _mt0=0;try{_mt0=performance.now();}catch(e){}
+  var _lens=null;
+  try{_lens={v:VOCAB.length,s:SENTENCES.length,g:GRAMMAR.length,e:(typeof EXPLAIN_ORDER!=="undefined"?EXPLAIN_ORDER.length:0),k:KAPITEL.length,c:CATEGORIES.length,r:(window.CURR_READING?window.CURR_READING.length:0)};}catch(e){}
   var L=D.level||DS_LEVEL[key]||"A1";
   var added=0;
   try{
@@ -182,6 +197,19 @@ function mergeDataset(key){
     if(fc)fc.value=fcv;
     if(typeof fillKapitels==="function")fillKapitels();
   }catch(e){}
+  try{
+    if(_lens){
+      try{if(VOCAB.length!==_lens.v)dmBumpRev("vocab");}catch(e){}
+      try{if(SENTENCES.length!==_lens.s)dmBumpRev("sentences");}catch(e){}
+      try{if(GRAMMAR.length!==_lens.g)dmBumpRev("grammar");}catch(e){}
+      try{if(typeof EXPLAIN_ORDER!=="undefined"&&EXPLAIN_ORDER.length!==_lens.e)dmBumpRev("explain");}catch(e){}
+      try{if(KAPITEL.length!==_lens.k||CATEGORIES.length!==_lens.c)dmBumpRev("filters");}catch(e){}
+      try{if(window.CURR_READING&&window.CURR_READING.length!==_lens.r)dmBumpRev("reading");}catch(e){}
+    }
+  }catch(e){}
+  var _mms=0;try{_mms=Math.round((performance.now()-_mt0)*10)/10;}catch(e){}
+  var _pt=0;try{_pt=Math.round(performance.now());}catch(e){}
+  try{dmLogMerge({t:Date.now(),pt:_pt,key:String(key),added:added,ms:_mms});}catch(e){}
   return added;
 }
 function mergeLevelData(L){return mergeDataset(L);}
@@ -196,17 +224,27 @@ function loadScript(src,cb){
   document.body.appendChild(el);
 }
 function afterMergeRefresh(){
+  var _rt0=0;try{_rt0=performance.now();}catch(e){}
   try{
     if(typeof document!=="undefined"&&document.hidden){
-      /* Background tab: a full renderAll here costs ~300ms+ on phones for a
-         page nobody sees. Mark dirty and re-render on return to foreground
-         (flushed by the guarded visibility listener below). No reload, no
-         state reset — purely deferred work. */
+      /* Background tab: even a scoped refresh is work for a page nobody
+         sees. Mark dirty and re-render on return to foreground (flushed by
+         the guarded visibility listener below). No reload, no state reset —
+         purely deferred work; revisions already bumped above, so the next
+         visit provably refreshes. */
       try{window.__dmMergeDirty=true;}catch(e){}
+      var _dpt=0;try{_dpt=Math.round(performance.now());}catch(e){}
+      try{dmLogMerge({t:Date.now(),pt:_dpt,key:"refresh",added:0,ms:0,deferred:true});}catch(e){}
       return;
     }
   }catch(e){}
-  try{if(typeof renderAll==="function")renderAll();}catch(e){}
+  /* Version-aware scoped refresh (replaces the old blanket renderAll, which
+     rebuilt every visited grid ~300-550ms even for unrelated pages):
+     re-render ONLY the visible section when its data changed; hidden
+     sections stay untouched until their next visit (revision-checked in
+     showPage). Search-index warm stays idle-scheduled below. */
+  var _vis=null;
+  try{if(typeof dmRefreshVisibleAfterMerge==="function")_vis=dmRefreshVisibleAfterMerge();}catch(e){}
   try{if(typeof refreshFlashList==="function")refreshFlashList();}catch(e){}
   try{currRefreshHooks();}catch(e){}
   try{window.__dmMergeDirty=false;}catch(e){}
@@ -224,7 +262,13 @@ function afterMergeRefresh(){
     if(typeof requestIdleCallback==="function"){ try{requestIdleCallback(_warm,{timeout:8000});}catch(e){ setTimeout(_warm,2000); } }
     else{ setTimeout(_warm,2000); }
   }catch(e){}
+  var _rms=0;try{_rms=Math.round((performance.now()-_rt0)*10)/10;}catch(e){}
+  var _rpt=0;try{_rpt=Math.round(performance.now());}catch(e){}
+  try{dmLogMerge({t:Date.now(),pt:_rpt,key:"refresh",added:0,ms:_rms,vis:_vis});}catch(e){}
 }
+/* Test/diagnostic hook (same precedent as window.currRefreshHooks below):
+   lets probes measure the scoped merge-refresh cost on the real path. */
+try{window.afterMergeRefresh=afterMergeRefresh;}catch(e){}
 /* ensure a whole LEVEL (base + extras, in file order) */
 Curriculum.ensure=function(L,cb){
   if(L==="A1"){Curriculum.ensureDs("A1X",cb);return;}
@@ -281,16 +325,15 @@ function idlePreload(){
 }
 function currRefreshHooks(){
   try{if(document.querySelector("#page-dashboard.active"))currRenderPath();}catch(e){}
-  /* Perf guard: dataset merges (idle preload + on-demand level loads) must
-     never render 45k hidden sentence cards into #sentList at boot. Refresh
-     sentences only when the page is visible or was already visited; the
-     paginated renderer (sent-a1) handles the visible case on showPage. */
+  /* Perf guard: dataset merges must never render hidden sentence cards at
+     boot or on unrelated pages. Refresh sentences only when the page is
+     VISIBLE; hidden-but-visited lists are covered by the revision check on
+     the next visit (dmRefreshSectionIfStale in showPage), which re-renders
+     with the same live filters. */
   try{
-    var active=false, visited=false;
+    var active=false;
     try{ active=!!document.querySelector("#page-sentences.active"); }catch(e){ active=false; }
-    try{ visited=!!(window.DMPageState&&window.DMPageState.mem&&window.DMPageState.mem.sentences); }catch(e){ visited=false; }
-    try{ if(typeof dmRendered!=="undefined"&&dmRendered&&dmRendered.sentences)visited=true; }catch(e){}
-    if(active||visited)currApplySentFilter(false);
+    if(active)currApplySentFilter(false);
   }catch(e){}
 }
 window.currRefreshHooks=currRefreshHooks;
@@ -328,7 +371,7 @@ function currApplySentFilter(announce, more){
     var q=($("sentenceSearch").value||"").toLowerCase();
     var k=$("sentenceKapitel")?$("sentenceKapitel").value:"";
     var lv=window.currSentLevel||"all";
-    if(lv!=="all"&&!Curriculum.loaded[lv]){Curriculum.ensure(lv,function(){currApplySentFilter(false);});return;}
+    if(lv!=="all"&&!Curriculum.loaded[lv]){Curriculum.ensure(lv,function(){try{if(!document.querySelector("#page-sentences.active"))return;}catch(e){}currApplySentFilter(false);});return;}
     var list=SENTENCES.filter(function(s){
       if(lv!=="all"&&(s.level||"A1")!==lv)return false;
       if(k&&s.kap!==k)return false;
@@ -364,7 +407,7 @@ function currWireSentTabs(){
         var lv=b.getAttribute("data-level")||"all";
         document.querySelectorAll(".level-tab").forEach(function(x){x.classList.toggle("active",x===b);});
         window.currSentLevel=lv;
-        if(lv!=="all"&&!Curriculum.loaded[lv]){Curriculum.ensure(lv,function(){currApplySentFilter(false);});return;}
+        if(lv!=="all"&&!Curriculum.loaded[lv]){Curriculum.ensure(lv,function(){try{if(!document.querySelector("#page-sentences.active"))return;}catch(e){}currApplySentFilter(false);});return;}
         currApplySentFilter(false);
       });
     });
@@ -457,9 +500,20 @@ function currRenderPath(){
     var old=$("dashLevels");if(old)old.remove();
     var d=document.createElement("div");d.id="dashLevels";d.className="panel glass";
     var order=["A1","A2","B1","B2"],prevDone=true;
+    /* Perf: one bank pass for all four levels (was: lvlWords+lvlKnown = 8
+       full-bank scans with per-word getStatus lookups, ~30-50ms at 30k
+       words on every dashboard visit and every visible merge refresh).
+       Identical tot/kn numbers — statuses cannot change mid-render. */
+    var _agg={A1:{tot:0,kn:0},A2:{tot:0,kn:0},B1:{tot:0,kn:0},B2:{tot:0,kn:0}};
+    try{
+      allWords().forEach(function(w){
+        var L=w.level||"A1";var a=_agg[L];if(!a){a=_agg[L]={tot:0,kn:0};}
+        a.tot++;try{if(getStatus(w.id)==="known")a.kn++;}catch(e){}
+      });
+    }catch(e){}
     var h='<h3>🗺️ مسار المستويات A1 → B2</h3><div class="muted">تعلّم بالترتيب: أتقن مستوى ثم انتقل للتالي.</div><div class="grid-2">';
     order.forEach(function(L){
-      var tot=lvlWords(L).length,kn=lvlKnown(L);
+      var tot=_agg[L].tot,kn=_agg[L].kn;
       var pct=tot?Math.round(kn/tot*100):0;
       var rec=prevDone&&pct<100;
       var badge=!Curriculum.loaded[L]?"⏳":"";

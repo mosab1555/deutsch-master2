@@ -57,8 +57,10 @@ ok("nav:ref-index-first-match-order", /if\(tp&&tp\.id&&!byId\[tp\.id\]\)byId\[tp
 // N4: curriculum sentence-input handlers yield to the unified renderer
 ok("nav:curr-sent-guard-input",
   /\$\("sentenceSearch"\)[\s\S]{0,120}dataset\.sentA1/.test(curr));
-ok("nav:curr-refresh-hook-guard-kept",
-  /if\(active\|\|visited\)currApplySentFilter\(false\)/.test(curr.replace(/\s+/g, "")));
+ok("nav:curr-refresh-visible-only",
+  /if\(active\)currApplySentFilter\(false\)/.test(curr.replace(/\s+/g, "")));
+ok("nav:curr-refresh-no-hidden-branch",
+  !/visited=!!\(window\.DMPageState/.test(curr));
 
 // N5: hidden-tab merge gate + single foreground flush
 ok("nav:merge-hidden-gate", /document\.hidden/.test(curr) && /window\.__dmMergeDirty=true/.test(curr));

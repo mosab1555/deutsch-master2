@@ -529,7 +529,7 @@ var DMTestCenter = (function () {
           try {
             if (typeof Curriculum !== "undefined" && Curriculum.ensure) {
               toast("⏳ جاري تحميل محتوى " + sel.level + " ...");
-              Curriculum.ensure(sel.level, function () { probeCache = {}; rerender(false); });
+              Curriculum.ensure(sel.level, function () { try { if (!document.querySelector("#page-quiz.active")) return; } catch (e) {} probeCache = {}; rerender(false); });
             }
           } catch (e) {}
         }

@@ -1947,12 +1947,71 @@ function renderStreak(){
 const DM_LAZY={vocab:renderVocab,sentences:renderSentences,verbs:renderVerbs,grammar:renderGrammar,explain:renderExplainIndex};
 const dmRendered={};
 function ensureSection(n){if(DM_LAZY[n]&&!dmRendered[n]){dmRendered[n]=1;try{DM_LAZY[n]();}catch(e){console.error(e);}}}
+/* ---------- dataset-version-aware deferred rendering (ADDITIVE) ----------
+   DMDataRev (owned + bumped by curriculum.js merges) counts content revisions
+   per domain. Each merge-dependent renderer stamps the revisions it rendered
+   at; dmSectionStale() compares only that section's domains. Merges refresh
+   the VISIBLE section immediately and leave hidden sections for their next
+   visit (dmRefreshSectionIfStale, called from showPage below and from the
+   merge path). No second store, no duplicate caches — revisions describe the
+   existing banks, and every bank cache already self-invalidates on growth. */
+/* NOTE on dashboard deps: renderDashboard proper (and its callees
+   renderNextBestStep/renderFocusRow/computeWeakAreas) reads words, statuses,
+   SRS, mistakes and quiz stats — never SENTENCES. Sentence-derived dashboard
+   numbers (cmdBankCount/cntSents) refresh unconditionally on EVERY dashboard
+   visit via the pre-existing applyLang->cmdRender path, so mapping "sentences"
+   here would only reintroduce a ~190ms full dashboard rebuild on
+   sentence-only merges for zero freshness gain. */
+var DM_MERGE_DEPS={vocab:["vocab","filters"],sentences:["sentences"],verbs:["vocab"],grammar:["grammar"],explain:["explain","grammar"],dashboard:["vocab"],review:["vocab"],stats:["vocab"]};
+var dmRenderedRev={};
+try{window.__dmRenderStat=window.__dmRenderStat||{full:0,scoped:0};}catch(e){}
+function dmRevSnap(){var s={};try{var r=window.DMDataRev||{};["vocab","sentences","grammar","explain","filters","reading"].forEach(function(d){s[d]=(typeof r[d]==="number")?r[d]:0;});}catch(e){}return s;}
+function dmStampRev(sec){try{dmRenderedRev[sec]=dmRevSnap();}catch(e){}return true;}
+function dmSectionStale(sec){
+  try{
+    var deps=DM_MERGE_DEPS[sec];if(!deps||!deps.length)return false;
+    var cur=dmRevSnap(),was=dmRenderedRev[sec];
+    if(!was)return true; /* rendered but never stamped (e.g. renderer threw): retry is safe. */
+    for(var i=0;i<deps.length;i++){if((cur[deps[i]]||0)!==(was[deps[i]]||0))return true;}
+  }catch(e){}
+  return false;
+}
+function dmActivePage(){try{var a=document.querySelector(".page.active");if(a&&a.id&&a.id.indexOf("page-")==0)return a.id.slice(5);}catch(e){}return null;}
+function dmRefreshSectionIfStale(n,why){
+  /* Returns true when it rendered. Central deferred-refresh hook: re-renders
+     a section ONLY on measured data staleness, preserving live filters
+     (renderers read current inputs) and scroll (page-state restores after
+     showPage). Bypasses skipRender as-left guards on purpose: data currency
+     wins, with identical filter/scroll preservation as a merge renderAll. */
+  try{
+    if(!n||!DM_MERGE_DEPS[n])return false;
+    if(typeof dmRendered!=="undefined"&&dmRendered&&DM_LAZY&&DM_LAZY[n]&&!dmRendered[n])return false; /* ensureSection just rendered it (it stamps). */
+    if(!dmSectionStale(n))return false;
+    var done=false;
+    if(DM_LAZY&&DM_LAZY[n]&&typeof DM_LAZY[n]==="function"){try{DM_LAZY[n]();done=true;}catch(e){console.error(e);}}
+    else if(n==="dashboard"&&typeof renderDashboard==="function"){try{renderDashboard();done=true;}catch(e){console.error(e);}}
+    else if(n==="review"&&typeof renderReview==="function"){try{renderReview();done=true;}catch(e){console.error(e);}}
+    else if(n==="stats"&&typeof renderStats==="function"){try{renderStats();done=true;}catch(e){console.error(e);}}
+    if(done){dmStampRev(n);try{if(why==="merge"&&window.__dmRenderStat)window.__dmRenderStat.scoped++;}catch(e){}return true;}
+  }catch(e){}
+  return false;
+}
+function dmRefreshVisibleAfterMerge(){
+  /* Merge path: refresh the visible section iff its data changed. Returns the
+     refreshed page name (or null) for the merge diary. */
+  try{
+    var pg=dmActivePage();
+    if(pg&&dmRefreshSectionIfStale(pg,"merge"))return pg;
+  }catch(e){}
+  return null;
+}
 function showPage(name){
   try{if(typeof stopQTimer==="function")stopQTimer();}catch(e){}
   try{window.DM_PAGE_TOKEN=(window.DM_PAGE_TOKEN||0)+1;}catch(e){}
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
+  try{if(typeof dmRefreshSectionIfStale==="function")dmRefreshSectionIfStale(name,"visit");}catch(e){console.error(e);}
   try{if(window.DMDrawer&&typeof window.DMDrawer.close==="function"){window.DMDrawer.close();}else{const _sb=$("sidebar");if(_sb)_sb.classList.remove("open");const _so=$("sidebarOverlay");if(_so)_so.classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}}}catch(e){}
   /* Page-state preservation: when DMPageState will restore a saved scroll
      position for this page, do NOT scroll to top first (avoids jump/flicker).
@@ -2269,7 +2328,7 @@ function renderVocab(more){
   const list=filteredVocab();
   $("vocabCount").textContent=list.length;
   const g=$("vocabGrid");g.innerHTML="";
-  if(!list.length){g.innerHTML='<div class="panel glass">لا توجد نتائج. جرّب بحثًا آخر أو أضف كلمة جديدة ➕</div>';return;}
+  if(!list.length){g.innerHTML='<div class="panel glass">لا توجد نتائج. جرّب بحثًا آخر أو أضف كلمة جديدة ➕</div>';try{if(typeof dmStampRev==="function")dmStampRev("vocab");}catch(e){}return;}
   /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
   const frag=document.createDocumentFragment();
   list.slice(0,vocabLimit).forEach(w=>frag.appendChild(wordCard(w)));
@@ -2281,6 +2340,7 @@ function renderVocab(more){
     b.addEventListener("click",()=>{vocabLimit+=VOCAB_PAGE;try{renderVocab(true);}catch(e){console.error(e);}});
     g.appendChild(b);
   }
+  try{if(typeof dmStampRev==="function")dmStampRev("vocab");}catch(e){}
 }
 function renderVocabSoon(){try{clearTimeout(vocabT);}catch(e){}vocabT=setTimeout(()=>{try{renderVocab();}catch(e){console.error(e);}},160);}
 ["vocabSearch","filterCategory","filterType","filterStatus","filterArticle","filterKapitel","filterLevel"].forEach(id=>{const el=$(id);if(el&&!el._dmVocabWired){el._dmVocabWired=true;el.addEventListener("input",renderVocabSoon);}});
@@ -2306,8 +2366,14 @@ function animateCount(el,to){
 }
 function renderDashboard(){
   const words=allWords();
-  const known=words.filter(w=>getStatus(w.id)==="known").length;
-  const due=dueWords().length;
+  /* Perf: one status pass + one dueWords() shared with computeNextBestStep
+     below (was: separate known-scan here, plus known/hard/new scans and a
+     second full dueWords scan+sort inside computeNextBestStep). Identical
+     numbers — statuses cannot change mid-render (single thread). */
+  let known=0,hard=0,fresh=0;
+  for(let i=0;i<words.length;i++){const st=getStatus(words[i].id);if(st==="known")known++;else if(st==="hard")hard++;else if(st==="new")fresh++;}
+  const dueL=dueWords();
+  const due=dueL.length;
   const days=Object.keys(S.studyDays).length;
   const pct=words.length?Math.round(known/words.length*100):0;
   animateCount($("dSaved"),known);animateCount($("dReview"),due);
@@ -2336,17 +2402,21 @@ function renderDashboard(){
   $("dashPlanner").innerHTML='<div class="stat-bar-row"><span class="lbl">📚 كلمات</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dw/Math.max(1,p.words)*100)+'%;background:linear-gradient(90deg,#285DFF,#4DA3FF)"></div></div><b>'+dw+'/'+p.words+'</b></div>'+
   '<div class="stat-bar-row"><span class="lbl">💬 جمل</span><div class="bar"><div class="fill" style="width:'+Math.min(100,ds/Math.max(1,p.sentences)*100)+'%;background:linear-gradient(90deg,#1E7A55,#2FA97C)"></div></div><b>'+ds+'/'+p.sentences+'</b></div>'+
   '<div class="stat-bar-row"><span class="lbl">⏱️ دقائق</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dm/Math.max(1,p.minutes)*100)+'%;background:linear-gradient(90deg,#8A6A2E,#D8B56A)"></div></div><b>'+dm+'/'+p.minutes+'</b></div>';
-  renderNextBestStep();
-  renderFocusRow();
+  renderNextBestStep({words:words,known:known,due:due,hard:hard,fresh:fresh});
+  renderFocusRow({words:words,known:known,due:due,hard:hard,fresh:fresh});
+  try{if(typeof dmStampRev==="function")dmStampRev("dashboard");}catch(e){}
 }
 
-function computeNextBestStep(){
-  const words=allWords();
-  const known=words.filter(w=>getStatus(w.id)==="known").length;
-  const due=dueWords().length;
+function computeNextBestStep(pre){
+  /* Optional precomputed context from renderDashboard (single status pass +
+     one dueWords). Standalone callers get identical values via the fallback
+     scans. */
+  const words=(pre&&pre.words)||allWords();
+  const known=(pre&&typeof pre.known==="number")?pre.known:words.filter(w=>getStatus(w.id)==="known").length;
+  const due=(pre&&typeof pre.due==="number")?pre.due:dueWords().length;
   const mistakesCount=Object.keys(S.mistakes||{}).length;
-  const hardCount=words.filter(w=>getStatus(w.id)==="hard").length;
-  const newCount=words.filter(w=>getStatus(w.id)==="new").length;
+  const hardCount=(pre&&typeof pre.hard==="number")?pre.hard:words.filter(w=>getStatus(w.id)==="hard").length;
+  const newCount=(pre&&typeof pre.fresh==="number")?pre.fresh:words.filter(w=>getStatus(w.id)==="new").length;
   const acc=S.totalAnswered?Math.round(S.totalCorrect/S.totalAnswered*100):0;
   const streak=S.streak.count||0;
   const lastQuiz=S.lastQuiz;
@@ -2385,8 +2455,8 @@ function computeNextBestStep(){
   return {action:"journey",label:"واصل رحلتك الألمانية",goto:"journey",icon:"🗺️",reason:"تقدم ممتاز! تابع المسار المنظم من A1 إلى B2."};
 }
 
-function renderNextBestStep(){
-  const step=computeNextBestStep();
+function renderNextBestStep(pre){
+  const step=computeNextBestStep(pre);
   const el=$("cmdNextBody");
   if(!el)return;
   el.innerHTML='<div class="cmd-next-card glass">'+
@@ -2397,32 +2467,34 @@ function renderNextBestStep(){
   el.querySelector("button").addEventListener("click",()=>showPage(step.goto));
 }
 
-function computeWeakAreas(){
-  const words=allWords();
+function computeWeakAreas(pre){
+  /* Optional precomputed context from renderDashboard (same sharing pattern
+     as computeNextBestStep). Standalone callers recompute as before. */
+  const words=(pre&&pre.words)||allWords();
   const areas=[];
   const mistakes=S.mistakes||{};
-  const hardWords=words.filter(w=>getStatus(w.id)==="hard");
-  const newWords=words.filter(w=>getStatus(w.id)==="new").length;
-  const dueCount=dueWords().length;
+  const hardN=(pre&&typeof pre.hard==="number")?pre.hard:words.filter(w=>getStatus(w.id)==="hard").length;
+  const newWords=(pre&&typeof pre.fresh==="number")?pre.fresh:words.filter(w=>getStatus(w.id)==="new").length;
+  const dueCount=(pre&&typeof pre.due==="number")?pre.due:dueWords().length;
   const articleMistakes=Object.values(mistakes).filter(m=>m.kind==="article"||m.kind==="sm-article").length;
   const pluralMistakes=Object.values(mistakes).filter(m=>m.kind==="plural"||m.kind==="sm-plural").length;
   const verbMistakes=Object.values(mistakes).filter(m=>m.kind==="verb"||m.kind==="sm-verb"||m.kind==="conjugation"||m.kind==="sm-conjugation").length;
   const grammarMistakes=Object.values(mistakes).filter(m=>m.kind==="grammar"||m.kind==="sm-grammar"||m.kind==="akkusativ"||m.kind==="wortstellung").length;
 
   if(dueCount>0)areas.push({id:"review",label:"مراجعة مستحقة ("+dueCount+")",count:dueCount,icon:"🧠",goto:"review"});
-  if(hardWords.length>0)areas.push({id:"hard",label:"كلمات صعبة ("+hardWords.length+")",count:hardWords.length,icon:"🔴",goto:"practice"});
+  if(hardN>0)areas.push({id:"hard",label:"كلمات صعبة ("+hardN+")",count:hardN,icon:"🔴",goto:"practice"});
   if(articleMistakes>0)areas.push({id:"article",label:"أدوات التعريف ("+articleMistakes+" أخطاء)",count:articleMistakes,icon:"🎯",goto:"practice"});
   if(pluralMistakes>0)areas.push({id:"plural",label:"الجمع ("+pluralMistakes+" أخطاء)",count:pluralMistakes,icon:"👥",goto:"practice"});
   if(verbMistakes>0)areas.push({id:"verb",label:"تصريف الأفعال ("+verbMistakes+" أخطاء)",count:verbMistakes,icon:"⚡",goto:"practice"});
   if(grammarMistakes>0)areas.push({id:"grammar",label:"قواعد ("+grammarMistakes+" أخطاء)",count:grammarMistakes,icon:"📐",goto:"practice"});
-  if(newWords>0 && words.filter(w=>getStatus(w.id)==="known").length/words.length<0.3)areas.push({id:"vocab",label:"كلمات جديدة ("+newWords+")",count:newWords,icon:"📚",goto:"vocab"});
+  if(newWords>0 && (((pre&&typeof pre.known==="number")?pre.known:words.filter(w=>getStatus(w.id)==="known").length)/words.length<0.3))areas.push({id:"vocab",label:"كلمات جديدة ("+newWords+")",count:newWords,icon:"📚",goto:"vocab"});
 
   areas.sort((a,b)=>b.count-a.count);
   return areas.slice(0,4);
 }
 
-function renderFocusRow(){
-  const areas=computeWeakAreas();
+function renderFocusRow(pre){
+  const areas=computeWeakAreas(pre);
   const el=$("cmdFocusRow");
   if(!el)return;
   if(!areas.length){
@@ -2439,11 +2511,12 @@ function renderFocusRow(){
    2) recurring mistakes (higher error count first);
    3) status priority hard > review > later > new > known.
    A word is due when: its SRS date arrived, OR it was never mastered. */
-function srsOverdue(id){
+function srsOverdue(id,today){
   try{
-    if(S.srs&&S.srs[id]&&S.srs[id].due&&S.srs[id].due<=todayStr())return true;
+    var t=today||todayStr();
+    if(S.srs&&S.srs[id]&&S.srs[id].due&&S.srs[id].due<=t)return true;
     const s=S.srs&&S.srs[id];
-    return !!(s&&s.due&&s.due<=todayStr());
+    return !!(s&&s.due&&s.due<=t);
   }catch(e){return false;}
 }
 /* Human reason why a word is scheduled — shown in the review session. */
@@ -2462,19 +2535,24 @@ function srsWhy(id){
 }
 function dueWords(){
   const words=allWords();
+  /* Perf: todayStr() allocates a Date + strings per call; the old code paid
+     it ~2x per word in the filter plus ~2x per sort comparison (millions of
+     Dates for a 30k bank inside a long task). Hoisted once per call — the
+     predicate itself is byte-identical. */
+  const t=todayStr();
   return words.filter(w=>{
     // Check DMProgress SRS due date first
-    if(S.srs&&S.srs[w.id]&&S.srs[w.id].due&&S.srs[w.id].due<=todayStr())return true;
-    if(srsOverdue(w.id))return true;
+    if(S.srs&&S.srs[w.id]&&S.srs[w.id].due&&S.srs[w.id].due<=t)return true;
+    if(srsOverdue(w.id,t))return true;
     const st=getStatus(w.id);const r=S.review[w.id]||{c:0,w:0};
     if(st==="known"&&r.w===0)return false;
     if(st==="known")return r.w>r.c;
     return true;
   }).sort((a,b)=>{
-    const aOverdue=(S.srs&&S.srs[a.id]&&S.srs[a.id].due&&S.srs[a.id].due<=todayStr())?1:0;
-    const bOverdue=(S.srs&&S.srs[b.id]&&S.srs[b.id].due&&S.srs[b.id].due<=todayStr())?1:0;
+    const aOverdue=(S.srs&&S.srs[a.id]&&S.srs[a.id].due&&S.srs[a.id].due<=t)?1:0;
+    const bOverdue=(S.srs&&S.srs[b.id]&&S.srs[b.id].due<=t)?1:0;
     if(bOverdue!==aOverdue)return bOverdue-aOverdue;
-    const oa=srsOverdue(a.id)?1:0,ob=srsOverdue(b.id)?1:0;
+    const oa=srsOverdue(a.id,t)?1:0,ob=srsOverdue(b.id,t)?1:0;
     if(ob!==oa)return ob-oa;
     const ra=S.review[a.id]||{c:0,w:0},rb=S.review[b.id]||{c:0,w:0};
     const sa=(rb.w-rb.c)-(ra.w-ra.c);
@@ -2495,6 +2573,7 @@ function renderReview(){
   const g=$("dueGrid");g.innerHTML="";
   due.slice(0,9).forEach(w=>g.appendChild(wordCard(w)));
   if(!due.length)g.innerHTML='<div class="muted">ممتاز! لا توجد كلمات تحتاج مراجعة اليوم 🎉</div>';
+  try{if(typeof dmStampRev==="function")dmStampRev("review");}catch(e){}
 }
 let reviewQueue=[],reviewIdx=0,reviewDir="de-ar";
 $("startReview").addEventListener("click",()=>{
@@ -2581,7 +2660,7 @@ function flashEnsureLevel(){
   try{
     const lv=$("flashLevel")?$("flashLevel").value:"";
     if(lv&&lv!=="A1"&&typeof Curriculum!=="undefined"&&Curriculum&&Curriculum.loaded&&!Curriculum.loaded[lv]&&Curriculum.ensure){
-      Curriculum.ensure(lv,function(){try{buildFlash();}catch(e){}});
+      Curriculum.ensure(lv,function(){try{if(document.querySelector("#page-flashcards.active"))buildFlash();}catch(e){}});
       return true;
     }
   }catch(e){}
@@ -2816,7 +2895,7 @@ function renderSentences(more){
   }).filter(x=>!q||x.score>=0).sort((a,b)=>a.score-b.score).map(x=>x.s);
   const list=scored;
   const box=$("sentList");box.innerHTML="";
-  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد جمل هنا بعد.</div>';return;}
+  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد جمل هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("sentences");}catch(e){}return;}
   const frag=document.createDocumentFragment();
   list.slice(0,sentPageLimit).forEach((s,i)=>{
     const d=document.createElement("div");d.className="sent-card glass";
@@ -2833,6 +2912,7 @@ function renderSentences(more){
     b.addEventListener("click",()=>{sentPageLimit+=SENT_PAGE;try{renderSentences(true);}catch(e){console.error(e);}});
     box.appendChild(b);
   }
+  try{if(typeof dmStampRev==="function")dmStampRev("sentences");}catch(e){}
 }
 /* Debounced sentence search: per-keystroke full renders jank mobile.
    When sent-a1.js has taken over (#sentList unified renderer), its own
@@ -2876,7 +2956,7 @@ function renderVerbs(more){
     return{score:score,v:v};
   }).filter(x=>!q||x.score>=0).sort((a,b)=>a.score-b.score).map(x=>x.v);
   const list=scored;
-  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد أفعال هنا بعد.</div>';return;}
+  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد أفعال هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("verbs");}catch(e){}return;}
   /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
   const vfrag=document.createDocumentFragment();
   list.slice(0,verbPageLimit).forEach(v=>{
@@ -2902,6 +2982,7 @@ function renderVerbs(more){
     b.addEventListener("click",()=>{verbPageLimit+=VERB_PAGE;try{renderVerbs(true);}catch(e){console.error(e);}});
     box.appendChild(b);
   }
+  try{if(typeof dmStampRev==="function")dmStampRev("verbs");}catch(e){}
 }
 /* Debounced verb search (same 160ms pattern as vocab): full-list renders
    with conjugation tables must not run on every keystroke. */
@@ -2922,7 +3003,7 @@ function renderGrammar(more){
   const box=$("grammarList");box.innerHTML="";
   const k=$("grammarKapitel")?$("grammarKapitel").value:"";
   const list=GRAMMAR.filter(g=>!k||g.kap===k);
-  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد قواعد هنا بعد.</div>';return;}
+  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد قواعد هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("grammar");}catch(e){}return;}
   const gfrag=document.createDocumentFragment();
   list.slice(0,gramPageLimit).forEach((g,gi)=>{
     const d=document.createElement("div");d.className="grammar-card glass";
@@ -2956,6 +3037,7 @@ function renderGrammar(more){
     b.addEventListener("click",()=>{gramPageLimit+=GRAM_PAGE;try{renderGrammar(true);}catch(e){console.error(e);}});
     box.appendChild(b);
   }
+  try{if(typeof dmStampRev==="function")dmStampRev("grammar");}catch(e){}
 }
 
 /* Single-wiring guard (same HMR/double-eval pattern as vocab/sentences). */
@@ -2976,7 +3058,7 @@ function renderExplainIndex(){
   const order=explainOrder();
   const list=order.map(id=>GRAMMAR.find(g=>g.id===id)).filter(g=>g&&(!k||g.kap===k));
   $("explainCount").textContent="A1 • "+list.length+" قاعدة";
-  if(!list.length){idx.innerHTML='<div class="panel glass">لا توجد شروحات هنا بعد.</div>';return;}
+  if(!list.length){idx.innerHTML='<div class="panel glass">لا توجد شروحات هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("explain");}catch(e){}return;}
   let h='<div class="panel glass ex-toc"><h3>📖 فهرس شرح A1 — من الأسهل إلى الأصعب</h3><div class="muted">اضغط أي قاعدة لفتح شرحها المفصل 👇</div><div class="ex-toc-list">';
   list.forEach((g,i)=>{
     h+='<button class="ex-toc-item" data-ex="'+g.id+'"><span class="ex-num">'+(i+1)+'</span><span class="ex-t">'+escapeHtml(g.title)+'</span><span class="tag kap-tag">'+escapeHtml(g.kap||"")+'</span><span>←</span></button>';
@@ -2984,6 +3066,7 @@ function renderExplainIndex(){
   h+='</div></div>';
   idx.innerHTML=h;
   idx.querySelectorAll("[data-ex]").forEach(b=>b.addEventListener("click",()=>openExplain(b.getAttribute("data-ex"))));
+  try{if(typeof dmStampRev==="function")dmStampRev("explain");}catch(e){}
 }
 function exBlock(title,inner){return '<div class="ex-block glass"><h4>'+title+'</h4>'+inner+'</div>';}
 function exOne(e){return '<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+' <button class="mini-btn" data-spk="'+escapeHtml(e[0])+'" title="استمع 🔊">🔊</button></div><div class="ex-ar">'+escapeHtml(e[1])+'</div>'+(e[2]?'<div class="ex-pron">🗣️ نطق تقريبي: '+escapeHtml(e[2])+' <span class="muted">(تقريبي فقط — اعتمد على الصوت 🔊)</span></div>':"")+'</div>';}
@@ -3691,6 +3774,7 @@ function renderStats(){
       });
     }
   }catch(e){}
+  try{if(typeof dmStampRev==="function")dmStampRev("stats");}catch(e){}
 }
 $("resetStats").addEventListener("click",()=>{
   if(!confirm("تصفير الإحصائيات؟"))return;
@@ -4018,6 +4102,7 @@ $("addWordBtn").addEventListener("click",()=>{
   }catch(e){}
   const w={id:"c"+Date.now(),de:de,art:$("nwArt").value,ar:ar,pron:$("nwPron").value||de,ex:$("nwEx").value||de+".",exAr:$("nwExAr").value||ar,cat:$("nwCat").value||"Food",type:$("nwType").value||"اسم",level:$("nwLevel").value||"A1"};
   w.kap="KX";S.customWords.push(w);save();
+  try{if(window.DMDataRev){window.DMDataRev.vocab++;window.DMDataRev.sentences++;}}catch(e){}
   $("wordModal").classList.add("hidden");
   ["nwDe","nwAr","nwPron","nwEx","nwExAr"].forEach(id=>$(id).value="");
   renderAll();refreshFlashList();markStudyDay();toast("تمت إضافة الكلمة ✅","ok");
@@ -4125,6 +4210,7 @@ $("closeDetail").addEventListener("click",()=>$("detailModal").classList.add("hi
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").classList.add("hidden");});
 function safeRender(fn){try{fn();}catch(e){console.error(e);}}
 function renderAll(){
+  try{if(window.__dmRenderStat)window.__dmRenderStat.full++;}catch(e){}
   safeRender(renderStreak);safeRender(renderDashboard);safeRender(renderReview);safeRender(renderMistakes);safeRender(renderQuizHistory);safeRender(renderStats);safeRender(renderPlanner);safeRender(renderFavs);
   /* Heavy grids re-render only after their first lazy visit (see ensureSection). */
   Object.keys(DM_LAZY).forEach(n=>{if(dmRendered[n])safeRender(DM_LAZY[n]);});

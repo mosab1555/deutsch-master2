@@ -2559,7 +2559,7 @@ DMAssess.center = (function () {
           try {
             if (typeof Curriculum !== "undefined" && Curriculum.ensure) {
               toast("⏳ جاري تحميل محتوى " + lv + " ...");
-              Curriculum.ensure(lv, function () { renderCenter(); });
+              Curriculum.ensure(lv, function () { try { if (!document.querySelector("#page-quiz.active")) return; } catch (e) {} renderCenter(); });
             }
           } catch (e) {}
         }

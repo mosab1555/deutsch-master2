@@ -8,7 +8,11 @@
  *  - listener adds during transition (pre-boot addEventListener patch)
  *  - console errors / uncaught exceptions / failed requests during transition
  *  - active-page DOM growth across repeated visits (retained-tree check)
- * Usage: node tools/perf-nav-probe.js [cycles]  (default cycles=5)
+ * Usage: node tools/perf-nav-probe.js [cycles] [overlap]
+ *  cycles  = navigation cycles per section (default 5)
+ *  overlap = "overlap" to skip the warm-up sleep and use short settles, so
+ *    the idle-preload dataset merges land mid-navigation (concurrency mode);
+ *    the merge diary + render counters are dumped per viewport.
  * Exit 0 always unless harness itself fails; prints JSON summary + table.
  */
 "use strict";
@@ -23,6 +27,8 @@ const CLIENT = path.join(ROOT, "client");
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const CDP_PORT = 19343;
 const CYCLES = Math.max(1, parseInt(process.argv[2] || "5", 10) || 5);
+const OVERLAP = String(process.argv[3] || "").toLowerCase() === "overlap";
+const SETTLE_MS = OVERLAP ? 120 : 250;
 const SECTIONS = [
   ["dashboard", "Home"],
   ["vocab", "Vocabulary"],
@@ -153,7 +159,8 @@ const PREBOOT = `(() => {
       await cdp.send("Emulation.setDeviceMetricsOverride", { width: vp.w, height: vp.h, deviceScaleFactor: 1, mobile: !!vp.m });
       await cdp.send("Page.navigate", { url: base + "/index.html" });
       await cdp.ev("new Promise(res=>{if(document.readyState==='complete')res(1);else window.addEventListener('load',()=>res(1),{once:true});setTimeout(()=>res(2),15000);})", true);
-      await sleep(3000); // warm-up: boot + idle indexing settle
+      if (OVERLAP) await sleep(400); // concurrency mode: navigate while preload merges are in flight
+      else await sleep(3000); // warm-up: boot + idle indexing settle
       const bootErrs = cdp.consoleErrs.length;
       const bootInfo = await E("({sp:typeof showPage,navs:document.querySelectorAll('.nav-item[data-page]').length,heap:(performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576):-1),dom:document.getElementsByTagName('*').length,lis:window.__dmLisAdded||-1})");
       console.log("BOOT[" + vp.label + "] " + bootInfo + " consoleErrs=" + bootErrs);
@@ -171,7 +178,7 @@ const PREBOOT = `(() => {
           // wait until target active + 2 rAFs (usable) or timeout
           const settled = await cdp.ev("new Promise(res=>{let n=0;const t0=performance.now();function f(){try{if(document.querySelector('#page-" + page + ".active')){requestAnimationFrame(()=>requestAnimationFrame(()=>res(Math.round(performance.now()-t0))));}else if(++n>200){res(-1);}else setTimeout(f,25);}catch(e){res(-2);}}f();})", true);
           const wall = Date.now() - t0;
-          await sleep(250); // let deferred work (setTimeout 100-200ms post-nav) land inside the window
+          await sleep(SETTLE_MS); // let deferred work (setTimeout 100-200ms post-nav) land inside the window
           const after = JSON.parse(await E("({dom:document.getElementsByTagName('*').length,heap:(performance.memory?performance.memory.usedJSHeapSize:-1),lis:window.__dmLisAdded||0,active:(document.querySelector('.page.active')||{}).id||'',pageDom:(document.querySelector('#page-" + page + "')||{getElementsByTagName:()=>[]}).getElementsByTagName('*').length})"));
           const lts = JSON.parse(await E("(window.__dmLongTasks||[]).slice(" + before.lt + ").map(x=>x.d)"));
           const errs = cdp.consoleErrs.slice(eb);
@@ -206,6 +213,12 @@ const PREBOOT = `(() => {
           " maxLT=" + maxLT + " LTs=" + totLT + " domGrowth=" + domGrowth + " heapΔ=" + heapGrowth + "MB +lis=" + totLis + " errs=" + errN);
       }
       fs.writeFileSync(path.join(ROOT, "tools", "perf-nav-" + vp.label + ".json"), JSON.stringify(allRows.filter(r => r.vp === vp.label), null, 1));
+      if (OVERLAP) {
+        const diary = await cdp.ev("JSON.stringify((window.__dmMergeLog||[]).map(m=>m.key==='refresh'?{k:'refresh',ms:m.ms,vis:m.vis||null}:{k:m.key,add:m.added,ms:m.ms}))");
+        const rstat = await cdp.ev("JSON.stringify(window.__dmRenderStat||{})");
+        console.log("MERGE-DIARY[" + vp.label + "]: " + diary);
+        console.log("RENDERSTAT[" + vp.label + "]: full-renderAll=" + JSON.parse(rstat).full + " scoped=" + JSON.parse(rstat).scoped);
+      }
     }
     fs.writeFileSync(path.join(ROOT, "tools", "perf-nav-all.json"), JSON.stringify(allRows, null, 1));
     console.log("WROTE tools/perf-nav-all.json rows=" + allRows.length);
