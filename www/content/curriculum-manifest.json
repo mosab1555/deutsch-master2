@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated": "2026-10-11T19:27:40.968Z",
+ "generated": "2026-10-11T22:16:04.965Z",
  "copyright": "All B2C/curriculum texts are ORIGINAL (Arabic explanations, examples, dialogues, questions). No Klett book text, glossary, answer key, audio, or transcript is reproduced. Publisher resources used for alignment reference only.",
  "sources": [
   {
@@ -19,7 +19,7 @@
    "note": "No Netzwerk neu B2 exists. B2 curriculum aligns to Aspekte (Beruf) B2 + CEFR B2 descriptors with ORIGINAL content. Not labelled as Netzwerk neu."
   }
  ],
- "b2SourceVerification": "Verified 2026-10-11 via Klett catalog: Netzwerk neu ends at B1. B2 = Aspekte neu B2 (general) / Aspekte Beruf B2 (beruflich, 10 Kapitel + Prüfungsmodule). App B2 chapters K12–K17 are original CEFR-B2 content aligned to those objectives; source accurately identified, no false series labelling.",
+ "b2SourceVerification": "Verified 2026-10-11 via Klett catalog: Netzwerk neu ends at B1. B2 = Aspekte neu B2 (general) / Aspekte Beruf B2 (beruflich, 10 Kapitel + Prüfungsmodule). App B2 chapters K12–K25 are original CEFR-B2 content aligned to those objectives; source accurately identified, no false series labelling.",
  "levels": [
   {
    "level": "A1",
@@ -1303,6 +1303,234 @@
      },
      "provenance": "curr-b2d (Batch 2, original)",
      "validation": "b2d-validator+b2d-answers-qa"
+    },
+    {
+     "id": "K22",
+     "level": "B2",
+     "title": "Kapitel 22 – Wissenschaft und Forschung",
+     "objectives": [
+      "Wissenschaft/Forschung",
+      "Vermutung Futur II",
+      "zweiteilige Konnektoren",
+      "Pronominaladverbien",
+      "Korrelat es"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2e (Batch 3, original)",
+     "validation": "b2e-validator+b2e-answers-qa"
+    },
+    {
+     "id": "K23",
+     "level": "B2",
+     "title": "Kapitel 23 – Gesundheit und Demografie",
+     "objectives": [
+      "Gesundheit/Demografie",
+      "irreale Konditionale",
+      "Adversativsätze",
+      "Reziprok",
+      "Modalpartikeln"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2e (Batch 3, original)",
+     "validation": "b2e-validator+b2e-answers-qa"
+    },
+    {
+     "id": "K24",
+     "level": "B2",
+     "title": "Kapitel 24 – Stadt und Mobilität",
+     "objectives": [
+      "Stadt/Mobilität",
+      "Genitivpräpositionen",
+      "Tekamolo",
+      "freie Relativsätze",
+      "Graduierung"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2e (Batch 3, original)",
+     "validation": "b2e-validator+b2e-answers-qa"
+    },
+    {
+     "id": "K25",
+     "level": "B2",
+     "title": "Kapitel 25 – Globale Welt und Verantwortung",
+     "objectives": [
+      "Globale Welt",
+      "Restriktivsätze",
+      "Konsekutivsätze",
+      "Wortbildung",
+      "Passiversatz"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2e (Batch 3, original)",
+     "validation": "b2e-validator+b2e-answers-qa"
     }
    ]
   }
@@ -1414,7 +1642,11 @@
     "K18": 40,
     "K19": 40,
     "K20": 40,
-    "K21": 40
+    "K21": 40,
+    "K22": 40,
+    "K23": 40,
+    "K24": 40,
+    "K25": 40
    },
    "currSent": {
     "K5": 7,
@@ -1437,7 +1669,11 @@
     "K18": 16,
     "K19": 16,
     "K20": 16,
-    "K21": 16
+    "K21": 16,
+    "K22": 16,
+    "K23": 16,
+    "K24": 16,
+    "K25": 16
    },
    "currGram": {
     "K1": 2,
@@ -1459,7 +1695,11 @@
     "K18": 4,
     "K19": 4,
     "K20": 4,
-    "K21": 4
+    "K21": 4,
+    "K22": 4,
+    "K23": 4,
+    "K24": 4,
+    "K25": 4
    },
    "currRead": {
     "K3": 1,
@@ -1479,7 +1719,11 @@
     "K18": 2,
     "K19": 2,
     "K20": 2,
-    "K21": 2
+    "K21": 2,
+    "K22": 2,
+    "K23": 2,
+    "K24": 2,
+    "K25": 2
    },
    "currLis": {
     "K3": 1,
@@ -1499,7 +1743,11 @@
     "K18": 2,
     "K19": 2,
     "K20": 2,
-    "K21": 2
+    "K21": 2,
+    "K22": 2,
+    "K23": 2,
+    "K24": 2,
+    "K25": 2
    },
    "currSpk": {
     "K2": 1,
@@ -1519,7 +1767,11 @@
     "K18": 2,
     "K19": 2,
     "K20": 2,
-    "K21": 2
+    "K21": 2,
+    "K22": 2,
+    "K23": 2,
+    "K24": 2,
+    "K25": 2
    },
    "currReal": {
     "K4": 1,
@@ -1539,23 +1791,29 @@
     "K18": 1,
     "K19": 1,
     "K20": 1,
-    "K21": 1
+    "K21": 1,
+    "K22": 1,
+    "K23": 1,
+    "K24": 1,
+    "K25": 1
    }
   }
  },
  "gaps": [
-  "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C/B2D).",
-  "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K21). Backlog: preserve cross-chapter associations for shared headwords.",
+  "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C/B2D/B2E).",
+  "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K25). Backlog: preserve cross-chapter associations for shared headwords.",
   "CURR grammar uses legacy compact shape (title/kap/body/examples/quiz); full encyclopedia prerequisites/related/mistake objects live in library grammar (lg…) for A1–B1. Backlog: B2 library-grammar migration.",
   "Verb principal parts (Präteritum/Partizip II) not stored per CURR word; conjugation served by runtime engine + library data. Backlog: per-word parts metadata.",
   "Reading/listening/exam library packs have no B2 rows; B2 served by CURR reading/listening + exam configs reference B2 levels."
  ],
  "backlog": [
   "Batch 2 DONE: B2 K18–K21 (Arbeitswelt/Kommunikation, Diskussion/Argumentation, Medien/Gesellschaft, Prüfungstraining DTB-B2) implemented as curr-b2d.js (160 words, 16 grammar, 64 sentences, 8 reading, 8 listening, 8 speaking, 4 real, 16 explain) with b2d-validator+b2d-answers-qa.",
+  "Batch 3 DONE: B2 K22–K25 (Wissenschaft/Forschung, Gesundheit/Demografie, Stadt/Mobilität, Globale Welt) implemented as curr-b2e.js (160 words, 16 grammar, 64 sentences, 8 reading, 8 listening, 8 speaking, 4 real, 16 explain) with b2e-validator+b2e-answers-qa.",
   "A1 chapter wordlist alignment report vs Netzwerk neu A1 Kapitelwortschatz (counts only, no reproduction).",
   "Cross-chapter headword association model (append kap, never drop) + filter support.",
   "B2 library-grammar (lg-series) migration for K12–K17.",
   "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged).",
-  "B2D answer-integrity audit DONE (tools/test-b2d-answers.js 33/33): 192 fills (173 meaning + 7 article + 12 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 1 double-blank meaning fill reworded (zustimmen/stimmen substring collision). Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged). Engine limitation noted: meanGap replaces all substring occurrences, so examples must avoid a gap word repeating inside another word (content-side guard, same class as B2C D1)."
+  "B2D answer-integrity audit DONE (tools/test-b2d-answers.js 33/33): 192 fills (173 meaning + 7 article + 12 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 1 double-blank meaning fill reworded (zustimmen/stimmen substring collision). Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged). Engine limitation noted: meanGap replaces all substring occurrences, so examples must avoid a gap word repeating inside another word (content-side guard, same class as B2C D1).",
+  "B2E answer-integrity audit DONE (tools/test-b2e-answers.js 34/34): 190 fills (175 meaning + 0 article + 15 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 0 suppressed, 0 glued, 0 leaked. Authoring corrections: 2 library-dup words replaced (verifizieren->sichten, Nachsorge->Nachbehandlung), 1 Arabic-script explain field reworded (gx7 mistakes). Residual: native-speaker proofread of meaning-gap distractor semantic fit and Arabic translation nuance (structural audit complete, 0 ambiguous flagged). Same meanGap substring limitation guarded content-side."
  ]
 }

@@ -9,10 +9,10 @@
 if(typeof window==="undefined")return;
 window.Curriculum={loaded:{A1:true,A2:false,B1:false,B2:false},loading:{},ds:{}};
 /* dataset key -> file; base datasets keep FIXED grammar ids, extras use dynamic ids */
-var DS_FILE={A2:"curr-a2.js",B1:"curr-b1.js",B2:"curr-b2.js",A1X:"curr-a1x.js",A2B:"curr-a2b.js",B1B:"curr-b1b.js",B2B:"curr-b2b.js",B2C:"curr-b2c.js",B2D:"curr-b2d.js"};
-var DS_LEVEL={A2:"A2",B1:"B1",B2:"B2",A1X:"A1",A2B:"A2",B1B:"B1",B2B:"B2",B2C:"B2",B2D:"B2"};
+var DS_FILE={A2:"curr-a2.js",B1:"curr-b1.js",B2:"curr-b2.js",A1X:"curr-a1x.js",A2B:"curr-a2b.js",B1B:"curr-b1b.js",B2B:"curr-b2b.js",B2C:"curr-b2c.js",B2D:"curr-b2d.js",B2E:"curr-b2e.js"};
+var DS_LEVEL={A2:"A2",B1:"B1",B2:"B2",A1X:"A1",A2B:"A2",B1B:"B1",B2B:"B2",B2C:"B2",B2D:"B2",B2E:"B2"};
 var GRAM_FIXED={A2:42,B1:54,B2:66};
-var LVL_DS={A1:["A1X"],A2:["A2","A2B"],B1:["B1","B1B"],B2:["B2","B2B","B2C","B2D"]};
+var LVL_DS={A1:["A1X"],A2:["A2","A2B"],B1:["B1","B1B"],B2:["B2","B2B","B2C","B2D","B2E"]};
 var POS_OF={"اسم":"Nomen","فعل":"Verb","صفة":"Adjektiv","ضمير":"Pronomen","أداة":"Funktionswort","مفردات":"Adverb"};
 window.CURR_READING=window.CURR_READING||[];
 var currFillsDone={},fillSeq=1;
@@ -295,7 +295,7 @@ Curriculum.ensure=function(L,cb){
   try{toast("⏳ جاري تحميل محتوى "+L+" ...","ok");}catch(e){}
   step();
 };
-var DS_DYNAMIC={A1X:1,A2B:1,B1B:1,B2B:1,B2C:1,B2D:1};
+var DS_DYNAMIC={A1X:1,A2B:1,B1B:1,B2B:1,B2C:1,B2D:1,B2E:1};
 /* dynamic datasets must merge AFTER all fixed-id bases (A2/B1/B2) */
 Curriculum.ensureDs=function(key,cb){
   if(Curriculum.ds[key]){cb&&cb(0);return;}
@@ -317,7 +317,7 @@ Curriculum.ensureDs=function(key,cb){
   });
 };
 function idlePreload(){
-  var seq=["B1","B2","B1B","B2B","B2C","B2D","A1X","A2B"],i=0;
+  var seq=["B1","B2","B1B","B2B","B2C","B2D","B2E","A1X","A2B"],i=0;
   function next(){
     if(i>=seq.length){afterMergeRefresh();return;}
     var k=seq[i++];
@@ -556,9 +556,9 @@ function currRenderPath(){
 }
 window.currRenderPath=currRenderPath;
 
-function listenBank(){var out=[];["A1X","A2","A2B","B1","B1B","B2","B2B","B2C","B2D"].forEach(function(K){var D=window["CURR_"+K];if(D&&D.listen)out=out.concat(D.listen);});return out;}
-function speakBank(){var out=[];["A1X","A2","A2B","B1","B1B","B2","B2B","B2C","B2D"].forEach(function(K){var D=window["CURR_"+K];if(D&&D.speak)out=out.concat(D.speak);});return out;}
-function realBank(){var out=[];["A1X","A2","A2B","B1","B1B","B2","B2B","B2C","B2D"].forEach(function(K){var D=window["CURR_"+K];if(D&&D.real)out=out.concat(D.real);});return out;}
+function listenBank(){var out=[];["A1X","A2","A2B","B1","B1B","B2","B2B","B2C","B2D","B2E"].forEach(function(K){var D=window["CURR_"+K];if(D&&D.listen)out=out.concat(D.listen);});return out;}
+function speakBank(){var out=[];["A1X","A2","A2B","B1","B1B","B2","B2B","B2C","B2D","B2E"].forEach(function(K){var D=window["CURR_"+K];if(D&&D.speak)out=out.concat(D.speak);});return out;}
+function realBank(){var out=[];["A1X","A2","A2B","B1","B1B","B2","B2B","B2C","B2D","B2E"].forEach(function(K){var D=window["CURR_"+K];if(D&&D.real)out=out.concat(D.real);});return out;}
 function currSpeak(t){try{speak(t);}catch(e){try{speakGerman(t);}catch(x){}}}
 function currRealSits(hostId,boxId,title,viewId){
   var items=realBank();if(!items.length)return;

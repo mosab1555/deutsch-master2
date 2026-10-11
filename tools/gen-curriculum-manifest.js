@@ -30,7 +30,7 @@ const libVocLvl = countBy(vocab, "level");
 const libDlgLvl = countBy(dlg, "level"), libReadLvl = countBy(reading, "level");
 const libLisLvl = countBy(lis, "level"), libExamLvl = countBy(exams, "level");
 // CURR overlays
-const files = ["curr-a1x.js", "curr-a2.js", "curr-a2b.js", "curr-b1.js", "curr-b1b.js", "curr-b2.js", "curr-b2b.js", "curr-b2c.js", "curr-b2d.js"];
+const files = ["curr-a1x.js", "curr-a2.js", "curr-a2b.js", "curr-b1.js", "curr-b1b.js", "curr-b2.js", "curr-b2b.js", "curr-b2c.js", "curr-b2d.js", "curr-b2e.js"];
 const currWords = {}, currSent = {}, currGram = {}, currRead = {}, currLis = {}, currSpk = {}, currReal = {};
 const currKapMeta = {};
 files.forEach(f => {
@@ -78,7 +78,7 @@ const manifest = {
     { title: "Netzwerk neu international page", url: "https://www.klett-international.com/en/fr/netzwerk-neu/r-1/605", note: "Confirms A1–B1 scope." },
     { title: "Aspekte neu B2 / Aspekte Beruf B2 (Klett Sprachen)", url: "https://www.klett-sprachen.de/aspekte-beruf/r-1/780", note: "No Netzwerk neu B2 exists. B2 curriculum aligns to Aspekte (Beruf) B2 + CEFR B2 descriptors with ORIGINAL content. Not labelled as Netzwerk neu." }
   ],
-  b2SourceVerification: "Verified 2026-10-11 via Klett catalog: Netzwerk neu ends at B1. B2 = Aspekte neu B2 (general) / Aspekte Beruf B2 (beruflich, 10 Kapitel + Prüfungsmodule). App B2 chapters K12–K17 are original CEFR-B2 content aligned to those objectives; source accurately identified, no false series labelling.",
+  b2SourceVerification: "Verified 2026-10-11 via Klett catalog: Netzwerk neu ends at B1. B2 = Aspekte neu B2 (general) / Aspekte Beruf B2 (beruflich, 10 Kapitel + Prüfungsmodule). App B2 chapters K12–K25 are original CEFR-B2 content aligned to those objectives; source accurately identified, no false series labelling.",
   levels: [
     {
       level: "A1", source: "Netzwerk neu A1 (12 Kapitel) – alignment reference",
@@ -120,7 +120,11 @@ const manifest = {
         chap("K18", "B2", ["Arbeitswelt/Kommunikation", "Zustandspassiv", "Passiv+Modalverb", "Konjunktiv II Vergangenheit", "was-Relativsätze"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa"),
         chap("K19", "B2", ["Diskussion/Argumentation", "Konzessivsätze", "Konditionalsätze", "Finalsätze damit", "Modalsätze indem"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa"),
         chap("K20", "B2", ["Medien/Gesellschaft", "indirekte Fragen", "als ob-Vergleiche", "sobald/solange", "da/zumal"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa"),
-        chap("K21", "B2", ["Prüfungstraining DTB-B2", "Präsentations-Redemittel", "Zusammenfassung", "Erörterung/Gewichtung", "feste Präpositionen"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa")
+        chap("K21", "B2", ["Prüfungstraining DTB-B2", "Präsentations-Redemittel", "Zusammenfassung", "Erörterung/Gewichtung", "feste Präpositionen"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa"),
+        chap("K22", "B2", ["Wissenschaft/Forschung", "Vermutung Futur II", "zweiteilige Konnektoren", "Pronominaladverbien", "Korrelat es"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2e (Batch 3, original)", "b2e-validator+b2e-answers-qa"),
+        chap("K23", "B2", ["Gesundheit/Demografie", "irreale Konditionale", "Adversativsätze", "Reziprok", "Modalpartikeln"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2e (Batch 3, original)", "b2e-validator+b2e-answers-qa"),
+        chap("K24", "B2", ["Stadt/Mobilität", "Genitivpräpositionen", "Tekamolo", "freie Relativsätze", "Graduierung"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2e (Batch 3, original)", "b2e-validator+b2e-answers-qa"),
+        chap("K25", "B2", ["Globale Welt", "Restriktivsätze", "Konsekutivsätze", "Wortbildung", "Passiversatz"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2e (Batch 3, original)", "b2e-validator+b2e-answers-qa")
       ]
     }
   ],
@@ -138,25 +142,27 @@ const manifest = {
     currOverlays: { currWords, currSent, currGram, currRead, currLis, currSpk, currReal }
   },
   gaps: [
-    "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C/B2D).",
-    "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K21). Backlog: preserve cross-chapter associations for shared headwords.",
+    "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C/B2D/B2E).",
+    "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K25). Backlog: preserve cross-chapter associations for shared headwords.",
     "CURR grammar uses legacy compact shape (title/kap/body/examples/quiz); full encyclopedia prerequisites/related/mistake objects live in library grammar (lg…) for A1–B1. Backlog: B2 library-grammar migration.",
     "Verb principal parts (Präteritum/Partizip II) not stored per CURR word; conjugation served by runtime engine + library data. Backlog: per-word parts metadata.",
     "Reading/listening/exam library packs have no B2 rows; B2 served by CURR reading/listening + exam configs reference B2 levels."
   ],
   backlog: [
     "Batch 2 DONE: B2 K18–K21 (Arbeitswelt/Kommunikation, Diskussion/Argumentation, Medien/Gesellschaft, Prüfungstraining DTB-B2) implemented as curr-b2d.js (160 words, 16 grammar, 64 sentences, 8 reading, 8 listening, 8 speaking, 4 real, 16 explain) with b2d-validator+b2d-answers-qa.",
+    "Batch 3 DONE: B2 K22–K25 (Wissenschaft/Forschung, Gesundheit/Demografie, Stadt/Mobilität, Globale Welt) implemented as curr-b2e.js (160 words, 16 grammar, 64 sentences, 8 reading, 8 listening, 8 speaking, 4 real, 16 explain) with b2e-validator+b2e-answers-qa.",
     "A1 chapter wordlist alignment report vs Netzwerk neu A1 Kapitelwortschatz (counts only, no reproduction).",
     "Cross-chapter headword association model (append kap, never drop) + filter support.",
     "B2 library-grammar (lg-series) migration for K12–K17.",
     "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged).",
-    "B2D answer-integrity audit DONE (tools/test-b2d-answers.js 33/33): 192 fills (173 meaning + 7 article + 12 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 1 double-blank meaning fill reworded (zustimmen/stimmen substring collision). Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged). Engine limitation noted: meanGap replaces all substring occurrences, so examples must avoid a gap word repeating inside another word (content-side guard, same class as B2C D1)."
+    "B2D answer-integrity audit DONE (tools/test-b2d-answers.js 33/33): 192 fills (173 meaning + 7 article + 12 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 1 double-blank meaning fill reworded (zustimmen/stimmen substring collision). Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged). Engine limitation noted: meanGap replaces all substring occurrences, so examples must avoid a gap word repeating inside another word (content-side guard, same class as B2C D1).",
+    "B2E answer-integrity audit DONE (tools/test-b2e-answers.js 34/34): 190 fills (175 meaning + 0 article + 15 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 0 suppressed, 0 glued, 0 leaked. Authoring corrections: 2 library-dup words replaced (verifizieren->sichten, Nachsorge->Nachbehandlung), 1 Arabic-script explain field reworded (gx7 mistakes). Residual: native-speaker proofread of meaning-gap distractor semantic fit and Arabic translation nuance (structural audit complete, 0 ambiguous flagged). Same meanGap substring limitation guarded content-side."
   ]
 };
 const out = path.join(root, "client", "content", "curriculum-manifest.json");
 fs.writeFileSync(out, JSON.stringify(manifest, null, 1));
 console.log("wrote", out);
-// quick self-check: K15-K21 curr coverage
-["K15", "K16", "K17", "K18", "K19", "K20", "K21"].forEach(k => {
+// quick self-check: K15-K25 curr coverage
+["K15", "K16", "K17", "K18", "K19", "K20", "K21", "K22", "K23", "K24", "K25"].forEach(k => {
   console.log(k, "words=" + (currWords[k] || 0), "sent=" + (currSent[k] || 0), "gram=" + (currGram[k] || 0), "read=" + (currRead[k] || 0), "lis=" + (currLis[k] || 0), "spk=" + (currSpk[k] || 0), "real=" + (currReal[k] || 0));
 });

@@ -11,7 +11,7 @@ var DM_FILES = [
   "./reference-data-kl.js", "./reference-data-misc.js", "./reference-data-no.js", "./reference-data-p.js",
   "./reference-ency.js",
   "./curr-a2.js", "./curr-a1x.js", "./curr-a2b.js",
-  "./curr-b1.js", "./curr-b1b.js",   "./curr-b2.js", "./curr-b2b.js", "./curr-b2c.js", "./curr-b2d.js",
+  "./curr-b1.js", "./curr-b1b.js",   "./curr-b2.js", "./curr-b2b.js", "./curr-b2c.js", "./curr-b2d.js", "./curr-b2e.js",
   "./curriculum.js",
   "./content/dm-vocab-01.js", "./content/dm-vocab-02.js",
   "./content/dm-sent-01.js", "./content/dm-sent-02.js", "./content/dm-sent-03.js",

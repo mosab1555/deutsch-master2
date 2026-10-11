@@ -21,7 +21,7 @@ const allCh = [];
 (m.levels || []).forEach(l => (l.chapters || []).forEach(c => allCh.push(c)));
 ok("M4 chapters carry objectives + status + provenance", allCh.length >= 15 && allCh.every(c => c.id && c.objectives && c.objectives.length && c.status && c.provenance),
   "chapters=" + allCh.length);
-["K15", "K16", "K17", "K18", "K19", "K20", "K21"].forEach(k => {
+["K15", "K16", "K17", "K18", "K19", "K20", "K21", "K22", "K23", "K24", "K25"].forEach(k => {
   const c = allCh.find(x => x.id === k);
   ok("M5 " + k + " present with curr coverage", !!c && c.contentTypes && c.contentTypes.vocab.curr >= 40 && c.contentTypes.sentences.curr >= 10 && c.contentTypes.grammar.curr >= 4,
     c ? JSON.stringify({ w: c.contentTypes.vocab.curr, s: c.contentTypes.sentences.curr, g: c.contentTypes.grammar.curr }) : "missing");
