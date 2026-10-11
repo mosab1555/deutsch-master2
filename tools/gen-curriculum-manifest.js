@@ -114,9 +114,9 @@ const manifest = {
         chap("K12", "B2", ["Studium und Karriere", "Wissenschaftssprache"], V, "curr-b2+curr-b2b", "merge-tested"),
         chap("K13", "B2", ["Nachrichten, Wirtschaft, Politik"], V, "curr-b2+curr-b2b", "merge-tested"),
         chap("K14", "B2", ["Kultur und Diskussion"], V, "curr-b2+curr-b2b", "merge-tested"),
-        chap("K15", "B2", ["Berufswelt vertieft", "Konjunktiv II Höflichkeit", "Passiv", "NVV", "Relativsätze+Präp."], { verified: true, implemented: true, tested: false, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator"),
-        chap("K16", "B2", ["Umwelt/Technik/Gesellschaft", "obwohl/trotzdem", "je…desto", "Partizipialattribute", "Plusquamperfekt"], { verified: true, implemented: true, tested: false, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator"),
-        chap("K17", "B2", ["Meinung/Medien/Prüfung", "indirekte Rede", "Infinitivsätze", "Nominalisierung", "Prüfungs-Redemittel"], { verified: true, implemented: true, tested: false, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator")
+        chap("K15", "B2", ["Berufswelt vertieft", "Konjunktiv II Höflichkeit", "Passiv", "NVV", "Relativsätze+Präp."], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator+b2c-answers-qa"),
+        chap("K16", "B2", ["Umwelt/Technik/Gesellschaft", "obwohl/trotzdem", "je…desto", "Partizipialattribute", "Plusquamperfekt"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator+b2c-answers-qa"),
+        chap("K17", "B2", ["Meinung/Medien/Prüfung", "indirekte Rede", "Infinitivsätze", "Nominalisierung", "Prüfungs-Redemittel"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator+b2c-answers-qa")
       ]
     }
   ],
@@ -145,7 +145,7 @@ const manifest = {
     "A1 chapter wordlist alignment report vs Netzwerk neu A1 Kapitelwortschatz (counts only, no reproduction).",
     "Cross-chapter headword association model (append kap, never drop) + filter support.",
     "B2 library-grammar (lg-series) migration for K12–K17.",
-    "Exercise answer-position audit for B2C-derived fills post-merge."
+    "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged)."
   ]
 };
 const out = path.join(root, "client", "content", "curriculum-manifest.json");

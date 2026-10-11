@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated": "2026-10-11T13:34:04.384Z",
+ "generated": "2026-10-11T17:19:21.386Z",
  "copyright": "All B2C/curriculum texts are ORIGINAL (Arabic explanations, examples, dialogues, questions). No Klett book text, glossary, answer key, audio, or transcript is reproduced. Publisher resources used for alignment reference only.",
  "sources": [
   {
@@ -955,12 +955,12 @@
      "status": {
       "verified": true,
       "implemented": true,
-      "tested": false,
+      "tested": true,
       "awaiting": false,
       "notYet": false
      },
      "provenance": "curr-b2c (Batch 1, original)",
-     "validation": "b2c-validator"
+     "validation": "b2c-validator+b2c-answers-qa"
     },
     {
      "id": "K16",
@@ -1012,12 +1012,12 @@
      "status": {
       "verified": true,
       "implemented": true,
-      "tested": false,
+      "tested": true,
       "awaiting": false,
       "notYet": false
      },
      "provenance": "curr-b2c (Batch 1, original)",
-     "validation": "b2c-validator"
+     "validation": "b2c-validator+b2c-answers-qa"
     },
     {
      "id": "K17",
@@ -1069,12 +1069,12 @@
      "status": {
       "verified": true,
       "implemented": true,
-      "tested": false,
+      "tested": true,
       "awaiting": false,
       "notYet": false
      },
      "provenance": "curr-b2c (Batch 1, original)",
-     "validation": "b2c-validator"
+     "validation": "b2c-validator+b2c-answers-qa"
     }
    ]
   }
@@ -1299,6 +1299,6 @@
   "A1 chapter wordlist alignment report vs Netzwerk neu A1 Kapitelwortschatz (counts only, no reproduction).",
   "Cross-chapter headword association model (append kap, never drop) + filter support.",
   "B2 library-grammar (lg-series) migration for K12–K17.",
-  "Exercise answer-position audit for B2C-derived fills post-merge."
+  "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged)."
  ]
 }

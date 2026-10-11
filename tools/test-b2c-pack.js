@@ -135,6 +135,25 @@ Object.keys(EX).forEach(k => {
 });
 ok("B12 explain entries encyclopedia-complete", xErr.length === 0, xErr.slice(0, 5).join(";"));
 
+// B13: German-dominant explain fields must not leak Arabic script (e.g. U+061F ؟
+// instead of ?). Covers examples[*][0], daily[*][0], review.example, mistakes r.
+// mistakes.w is excluded: Arabic parenthetical glosses there (e.g. "(رسمي)",
+// "(فاعلان)") are an established convention across older packs (a2 g51, b1 g64,
+// b1b gx2/gx3/gx5, b2 g67/g69/g75) and B2C follows it.
+// Drill titles/opts are excluded: Arabic prompts and the gx4 meta-question with
+// Arabic options are by design (mirrors the compact grammar-row quiz convention).
+let deErr = [];
+Object.keys(EX).forEach(k => {
+  const e = EX[k], tag = "x" + k;
+  (e.examples || []).forEach((x, i) => { if (AR.test(x[0] || "")) deErr.push(tag + ":ex" + i); });
+  (e.daily || []).forEach((x, i) => { if (AR.test(x[0] || "")) deErr.push(tag + ":daily" + i); });
+  if (AR.test((e.review || {}).example || "")) deErr.push(tag + ":review.example");
+  (e.mistakes || []).forEach((m, i) => {
+    if (AR.test(m.r || "")) deErr.push(tag + ":mist.r" + i);
+  });
+});
+ok("B13 no Arabic script in German explain fields (examples/daily/review/mistakes.r)", deErr.length === 0, deErr.slice(0, 5).join(";"));
+
 console.log("----");
 console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
 process.exit(fail ? 1 : 0);

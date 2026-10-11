@@ -1686,7 +1686,16 @@ DMAssess.app = (function () {
       return S.assess;
     } catch (e) { return null; }
   }
-  function normWrite(s) { return String(s || "").trim().toLowerCase().replace(/[.?!،؛:"]+$/g, "").replace(/\s+/g, " ").trim(); }
+  /* B2C QA: fold ß→ss and umlauts to their standard DIN-5007 ASCII
+     * transcriptions (ä→ae, ö→oe, ü→ue) so typed answers on non-German
+     * keyboards ("regelmaessig" for "regelmäßig") are not false negatives —
+     * same precedent as adv.js accepts:["grosses"]. Digraph folding keeps
+     * umlaut words distinct from plain vowels (schön→schoen ≠ schon), so no
+     * new false positives there. MC scoring is index-based and unaffected.
+     * Known caveat: Maße/Masse-type minimal pairs conflate when typed; fills
+     * served as typed input are articles/short words where this does not
+     * occur in the bank. */
+  function normWrite(s) { return String(s || "").trim().toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[.?!،؛:"]+$/g, "").replace(/\s+/g, " ").trim(); }
   function skillAr(s) { return ((C.SKILLS[s] || {}).ar) || s; }
 
   /* ---------- progress integration (evidence-based, no double count) ---------- */

@@ -35,7 +35,17 @@ function currBuildFills(dsKey){
     }
     function artGap(ex,art,de,ar,chap,gram){
       var needle=art+" "+de;
-      var at=ex.indexOf(needle);if(at<0)return false;
+      /* Word-boundary guard (B2C QA): indexOf matches inside longer words
+         (e.g. "der Blickwinkel" inside "Jeder Blickwinkel"), producing a
+         glued blank ("Je___ Blickwinkel"). Only accept the needle at a word
+         boundary; keep scanning later occurrences before giving up. */
+      var at=-1,from=0;
+      for(;;){
+        at=ex.indexOf(needle,from);
+        if(at<0)return false;
+        if(at===0||/[\s.,!?;:"'«»„“()—–-]/.test(ex.charAt(at-1)))break;
+        from=at+1;
+      }
       var opts=shuffle4(["der","die","das"]);
       push(chap,ex.slice(0,at)+"___ "+de+ex.slice(at+needle.length),opts,opts.indexOf(art),ar+" — اختر الأداة","article",gram||"article");
       return true;
@@ -1015,11 +1025,15 @@ function currRuleQs(rule,count){
     (rule.ex||[]).forEach(function(e){
       if(out.length>=(count||4))return;
       var dex=e[0]||"",arx=e[1]||"";
-      var m=dex.match(/(der|die|das|den|dem) (\S+)/);
+      /* Same word-boundary guard as artGap above: never blank inside a longer
+         word ("der X" inside "Jeder X"). Slice by match index so an earlier
+         glued occurrence of the same substring can never be replaced. */
+      var m=dex.match(/(^|[\s.,!?;:"'«»„“()—–-])(der|die|das|den|dem) (\S+)/);
       if(m&&out.length<(count||4)){
-        var art=m[1],rest=dex.replace(m[1]+" "+m[2],"___ "+m[2]);
+        var art=m[2],noun=m[3],a0=m.index+m[1].length;
+        var rest=dex.slice(0,a0)+"___ "+noun+dex.slice(a0+m[0].length-m[1].length);
         var ao=shuf(["der","die","das"]);
-        Q("📐 أكمل ("+rule.title+"): "+rest+" — "+arx,ao,art,"الصحيح: "+art+" "+m[2]+" — "+rule.title);
+        Q("📐 أكمل ("+rule.title+"): "+rest+" — "+arx,ao,art,"الصحيح: "+art+" "+noun+" — "+rule.title);
       }
     });
     (rule.ex||[]).forEach(function(e){
