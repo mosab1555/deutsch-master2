@@ -30,7 +30,7 @@ const libVocLvl = countBy(vocab, "level");
 const libDlgLvl = countBy(dlg, "level"), libReadLvl = countBy(reading, "level");
 const libLisLvl = countBy(lis, "level"), libExamLvl = countBy(exams, "level");
 // CURR overlays
-const files = ["curr-a1x.js", "curr-a2.js", "curr-a2b.js", "curr-b1.js", "curr-b1b.js", "curr-b2.js", "curr-b2b.js", "curr-b2c.js"];
+const files = ["curr-a1x.js", "curr-a2.js", "curr-a2b.js", "curr-b1.js", "curr-b1b.js", "curr-b2.js", "curr-b2b.js", "curr-b2c.js", "curr-b2d.js"];
 const currWords = {}, currSent = {}, currGram = {}, currRead = {}, currLis = {}, currSpk = {}, currReal = {};
 const currKapMeta = {};
 files.forEach(f => {
@@ -116,7 +116,11 @@ const manifest = {
         chap("K14", "B2", ["Kultur und Diskussion"], V, "curr-b2+curr-b2b", "merge-tested"),
         chap("K15", "B2", ["Berufswelt vertieft", "Konjunktiv II Höflichkeit", "Passiv", "NVV", "Relativsätze+Präp."], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator+b2c-answers-qa"),
         chap("K16", "B2", ["Umwelt/Technik/Gesellschaft", "obwohl/trotzdem", "je…desto", "Partizipialattribute", "Plusquamperfekt"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator+b2c-answers-qa"),
-        chap("K17", "B2", ["Meinung/Medien/Prüfung", "indirekte Rede", "Infinitivsätze", "Nominalisierung", "Prüfungs-Redemittel"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator+b2c-answers-qa")
+        chap("K17", "B2", ["Meinung/Medien/Prüfung", "indirekte Rede", "Infinitivsätze", "Nominalisierung", "Prüfungs-Redemittel"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2c (Batch 1, original)", "b2c-validator+b2c-answers-qa"),
+        chap("K18", "B2", ["Arbeitswelt/Kommunikation", "Zustandspassiv", "Passiv+Modalverb", "Konjunktiv II Vergangenheit", "was-Relativsätze"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa"),
+        chap("K19", "B2", ["Diskussion/Argumentation", "Konzessivsätze", "Konditionalsätze", "Finalsätze damit", "Modalsätze indem"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa"),
+        chap("K20", "B2", ["Medien/Gesellschaft", "indirekte Fragen", "als ob-Vergleiche", "sobald/solange", "da/zumal"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa"),
+        chap("K21", "B2", ["Prüfungstraining DTB-B2", "Präsentations-Redemittel", "Zusammenfassung", "Erörterung/Gewichtung", "feste Präpositionen"], { verified: true, implemented: true, tested: true, awaiting: false, notYet: false }, "curr-b2d (Batch 2, original)", "b2d-validator+b2d-answers-qa")
       ]
     }
   ],
@@ -134,24 +138,25 @@ const manifest = {
     currOverlays: { currWords, currSent, currGram, currRead, currLis, currSpk, currReal }
   },
   gaps: [
-    "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C).",
-    "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K17). Backlog: preserve cross-chapter associations for shared headwords.",
+    "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C/B2D).",
+    "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K21). Backlog: preserve cross-chapter associations for shared headwords.",
     "CURR grammar uses legacy compact shape (title/kap/body/examples/quiz); full encyclopedia prerequisites/related/mistake objects live in library grammar (lg…) for A1–B1. Backlog: B2 library-grammar migration.",
     "Verb principal parts (Präteritum/Partizip II) not stored per CURR word; conjugation served by runtime engine + library data. Backlog: per-word parts metadata.",
     "Reading/listening/exam library packs have no B2 rows; B2 served by CURR reading/listening + exam configs reference B2 levels."
   ],
   backlog: [
-    "Batch 2: B2 K18–K21 (Aspekte Beruf B2 Module: Arbeitswelt, Kommunikation, Prüfungsvorbereitung DTB-B2) with same validator.",
+    "Batch 2 DONE: B2 K18–K21 (Arbeitswelt/Kommunikation, Diskussion/Argumentation, Medien/Gesellschaft, Prüfungstraining DTB-B2) implemented as curr-b2d.js (160 words, 16 grammar, 64 sentences, 8 reading, 8 listening, 8 speaking, 4 real, 16 explain) with b2d-validator+b2d-answers-qa.",
     "A1 chapter wordlist alignment report vs Netzwerk neu A1 Kapitelwortschatz (counts only, no reproduction).",
     "Cross-chapter headword association model (append kap, never drop) + filter support.",
     "B2 library-grammar (lg-series) migration for K12–K17.",
-    "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged)."
+    "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged).",
+    "B2D answer-integrity audit DONE (tools/test-b2d-answers.js 33/33): 192 fills (173 meaning + 7 article + 12 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 1 double-blank meaning fill reworded (zustimmen/stimmen substring collision). Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged). Engine limitation noted: meanGap replaces all substring occurrences, so examples must avoid a gap word repeating inside another word (content-side guard, same class as B2C D1)."
   ]
 };
 const out = path.join(root, "client", "content", "curriculum-manifest.json");
 fs.writeFileSync(out, JSON.stringify(manifest, null, 1));
 console.log("wrote", out);
-// quick self-check: K15-K17 curr coverage
-["K15", "K16", "K17"].forEach(k => {
+// quick self-check: K15-K21 curr coverage
+["K15", "K16", "K17", "K18", "K19", "K20", "K21"].forEach(k => {
   console.log(k, "words=" + (currWords[k] || 0), "sent=" + (currSent[k] || 0), "gram=" + (currGram[k] || 0), "read=" + (currRead[k] || 0), "lis=" + (currLis[k] || 0), "spk=" + (currSpk[k] || 0), "real=" + (currReal[k] || 0));
 });

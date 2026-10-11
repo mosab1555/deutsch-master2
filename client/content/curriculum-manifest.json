@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated": "2026-10-11T17:19:21.386Z",
+ "generated": "2026-10-11T19:27:40.968Z",
  "copyright": "All B2C/curriculum texts are ORIGINAL (Arabic explanations, examples, dialogues, questions). No Klett book text, glossary, answer key, audio, or transcript is reproduced. Publisher resources used for alignment reference only.",
  "sources": [
   {
@@ -1075,6 +1075,234 @@
      },
      "provenance": "curr-b2c (Batch 1, original)",
      "validation": "b2c-validator+b2c-answers-qa"
+    },
+    {
+     "id": "K18",
+     "level": "B2",
+     "title": "Kapitel 18 – Arbeitswelt und Kommunikation",
+     "objectives": [
+      "Arbeitswelt/Kommunikation",
+      "Zustandspassiv",
+      "Passiv+Modalverb",
+      "Konjunktiv II Vergangenheit",
+      "was-Relativsätze"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2d (Batch 2, original)",
+     "validation": "b2d-validator+b2d-answers-qa"
+    },
+    {
+     "id": "K19",
+     "level": "B2",
+     "title": "Kapitel 19 – Diskussion und Argumentation",
+     "objectives": [
+      "Diskussion/Argumentation",
+      "Konzessivsätze",
+      "Konditionalsätze",
+      "Finalsätze damit",
+      "Modalsätze indem"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2d (Batch 2, original)",
+     "validation": "b2d-validator+b2d-answers-qa"
+    },
+    {
+     "id": "K20",
+     "level": "B2",
+     "title": "Kapitel 20 – Medien und Gesellschaft",
+     "objectives": [
+      "Medien/Gesellschaft",
+      "indirekte Fragen",
+      "als ob-Vergleiche",
+      "sobald/solange",
+      "da/zumal"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2d (Batch 2, original)",
+     "validation": "b2d-validator+b2d-answers-qa"
+    },
+    {
+     "id": "K21",
+     "level": "B2",
+     "title": "Kapitel 21 – Prüfungstraining DTB-B2",
+     "objectives": [
+      "Prüfungstraining DTB-B2",
+      "Präsentations-Redemittel",
+      "Zusammenfassung",
+      "Erörterung/Gewichtung",
+      "feste Präpositionen"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2d (Batch 2, original)",
+     "validation": "b2d-validator+b2d-answers-qa"
     }
    ]
   }
@@ -1182,7 +1410,11 @@
     "K14": 92,
     "K15": 40,
     "K16": 40,
-    "K17": 40
+    "K17": 40,
+    "K18": 40,
+    "K19": 40,
+    "K20": 40,
+    "K21": 40
    },
    "currSent": {
     "K5": 7,
@@ -1201,7 +1433,11 @@
     "K14": 23,
     "K15": 16,
     "K16": 16,
-    "K17": 16
+    "K17": 16,
+    "K18": 16,
+    "K19": 16,
+    "K20": 16,
+    "K21": 16
    },
    "currGram": {
     "K1": 2,
@@ -1219,7 +1455,11 @@
     "K14": 4,
     "K15": 4,
     "K16": 4,
-    "K17": 4
+    "K17": 4,
+    "K18": 4,
+    "K19": 4,
+    "K20": 4,
+    "K21": 4
    },
    "currRead": {
     "K3": 1,
@@ -1235,7 +1475,11 @@
     "K14": 1,
     "K15": 2,
     "K16": 2,
-    "K17": 2
+    "K17": 2,
+    "K18": 2,
+    "K19": 2,
+    "K20": 2,
+    "K21": 2
    },
    "currLis": {
     "K3": 1,
@@ -1251,7 +1495,11 @@
     "K14": 1,
     "K15": 2,
     "K16": 2,
-    "K17": 2
+    "K17": 2,
+    "K18": 2,
+    "K19": 2,
+    "K20": 2,
+    "K21": 2
    },
    "currSpk": {
     "K2": 1,
@@ -1267,7 +1515,11 @@
     "K13": 2,
     "K15": 2,
     "K16": 2,
-    "K17": 2
+    "K17": 2,
+    "K18": 2,
+    "K19": 2,
+    "K20": 2,
+    "K21": 2
    },
    "currReal": {
     "K4": 1,
@@ -1283,22 +1535,27 @@
     "K14": 1,
     "K15": 1,
     "K16": 1,
-    "K17": 1
+    "K17": 1,
+    "K18": 1,
+    "K19": 1,
+    "K20": 1,
+    "K21": 1
    }
   }
  },
  "gaps": [
-  "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C).",
-  "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K17). Backlog: preserve cross-chapter associations for shared headwords.",
+  "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C/B2D).",
+  "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K21). Backlog: preserve cross-chapter associations for shared headwords.",
   "CURR grammar uses legacy compact shape (title/kap/body/examples/quiz); full encyclopedia prerequisites/related/mistake objects live in library grammar (lg…) for A1–B1. Backlog: B2 library-grammar migration.",
   "Verb principal parts (Präteritum/Partizip II) not stored per CURR word; conjugation served by runtime engine + library data. Backlog: per-word parts metadata.",
   "Reading/listening/exam library packs have no B2 rows; B2 served by CURR reading/listening + exam configs reference B2 levels."
  ],
  "backlog": [
-  "Batch 2: B2 K18–K21 (Aspekte Beruf B2 Module: Arbeitswelt, Kommunikation, Prüfungsvorbereitung DTB-B2) with same validator.",
+  "Batch 2 DONE: B2 K18–K21 (Arbeitswelt/Kommunikation, Diskussion/Argumentation, Medien/Gesellschaft, Prüfungstraining DTB-B2) implemented as curr-b2d.js (160 words, 16 grammar, 64 sentences, 8 reading, 8 listening, 8 speaking, 4 real, 16 explain) with b2d-validator+b2d-answers-qa.",
   "A1 chapter wordlist alignment report vs Netzwerk neu A1 Kapitelwortschatz (counts only, no reproduction).",
   "Cross-chapter headword association model (append kap, never drop) + filter support.",
   "B2 library-grammar (lg-series) migration for K12–K17.",
-  "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged)."
+  "B2C answer-integrity audit DONE (tools/test-b2c-answers.js 32/32): 138 fills + 12 grammar + 12 drills + 30 R/L questions validated; 2 malformed glued-blank fills removed via artGap boundary guard. Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged).",
+  "B2D answer-integrity audit DONE (tools/test-b2d-answers.js 33/33): 192 fills (173 meaning + 7 article + 12 verb) + 16 grammar + 16 drills + 40 R/L questions validated; 1 double-blank meaning fill reworded (zustimmen/stimmen substring collision). Residual: native-speaker proofread of meaning-gap distractor semantic fit (structural audit complete, 0 ambiguous flagged). Engine limitation noted: meanGap replaces all substring occurrences, so examples must avoid a gap word repeating inside another word (content-side guard, same class as B2C D1)."
  ]
 }
