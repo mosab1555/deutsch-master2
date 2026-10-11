@@ -1451,7 +1451,12 @@ function loadIdentitySnapshot(uid){
   var parsed=null;
   try{ parsed=raw?JSON.parse(raw):null; }catch(e){ parsed=null; }
   S = parsed ? normalizeState(parsed) : defaultState();
-  save();
+  /* Durability: identity switches must persist synchronously. The coalesced
+     save() above may defer writes up to 250ms (flushed by timer/pagehide),
+     which is unsafe here — a timer stub, throttled background tab, or fast
+     logout/login could otherwise leave the account key missing or stale and
+     leak the previous identity's live state. saveNow() always writes now. */
+  try{ saveNow(); }catch(e){ try{ save(); }catch(e2){} }
   return S;
 }
 try{
@@ -1460,7 +1465,9 @@ try{
     activeKey: activeStateKey,
     stateKey: dmStateKey,
     // Persist live S under the CURRENT active key (call BEFORE switching).
-    snapshot: function(){ try{ save(); }catch(e){} },
+    // Synchronous on purpose: snapshot guards identity transitions, so it
+    // must not go through the coalesced save() (see loadIdentitySnapshot).
+    snapshot: function(){ try{ saveNow(); }catch(e){ try{ save(); }catch(e2){} } },
     // One-time safety backup of pre-identity local progress (never overwrites).
     ensureBackup: function(){
       try{

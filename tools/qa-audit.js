@@ -53,8 +53,8 @@ ok("play:daily-uses-seededShuffle", /seededShuffle\(list,seed\)/.test(C("play.js
 const script=C("script.js");
 ok("search:dmNorm-umlaut", /\.replace\(\/ß\/g,"ss"\)/.test(script) && /\.replace\(\/ä\/g,"a"\)/.test(script));
 ok("search:tier-exact-prefix-substring", /score=0/.test(script) && /score=30\+/.test(script));
-ok("search:sentences-uses-dmNorm", /renderSentences\(\)[\s\S]{0,400}dmNorm/.test(script));
-ok("search:verbs-uses-dmNorm", /renderVerbs\(\)[\s\S]{0,400}dmNorm/.test(script));
+ok("search:sentences-uses-dmNorm", /function renderSentences[\s\S]{0,600}dmNorm/.test(script));
+ok("search:verbs-uses-dmNorm", /function renderVerbs[\s\S]{0,600}dmNorm/.test(script));
 // Functional mini-test of ranking logic (mirror of dmWordHits tiers)
 function tier(de,q){if(de===q)return 0;if(de.indexOf(q)===0)return 10;const b=de.indexOf(" "+q);if(b>=0)return 20;const s=de.indexOf(q);if(s>=0)return 30;return 50;}
 ok("search:haus-ranks-prefix-first", tier("haus","haus")<tier("hausaufgabe","haus") && tier("hausaufgabe","haus")<tier("rathaus","haus"));

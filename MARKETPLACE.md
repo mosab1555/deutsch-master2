@@ -1,5 +1,12 @@
 # Deutsch Master Marketplace — Documentation
 
+> **Scope note (2026-10-11):** this document describes the *separate historical
+> marketplace backend* (`server/` + `shared/`) and its older storefront notes — **not**
+> the deployed public product. The live site (`https://mosab1555.github.io/deutsch-master2/`,
+> built from `client/`) is the Deutsch Master German-learning platform; see the root
+> `README.md` and `docs/TECHNICAL_READINESS_REPORT.md`. This file is preserved unchanged
+> below for history.
+
 Global multi-vendor marketplace (Web PWA + Android/iOS via Capacitor + Windows via Electron).
 Stack: **zero-build vanilla HTML/CSS/JS** (keeps Capacitor + Electron + PWA working with no bundler).
 

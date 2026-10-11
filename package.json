@@ -2,7 +2,7 @@
   "name": "deutsch-master",
   "version": "1.0.0",
   "private": true,
-  "description": "Deutsch Master Marketplace - global multi-vendor marketplace (Web via PWA, Android/iOS via Capacitor, Windows via Electron)",
+  "description": "Deutsch Master - Arabic-friendly German-learning platform (A1-B2): static PWA in client/, generated mobile shell in www/ via Capacitor, Windows shell via Electron",
   "main": "electron/main.js",
   "scripts": {
     "www": "node tools/make-www.js",
