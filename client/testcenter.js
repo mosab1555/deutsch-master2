@@ -46,7 +46,32 @@ var DMTestCenter = (function () {
   }
 
   var sel = { level: "A1", kap: null, cat: null, mode: "quick", diff: "medium", tmode: "test", cumul: null, showBuilder: false };
-  var probeCache = {};
+  var probeCache = {}, probeBankStamp = "\0";
+  /* Probe cache must follow bank growth: idle/lazy merges append thousands
+     of words, so a count probed at boot is stale after a merge. The stamp
+     is just bank lengths (merges only ever append, same pattern as the
+     dmWords cache in script.js) — exact and O(1). */
+  function probeBank() {
+    try {
+      var v = (typeof VOCAB !== "undefined" && VOCAB) ? VOCAB.length : -1;
+      var s = (typeof SENTENCES !== "undefined" && SENTENCES) ? SENTENCES.length : -1;
+      var g = (typeof GRAMMAR !== "undefined" && GRAMMAR) ? GRAMMAR.length : -1;
+      return v + "/" + s + "/" + g;
+    } catch (e) { return "?"; }
+  }
+  /* Overlap guard: question generation is synchronous, but rapid double-taps
+     queue a second full build that replaces the just-started session. One
+     shared 600ms debounce across all start paths; legitimate retries work. */
+  var lastStartAt = 0;
+  function canStart() {
+    var now = Date.now();
+    if (now - lastStartAt < 600) return false;
+    lastStartAt = now;
+    return true;
+  }
+  /* A refused start (locked boss, no mistakes, no category) must not consume
+     the debounce slot — the user didn't get a session. */
+  function unStart() { lastStartAt = 0; }
 
   /* Test-method (طريقة الاختبار) options: affect session behavior only,
      never the question pool. Applied onto the spec before startFlow. */
@@ -78,10 +103,15 @@ var DMTestCenter = (function () {
     } catch (e) { return 0; }
   }
   /* Honest availability probe: builds the REAL spec (master-sized) and
-     counts valid questions. Cached per level|kap|cat. Never faked. */
-  function probeCount(kap, catId, level) {
-    var key = (level || "*") + "|" + (kap || "*") + "|" + catId + "|" + sel.diff;
-    if (probeCache[key] != null) return probeCache[key];
+     counts valid questions. Cached per level|kap|cat. Never faked.
+     Synchronous form is kept for exact on-demand use (tests, Start-time
+     checks); the interactive selector below uses probeAvail so a Kapitel
+     click never blocks the main thread on full test-generation builds. */
+  function probeKey(kap, catId, level) {
+    return (level || "*") + "|" + (kap || "*") + "|" + catId + "|" + sel.diff;
+  }
+  function probeBuild(kap, catId, level) {
+    var key = probeKey(kap, catId, level);
     var n = 0;
     try {
       if (catId === "mistakes") {
@@ -105,6 +135,207 @@ var DMTestCenter = (function () {
     } catch (e) { n = 0; }
     probeCache[key] = n;
     return n;
+  }
+  function probeCount(kap, catId, level) {
+    try {
+      var st = probeBank();
+      if (st !== probeBankStamp) { probeCache = {}; probeBankStamp = st; }
+    } catch (e) {}
+    var key = probeKey(kap, catId, level);
+    if (probeCache[key] != null) return probeCache[key];
+    return probeBuild(kap, catId, level);
+  }
+  /* Selection-path availability: NEVER builds synchronously. Returns the
+     cached exact count, computes cheap mistake counts inline, and otherwise
+     queues the exact same build for a background chunk (returns PENDING).
+     Cards render instantly with an honest computing placeholder; the queued
+     build fills in the identical number probeCount would have returned. */
+  var PENDING = -1;
+  var probeGen = 0, probeQueue = [], probePumping = false;
+  function enqueueProbe(kap, catId, level, ck, kaps) {
+    try {
+      for (var i = 0; i < probeQueue.length; i++) {
+        var q = probeQueue[i];
+        if (q.ck ? q.ck === ck : (!ck && q.kap === kap && q.cat === catId && (q.level || "*") === (level || "*"))) return;
+      }
+      probeQueue.push({ kap: kap, cat: catId, level: level, ck: ck || null, kaps: kaps || null, gen: probeGen, diff: sel.diff });
+      if (probeQueue.length > 60) probeQueue.splice(0, probeQueue.length - 60);
+    } catch (e) {}
+  }
+  function probeAvail(kap, catId, level) {
+    try {
+      var st = probeBank();
+      if (st !== probeBankStamp) { probeCache = {}; probeBankStamp = st; probeGen++; probeQueue.length = 0; }
+    } catch (e) {}
+    var key = probeKey(kap, catId, level);
+    if (probeCache[key] != null) return probeCache[key];
+    if (catId === "mistakes") return probeBuild(kap, catId, level);
+    enqueueProbe(kap, catId, level, null, null);
+    return PENDING;
+  }
+  /* Range-aware cumulative availability (workspace only). Same pending
+     contract as probeAvail; the queued build uses the frozen range. */
+  function cumulAvail() {
+    try {
+      var ck = "*|" + cumulKaps().join("+") + "|__cumul__";
+      if (probeCache[ck] != null) return probeCache[ck];
+      enqueueProbe(sel.kap, "__cumul__", lvlOrNull(), ck, cumulKaps());
+      return PENDING;
+    } catch (e) { return PENDING; }
+  }
+  function kickProbes() {
+    try {
+      if (probePumping || !probeQueue.length) return;
+      try { if (A.getSess()) return; } catch (e) {}
+      probePumping = true;
+      setTimeout(pumpStep, 0);
+    } catch (e) { probePumping = false; }
+  }
+  /* One exact probe build per macrotask: the UI stays responsive between
+     chunks, so selection never produces a "Page Unresponsive" dialog even
+     when a sparse bank makes a single category build expensive. Stale items
+     (selection moved on) are dropped, never built: no overlapping work. */
+  function pumpStep() {
+    probePumping = false;
+    try {
+      try { if (A.getSess()) return; } catch (e) {}
+      var item = null;
+      while (probeQueue.length) {
+        var head = probeQueue[0];
+        if (head.gen !== probeGen || head.diff !== sel.diff) { probeQueue.shift(); continue; }
+        item = head; break;
+      }
+      if (!item) return;
+      probeQueue.shift();
+      /* bank grew mid-queue (lazy merge landed between chunks): resync the
+         cache stamp first so this build — and its paint — use the fresh bank */
+      try {
+        var bst = probeBank();
+        if (bst !== probeBankStamp) { probeCache = {}; probeBankStamp = bst; }
+      } catch (e0) {}
+      var n;
+      if (item.ck) {
+        if (probeCache[item.ck] != null) n = probeCache[item.ck];
+        else {
+          try { n = SP.cumulSpec(item.kaps && item.kaps.length ? item.kaps : [item.kap], C.CONFIG.MASTER_CAP, { level: item.level }).build().length; }
+          catch (e) { n = 0; }
+          probeCache[item.ck] = n;
+        }
+      } else {
+        var key = probeKey(item.kap, item.cat, item.level);
+        if (probeCache[key] != null) n = probeCache[key];
+        else n = probeBuild(item.kap, item.cat, item.level);
+      }
+      probePainted(item, n);
+    } catch (e) {}
+    try {
+      if (probeQueue.length) {
+        var live = false;
+        try { live = !A.getSess(); } catch (e2) { live = true; }
+        if (live) { probePumping = true; setTimeout(pumpStep, 0); }
+      }
+    } catch (e3) {}
+  }
+  function minFor(catId) {
+    if (catId === "__full__") return 8;
+    if (catId === "__smart__") return 6;
+    if (catId === "__cumul__") return 8;
+    if (catId === "mistakes") return 1;
+    if (catId === "__boss__") return 8;
+    return 5;
+  }
+  function countLabel(n, catId) {
+    if (catId === "mistakes") { try { return openMistakes() + " مفتوحة"; } catch (e) { return ""; } }
+    return n >= C.CONFIG.MASTER_CAP ? C.CONFIG.MASTER_CAP + "+ متاح" : n + " متاح";
+  }
+  /* Targeted fill-in for one finished probe: updates only that card's count
+     (or hides it when honestly empty) and refreshes the workspace when it
+     shows the probed category. No full-page rerender, no listener rewiring
+     for untouched cards, no scroll jumps. */
+  function probePainted(item, n) {
+    try {
+      if (item.gen !== probeGen) return;
+      /* no bank-stamp check here: pumpStep resyncs the stamp immediately
+         before each build in the same synchronous task, so a painted count
+         is always built from the current bank (merges can only land
+         between macrotasks, never between build and paint) */
+      try { if (A.getSess()) return; } catch (e2) {}
+      if (typeof document === "undefined") return;
+      if (!sel.kap || sel.kap !== item.kap) return;
+      if (item.ck) {
+        if (sel.cat === "__cumul__") refreshWorkspace();
+        return;
+      }
+      var root = $("assessRoot") || document;
+      var btn = null;
+      try { btn = root.querySelector('[data-tc="cat:' + item.cat + '"]'); } catch (e3) { btn = null; }
+      if (item.cat === "__boss__" && n < minFor(item.cat)) {
+        /* became honestly empty: swap to the locked-why card (same markup
+           the full render uses) and wire only the new node */
+        if (btn) {
+          var un0 = null;
+          try { un0 = SP.bossUnlock(sel.kap, rmapNow(), histAll()); } catch (e4) {}
+          var why = un0 ? un0.why : "";
+          var tmp = document.createElement("div");
+          tmp.innerHTML = '<button class="quick-btn tc-cat tc-locked' + (sel.cat === "__boss__" ? " tc-on" : "") + '" data-tc="cat:__boss__" title="' + esc(why) + '">🔒 اختبار الزعيم<br><small>' + esc(why) + '</small></button>';
+          var fresh = tmp.firstChild;
+          btn.parentNode.replaceChild(fresh, btn);
+          try { wire(root); } catch (e5) {}
+        }
+      } else if (btn) {
+        var sm = null;
+        try { sm = btn.querySelector("small"); } catch (e6) { sm = null; }
+        if (n < minFor(item.cat)) { btn.style.display = "none"; }
+        else {
+          btn.style.display = "";
+          if (sm) sm.textContent = countLabel(n, item.cat);
+        }
+        /* resolved either way: no longer a computing placeholder */
+        try { if (sm) sm.removeAttribute("data-tcpend"); } catch (e8) {}
+      }
+      if (sel.cat === item.cat) refreshWorkspace();
+      tcCheckEmpty();
+    } catch (e7) {}
+  }
+  /* If every card resolved honestly-empty, show the empty-state hint that
+     the full render would have shown (pending cards count as visible). */
+  function tcCheckEmpty() {
+    try {
+      if (typeof document === "undefined" || !sel.kap) return;
+      var root = $("assessRoot"); if (!root) return;
+      var box = document.getElementById("tcCats"); if (!box) return;
+      if (box.querySelector(".tc-empty")) return;
+      var anyVisible = false, anyPending = false;
+      var btns = box.querySelectorAll('[data-tc^="cat:"]');
+      for (var i = 0; i < btns.length; i++) {
+        if (btns[i].style.display === "none") continue;
+        anyVisible = true;
+        try {
+          var sm = btns[i].querySelector("small");
+          if (sm && sm.getAttribute("data-tcpend") === "1") anyPending = true;
+        } catch (e) {}
+      }
+      if (!anyVisible && !anyPending) {
+        var d = document.createElement("div");
+        d.className = "muted tc-empty";
+        d.textContent = "لا يوجد محتوى كافٍ في " + sel.kap + " بعد — أكمل الدروس أولًا.";
+        box.appendChild(d);
+      }
+    } catch (e2) {}
+  }
+  function refreshWorkspace() {
+    try {
+      if (typeof document === "undefined") return;
+      try { if (A.getSess()) return; } catch (e) {}
+      var ws = document.getElementById("tcWorkspace"); if (!ws) return;
+      var tmp = document.createElement("div");
+      tmp.innerHTML = workspaceHtml();
+      var fresh = tmp.firstChild;
+      if (!fresh) return;
+      ws.parentNode.replaceChild(fresh, ws);
+      var root = $("assessRoot");
+      try { wire(root || fresh.parentNode); } catch (e2) {}
+    } catch (e3) {}
   }
   function kapLevel(kap) {
     try {
@@ -193,7 +424,9 @@ var DMTestCenter = (function () {
     h += '<div class="tc-step" id="tcKaps"><b>2. اختر Kapitel (' + kaps.length + ')</b>';
     if (!kaps.length) h += '<div class="muted">لا توجد Kapitel لهذا المستوى بعد.</div>';
     h += '<div class="asd-kaps">';
-    var rm = rmapNow();
+    /* dashboardData() already computed this render's readiness map; reuse it
+       instead of re-scanning every bank a second time per render. */
+    var rm = (d && d.rmap) || rmapNow();
     kaps.forEach(function (k) {
       var r = rm[k.id], last = lastKapResult(k.id), cnt = kapTestCount(k.id);
       var pct = r && r.conf !== "none" ? r.pct + "%" : "—";
@@ -210,11 +443,11 @@ var DMTestCenter = (function () {
       var shown = 0;
       SP.CAT_IDS.forEach(function (cid) {
         if (cid === "mistakes") return; /* mistakes card rendered separately below */
-        var cat = SP.CATS[cid], n = probeCount(sel.kap, cid, null);
-        if (n < 5) return;
+        var cat = SP.CATS[cid], n = probeAvail(sel.kap, cid, null);
+        if (n !== PENDING && n < 5) return;
         shown++;
-        var lbl = n >= C.CONFIG.MASTER_CAP ? C.CONFIG.MASTER_CAP + "+ متاح" : n + " متاح";
-        h += '<button class="quick-btn tc-cat' + (sel.cat === cid ? " tc-on" : "") + '" data-tc="cat:' + cid + '">' + cat.ico + ' ' + esc(cat.ar) + '<br><small>' + lbl + '</small></button>';
+        var lbl = n === PENDING ? null : (n >= C.CONFIG.MASTER_CAP ? C.CONFIG.MASTER_CAP + "+ متاح" : n + " متاح");
+        h += '<button class="quick-btn tc-cat' + (sel.cat === cid ? " tc-on" : "") + '" data-tc="cat:' + cid + '">' + cat.ico + ' ' + esc(cat.ar) + '<br><small' + (n === PENDING ? ' data-tcpend="1">⏳' : '>' + lbl) + '</small></button>';
       });
       /* special cards */
       var specials = [
@@ -225,8 +458,8 @@ var DMTestCenter = (function () {
         { id: "__boss__", min: 8 }
       ];
       specials.forEach(function (sp) {
-        var n = probeCount(sel.kap, sp.id, null);
-        if (n < sp.min) {
+        var n = probeAvail(sel.kap, sp.id, null);
+        if (n !== PENDING && n < sp.min) {
           if (sp.id === "__boss__") {
             var un0 = SP.bossUnlock(sel.kap, rm, histAll());
             shown++;
@@ -244,9 +477,9 @@ var DMTestCenter = (function () {
           if (!un.ok) lock = ' title="' + esc(un.why) + '"';
           L.ico = un.ok ? "👑" : "🔒";
         }
-        var sub = n >= C.CONFIG.MASTER_CAP ? C.CONFIG.MASTER_CAP + "+ متاح" : n + " متاح";
+        var sub = n === PENDING ? null : (n >= C.CONFIG.MASTER_CAP ? C.CONFIG.MASTER_CAP + "+ متاح" : n + " متاح");
         if (sp.id === "mistakes") sub = openMistakes() + " مفتوحة";
-        h += '<button class="quick-btn tc-cat' + (sel.cat === sp.id ? " tc-on" : "") + '" data-tc="cat:' + sp.id + '"' + lock + '>' + L.ico + ' ' + esc(L.ar) + '<br><small>' + sub + '</small></button>';
+        h += '<button class="quick-btn tc-cat' + (sel.cat === sp.id ? " tc-on" : "") + '" data-tc="cat:' + sp.id + '"' + lock + '>' + L.ico + ' ' + esc(L.ar) + '<br><small' + (n === PENDING ? ' data-tcpend="1">⏳' : '>' + sub) + '</small></button>';
       });
       if (!shown) h += '<div class="muted">لا يوجد محتوى كافٍ في ' + esc(sel.kap) + ' بعد — أكمل الدروس أولًا.</div>';
       h += '</div></div>';
@@ -277,7 +510,7 @@ var DMTestCenter = (function () {
   /* Dedicated test workspace: compact header + back + counts + diff + method */
   function workspaceHtml() {
     var L = catLabel(sel.cat);
-    var avail = probeCount(sel.kap, sel.cat, null);
+    var avail = probeAvail(sel.kap, sel.cat, null);
     var scopeTxt = sel.cat === "__cumul__"
       ? cumulKaps().join(" + ")
       : sel.kap;
@@ -292,35 +525,32 @@ var DMTestCenter = (function () {
           var on = cumulKaps().indexOf(k.id) >= 0;
           return '<button class="btn ' + (on ? "btn-primary" : "btn-ghost") + ' sm" data-tc="cumul:' + esc(k.id) + '">' + esc(k.id) + '</button>';
         }).join("") + '</div>';
-      avail = probeCount(sel.kap, sel.cat, null);
-      /* range-aware availability: rebuild probe for the chosen range */
-      try {
-        var ck = "*|" + cumulKaps().join("+") + "|__cumul__";
-        if (probeCache[ck] != null) avail = probeCache[ck];
-        else {
-          avail = SP.cumulSpec(cumulKaps(), C.CONFIG.MASTER_CAP, { level: lvlOrNull() }).build().length;
-          probeCache[ck] = avail;
-        }
-      } catch (e) {}
+      /* range-aware availability: exact queued build for the chosen range */
+      avail = cumulAvail();
       h += '<div class="muted">النطاق: ' + esc(cumulKaps().join(" + ") || "—") + '</div>';
     }
+    var pend = (avail === PENDING);
     /* counts */
-    h += '<div class="tc-sub"><b>عدد الأسئلة</b> <span class="muted">(المتاح: ' + avail + ')</span></div><div class="row-flex">';
+    h += '<div class="tc-sub"><b>عدد الأسئلة</b> <span class="muted">(المتاح: ' + (pend ? '⏳' : avail) + ')</span></div><div class="row-flex">';
     Object.keys(SP.MODES).forEach(function (mk) {
       var md = SP.MODES[mk];
       var isMaster = !md.n;
-      var actual = isMaster ? avail : Math.min(md.n, avail);
-      var dis = (!isMaster && avail < 5) || (isMaster && avail < 5);
-      var lbl = isMaster ? ("Master — " + avail + " متاح") : (md.n + (avail < md.n ? " ← " + avail + " متاح" : ""));
+      var actual = pend ? 0 : (isMaster ? avail : Math.min(md.n, avail));
+      var dis = pend ? false : ((!isMaster && avail < 5) || (isMaster && avail < 5));
+      var lbl = pend ? (isMaster ? "Master" : String(md.n)) : (isMaster ? ("Master — " + avail + " متاح") : (md.n + (avail < md.n ? " ← " + avail + " متاح" : "")));
       h += '<button class="btn ' + (sel.mode === mk ? "btn-primary" : "btn-ghost") + ' sm" data-tc="mode:' + mk + '"' +
         (dis ? ' disabled title="لا يوجد محتوى كافٍ"' : ' title="' + esc(md.de) + '"') + '>' + esc(lbl) + '</button>';
     });
     h += '</div>';
-    var willGet = actualFor(avail);
-    if (willGet < modeTarget()) {
-      h += '<div class="muted">⚠️ المحتوى المتاح (' + avail + ') أقل من العدد المطلوب — سيتم استخدام كل الأسئلة الصحيحة (' + willGet + ').</div>';
+    if (pend) {
+      h += '<div class="muted">⏳ جاري حساب الأسئلة المتاحة من المحتوى الحقيقي…</div>';
     } else {
-      h += '<div class="muted">سيتم إنشاء ' + willGet + ' سؤالًا متنوعًا من المحتوى الحقيقي.</div>';
+      var willGetP = actualFor(avail);
+      if (willGetP < modeTarget()) {
+        h += '<div class="muted">⚠️ المحتوى المتاح (' + avail + ') أقل من العدد المطلوب — سيتم استخدام كل الأسئلة الصحيحة (' + willGetP + ').</div>';
+      } else {
+        h += '<div class="muted">سيتم إنشاء ' + willGetP + ' سؤالًا متنوعًا من المحتوى الحقيقي.</div>';
+      }
     }
     /* difficulty */
     h += '<div class="tc-sub"><b>الصعوبة</b></div><div class="row-flex">';
@@ -334,7 +564,7 @@ var DMTestCenter = (function () {
       h += '<button class="btn ' + (sel.tmode === tk ? "btn-primary" : "btn-ghost") + ' sm" data-tc="tmode:' + tk + '">' + esc(TMODES[tk].ar) + ' <small>(' + esc(TMODES[tk].de) + ')</small></button>';
     });
     h += '</div>';
-    h += '<div class="row-flex"><button class="btn btn-primary tc-start" data-tc="start">ابدأ الاختبار (' + willGet + ' سؤالًا) 🚀</button></div>';
+    h += '<div class="row-flex"><button class="btn btn-primary tc-start" data-tc="start">ابدأ الاختبار' + (pend ? '' : ' (' + actualFor(avail) + ' سؤالًا)') + ' 🚀</button></div>';
     h += '</div>';
     return h;
   }
@@ -461,13 +691,14 @@ var DMTestCenter = (function () {
   /* ---------------- actions ---------------- */
   function startPickerTest() {
     if (!sel.kap || !sel.cat) { toast("اختر Kapitel والفئة أولًا", "err"); return false; }
+    if (!canStart()) return false;
     var target = modeTarget(), lv = lvlOrNull();
     if (sel.cat === "__full__") return A.startFlow(applyTMode(SP.kapitelExamSpec(sel.kap, lv, target)));
     if (sel.cat === "__smart__") return A.startFlow(applyTMode(startSmartSpec(target)));
     if (sel.cat === "__cumul__") return A.startFlow(applyTMode(SP.cumulSpec(cumulKaps(), target, { level: lv })));
     if (sel.cat === "__boss__") {
       var un = SP.bossUnlock(sel.kap, rmapNow(), histAll());
-      if (!un.ok) { toast("🔒 " + un.why, "err"); return false; }
+      if (!un.ok) { unStart(); toast("🔒 " + un.why, "err"); return false; }
       return A.startFlow(applyTMode(SP.bossSpec(sel.kap, target)));
     }
     return A.startFlow(applyTMode(SP.kapitelCategorySpec(sel.kap, sel.cat, sel.mode, sel.diff, lv)));
@@ -481,16 +712,19 @@ var DMTestCenter = (function () {
     return SP.smartSpec({ weakSkills: weak, kap: sel.kap, total: total || 40 });
   }
   function startDaily() {
+    if (!canStart()) return false;
     var dk = dailyKey(), done = dailyDone();
     if (done) { toast("أنجزت تحدي اليوم بنتيجة " + done.pct + "% 🎉 — يمكنك إعادته للتدريب"); }
     return A.startFlow(SP.dailySpec(dk));
   }
   function startSmart() {
+    if (!canStart()) return false;
     return A.startFlow(applyTMode(startSmartSpec(40)));
   }
   function startMistakes() {
+    if (!canStart()) return false;
     var mp = U.mistakePlan(12);
-    if (!mp.plan.length || !openMistakes()) { toast("لا أخطاء مفتوحة — أحسنت! 🎉", "ok"); return false; }
+    if (!mp.plan.length || !openMistakes()) { unStart(); toast("لا أخطاء مفتوحة — أحسنت! 🎉", "ok"); return false; }
     return A.startFlow(applyTMode(SP.mistakeSpec(sel.kap)));
   }
   function wire(root) {
@@ -518,10 +752,11 @@ var DMTestCenter = (function () {
         else if (k === "mistakes") startMistakes();
         else if (k === "builder") { sel.showBuilder = !sel.showBuilder; rerender(false); }
         else if (k === "buildstart") {
+          if (!canStart()) return;
           var o = builderOpts(root);
           var cats = o.cats.length ? o.cats : ["words", "grammar", "sentences"];
           if (cats.indexOf("mistakes") >= 0 && !openMistakes()) { toast("لا أخطاء مفتوحة — أزلت فئة الأخطاء", "err"); cats = cats.filter(function (c) { return c !== "mistakes"; }); }
-          if (!cats.length) { toast("اختر فئة واحدة على الأقل", "err"); return; }
+          if (!cats.length) { unStart(); toast("اختر فئة واحدة على الأقل", "err"); return; }
           o.cats = cats;
           A.startFlow(SP.customSpec(o));
         }
@@ -539,6 +774,7 @@ var DMTestCenter = (function () {
       if (b._tcg) return; b._tcg = true;
       b.addEventListener("click", function () { goPage(b.getAttribute("data-tcgo")); });
     });
+    kickProbes();
   }
   function goPage(p) { try { if (typeof showPage === "function") showPage(p); } catch (e) {} }
   /* Same-page re-render: never leaves the quiz page (avoids showPage's
@@ -547,8 +783,12 @@ var DMTestCenter = (function () {
   function rerender() {
     try {
       if (A.getSess()) return;
+      /* every selector change cancels queued background probes: only the
+         fresh selection's probes may build or paint (no overlapping work) */
+      probeGen++;
       C.center.renderCenter();
       goQuizIfNeeded();
+      kickProbes();
     } catch (e) {}
   }
   /* ---------------- styling (namespaced tc-*) ---------------- */
@@ -578,5 +818,5 @@ var DMTestCenter = (function () {
       else injectCss();
     }
   } catch (e) {}
-  return { renderSection: renderSection, wire: wire, sel: sel, probeCount: probeCount, kapLevel: kapLevel, dailyKey: dailyKey, dailyDone: dailyDone, clearCache: function () { probeCache = {}; } };
+  return { renderSection: renderSection, wire: wire, sel: sel, probeCount: probeCount, probeAvail: probeAvail, probePending: function () { return probeQueue.length + (probePumping ? 1 : 0); }, kapLevel: kapLevel, dailyKey: dailyKey, dailyDone: dailyDone, clearCache: function () { probeCache = {}; probeGen++; } };
 })();

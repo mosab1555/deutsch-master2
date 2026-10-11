@@ -309,6 +309,157 @@ DMAssess.ui = (function () {
   function say(text) { try { var f = FN("speakGerman") || FN("speak"); if (f) f(text); } catch (e) {} }
   function words() { try { var f = FN("allWords"); return f ? f() : []; } catch (e) { return []; } }
   function shuffle(a) { return C.shuffled(a); }
+  /* ---------- indexed bank views + bounded sampling (freeze fix) ----------
+     Root cause of the Tests Center "Page Unresponsive" freeze (measured:
+     a single Kapitel click blocked the main thread ~18.7s with VOCAB=61k):
+     every pool helper rescanned the ENTIRE 60-100k VOCAB / 15k SENTENCES
+     banks on EVERY question attempt. buildPool retries each factory 100s of
+     times per slot, and probeCount builds a full 120-question test for EACH
+     of ~19 category cards per render — tens of thousands of full-bank scans
+     plus full-array Fisher-Yates shuffles per click, growing with every
+     content expansion.
+     Fix (same records, same filters, zero content loss): banks only ever
+     append, so a length-stamped index stays exact — one pass per growth,
+     O(1) lookups afterwards. Sampling replaces full shuffles: a few random
+     indices give the same uniform variety at O(1). buildPool's retry loop
+     already provides statistical coverage across attempts. */
+  var __poolIdx = null, __poolStamp = "\0";
+  function poolStamp() {
+    try {
+      var vl = -1, sl = -1, gl = -1, fl = -1, cl = 0, rl = -1;
+      try { vl = (typeof VOCAB !== "undefined" && VOCAB) ? VOCAB.length : -1; } catch (e0) {}
+      try { sl = (typeof SENTENCES !== "undefined" && SENTENCES) ? SENTENCES.length : -1; } catch (e1) {}
+      try { gl = (typeof GRAMMAR !== "undefined" && GRAMMAR) ? GRAMMAR.length : -1; } catch (e2) {}
+      try { fl = (typeof SENT_FILL !== "undefined" && SENT_FILL) ? SENT_FILL.length : -1; } catch (e3) {}
+      try { cl = (typeof S !== "undefined" && S.customWords) ? S.customWords.length : 0; } catch (e4) {}
+      try { rl = (typeof CURR_READING !== "undefined" && CURR_READING) ? CURR_READING.length : -1; } catch (e5) {}
+      return vl + "/" + sl + "/" + gl + "/" + fl + "/" + cl + "/" + rl;
+    } catch (e) { return "err"; }
+  }
+  function poolIndex() {
+    var st = poolStamp();
+    if (__poolIdx && __poolStamp === st) return __poolIdx;
+    var idx = { all: [], byKap: {}, byLevel: {}, byKapLevel: {}, sAll: [], sByKap: {}, sByLevel: {}, sByKapLevel: {}, fAll: [], fByKap: {}, fByLevel: {}, gByKap: {}, gByLevel: {}, gl: [], glByKap: {}, glByLevel: {}, rByKap: {}, rByLevel: {} };
+    function put(m, k, v) { if (m[k]) m[k].push(v); else m[k] = [v]; }
+    var ws = [];
+    try { ws = words(); } catch (e) {}
+    for (var i = 0; i < ws.length; i++) {
+      var w = ws[i];
+      if (!w || !w.de) continue;
+      var k = w.kap || "?", l = w.level || "A1";
+      idx.all.push(w);
+      put(idx.byKap, k, w); put(idx.byLevel, l, w); put(idx.byKapLevel, l + "|" + k, w);
+    }
+    var Ss = [];
+    try { Ss = G("SENTENCES") || []; } catch (e2) {}
+    for (var j = 0; j < Ss.length; j++) {
+      var s = Ss[j];
+      if (!s || !s.de) continue;
+      var sk = s.kap || "?", sl2 = (s.level || s.lvl) || "A1";
+      idx.sAll.push(s);
+      put(idx.sByKap, sk, s); put(idx.sByLevel, sl2, s); put(idx.sByKapLevel, sl2 + "|" + sk, s);
+    }
+    var Fs = [];
+    try { Fs = G("SENT_FILL") || []; } catch (e3) {}
+    for (var f = 0; f < Fs.length; f++) {
+      var fi = Fs[f];
+      /* Same validity rule the old fillPool applied per call: a gap item
+         must have a ___ blank and >= 3 options. */
+      if (!fi || String(fi.s || "").indexOf("___") < 0 || !fi.o || fi.o.length < 3) continue;
+      idx.fAll.push(fi);
+      put(idx.fByKap, fi.chapterId || "?", fi);
+      put(idx.fByLevel, fi.lvl || "A1", fi);
+    }
+    var Gs = [];
+    try { Gs = G("GRAMMAR") || []; } catch (e4) {}
+    for (var g = 0; g < Gs.length; g++) {
+      var gr = Gs[g];
+      if (!gr || !gr.quiz) continue;
+      put(idx.gByKap, gr.kap || "?", gr);
+      put(idx.gByLevel, gr.level || "A1", gr);
+    }
+    try {
+      var B = G("GLAB_BANK") || {}, gmap = {};
+      for (var gi = 0; gi < Gs.length; gi++) if (Gs[gi] && Gs[gi].id) gmap[Gs[gi].id] = Gs[gi];
+      Object.keys(B).forEach(function (gid) {
+        var b = B[gid];
+        if (!b || !b.questions) return;
+        var gg = gmap[gid] || null;
+        b.questions.forEach(function (q, qi) {
+          if (!q || q.type === "order" || !q.opts || !q.opts.length) return;
+          var row = { gid: gid, kap: gg ? gg.kap : null, level: gg ? (gg.level || "A1") : "A1", title: gg ? gg.title : gid, q: q, i: qi };
+          idx.gl.push(row);
+          put(idx.glByKap, row.kap || "?", row);
+          put(idx.glByLevel, row.level || "A1", row);
+        });
+      });
+    } catch (e5) {}
+    var Rs = [];
+    try { Rs = G("CURR_READING") || []; } catch (e6) {}
+    for (var ri = 0; ri < Rs.length; ri++) {
+      var rr = Rs[ri];
+      if (!rr || !rr.de) continue;
+      put(idx.rByKap, rr.kap || "?", rr);
+      put(idx.rByLevel, rr.level || "A1", rr);
+    }
+    __poolIdx = idx; __poolStamp = st;
+    return idx;
+  }
+  /* Uniform random pick without shuffling (O(1); same variety as
+     shuffle(pool)[0], none of the O(N) cost on 60k+ banks). */
+  function pickOne(pool) {
+    if (!pool || !pool.length) return null;
+    return pool[(Math.random() * pool.length) | 0];
+  }
+  /* Up to n distinct random items without shuffling (partial Fisher-Yates
+     on indices; O(n)). */
+  function pickNUnique(pool, n) {
+    var out = [];
+    if (!pool || !pool.length || n <= 0) return out;
+    n = Math.min(n, pool.length);
+    var idxs = {}, got = 0, guard = 0;
+    while (got < n && guard < n * 10 + 16) {
+      guard++;
+      var i = (Math.random() * pool.length) | 0;
+      if (idxs[i]) continue;
+      idxs[i] = 1; out.push(pool[i]); got++;
+    }
+    return out;
+  }
+  /* Memoized filtered view of an indexed pool. Key must encode the filter +
+     its scope (callers pass kap|level). Scoped to one buildPool call via
+     o.memo, so results can never outlive the bank state they were built from. */
+  function memoPool(memo, key, pool, pred) {
+    if (!memo) return pool.filter(pred);
+    var hit = memo[key];
+    if (hit) return hit;
+    var r = pool.filter(pred);
+    memo[key] = r;
+    return r;
+  }
+  function memoKey(o, tag) { return tag + "|" + (o.kap || "*") + "|" + (o.level || "*"); }
+  /* Bounded host-sentence search: sample `cap` random sentences first (fast
+     path, microseconds); only when sampling finds nothing AND the caller
+     asks, fall back to an exhaustive scan. Callers that run inside
+     buildPool's retry loop pass false and let retries provide coverage. */
+  function findHost(sents, test, cap, exhaustive) {
+    if (!sents || !sents.length) return null;
+    var n = sents.length, tried = {}, count = 0;
+    cap = Math.min(cap || 60, n);
+    while (count < cap) {
+      var i = (Math.random() * n) | 0;
+      if (tried[i]) continue;
+      tried[i] = 1; count++;
+      if (test(sents[i])) return sents[i];
+    }
+    if (exhaustive && cap < n) {
+      for (var j = 0; j < n; j++) {
+        if (tried[j]) continue;
+        if (test(sents[j])) return sents[j];
+      }
+    }
+    return null;
+  }
 
   /* ---------- content adapters (real project content only) ---------- */
   function kapitelList() {
@@ -324,6 +475,15 @@ DMAssess.ui = (function () {
   }
   function vocabPool(o) {
     o = o || {};
+    try {
+      var idx = poolIndex();
+      /* Returned arrays are shared read-only index views (never mutated by
+         callers: shuffle/filter/slice all copy). No per-call scan or copy. */
+      if (o.kap && o.level) return idx.byKapLevel[o.level + "|" + o.kap] || [];
+      if (o.kap) return idx.byKap[o.kap] || [];
+      if (o.level) return idx.byLevel[o.level] || [];
+      return idx.all;
+    } catch (e) {}
     return words().filter(function (w) {
       if (!w || !w.de) return false;
       if (o.kap && (w.kap || "") !== o.kap) return false;
@@ -334,6 +494,15 @@ DMAssess.ui = (function () {
   function grammarPool(o) {
     o = o || {};
     try {
+      var idx = poolIndex();
+      if (o.kap) {
+        var gk = idx.gByKap[o.kap] || [];
+        if (o.level) return gk.filter(function (g) { return (g.level || "A1") === o.level; });
+        return gk;
+      }
+      if (o.level) return idx.gByLevel[o.level] || [];
+    } catch (e) {}
+    try {
       var Gs = G("GRAMMAR") || [];
       return Gs.filter(function (g) {
         if (!g || !g.quiz) return false;
@@ -341,9 +510,10 @@ DMAssess.ui = (function () {
         if (o.level && (g.level || "A1") !== o.level) return false;
         return true;
       });
-    } catch (e) { return []; }
+    } catch (e2) { return []; }
   }
   function glabPool() {
+    try { return poolIndex().gl; } catch (e) {}
     var out = [];
     try {
       var B = G("GLAB_BANK") || {}, GR = G("GRAMMAR") || [];
@@ -356,11 +526,18 @@ DMAssess.ui = (function () {
           out.push({ gid: gid, kap: g ? g.kap : null, level: g ? (g.level || "A1") : "A1", title: g ? g.title : gid, q: q, i: i });
         });
       });
-    } catch (e) {}
+    } catch (e2) {}
     return out;
   }
   function sentPool(o) {
     o = o || {};
+    try {
+      var idx = poolIndex();
+      if (o.kap && o.level) return idx.sByKapLevel[(o.level || "A1") + "|" + o.kap] || [];
+      if (o.kap) return idx.sByKap[o.kap] || [];
+      if (o.level) return idx.sByLevel[o.level] || [];
+      return idx.sAll;
+    } catch (e) {}
     try {
       var Ss = G("SENTENCES") || [];
       return Ss.filter(function (s) {
@@ -369,10 +546,16 @@ DMAssess.ui = (function () {
         if (o.level && ((s.level || s.lvl) || "A1") !== o.level) return false;
         return true;
       });
-    } catch (e) { return []; }
+    } catch (e2) { return []; }
   }
   function fillPool(o) {
     o = o || {};
+    try {
+      var idx = poolIndex();
+      if (o.kap) return idx.fByKap[o.kap] || [];
+      if (o.level) return idx.fByLevel[o.level] || [];
+      return idx.fAll;
+    } catch (e) {}
     try {
       var Fs = G("SENT_FILL") || [];
       return Fs.filter(function (f) {
@@ -381,10 +564,19 @@ DMAssess.ui = (function () {
         if (o.level && (f.lvl || "A1") !== o.level) return false;
         return true;
       });
-    } catch (e) { return []; }
+    } catch (e2) { return []; }
   }
   function readingPool(o) {
     o = o || {};
+    try {
+      var idx = poolIndex();
+      if (o.kap) {
+        var rk = idx.rByKap[o.kap] || [];
+        if (o.level) return rk.filter(function (r) { return (r.level || "A1") === o.level; });
+        return rk;
+      }
+      if (o.level) return idx.rByLevel[o.level] || [];
+    } catch (e) {}
     try {
       var R = G("CURR_READING") || [];
       return R.filter(function (r) {
@@ -393,7 +585,7 @@ DMAssess.ui = (function () {
         if (o.level && (r.level || "A1") !== o.level) return false;
         return true;
       });
-    } catch (e) { return []; }
+    } catch (e2) { return []; }
   }
   function listenPool() { try { return G("LISTEN_ITEMS") || []; } catch (e) { return []; } }
   function speakPool() { try { return G("SPEAK_ITEMS") || []; } catch (e) { return []; } }
@@ -411,25 +603,37 @@ DMAssess.ui = (function () {
   var __qid = 0;
   function QID(p) { __qid++; return (p || "q") + "-" + Date.now().toString(36) + "-" + __qid; }
   function fullDe(w) { try { var f = FN("fullDe"); if (f) return f(w); } catch (e) {} return ((w.art && w.art !== "-") ? w.art + " " : "") + w.de; }
+  /* Bounded unique sampling (no full shuffle): same uniform variety at O(n).
+     Retries are capped; when the pool is too small or repetitive the caller
+     gets fewer distractors and bails honestly (null), as before. */
   function distractAr(pool, right, n) {
     var out = [], seen = {};
     seen[right] = 1;
-    shuffle(pool).forEach(function (w) {
-      if (out.length >= n) return;
-      if (!w.ar || seen[w.ar]) return;
+    n = n || 3;
+    if (!pool || !pool.length) return out;
+    var tries = 0, maxTries = Math.max(24, n * 12);
+    while (out.length < n && tries < maxTries) {
+      tries++;
+      var w = pool[(Math.random() * pool.length) | 0];
+      if (!w || !w.ar || seen[w.ar]) continue;
       seen[w.ar] = 1; out.push(w.ar);
-    });
+    }
     return out;
   }
   function distractDe(pool, right, n) {
     var out = [], seen = {};
     seen[right] = 1;
-    shuffle(pool).forEach(function (w) {
-      if (out.length >= n) return;
+    n = n || 3;
+    if (!pool || !pool.length) return out;
+    var tries = 0, maxTries = Math.max(24, n * 12);
+    while (out.length < n && tries < maxTries) {
+      tries++;
+      var w = pool[(Math.random() * pool.length) | 0];
+      if (!w) continue;
       var d = fullDe(w);
-      if (!d || seen[d]) return;
+      if (!d || seen[d]) continue;
       seen[d] = 1; out.push(d);
-    });
+    }
     return out;
   }
   function baseQ(type, skill, src) {
@@ -446,7 +650,7 @@ DMAssess.ui = (function () {
   function mkVocabMean(o) {
     var pool = vocabPool(o);
     if (pool.length < 4) return null;
-    var w = shuffle(pool)[0];
+    var w = pickOne(pool);
     var opts = shuffle([w.ar].concat(distractAr(pool, w.ar, 3)));
     if (opts.length < 4) return null;
     var q = baseQ("mc", "vocab", { topic: "meaning", topicAr: "معاني الكلمات", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
@@ -456,9 +660,9 @@ DMAssess.ui = (function () {
     return q;
   }
   function mkArticle(o) {
-    var pool = vocabPool(o).filter(function (w) { return w.art && w.art !== "-" && /^[A-ZÄÖÜ]/.test(w.de || ""); });
+    var pool = memoPool(o.memo, memoKey(o, "art"), vocabPool(o), function (w) { return w.art && w.art !== "-" && /^[A-ZÄÖÜ]/.test(w.de || ""); });
     if (!pool.length) return null;
-    var w = shuffle(pool)[0];
+    var w = pickOne(pool);
     var base = shuffle(["der", "die", "das"]);
     var q = baseQ("mc", "vocab", { topic: "article", topicAr: "الأدوات der/die/das", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
     q.prompt = "اختر الأداة الصحيحة: ___ " + w.de;
@@ -467,9 +671,9 @@ DMAssess.ui = (function () {
     return q;
   }
   function mkPlural(o) {
-    var pool = vocabPool(o).filter(function (w) { return w.art && w.art !== "-" && w.plural; });
+    var pool = memoPool(o.memo, memoKey(o, "pl"), vocabPool(o), function (w) { return w.art && w.art !== "-" && w.plural; });
     if (!pool.length) return null;
-    var w = shuffle(pool)[0];
+    var w = pickOne(pool);
     function pfull(x) { var p = String(x.plural || ""); if (/^(der|die|das)\s/.test(p)) return p; return "die " + p; }
     var right = pfull(w), set = {}, opts = [right];
     set[right] = 1;
@@ -484,7 +688,7 @@ DMAssess.ui = (function () {
   function mkTranslate(o) {
     var pool = vocabPool(o);
     if (pool.length < 4) return null;
-    var w = shuffle(pool)[0];
+    var w = pickOne(pool);
     var opts = shuffle([fullDe(w)].concat(distractDe(pool, fullDe(w), 3)));
     if (opts.length < 4) return null;
     var q = baseQ("mc", "vocab", { topic: "translation", topicAr: "الترجمة عربي ← ألماني", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
@@ -496,9 +700,17 @@ DMAssess.ui = (function () {
   function mkTF(o) {
     var pool = vocabPool(o);
     if (pool.length < 2) return null;
-    var w = shuffle(pool)[0];
+    var w = pickOne(pool);
     var truth = Math.random() < 0.5;
-    var claim = truth ? w.ar : (shuffle(pool.filter(function (x) { return x.id !== w.id && x.ar !== w.ar; }))[0] || {}).ar;
+    /* Bounded distinct pick (freeze fix): sample instead of filtering +
+       shuffling the whole kap pool per attempt. */
+    var claim = truth ? w.ar : null;
+    if (!truth) {
+      for (var ti = 0; ti < 24 && claim == null; ti++) {
+        var cand = pickOne(pool);
+        if (cand && cand.id !== w.id && cand.ar && cand.ar !== w.ar) claim = cand.ar;
+      }
+    }
     if (!claim) return null;
     var q = baseQ("tf", "vocab", { topic: "meaning", topicAr: "صح أم خطأ — المفردات", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
     q.prompt = "صح أم خطأ: " + fullDe(w) + " = " + claim + "؟";
@@ -515,7 +727,7 @@ DMAssess.ui = (function () {
     });
     var useGlab = gl.length && (!gs.length || Math.random() < 0.5);
     if (useGlab) {
-      var it = shuffle(gl)[0], gq = it.q;
+      var it = pickOne(gl), gq = it.q;
       var order = shuffle(gq.opts.map(function (_, i) { return i; }));
       var q = baseQ("mc", "grammar", { topic: it.gid, topicAr: it.title || it.gid, kap: it.kap, level: it.level, diff: "medium", gid: it.gid });
       q.prompt = "📐 " + (it.title ? it.title + ": " : "") + gq.t;
@@ -525,7 +737,7 @@ DMAssess.ui = (function () {
       return q;
     }
     if (!gs.length) return null;
-    var g = shuffle(gs)[0];
+    var g = pickOne(gs);
     var ord = shuffle(g.quiz.opts.map(function (_, i) { return i; }));
     var q2 = baseQ("mc", "grammar", { topic: g.id, topicAr: g.title, kap: g.kap, level: g.level || "A1", diff: "medium", gid: g.id });
     q2.prompt = "📐 " + g.title + ": " + g.quiz.q;
@@ -538,23 +750,32 @@ DMAssess.ui = (function () {
   }
   function lastTok(s) { var p = String(s || "").trim().split(/\s+/); return p[p.length - 1] || ""; }
   function mkVerb(o) {
-    var pool = vocabPool(o).filter(function (w) { return w.type === "فعل"; });
+    var pool = memoPool(o.memo, memoKey(o, "verb"), vocabPool(o), function (w) { return w.type === "فعل"; });
     if (!pool.length) return null;
-    var verbs = shuffle(pool), sents = sentPool(o);
-    for (var vi = 0; vi < verbs.length; vi++) {
-      var w = verbs[vi], conj = conjVerbForm(w.de);
+    /* Bounded search (freeze fix): try a few sampled verbs with a sampled
+       host-sentence lookup instead of scanning every verb x every sentence.
+       buildPool retries this factory 100s of times per slot, so coverage
+       across a build stays complete; a single attempt stays sub-millisecond. */
+    var sents = sentPool(o);
+    var tried = {}, attempts = 0;
+    while (attempts < 6) {
+      attempts++;
+      var vi = (Math.random() * pool.length) | 0;
+      if (tried[vi]) continue;
+      tried[vi] = 1;
+      var w = pool[vi], conj = conjVerbForm(w.de);
       if (!conj) continue;
       var subs = ["Ich", "Du", "Er", "Wir", "Ihr"], persons = ["ich", "du", "er", "wir", "ihr"];
       var pi = Math.floor(Math.random() * subs.length);
       var form = lastTok(conj[persons[pi]]);
       if (!form) continue;
-      var host = null;
-      for (var si = 0; si < sents.length; si++) {
-        if ((" " + sents[si].de + " ").indexOf(" " + form + " ") >= 0 && sents[si].de.indexOf(subs[pi]) === 0) { host = sents[si]; break; }
-      }
+      var sub = subs[pi];
+      var host = findHost(sents, function (sn) {
+        return (" " + sn.de + " ").indexOf(" " + form + " ") >= 0 && sn.de.indexOf(sub) === 0;
+      }, 60, false);
       var tail = "";
       if (host) {
-        var rest = host.de.slice(subs[pi].length).trim();
+        var rest = host.de.slice(sub.length).trim();
         if (rest.indexOf(form) === 0) tail = rest.slice(form.length);
       }
       var distract = [];
@@ -572,18 +793,24 @@ DMAssess.ui = (function () {
   }
   function mkError(o) {
     /* تصحيح الخطأ: wrong sentence shown, pick the fix (verb-based, real). */
-    var pool = vocabPool(o).filter(function (w) { return w.type === "فعل"; });
+    var pool = memoPool(o.memo, memoKey(o, "verb"), vocabPool(o), function (w) { return w.type === "فعل"; });
     if (!pool.length) return null;
-    var verbs = shuffle(pool), sents = sentPool(o);
-    for (var vi = 0; vi < verbs.length; vi++) {
-      var w = verbs[vi], conj = conjVerbForm(w.de);
+    /* Bounded search (freeze fix): same rationale as mkVerb — a few sampled
+       verbs + sampled host lookup per attempt, retries provide coverage. */
+    var sents = sentPool(o);
+    var tried = {}, attempts = 0;
+    while (attempts < 6) {
+      attempts++;
+      var vi = (Math.random() * pool.length) | 0;
+      if (tried[vi]) continue;
+      tried[vi] = 1;
+      var w = pool[vi], conj = conjVerbForm(w.de);
       if (!conj) continue;
       var erF = lastTok(conj.er), ichF = lastTok(conj.ich);
       if (!erF || !ichF || erF === ichF) continue;
-      var host = null;
-      for (var si = 0; si < sents.length; si++) {
-        if (sents[si].de.indexOf("Er " + erF) === 0 || sents[si].de.indexOf("Er " + erF + " ") >= 0) { host = sents[si]; break; }
-      }
+      var host = findHost(sents, function (sn) {
+        return sn.de.indexOf("Er " + erF) === 0 || sn.de.indexOf("Er " + erF + " ") >= 0;
+      }, 60, false);
       if (!host) continue;
       var wrong = host.de.replace("Er " + erF, "Er " + w.de);
       if (wrong === host.de) continue;
@@ -600,12 +827,12 @@ DMAssess.ui = (function () {
     return null;
   }
   function mkOrder(o) {
-    var pool = sentPool(o).filter(function (s) {
+    var pool = memoPool(o.memo, memoKey(o, "ord"), sentPool(o), function (s) {
       var n = String(s.de || "").replace(/[.?!,]/g, "").split(" ").filter(Boolean).length;
       return n >= 4 && n <= 10;
     });
     if (!pool.length) return null;
-    var s = shuffle(pool)[0];
+    var s = pickOne(pool);
     var parts = shuffle(String(s.de).replace(/[.?!,]/g, "").split(" ").filter(Boolean));
     var q = baseQ("order", "sentences", { topic: "word-order", topicAr: "ترتيب الجملة", kap: s.kap, level: (s.level || s.lvl) || "A1", diff: "medium", refId: s.id, refKind: "sentence" });
     q.prompt = "🔀 رتّب الكلمات لتكوين جملة صحيحة (" + s.ar + "):";
@@ -617,7 +844,7 @@ DMAssess.ui = (function () {
     /* إكمال الجملة: real SENT_FILL gap items (mc over the 4 options). */
     var pool = fillPool(o);
     if (!pool.length) return null;
-    var f = shuffle(pool)[0];
+    var f = pickOne(pool);
     var skill = "sentences", topic = "gap", topicAr = "إكمال الجمل";
     var gt = String(f.grammarTarget || f.typ || "");
     if (/article/.test(gt)) { skill = "grammar"; topic = "article"; topicAr = "الأدوات في السياق"; }
@@ -634,7 +861,7 @@ DMAssess.ui = (function () {
     var pool = fillPool(o).filter(function (f) { return /article/.test(String(f.grammarTarget || f.typ || "")); });
     if (!pool.length) pool = fillPool(o);
     if (!pool.length) return null;
-    var f = shuffle(pool)[0];
+    var f = pickOne(pool);
     var q = baseQ("fill", "writing", { topic: "writing", topicAr: "الكتابة والإملاء", kap: f.chapterId, level: f.lvl || "A1", diff: "medium", refId: f.id, refKind: "fill" });
     q.prompt = "✍️ اكتب الكلمة الناقصة: " + f.s;
     q.de = f.s; q.accept = [String(f.o[f.c])]; q.answer = String(f.o[f.c]);
@@ -644,7 +871,7 @@ DMAssess.ui = (function () {
   function mkReading(o) {
     var rs = readingPool(o).filter(function (r) { return r.qs && r.qs.length; });
     if (rs.length) {
-      var r = shuffle(rs)[0], qq = shuffle(r.qs)[0];
+      var r = pickOne(rs), qq = pickOne(r.qs);
       if (!qq.opts || qq.opts.length < 2) return null;
       var q = baseQ("read", "reading", { topic: "comprehension", topicAr: "فهم المقروء", kap: r.kap, level: r.level || "A1", diff: "medium", refId: r.id, refKind: "reading" });
       q.passage = (r.title ? r.title + "\n" : "") + String(r.de).slice(0, 600);
@@ -655,10 +882,12 @@ DMAssess.ui = (function () {
       return q;
     }
     /* fallback: real sentence as micro-text + meaning question */
-    var pool = sentPool(o).filter(function (s) { return String(s.de || "").split(" ").length >= 5; });
+    var pool = memoPool(o.memo, memoKey(o, "sent5"), sentPool(o), function (s) { return String(s.de || "").split(" ").length >= 5; });
     if (pool.length < 4) return null;
-    var s = shuffle(pool)[0];
-    var opts = shuffle([s.ar].concat(distractAr(words(), s.ar, 3)));
+    var s = pickOne(pool);
+    /* Distractor source stays the full bank (same variety as before); the
+       bounded sampler makes it O(1) instead of a 60k+ shuffle per attempt. */
+    var opts = shuffle([s.ar].concat(distractAr(vocabPool({}), s.ar, 3)));
     if (opts.length < 4) return null;
     var q2 = baseQ("read", "reading", { topic: "comprehension", topicAr: "فهم المقروء", kap: s.kap, level: (s.level || s.lvl) || "A1", diff: "easy", refId: s.id, refKind: "sentence" });
     q2.passage = s.de; q2.prompt = "📖 اقرأ ثم اختر المعنى الصحيح:";
@@ -669,8 +898,8 @@ DMAssess.ui = (function () {
   function mkListening(o) {
     var pool = listenPool();
     if (pool.length < 4) return null;
-    var it = shuffle(pool)[0];
-    var others = shuffle(pool.filter(function (x) { return x !== it; })).slice(0, 3).map(function (x) { return x.ar; });
+    var it = pickOne(pool);
+    var others = pickNUnique(pool.filter(function (x) { return x !== it; }), 3).map(function (x) { return x.ar; });
     var opts = shuffle([it.ar].concat(others));
     var q = baseQ("listen", "listening", { topic: "listening", topicAr: "الفهم السمعي", kap: o.kap || null, level: o.level || "A1", diff: "medium" });
     q.prompt = "🎧 استمع واختر المعنى الصحيح:";
@@ -681,7 +910,7 @@ DMAssess.ui = (function () {
   function mkSpeaking(o) {
     var pool = speakPool();
     if (!pool.length) return null;
-    var it = shuffle(pool)[0];
+    var it = pickOne(pool);
     var q = baseQ("speak", "speaking", { topic: "speaking", topicAr: "التحدث", kap: o.kap || null, level: o.level || "A1", diff: "medium" });
     q.prompt = "🎤 أجب بالألمانية: " + it.q;
     q.promptAr = it.ar; q.sample = it.sample;
@@ -722,11 +951,11 @@ DMAssess.ui = (function () {
     }
     var rs = realPool();
     if (!rs.length) return null;
-    var r = shuffle(rs)[0];
+    var r = pickOne(rs);
     var phrs = (r.phr || []).filter(function (p) { return p[0] && p[1]; });
     if (phrs.length < 3) return null;
-    var pick = shuffle(phrs)[0];
-    var distract = shuffle(phrs.filter(function (p) { return p !== pick; })).slice(0, 3).map(function (p) { return p[0]; });
+    var pick = pickOne(phrs);
+    var distract = pickNUnique(phrs.filter(function (p) { return p !== pick; }), 3).map(function (p) { return p[0]; });
     var opts = shuffle([pick[0]].concat(distract));
     if (opts.length < 3) return null;
     var q2 = baseQ("mc", "practical", { topic: "situation:" + r.id, topicAr: "مواقف: " + r.t, kap: o.kap || null, level: o.level || "A1", diff: "medium" });
@@ -738,7 +967,7 @@ DMAssess.ui = (function () {
   function mkMatch(o) {
     var pool = vocabPool(o);
     if (pool.length < 6) return null;
-    var ws = shuffle(pool).slice(0, 4);
+    var ws = pickNUnique(pool, 4);
     if (ws.some(function (w) { return !w.ar; })) return null;
     var q = baseQ("match", "vocab", { topic: "match", topicAr: "التوصيل ألماني ↔ عربي", kap: ws[0].kap, level: o.level || "A1", diff: "medium" });
     q.prompt = "🔗 وصّل كل كلمة بمعناها:";
@@ -748,9 +977,9 @@ DMAssess.ui = (function () {
   }
   function mkKein(o) {
     /* النفي: kein / keine / nicht — from real nouns + real rule. */
-    var pool = vocabPool(o).filter(function (w) { return w.type === "اسم" && w.art && w.art !== "-" && /^[A-ZÄÖÜ]/.test(w.de || ""); });
+    var pool = memoPool(o.memo, memoKey(o, "kein"), vocabPool(o), function (w) { return w.type === "اسم" && w.art && w.art !== "-" && /^[A-ZÄÖÜ]/.test(w.de || ""); });
     if (pool.length < 3) return null;
-    var w = shuffle(pool)[0];
+    var w = pickOne(pool);
     var useNicht = Math.random() < 0.35;
     var right, wrongs, sentence;
     if (useNicht) {
@@ -772,12 +1001,18 @@ DMAssess.ui = (function () {
   }
   function mkConj(o) {
     /* تصريف الأفعال: pronoun rows (ich/du/er...) each with 3 form options. */
-    var pool = vocabPool(o).filter(function (w) { return w.type === "فعل"; });
+    var pool = memoPool(o.memo, memoKey(o, "verb"), vocabPool(o), function (w) { return w.type === "فعل"; });
     if (!pool.length) return null;
-    var verbs = shuffle(pool);
+    /* Bounded search (freeze fix): sample verbs instead of shuffling the
+       whole pool; retries across buildPool attempts provide coverage. */
     var persons = [["ich", "Ich"], ["du", "Du"], ["er", "Er"], ["wir", "Wir"]];
-    for (var vi = 0; vi < verbs.length; vi++) {
-      var w = verbs[vi], conj = conjVerbForm(w.de);
+    var tried = {}, attempts = 0;
+    while (attempts < 8) {
+      attempts++;
+      var vi = (Math.random() * pool.length) | 0;
+      if (tried[vi]) continue;
+      tried[vi] = 1;
+      var w = pool[vi], conj = conjVerbForm(w.de);
       if (!conj) continue;
       var forms = {};
       persons.forEach(function (p) { forms[p[0]] = lastTok(conj[p[0]]); });
@@ -803,9 +1038,9 @@ DMAssess.ui = (function () {
   }
   function mkWordClass(o) {
     /* أقسام الكلام: Verb / Nomen / Adjektiv from real word types. */
-    var pool = vocabPool(o).filter(function (w) { return w.type === "فعل" || w.type === "اسم" || w.type === "صفة"; });
+    var pool = memoPool(o.memo, memoKey(o, "wc"), vocabPool(o), function (w) { return w.type === "فعل" || w.type === "اسم" || w.type === "صفة"; });
     if (pool.length < 4) return null;
-    var w = shuffle(pool)[0];
+    var w = pickOne(pool);
     var arOf = { "فعل": "فعل Verb", "اسم": "اسم Nomen", "صفة": "صفة Adjektiv" };
     var others = ["فعل", "اسم", "صفة"].filter(function (t) { return t !== w.type; });
     var opts = shuffle([arOf[w.type]].concat(others.map(function (t) { return arOf[t]; })));
@@ -817,10 +1052,10 @@ DMAssess.ui = (function () {
   }
   function mkSentMean(o) {
     /* معنى الجملة: real sentence -> Arabic meaning options. */
-    var pool = sentPool(o).filter(function (s) { return String(s.de || "").split(" ").length >= 5; });
+    var pool = memoPool(o.memo, memoKey(o, "sent5"), sentPool(o), function (s) { return String(s.de || "").split(" ").length >= 5; });
     if (pool.length < 4) return null;
-    var s = shuffle(pool)[0];
-    var opts = shuffle([s.ar].concat(distractAr(words(), s.ar, 3)));
+    var s = pickOne(pool);
+    var opts = shuffle([s.ar].concat(distractAr(vocabPool({}), s.ar, 3)));
     if (opts.length < 4) return null;
     var q = baseQ("mc", "sentences", { topic: "sentmean", topicAr: "معنى الجملة", kap: s.kap, level: (s.level || s.lvl) || "A1", diff: "easy", refId: s.id, refKind: "sentence" });
     q.prompt = "💬 ما معنى الجملة: «" + s.de + "»؟";
@@ -850,19 +1085,27 @@ DMAssess.ui = (function () {
     /* استماع بكلمة ناقصة: hear the sentence, pick the missing word. */
     var pool = listenPool().filter(function (x) { return x.de && x.de.split(" ").length >= 4; });
     if (pool.length < 4) return null;
-    var it = shuffle(pool)[0];
+    var it = pickOne(pool);
     var toks = it.de.replace(/[.?!,]/g, "").split(" ").filter(Boolean);
     var cands = toks.map(function (t, i) { return i; }).filter(function (i) { return toks[i].length > 3 && i > 0 && i < toks.length - 1; });
     if (!cands.length) return null;
-    var bi = shuffle(cands)[0], missing = toks[bi];
-    var others = [];
-    shuffle(pool.filter(function (x) { return x !== it; })).forEach(function (x) {
-      x.de.replace(/[.?!,]/g, "").split(" ").forEach(function (t) {
-        if (others.length < 12 && t.length > 3 && t.toLowerCase() !== missing.toLowerCase() && others.indexOf(t) < 0) others.push(t);
-      });
-    });
+    var bi = pickOne(cands), missing = toks[bi];
+    /* Bounded word collection (freeze fix): sample random sentences instead
+       of shuffling the whole pool per attempt. */
+    var others = [], seenOw = {}, owTries = 0;
+    seenOw[missing.toLowerCase()] = 1;
+    while (others.length < 12 && owTries < 200) {
+      owTries++;
+      var xs = pool[(Math.random() * pool.length) | 0];
+      if (!xs || xs === it) continue;
+      var parts = String(xs.de || "").replace(/[.?!,]/g, "").split(" ");
+      for (var pi2 = 0; pi2 < parts.length && others.length < 12; pi2++) {
+        var tt = parts[pi2];
+        if (tt.length > 3 && !seenOw[tt.toLowerCase()]) { seenOw[tt.toLowerCase()] = 1; others.push(tt); }
+      }
+    }
     if (others.length < 3) return null;
-    var opts = shuffle([missing].concat(shuffle(others).slice(0, 3)));
+    var opts = shuffle([missing].concat(pickNUnique(others, 3)));
     var blanked = toks.slice(); blanked[bi] = "___";
     var q = baseQ("mc", "listening", { topic: "listen-gap", topicAr: "الكلمة الناقصة سمعيًا", kap: o.kap || null, level: o.level || "A1", diff: "medium" });
     q.prompt = "🎧 استمع للجملة واختر الكلمة الناقصة: " + blanked.join(" ");
@@ -889,6 +1132,11 @@ DMAssess.ui = (function () {
     opts = opts || {};
     var rng = opts.rng || Math.random;
     var excl = opts.excludeIds || null;
+    /* Per-build memo for filtered sub-pools (freeze fix): factories used to
+       re-filter the (kap-sized) pools on EVERY attempt — 100s of identical
+       4k scans per slot. The memo lives exactly one synchronous build, so it
+       can never go stale (banks cannot change mid-build). */
+    var memo = opts.memo || {};
     var pool = [], notes = [];
     (spec || []).forEach(function (sl) {
       var fn = FACTORIES[sl.factory];
@@ -897,7 +1145,7 @@ DMAssess.ui = (function () {
       while (got < want && tries < want * 12 + 8) {
         tries++;
         var q = null;
-        try { q = fn({ kap: sl.kap, level: sl.level, rng: rng }); } catch (e) { q = null; }
+        try { q = fn({ kap: sl.kap, level: sl.level, rng: rng, memo: memo }); } catch (e) { q = null; }
         if (!q || seen[q.prompt]) continue;
         if (excl && q.refId && excl[q.refId]) continue;
         if (opts.validate !== false && !C.validateQ(q)) { bad++; continue; }
@@ -2117,6 +2365,9 @@ DMAssess.center = (function () {
     var out = {};
     try {
       var gs = FN("getStatus"), GR = (typeof GRAMMAR !== "undefined") ? GRAMMAR : [];
+      /* gid->kap map once (was a linear GRAMMAR scan per key per Kapitel). */
+      var gkap = {};
+      try { for (var gi = 0; gi < GR.length; gi++) if (GR[gi] && GR[gi].id) gkap[GR[gi].id] = GR[gi].kap; } catch (e0) {}
       U.kapitelList().forEach(function (k) {
         var ws = U.vocabPool({ kap: k.id });
         var vr = null, gr = null;
@@ -2127,12 +2378,9 @@ DMAssess.center = (function () {
         try {
           var entries = [];
           Object.keys(((typeof S !== "undefined" && S.grammar) || {})).forEach(function (gid) {
-            var g = null;
-            for (var i = 0; i < GR.length; i++) if (GR[i].id === gid) { g = GR[i]; break; }
-            if (g && g.kap === k.id) {
-              var m = S.grammar[gid];
-              if (m && m.n) entries.push(m.ok / m.n * 100);
-            }
+            if (gkap[gid] !== k.id) return;
+            var m = S.grammar[gid];
+            if (m && m.n) entries.push(m.ok / m.n * 100);
           });
           if (entries.length) gr = entries.reduce(function (a, b) { return a + b; }, 0) / entries.length;
         } catch (e) {}
