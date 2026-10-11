@@ -1,0 +1,935 @@
+{
+  "generated": "2026-10-11T11:20:51.049Z",
+  "layers": {
+    "cache": {
+      "vocab": {
+        "file": "vocab.json",
+        "physical": 104640,
+        "bytes": 19039556
+      },
+      "sentences": {
+        "file": "sentences.json",
+        "physical": 150000,
+        "bytes": 35176359
+      },
+      "grammar": {
+        "file": "grammar.json",
+        "physical": 3069,
+        "bytes": 3343571
+      },
+      "exercises": {
+        "file": "exercises.json",
+        "physical": 697330,
+        "bytes": 233784132
+      },
+      "dialogues": {
+        "file": "dialogues.json",
+        "physical": 10000,
+        "bytes": 6471717
+      },
+      "reading": {
+        "file": "reading.json",
+        "physical": 5000,
+        "bytes": 6325340
+      },
+      "listening": {
+        "file": "listening.json",
+        "physical": 10000,
+        "bytes": 7803792
+      },
+      "exams": {
+        "file": "exams.json",
+        "physical": 10000,
+        "bytes": 2812281
+      }
+    },
+    "src": {
+      "vocab": 104640,
+      "sent": 150000,
+      "files": {
+        "dlg-01.json": {
+          "kind": "dlg",
+          "physical": 1000
+        },
+        "dlg-02.json": {
+          "kind": "dlg",
+          "physical": 4500
+        },
+        "dlg-03.json": {
+          "kind": "dlg",
+          "physical": 4500
+        },
+        "ex-01.json": {
+          "kind": "ex",
+          "physical": 7550
+        },
+        "ex-02.json": {
+          "kind": "ex",
+          "physical": 7550
+        },
+        "ex-03.json": {
+          "kind": "ex",
+          "physical": 7550
+        },
+        "ex-04.json": {
+          "kind": "ex",
+          "physical": 7550
+        },
+        "ex-05.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-06.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-07.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-08.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-09.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-10.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-11.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-12.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-13.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-14.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-15.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-16.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-17.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-18.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-19.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-20.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-21.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-22.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-23.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-24.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-25.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-26.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-27.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-28.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-29.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-30.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-31.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-32.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-33.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-34.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-35.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-36.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-37.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-38.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-39.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-40.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-41.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-42.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-43.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-44.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-45.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-46.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-47.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-48.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-49.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-50.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-51.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-52.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-53.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-54.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-55.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-56.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-57.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-58.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-59.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-60.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-61.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-62.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-63.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-64.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-65.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-66.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-67.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-68.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-69.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-70.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-71.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-72.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-73.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-74.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-75.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-76.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-77.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-78.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-79.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-80.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-81.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-82.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-83.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-84.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-85.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-86.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-87.json": {
+          "kind": "ex",
+          "physical": 8000
+        },
+        "ex-88.json": {
+          "kind": "ex",
+          "physical": 3130
+        },
+        "exam-01.json": {
+          "kind": "exam",
+          "physical": 5000
+        },
+        "exam-02.json": {
+          "kind": "exam",
+          "physical": 5000
+        },
+        "gram-01.json": {
+          "kind": "gram",
+          "physical": 900
+        },
+        "gram-02.json": {
+          "kind": "gram",
+          "physical": 2169
+        },
+        "lis-01.json": {
+          "kind": "lis",
+          "physical": 5000
+        },
+        "lis-02.json": {
+          "kind": "lis",
+          "physical": 5000
+        },
+        "read-01.json": {
+          "kind": "read",
+          "physical": 5000
+        },
+        "sent-01.json": {
+          "kind": "sent",
+          "physical": 4000
+        },
+        "sent-02.json": {
+          "kind": "sent",
+          "physical": 4000
+        },
+        "sent-03.json": {
+          "kind": "sent",
+          "physical": 4000
+        },
+        "sent-04.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-05.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-06.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-07.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-08.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-09.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-10.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-11.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-12.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-13.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-14.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-15.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-16.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-17.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-18.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-19.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-20.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-21.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-22.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-23.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-24.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-25.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-26.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-27.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-28.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-29.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-30.json": {
+          "kind": "sent",
+          "physical": 5000
+        },
+        "sent-31.json": {
+          "kind": "sent",
+          "physical": 3000
+        },
+        "vocab-01.json": {
+          "kind": "vocab",
+          "physical": 2500
+        },
+        "vocab-02.json": {
+          "kind": "vocab",
+          "physical": 2500
+        },
+        "vocab-03.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-04.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-05.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-06.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-07.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-08.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-09.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-10.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-11.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-12.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-13.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-14.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-15.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-16.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-17.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-18.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-19.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-20.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-21.json": {
+          "kind": "vocab",
+          "physical": 5000
+        },
+        "vocab-22.json": {
+          "kind": "vocab",
+          "physical": 4640
+        }
+      }
+    },
+    "runtime": {
+      "vocab": 104640,
+      "sent": 150000,
+      "byPack": {
+        "dm-sent-01.js": 4000,
+        "dm-sent-02.js": 4000,
+        "dm-sent-03.js": 4000,
+        "dm-sent-04.js": 5000,
+        "dm-sent-05.js": 5000,
+        "dm-sent-06.js": 5000,
+        "dm-sent-07.js": 5000,
+        "dm-sent-08.js": 5000,
+        "dm-sent-09.js": 5000,
+        "dm-sent-10.js": 5000,
+        "dm-sent-11.js": 5000,
+        "dm-sent-12.js": 5000,
+        "dm-sent-13.js": 5000,
+        "dm-sent-14.js": 5000,
+        "dm-sent-15.js": 5000,
+        "dm-sent-16.js": 5000,
+        "dm-sent-17.js": 5000,
+        "dm-sent-18.js": 5000,
+        "dm-sent-19.js": 5000,
+        "dm-sent-20.js": 5000,
+        "dm-sent-21.js": 5000,
+        "dm-sent-22.js": 5000,
+        "dm-sent-23.js": 5000,
+        "dm-sent-24.js": 5000,
+        "dm-sent-25.js": 5000,
+        "dm-sent-26.js": 5000,
+        "dm-sent-27.js": 5000,
+        "dm-sent-28.js": 5000,
+        "dm-sent-29.js": 5000,
+        "dm-sent-30.js": 5000,
+        "dm-sent-31.js": 3000,
+        "dm-vocab-01.js": 2500,
+        "dm-vocab-02.js": 2500,
+        "dm-vocab-03.js": 5000,
+        "dm-vocab-04.js": 5000,
+        "dm-vocab-05.js": 5000,
+        "dm-vocab-06.js": 5000,
+        "dm-vocab-07.js": 5000,
+        "dm-vocab-08.js": 5000,
+        "dm-vocab-09.js": 5000,
+        "dm-vocab-10.js": 5000,
+        "dm-vocab-11.js": 5000,
+        "dm-vocab-12.js": 5000,
+        "dm-vocab-13.js": 5000,
+        "dm-vocab-14.js": 5000,
+        "dm-vocab-15.js": 5000,
+        "dm-vocab-16.js": 5000,
+        "dm-vocab-17.js": 5000,
+        "dm-vocab-18.js": 5000,
+        "dm-vocab-19.js": 5000,
+        "dm-vocab-20.js": 5000,
+        "dm-vocab-21.js": 5000,
+        "dm-vocab-22.js": 4640
+      }
+    },
+    "manifest": {
+      "vocab": 104640,
+      "sent": 150000,
+      "gram": 3069,
+      "ex": 697330,
+      "dlg": 10000,
+      "read": 5000,
+      "lis": 10000,
+      "exam": 10000
+    },
+    "base": {
+      "RAW_SENT": 107,
+      "RAW_GRAM": 40,
+      "RAW_K0": 30,
+      "RAW_K1": 179,
+      "RAW_K2": 212,
+      "RAW_K3": 119,
+      "RAW_K4": 174,
+      "RAW_K5": 139,
+      "baseVocabTotal": 853
+    }
+  },
+  "vocab": {
+    "physical": 104640,
+    "valid": 104640,
+    "uniqueEntries": 104640,
+    "uniqueHeadwords": 104561,
+    "exactDupKeys": 0,
+    "dupIdCount": 0,
+    "missingDe": 0,
+    "missingAr": 0,
+    "byLevel": {
+      "A1": 51975,
+      "A2": 34658,
+      "B1": 16315,
+      "B2": 1692
+    },
+    "byCat": {
+      "family": 3024,
+      "relationships": 203,
+      "people": 1342,
+      "neighborhood": 41,
+      "general": 12192,
+      "documents": 580,
+      "dailylife": 112,
+      "internet": 578,
+      "home": 11926,
+      "rooms": 284,
+      "furniture": 776,
+      "school": 1602,
+      "education": 250,
+      "study": 2372,
+      "university": 1803,
+      "unilife": 70,
+      "work": 7949,
+      "jobs": 1167,
+      "applications": 77,
+      "interviews": 49,
+      "workplace": 315,
+      "time": 507,
+      "ausbildung": 160,
+      "travel": 1774,
+      "airport": 311,
+      "station": 153,
+      "transport": 3284,
+      "roads": 388,
+      "city": 1159,
+      "shopping": 1270,
+      "supermarket": 117,
+      "clothing": 2419,
+      "food": 15769,
+      "drinks": 584,
+      "restaurant": 527,
+      "hotel": 628,
+      "health": 6728,
+      "body": 245,
+      "doctor": 976,
+      "hospital": 944,
+      "pharmacy": 337,
+      "appointments": 82,
+      "emergency": 186,
+      "weather": 420,
+      "seasons": 29,
+      "nature": 3964,
+      "animals": 1769,
+      "computers": 762,
+      "phones": 292,
+      "communication": 416,
+      "banking": 585,
+      "money": 646,
+      "services": 1336,
+      "dates": 134,
+      "numbers": 138,
+      "directions": 71,
+      "emotions": 202,
+      "sports": 3119,
+      "hobbies": 1836,
+      "germany": 520,
+      "tech": 504,
+      "routine": 110,
+      "profi": 112,
+      "social": 36,
+      "worktalk": 32,
+      "verbs": 1115,
+      "polite": 52,
+      "adjectives": 947,
+      "location": 9,
+      "colloquial": 224
+    },
+    "byType": {
+      "noun": 44359,
+      "verb": 2337,
+      "adj": 1026,
+      "pron": 36,
+      "conj": 22,
+      "adv": 64,
+      "prep": 28,
+      "func": 18,
+      "num": 127,
+      "phrase": 56623
+    },
+    "byPack": {
+      "vocab-01.json": 2500,
+      "vocab-02.json": 2500,
+      "vocab-03.json": 5000,
+      "vocab-04.json": 5000,
+      "vocab-05.json": 5000,
+      "vocab-06.json": 5000,
+      "vocab-07.json": 5000,
+      "vocab-08.json": 5000,
+      "vocab-09.json": 5000,
+      "vocab-10.json": 5000,
+      "vocab-11.json": 5000,
+      "vocab-12.json": 5000,
+      "vocab-13.json": 5000,
+      "vocab-14.json": 5000,
+      "vocab-15.json": 5000,
+      "vocab-16.json": 5000,
+      "vocab-17.json": 5000,
+      "vocab-18.json": 5000,
+      "vocab-19.json": 5000,
+      "vocab-20.json": 5000,
+      "vocab-21.json": 5000,
+      "vocab-22.json": 4640
+    },
+    "sampleDupKeys": []
+  },
+  "sentences": {
+    "physical": 150000,
+    "valid": 150000,
+    "uniqueTexts": 150000,
+    "exactDupTexts": 0,
+    "dupIdCount": 0,
+    "byLevel": {
+      "A1": 59156,
+      "B1": 30307,
+      "A2": 60537
+    },
+    "byKap": {
+      "K1": 11787,
+      "K2": 11806,
+      "K3": 11837,
+      "K4": 11857,
+      "K5": 11869,
+      "KX": 90844
+    },
+    "sampleDupTexts": []
+  },
+  "parity": {
+    "manifestFileSum": {
+      "vocab": 104640,
+      "sent": 150000,
+      "gram": 3069,
+      "ex": 697330,
+      "dlg": 10000,
+      "read": 5000,
+      "lis": 10000,
+      "exam": 10000
+    },
+    "srcVsManifest": {
+      "vocab": {
+        "src": 104640,
+        "manifest": 104640,
+        "match": true
+      },
+      "sent": {
+        "src": 150000,
+        "manifest": 150000,
+        "match": true
+      }
+    },
+    "runtimeVsSrc": {
+      "vocab": {
+        "runtime": 104640,
+        "src": 104640,
+        "match": true
+      },
+      "sent": {
+        "runtime": 150000,
+        "src": 150000,
+        "match": true
+      }
+    },
+    "cacheVsSrc": {
+      "vocab": {
+        "cache": 104640,
+        "src": 104640
+      },
+      "sent": {
+        "cache": 150000,
+        "src": 150000
+      }
+    },
+    "missingRuntimePacks": [],
+    "bootSyncSubset": {
+      "vocab": 5000,
+      "sent": 12000
+    }
+  },
+  "packs": {}
+}

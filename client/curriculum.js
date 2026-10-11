@@ -506,10 +506,13 @@ function currRenderPath(){
        Identical tot/kn numbers — statuses cannot change mid-render. */
     var _agg={A1:{tot:0,kn:0},A2:{tot:0,kn:0},B1:{tot:0,kn:0},B2:{tot:0,kn:0}};
     try{
-      allWords().forEach(function(w){
+      /* Perf 104k bank: consume the render chain snapshot when fresh. */
+      var snapC=(typeof dmDashSnap==="function")?dmDashSnap():null;
+      if(snapC&&snapC.byLevel){["A1","A2","B1","B2"].forEach(function(L){var b=snapC.byLevel[L];if(b){_agg[L].tot=b.tot;_agg[L].kn=b.kn;}});}
+      else{(typeof dmWords==="function"?dmWords():allWords()).forEach(function(w){
         var L=w.level||"A1";var a=_agg[L];if(!a){a=_agg[L]={tot:0,kn:0};}
         a.tot++;try{if(getStatus(w.id)==="known")a.kn++;}catch(e){}
-      });
+      });}
     }catch(e){}
     var h='<h3>🗺️ مسار المستويات A1 → B2</h3><div class="muted">تعلّم بالترتيب: أتقن مستوى ثم انتقل للتالي.</div><div class="grid-2">';
     order.forEach(function(L){

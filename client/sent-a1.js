@@ -642,6 +642,49 @@ function sentA1InjectUI() {
   } catch (e) { if (window.console) console.error("sent-a1 ui", e); }
 }
 
+/* ---------- on-demand full-sentence loading (ADDITIVE, Phase 2 fix) ----------
+   Mirrors ensureFullVocab in script.js: boot carries only 3 sync sent packs
+   and the idle prefetch is budget-capped, so the pill used to freeze at a
+   partial total (the reported "75k -> 45k" is a loading artifact, not data
+   loss — the full 150k ships in dm-sent-*.js and is verified by the
+   inventory audit). Pull remaining sent packs in the background with honest
+   progress, re-render only while the sentences page stays visible. */
+var _sentFullLoadStarted = false;
+function ensureFullSentences() {
+  try {
+    if (_sentFullLoadStarted) return;
+    var M = window.DM_LIB_MORE;
+    if (!M || typeof M.loadKindProgress !== "function") return;
+    try { if (M.kindLoaded("sent")) return; } catch (e) { return; }
+    _sentFullLoadStarted = true;
+    M.loadKindProgress("sent", function (done, total) {
+      try {
+        /* Keep the sentCount pill machine-readable ("N جملة"); pack
+           progress lives in a sibling span, removed on completion. */
+        if (!document.querySelector("#page-sentences.active")) return;
+        try { sentA1Render(); } catch (e) {}
+        var pill = document.getElementById("sentCount");
+        if (pill && !document.getElementById("sentLoadProg") && pill.parentNode) {
+          var sp = document.createElement("span");
+          sp.id = "sentLoadProg"; sp.className = "count-pill";
+          sp.style.cssText = "white-space:nowrap;opacity:.75";
+          pill.parentNode.appendChild(sp);
+        }
+        var prog = document.getElementById("sentLoadProg");
+        if (prog) prog.textContent = "⏳ " + done + "/" + total;
+      } catch (e) {}
+    }).then(function () {
+      try {
+        var prog = document.getElementById("sentLoadProg");
+        if (prog && prog.parentNode) prog.parentNode.removeChild(prog);
+      } catch (e) {}
+      try {
+        if (document.querySelector("#page-sentences.active")) sentA1Render();
+      } catch (e) {}
+    });
+  } catch (e) {}
+}
+
 function sentA1Card(s, i) {
   var d = document.createElement("div");
   d.className = "sent-card glass";
@@ -687,6 +730,7 @@ function sentA1SearchRows() {
 }
 function sentA1Render() {
   try {
+    try { ensureFullSentences(); } catch (e) {}
     sentA1Merge();
     sentA1InjectUI();
     var box = document.getElementById("sentList");

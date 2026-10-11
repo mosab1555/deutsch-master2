@@ -45,10 +45,11 @@
   function cmdStats() {
     var st = { total: 0, known: 0, due: 0, mistakes: 0, fixed: 0, days: 0, week: [], tests: 0, streak: 0, placed: false, hasProgress: false, dailyDone: false, lok: 0, sok: 0, pct: 0, gramAvg: -1, gramN: 0 };
     try {
-      var w = cmdWords();
-      st.total = w.length;
-      st.known = w.filter(function (x) { return cmdStatus(x.id) === "known"; }).length;
-      st.due = cmdDue().length;
+      var snapH=(typeof dmDashSnap==="function"?dmDashSnap():null);
+      var w = snapH?snapH.words:cmdWords();
+      st.total = snapH?snapH.n:w.length;
+      st.known = snapH?snapH.known:w.filter(function (x) { return cmdStatus(x.id) === "known"; }).length;
+      st.due = snapH?snapH.due:((typeof dueCount==="function")?dueCount():cmdDue().length);
       st.mistakes = cmdOpenMistakes();
       st.fixed = cmdFixedTotal();
       var ad = cmdActiveDays();

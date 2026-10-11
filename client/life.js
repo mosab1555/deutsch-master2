@@ -336,7 +336,7 @@ function coachAdvice(){
   const adv=[];
   if(weak.length)adv.push({t:"لاحظت أخطاء في: "+weak.slice(0,2).map(w=>w.k).join("، ")+".",go:"practice",b:"تدرب الآن 🎯"});
   else adv.push({t:"مستواك متوازن اليوم. استمر! 🚀",go:"games",b:"العب 🎮"});
-  const dueN=(function(){try{return srsDue().length;}catch(e){return 0;}})();
+  const dueN=(function(){try{return (typeof srsDueCount==="function")?srsDueCount():srsDue().length;}catch(e){return 0;}})();
   if(dueN>0)adv.push({t:"لديك "+dueN+" كلمات تحتاج مراجعة.",go:"review",b:"ابدأ المراجعة 🔁"});
   if(last)adv.push({t:"آخر نشاط: "+last.t+".",go:last.go,b:"أكمل ←"});
   return adv.slice(0,3);

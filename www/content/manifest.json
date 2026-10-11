@@ -1,7 +1,7 @@
 {
  "version": 2,
  "seed": "deutsch-master-library-v2",
- "generated": "2026-10-09T13:51:57.902Z",
+ "generated": "2026-10-10T16:28:57.142Z",
  "files": [
   {
    "src": "content/src/vocab-01.json",
@@ -63,9 +63,121 @@
    "src": "content/src/vocab-08.json",
    "runtime": "content/dm-vocab-08.js",
    "kind": "vocab",
-   "count": 616,
+   "count": 5000,
    "load": "lazy",
-   "bytes": 76932
+   "bytes": 600800
+  },
+  {
+   "src": "content/src/vocab-09.json",
+   "runtime": "content/dm-vocab-09.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 659353
+  },
+  {
+   "src": "content/src/vocab-10.json",
+   "runtime": "content/dm-vocab-10.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 614577
+  },
+  {
+   "src": "content/src/vocab-11.json",
+   "runtime": "content/dm-vocab-11.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 728368
+  },
+  {
+   "src": "content/src/vocab-12.json",
+   "runtime": "content/dm-vocab-12.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 626355
+  },
+  {
+   "src": "content/src/vocab-13.json",
+   "runtime": "content/dm-vocab-13.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 662663
+  },
+  {
+   "src": "content/src/vocab-14.json",
+   "runtime": "content/dm-vocab-14.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 765409
+  },
+  {
+   "src": "content/src/vocab-15.json",
+   "runtime": "content/dm-vocab-15.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 763332
+  },
+  {
+   "src": "content/src/vocab-16.json",
+   "runtime": "content/dm-vocab-16.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 685439
+  },
+  {
+   "src": "content/src/vocab-17.json",
+   "runtime": "content/dm-vocab-17.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 668815
+  },
+  {
+   "src": "content/src/vocab-18.json",
+   "runtime": "content/dm-vocab-18.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 765236
+  },
+  {
+   "src": "content/src/vocab-19.json",
+   "runtime": "content/dm-vocab-19.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 816803
+  },
+  {
+   "src": "content/src/vocab-20.json",
+   "runtime": "content/dm-vocab-20.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 680454
+  },
+  {
+   "src": "content/src/vocab-21.json",
+   "runtime": "content/dm-vocab-21.js",
+   "kind": "vocab",
+   "count": 5000,
+   "load": "lazy",
+   "bytes": 707388
+  },
+  {
+   "src": "content/src/vocab-22.json",
+   "runtime": "content/dm-vocab-22.js",
+   "kind": "vocab",
+   "count": 4640,
+   "load": "lazy",
+   "bytes": 704691
   },
   {
    "src": "content/src/sent-01.json",
@@ -1101,7 +1213,7 @@
   }
  ],
  "counts": {
-  "vocab": 30616,
+  "vocab": 104640,
   "sent": 150000,
   "gram": 3069,
   "ex": 697330,
@@ -1144,8 +1256,92 @@
   {
    "file": "content/dm-vocab-08.js",
    "kind": "vocab",
-   "count": 616,
-   "bytes": 76932
+   "count": 5000,
+   "bytes": 600800
+  },
+  {
+   "file": "content/dm-vocab-09.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 659353
+  },
+  {
+   "file": "content/dm-vocab-10.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 614577
+  },
+  {
+   "file": "content/dm-vocab-11.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 728368
+  },
+  {
+   "file": "content/dm-vocab-12.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 626355
+  },
+  {
+   "file": "content/dm-vocab-13.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 662663
+  },
+  {
+   "file": "content/dm-vocab-14.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 765409
+  },
+  {
+   "file": "content/dm-vocab-15.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 763332
+  },
+  {
+   "file": "content/dm-vocab-16.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 685439
+  },
+  {
+   "file": "content/dm-vocab-17.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 668815
+  },
+  {
+   "file": "content/dm-vocab-18.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 765236
+  },
+  {
+   "file": "content/dm-vocab-19.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 816803
+  },
+  {
+   "file": "content/dm-vocab-20.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 680454
+  },
+  {
+   "file": "content/dm-vocab-21.js",
+   "kind": "vocab",
+   "count": 5000,
+   "bytes": 707388
+  },
+  {
+   "file": "content/dm-vocab-22.js",
+   "kind": "vocab",
+   "count": 4640,
+   "bytes": 704691
   },
   {
    "file": "content/dm-sent-04.js",

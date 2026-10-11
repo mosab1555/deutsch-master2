@@ -213,6 +213,79 @@ const lazyJs = `"use strict";
     files.forEach(function (f) { chain = chain.then(function () { return window.DM_LIB_MORE.loadPack(f); }); });
     return chain;
   };
+  /* ---------- on-demand full-kind loading (Phase 2 fix) ----------
+     Boot carries only sync packs and the idle prefetch is budget-capped, so
+     UI totals used to freeze at partial counts. kindLoaded/loadKindProgress
+     let the vocab + sentence views pull their complete packs on first visit
+     with honest progress, then re-render from the live (grown) banks.
+     Search indexes are append-on-growth, rendering stays paginated. */
+  function bumpRev(domain) {
+    try {
+      if (window.DMDataRev && typeof window.DMDataRev[domain] === "number") window.DMDataRev[domain]++;
+    } catch (e) {}
+  }
+  window.DM_LIB_MORE.lazyTotalFor = function (kind) {
+    var n = 0;
+    try {
+      PACKS.forEach(function (p) { if (p.kind === kind) n += p.count; });
+    } catch (e) {}
+    return n;
+  };
+  window.DM_LIB_MORE.kindLoaded = function (kind) {
+    try {
+      var files = PACKS.filter(function (p) { return p.kind === kind; }).map(function (p) { return p.file; });
+      if (!files.length) return true;
+      for (var i = 0; i < files.length; i++) {
+        if (window.DM_LIB_MORE.loadedPacks.indexOf(files[i]) < 0) return false;
+      }
+      return true;
+    } catch (e) { return false; }
+  };
+  var _kindPromises = {};
+  window.DM_LIB_MORE.loadKindProgress = function (kind, onProgress) {
+    try {
+      if (window.DM_LIB_MORE.kindLoaded(kind)) {
+        try { if (onProgress) onProgress(1, 1, true); } catch (e) {}
+        return Promise.resolve(true);
+      }
+      if (_kindPromises[kind]) return _kindPromises[kind];
+      var files = PACKS.filter(function (p) { return p.kind === kind; }).map(function (p) { return p.file; });
+      var total = files.length, done = 0, okAll = true;
+      var chain = Promise.resolve(true);
+      files.forEach(function (f) {
+        chain = chain.then(function () {
+          if (window.DM_LIB_MORE.loadedPacks.indexOf(f) >= 0) {
+            done++;
+            try { if (onProgress) onProgress(done, total, true); } catch (e) {}
+            return true;
+          }
+          return window.DM_LIB_MORE.loadPack(f).then(function (ok) {
+            done++;
+            if (!ok) okAll = false;
+            try { if (onProgress) onProgress(done, total, okAll); } catch (e) {}
+            return okAll;
+          });
+        });
+      });
+      _kindPromises[kind] = chain.then(function () {
+        try {
+          if (kind === "vocab") { bumpRev("vocab"); bumpRev("filters"); }
+          else if (kind === "sent") bumpRev("sentences");
+          else if (kind === "gram") bumpRev("grammar");
+          else if (kind === "read" || kind === "dlg") bumpRev("reading");
+        } catch (e) {}
+        try {
+          if (typeof window.dispatchEvent === "function") {
+            window.dispatchEvent(new CustomEvent("dm-lib-kind-ready", { detail: { kind: kind, ok: okAll } }));
+          }
+        } catch (e) {}
+        return okAll;
+      });
+      return _kindPromises[kind];
+    } catch (e) {
+      return Promise.resolve(false);
+    }
+  };
   /* extended search across lazy rows (own index; merged with DM_LIB.search) */
   var lzIndex = null, lzRows = { v: {}, s: {}, g: {}, r: {}, l: {} };
   function normQ(s) { return String(s || "").toLowerCase().replace(/[؟?!.,;:«»"„“]/g, " ").replace(/\\s+/g, " ").trim(); }

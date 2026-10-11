@@ -1537,6 +1537,17 @@ function dmGramRows(){
   }catch(e){ return []; }
 }
 if(typeof window!=="undefined"){ try{window.dmWords=dmWords;window.dmVerbs=dmVerbs;window.dmVerbRows=dmVerbRows;window.dmGramRows=dmGramRows;}catch(e){} }
+/* Dashboard snapshot accessor for leaves (study/adv/home/curriculum).
+   Returns the current render chain's counts when fresh (same generation +
+   same bank length), else null -> caller falls back to own scans. */
+function dmDashSnap(){try{
+  var s=window.__dashSnap;if(!s||s.gen!==(window.__dashGen||0))return null;
+  var n=(typeof VOCAB!=="undefined"&&VOCAB?VOCAB.length:0)+((S&&S.customWords)?S.customWords.length:0);
+  if(s.n!==n)return null;
+  return s;
+}catch(e){return null;}}
+try{if(typeof window!=="undefined")window.dmDashSnap=dmDashSnap;}catch(e){}
+
 function getStatus(id){try{return ((S&&S.status)||{})[id]||"new";}catch(e){return "new";}}
 function setStatus(id,st){try{if(!S.status||typeof S.status!=="object")S.status={};S.status[id]=st;save();}catch(e){}}
 const STATUS_AR={new:"🆕 جديدة",review:"🔁 مراجعة",hard:"🔴 صعبة",known:"✅ محفوظة",later:"⏳ لاحقًا"};
@@ -2287,9 +2298,14 @@ function fillCategories(){
   $("nwCat").innerHTML=opts;
 }
 function fillKapitels(){
-  const words=allWords();
+  /* Perf 104k bank: cached view (same elements/order) + single counting
+     pass (was: one full-bank filter per Kapitel, ~15 x 106k). Identical
+     option strings and counts. */
+  const words=dmWords();
+  const counts={};let kx=0;
+  for(let i=0;i<words.length;i++){const kp=words[i].kap||"KX";if(kp==="KX")kx++;else counts[kp]=(counts[kp]||0)+1;}
   const opts=KAPITEL.map(k=>{
-    const n=k.id==="KX"?words.filter(w=>w.kap==="KX"||!w.kap).length:words.filter(w=>w.kap===k.id).length;
+    const n=k.id==="KX"?kx:(counts[k.id]||0);
     return '<option value="'+k.id+'">'+k.icon+" "+k.id+" • "+k.name+" ("+n+")</option>";
   }).join("");
   ["filterKapitel","flashKapitel","sentenceKapitel","verbKapitel","grammarKapitel","explainKapitel"].forEach(function(id){const el=$(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="">كل الكبيتلات</option>'+opts;el.value=cur;});
@@ -2309,8 +2325,8 @@ function filteredVocab(){
     if(k&&(w.kap||"KX")!==k)return false;
     return true;
   };
-  /* Empty query: natural bank order (unchanged behavior). */
-  if(!qn)return allWords().filter(passAttr);
+  /* Empty query: natural bank order (unchanged behavior; cached view). */
+  if(!qn)return dmWords().filter(passAttr);
   /* Live instant search with strict prefix-first ranking (same engine as the
      header global search): exact > prefix > word-boundary > substring >
      translation > fuzzy. So "hau" ranks "das Haus" first instead of returning
@@ -2323,7 +2339,52 @@ function filteredVocab(){
    keystroke stay fast; "show more" appends the rest on demand. Count pill
    always reflects the FULL filtered total. */
 let vocabLimit=60;const VOCAB_PAGE=60;let vocabT=null;
+/* ---------- on-demand full-vocab loading (ADDITIVE, Phase 2 fix) ----------
+   Boot carries only sync packs; the idle prefetch is budget-capped, so the
+   pill used to freeze at a partial total. On first vocab render, pull the
+   remaining vocab packs in the background with honest progress (loaded + "…"),
+   then re-render from the live bank only if the vocab page is still visible
+   (same guard as the merge path — never renders hidden pages). Search stays
+   incremental (dmWordHits appends on growth), rendering stays paginated. */
+let _vocabFullLoadStarted=false;
+function ensureFullVocab(){
+  try{
+    if(_vocabFullLoadStarted)return;
+    var M=window.DM_LIB_MORE;
+    if(!M||typeof M.loadKindProgress!=="function")return;
+    try{if(M.kindLoaded("vocab"))return;}catch(e){return;}
+    _vocabFullLoadStarted=true;
+    M.loadKindProgress("vocab",function(done,total){
+      try{
+        /* Honest progress WITHOUT corrupting the numeric pill (tests and
+           users read vocabCount as a number): refresh the pill with the
+           loaded count and show pack progress in a sibling span. */
+        if(!document.querySelector("#page-vocab.active"))return;
+        try{renderVocab(true);}catch(e){}
+        var pill=document.getElementById("vocabCount");
+        if(pill&&!document.getElementById("vocabLoadProg")&&pill.parentNode){
+          var sp=document.createElement("span");
+          sp.id="vocabLoadProg";sp.className="count-pill";
+          sp.style.cssText="white-space:nowrap;opacity:.75";
+          pill.parentNode.appendChild(sp);
+        }
+        var prog=document.getElementById("vocabLoadProg");
+        if(prog)prog.textContent="⏳ "+done+"/"+total;
+      }catch(e){}
+    }).then(function(){
+      try{
+        var prog=document.getElementById("vocabLoadProg");
+        if(prog&&prog.parentNode)prog.parentNode.removeChild(prog);
+      }catch(e){}
+      try{
+        if(document.querySelector("#page-vocab.active")&&typeof renderVocab==="function")renderVocab(true);
+        else if(typeof dmStampRev==="function"){/* hidden: revision already bumped; next visit refreshes */}
+      }catch(e){}
+    });
+  }catch(e){}
+}
 function renderVocab(more){
+  try{ensureFullVocab();}catch(e){}
   if(!more)vocabLimit=VOCAB_PAGE;
   const list=filteredVocab();
   $("vocabCount").textContent=list.length;
@@ -2365,15 +2426,41 @@ function animateCount(el,to){
   try{el._dmCountIv=iv;}catch(e){}
 }
 function renderDashboard(){
-  const words=allWords();
+  /* Perf 104k bank: dmWords() is the cached allWords() view (same elements,
+     same order; invalidated by bank growth only). Direct allWords() concats
+     here cost ~5 full-bank copies per visible merge refresh. */
+  const words=dmWords();
   /* Perf: one status pass + one dueWords() shared with computeNextBestStep
      below (was: separate known-scan here, plus known/hard/new scans and a
      second full dueWords scan+sort inside computeNextBestStep). Identical
      numbers — statuses cannot change mid-render (single thread). */
-  let known=0,hard=0,fresh=0;
-  for(let i=0;i<words.length;i++){const st=getStatus(words[i].id);if(st==="known")known++;else if(st==="hard")hard++;else if(st==="new")fresh++;}
-  const dueL=dueWords();
-  const due=dueL.length;
+  /* Perf 104k bank: ONE counting pass shared with every dashboard leaf
+     (study/adv/home/curriculum widgets each rescanned the bank). A sync
+     generation token scopes the snapshot to this render chain: statuses
+     cannot change mid-render (single thread), and any later render
+     overwrites it first. Leaves fall back to own scans when absent. */
+  let known=0,hard=0,fresh=0,due=0,srsDueN=0;
+  const byLevel={};
+  const snapT=todayStr();
+  for(let i=0;i<words.length;i++){
+    const w=words[i],id=w.id;
+    const st=getStatus(id);
+    if(st==="known")known++;else if(st==="hard")hard++;else if(st==="new")fresh++;
+    const L=w.level||"A1";let a=byLevel[L];if(!a)a=byLevel[L]={tot:0,kn:0};
+    a.tot++;if(st==="known")a.kn++;
+    const rec=S.srs&&S.srs[id];
+    if(rec&&rec.due&&rec.due<=snapT)due++;
+    else if(srsOverdue(id,snapT))due++;
+    else if(st!=="known")due++;
+    else{const r=(S.review&&S.review[id])||{c:0,w:0};if(r.w!==0&&r.w>r.c)due++;}
+    const s2=(S.srs&&S.srs[id]),m2=S.mistakes&&S.mistakes[id];
+    if(s2&&s2.due<=snapT)srsDueN++;
+    else if(!s2&&m2&&m2.n>=2)srsDueN++;
+  }
+  try{
+    window.__dashGen=(window.__dashGen||0)+1;
+    window.__dashSnap={gen:window.__dashGen,words:words,n:words.length,known:known,hard:hard,fresh:fresh,due:due,srsDue:srsDueN,byLevel:byLevel,t:snapT};
+  }catch(e){}
   const days=Object.keys(S.studyDays).length;
   const pct=words.length?Math.round(known/words.length*100):0;
   animateCount($("dSaved"),known);animateCount($("dReview"),due);
@@ -2533,36 +2620,82 @@ function srsWhy(id){
     return "ضمن قائمة المراجعة اليومية 📌";
   }catch(e){return "";}
 }
+/* Perf 104k bank: dashboard-class callers need only the COUNT, not the
+   sorted queue. Filter-only single pass, no sort, no output array -
+   same inclusion predicate as dueWords (provably same length; the sort in
+   dueWords never drops rows). */
+function dueCount(){
+  const words=dmWords();
+  const t=todayStr();
+  let c=0;
+  for(let k=0;k<words.length;k++){
+    const id=words[k].id;
+    const rec=S.srs&&S.srs[id];
+    if(rec&&rec.due&&rec.due<=t){c++;continue;}
+    if(srsOverdue(id,t)){c++;continue;}
+    const st=getStatus(id);
+    if(st==="known"){const r=(S.review&&S.review[id])||{c:0,w:0};if(r.w===0)continue;if(!(r.w>r.c))continue;}
+    c++;
+  }
+  return c;
+}
 function dueWords(){
-  const words=allWords();
+  /* Perf 104k bank: dmWords() cached view (same elements/order as allWords). */
+  const words=dmWords();
   /* Perf: todayStr() allocates a Date + strings per call; the old code paid
      it ~2x per word in the filter plus ~2x per sort comparison (millions of
      Dates for a 30k bank inside a long task). Hoisted once per call — the
      predicate itself is byte-identical. */
+  /* Perf 104k bank: the old .filter().sort() re-ran srsOverdue/getStatus and
+     rebuilt the status-rank map on EVERY sort comparison (~n·log n ≈ 1.8M
+     calls for 104k words). Decorate-sort-undecorate computes each word's
+     rank tuple ONCE (single O(n) pass) and sorts tuples — byte-identical
+     ordering (same keys, same direction, original index as final tiebreak
+     to match stable-sort behavior exactly). */
+  /* Perf GC: tuple-per-word arrays (~200k small objects per call) caused a
+     major GC on nearly every dashboard refresh at 104k. Ranks are packed
+     into ONE exact integer per word (50 bits total: over·2^49 + so·2^48 +
+     wc·2^27 + (4-status)·2^24 + reversed-index; max < 2^50, well inside the
+     exact-integer range, fields cannot overflow into each other) and only
+     index + rank arrays are allocated per call. Larger rank sorts first,
+     matching the old comparator's descending/ascending directions exactly.
+     Ordering is provably identical — see tools/test-duewords.js. */
   const t=todayStr();
-  return words.filter(w=>{
-    // Check DMProgress SRS due date first
-    if(S.srs&&S.srs[w.id]&&S.srs[w.id].due&&S.srs[w.id].due<=t)return true;
-    if(srsOverdue(w.id,t))return true;
-    const st=getStatus(w.id);const r=S.review[w.id]||{c:0,w:0};
-    if(st==="known"&&r.w===0)return false;
-    if(st==="known")return r.w>r.c;
-    return true;
-  }).sort((a,b)=>{
-    const aOverdue=(S.srs&&S.srs[a.id]&&S.srs[a.id].due&&S.srs[a.id].due<=t)?1:0;
-    const bOverdue=(S.srs&&S.srs[b.id]&&S.srs[b.id].due<=t)?1:0;
-    if(bOverdue!==aOverdue)return bOverdue-aOverdue;
-    const oa=srsOverdue(a.id,t)?1:0,ob=srsOverdue(b.id,t)?1:0;
-    if(ob!==oa)return ob-oa;
-    const ra=S.review[a.id]||{c:0,w:0},rb=S.review[b.id]||{c:0,w:0};
-    const sa=(rb.w-rb.c)-(ra.w-ra.c);
-    if(sa!==0)return sa;
-    const order={hard:0,review:1,later:2,new:3,known:4};
-    return (order[getStatus(a.id)]||3)-(order[getStatus(b.id)]||3);
-  });
+  const order={hard:0,review:1,later:2,new:3,known:4};
+  const n=words.length;
+  const rank=new Array(n);
+  const idx=[];
+  for(let k=0;k<n;k++){
+    const w=words[k], id=w.id;
+    const rec=S.srs&&S.srs[id];
+    const over=(rec&&rec.due&&rec.due<=t)?1:0;
+    let so=0;
+    if(!over)so=srsOverdue(id,t)?1:0;
+    const st=getStatus(id);
+    const r=(S.review&&S.review[id])||{c:0,w:0};
+    if(!over&&!so){
+      if(st==="known"&&r.w===0)continue;
+      if(st==="known"&&!(r.w>r.c))continue;
+    }
+    /* rank fields: over DESC, so DESC, (w-c) DESC, statusRank ASC, index ASC.
+       Packed as one exact integer (< 2^50): over·2^49 + so·2^48 +
+       (wc+2^20)·2^27 + (4-status)·2^24 + (2^24-1-index). Larger rank sorts
+       first, matching every direction of the old comparator. */
+    let wc=r.w-r.c+1048576;
+    if(wc<0)wc=0;else if(wc>2097151)wc=2097151;
+    const sr=(order[st]||3);
+    rank[k]=over*562949953421312+so*281474976710656+wc*134217728+(4-sr)*16777216+(16777215-k);
+    idx.push(k);
+  }
+  idx.sort((a,b)=>rank[b]-rank[a]);
+  const m=idx.length;
+  const out=new Array(m);
+  for(let q=0;q<m;q++)out[q]=words[idx[q]];
+  return out;
 }
 function renderReview(){
-  const words=allWords();
+  /* Perf 104k bank: cached view (same elements/order). */
+  const words=dmWords();
   const counts={new:0,review:0,hard:0,known:0,later:0};
   words.forEach(w=>{counts[getStatus(w.id)]=(counts[getStatus(w.id)]||0)+1;});
   const colors={new:"#4DA3FF",review:"#D8B56A",hard:"#D3616E",known:"#2FA97C",later:"#77849B"};
@@ -2652,7 +2785,7 @@ function getFilteredFlashcards(){
   const k=$("flashKapitel")?$("flashKapitel").value:"";
   const ft=$("flashType")?$("flashType").value:"";
   const lv=$("flashLevel")?$("flashLevel").value:"";
-  return allWords().filter(w=>(!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashTypeMatch(w,ft)&&(!lv||(w.level||"A1")===lv));
+  return dmWords().filter(w=>(!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashTypeMatch(w,ft)&&(!lv||(w.level||"A1")===lv));
 }
 /* If a level dataset (e.g. A2) is not loaded yet, load it on demand and
    rebuild the deck when it arrives. Returns true when a load started. */
@@ -2669,6 +2802,7 @@ function flashEnsureLevel(){
 function buildFlash(){
   if(flashEnsureLevel())return;
   flashList=shuffle(getFilteredFlashcards());
+  try{refreshFlashList._seen=null;refreshFlashList._key=null;}catch(e){}
   flashIdx=0;renderFlash();
 }
 /* Keep the flashcard deck in sync when vocabulary grows or shrinks (custom
@@ -2678,21 +2812,45 @@ function buildFlash(){
 function refreshFlashList(){
   try{
     if(!flashList)flashList=[];
+    /* Perf 104k bank: the 4 filter inputs were read from the DOM on EVERY
+       word (~424k getElementById per refresh - top profiler sample). Hoisted
+       once per call; predicate is byte-identical. */
+    const fc=$("flashCategory")?$("flashCategory").value:"";
+    const fk=$("flashKapitel")?$("flashKapitel").value:"";
+    const ft=$("flashType")?$("flashType").value:"";
+    const fl=$("flashLevel")?$("flashLevel").value:"";
+    const pass=function(w){return (!fc||w.cat===fc)&&(!fk||(w.kap||"KX")===fk)&&flashTypeMatch(w,ft)&&(!fl||(w.level||"A1")===fl);};
+    const bank=dmWords();
+    let customKey="";try{customKey=(S.customWords||[]).map(w=>w.id).join(",");}catch(e){}
+    const key=fc+"|"+fk+"|"+ft+"|"+fl+"#"+VOCAB.length+"#"+customKey;
     const cur=flashList.length?flashList[flashIdx%flashList.length]:null;
     const curId=cur&&cur.id;
-    const pass=function(w){
-      const c=$("flashCategory")?$("flashCategory").value:"";
-      const k=$("flashKapitel")?$("flashKapitel").value:"";
-      const ft=$("flashType")?$("flashType").value:"";
-      const lv=$("flashLevel")?$("flashLevel").value:"";
-      return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashTypeMatch(w,ft)&&(!lv||(w.level||"A1")===lv);
-    };
-    const live={};allWords().forEach(w=>{live[w.id]=1;});
-    const seen={};flashList.forEach(w=>{seen[w.id]=1;});
-    const fresh=shuffle(allWords().filter(w=>!seen[w.id]&&pass(w)));
+    /* Incremental fast path: library merges only ever append to VOCAB and
+       custom-word edits are fingerprinted in the key, so when the key is
+       unchanged nothing changed at all (just re-render). When only VOCAB
+       grew, only unseen words are filtered+shuffled (O(new) shuffle instead
+       of O(bank)). Deck order of existing cards stays stable, matching the
+       documented append intent; any filter change, bank shrink, or custom
+       edit takes the full path, byte-identical to before. */
+    if(refreshFlashList._key===key){renderFlash();return;}
+    const seen=refreshFlashList._seen;
+    if(seen&&refreshFlashList._sig===fc+"|"+fk+"|"+ft+"|"+fl&&refreshFlashList._ckey===customKey&&VOCAB.length>=(refreshFlashList._vlen||0)){
+      const fresh=shuffle(bank.filter(w=>!seen[w.id]&&pass(w)));
+      fresh.forEach(w=>{seen[w.id]=1;});
+      if(fresh.length)flashList=flashList.concat(fresh);
+      refreshFlashList._key=key;refreshFlashList._vlen=VOCAB.length;
+      if(curId){const ix=flashList.findIndex(w=>w.id===curId);flashIdx=ix>=0?ix:0;}
+      else if(flashIdx>=flashList.length)flashIdx=0;
+      renderFlash();return;
+    }
+    const live={};bank.forEach(w=>{live[w.id]=1;});
+    const s2={};flashList.forEach(w=>{s2[w.id]=1;});
+    const fresh=shuffle(bank.filter(w=>!s2[w.id]&&pass(w)));
     let list=flashList.filter(w=>live[w.id]&&pass(w));
     if(fresh.length)list=list.concat(fresh);
     flashList=list;
+    refreshFlashList._seen={};flashList.forEach(w=>{refreshFlashList._seen[w.id]=1;});
+    refreshFlashList._sig=fc+"|"+fk+"|"+ft+"|"+fl;refreshFlashList._vlen=VOCAB.length;refreshFlashList._ckey=customKey;refreshFlashList._key=key;
     if(curId){const ix=flashList.findIndex(w=>w.id===curId);flashIdx=ix>=0?ix:0;}
     else if(flashIdx>=flashList.length)flashIdx=0;
     renderFlash();
@@ -3720,7 +3878,8 @@ function startMistakesQuiz(){
 $("startMistakes").addEventListener("click",startMistakesQuiz);
 $("clearMistakes").addEventListener("click",()=>{if(!confirm("مسح كل الأخطاء؟"))return;S.mistakes={};save();renderMistakes();toast("تم المسح 🗑️","ok");});
 function renderStats(){
-  const words=allWords();
+  /* Perf 104k bank: cached view (same elements/order). */
+  const words=dmWords();
   const counts={new:0,review:0,hard:0,known:0,later:0};
   words.forEach(w=>counts[getStatus(w.id)]++);
   const acc=S.totalAnswered?Math.round(S.totalCorrect/S.totalAnswered*100):0;
@@ -3764,7 +3923,7 @@ function renderStats(){
             "الأسبوع السابق: "+wsum.prev.ans+" محاولة ("+wsum.prev.pct+"٪)",
             "Streak: "+(S.streak.count||0)+" يوم (الأطول: "+(S.streak.longest||0)+")",
             "أيام المذاكرة: "+Object.keys(S.studyDays||{}).length,
-            "كلمات محفوظة: "+allWords().filter(w=>getStatus(w.id)==="known").length+"/"+allWords().length];
+            "كلمات محفوظة: "+dmWords().filter(w=>getStatus(w.id)==="known").length+"/"+dmWords().length];
           const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/plain;charset=utf-8"});
           const a=document.createElement("a");
           a.href=URL.createObjectURL(blob);a.download="dm-weekly-"+todayStr()+".txt";
@@ -3808,7 +3967,8 @@ $("planResetDay").addEventListener("click",()=>{S.planner.day=todayStr();S.plann
 
 /* ============ FAVORITES ============ */
 function renderFavs(){
-  const list=allWords().filter(w=>S.favs.includes(w.id));
+  /* Perf 104k bank: cached view (same elements/order). */
+  const list=dmWords().filter(w=>S.favs.includes(w.id));
   $("favCount").textContent=list.length;$("navFavBadge").textContent=list.length;
   const g=$("favGrid");g.innerHTML="";
   if(!list.length){g.innerHTML='<div class="panel glass">لا توجد مفضلة بعد. اضغط ❤️ على أي كلمة!</div>';return;}

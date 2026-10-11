@@ -154,8 +154,22 @@ const TESTDATA = `(() => {
     // baseline visits (render + stamp everything)
     await E("(()=>{const s=document.getElementById('vocabSearch');s.value='';const c=document.getElementById('filterCategory');if(c)c.value='';})()");
     await nav("vocab"); await nav("sentences"); await nav("grammar"); await nav("dashboard");
+    // await on-demand full-pack loads: the vocab/sentences views pull their
+    // complete banks on first visit (specified behavior), so wait for those
+    // background loads to settle — synthetic merges must be the only delta.
+    // Version-tolerant (old dm-lazy without kindLoaded resolves at once) and
+    // chunked under the 30s CDP evaluate timeout.
+    for (let wi = 0; wi < 12; wi++) {
+      const wdone = await cdp.ev("new Promise(res=>{function f(){try{if(!window.DM_LIB_MORE||typeof window.DM_LIB_MORE.kindLoaded!=='function'||(window.DM_LIB_MORE.kindLoaded('vocab')&&window.DM_LIB_MORE.kindLoaded('sent')))res(1);else setTimeout(f,400);}catch(e){setTimeout(f,400);}}f();setTimeout(()=>res(0),25000);})", true);
+      if (wdone) break;
+    }
+    // re-visit for fresh full-bank renders (pills stamped during baseline
+    // predate the background loads), then park on dashboard for D1
+    await nav("vocab");
     const pill0 = Number(await E("+document.getElementById('vocabCount').textContent"));
+    await nav("sentences");
     const sent0 = parseInt(await E("(document.getElementById('sentCount')||{textContent:'0'}).textContent"), 10);
+    await nav("dashboard");
     const gramN0 = await E("GRAMMAR.length");
     const rev0 = await J("window.DMDataRev");
     const full0 = await J("window.__dmRenderStat.full");

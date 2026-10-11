@@ -83,8 +83,10 @@ function advSkills(){
     return fb();
   }
   try{
-    const words=allWords();
-    const known=words.filter(w=>{try{return getStatus(w.id)==="known";}catch(e){return false;}}).length;
+    /* Perf 104k bank: cached view (same elements/order). */
+    const snapA=(typeof dmDashSnap==="function"?dmDashSnap():null);
+    const words=snapA?snapA.words:((typeof dmWords==="function")?dmWords():allWords());
+    const known=snapA?snapA.known:words.filter(w=>{try{return getStatus(w.id)==="known";}catch(e){return false;}}).length;
     out.vocab=fromAskill("vocab",()=>({acc:words.length?Math.round(known/words.length*100):0,n:known,src:"words"}));
     const gl=Object.keys((S.journey&&S.journey.lessons)||{}).length;
     const gT=(typeof EXPLAIN_ORDER!=="undefined"?EXPLAIN_ORDER.length:(typeof GRAMMAR!=="undefined"?GRAMMAR.length:1))||1;
@@ -346,7 +348,7 @@ function advSuggestions(){
   }catch(e){}
   return out;
 }
-function tryDue(){try{if(typeof dueWords==="function")return dueWords().length;}catch(e){}return 0;}
+function tryDue(){try{var sn=(typeof dmDashSnap==="function"?dmDashSnap():null);if(sn)return sn.due;if(typeof dueCount==="function")return dueCount();if(typeof dueWords==="function")return dueWords().length;}catch(e){}return 0;}
 /* ================= 9. AI TUTOR COACH (data-driven, extends tutorBox) ================= */
 function advCoach(){
   try{

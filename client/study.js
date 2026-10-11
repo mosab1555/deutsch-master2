@@ -111,7 +111,8 @@ function initHeaderLang(){
 function buildNotifs(){
   ensureStudy();
   const out=[];
-  const due=srsDue().length;
+  const snapN=(typeof dmDashSnap==="function"?dmDashSnap():null);
+  const due=snapN?snapN.srsDue:((typeof srsDueCount==="function")?srsDueCount():srsDue().length);
   if((S.streak.count||0)>0)out.push({i:"🔥",t:"لا تخسر سلسلتك! ("+(S.streak.count||0)+" أيام)"});
   if(due>0)out.push({i:"🧠",t:due+" كلمات تحتاج مراجعة."});
   try{
@@ -160,10 +161,26 @@ if(typeof bumpReview==="function"&&!bumpReview._srs){
   bumpReview=function(id,ok){const r=_br(id,ok);try{srsUpdate(id,!!ok);}catch(e){}return r;};
   bumpReview._srs=true;
 }
+function srsDueCount(){
+  /* Perf 104k bank: count-only twin of srsDue (same predicate, no output
+     array) for length-only callers. */
+  try{
+    ensureStudy();
+    const t=todayStr();let c=0;
+    const words=(typeof dmWords==="function"?dmWords():allWords());
+    for(let i=0;i<words.length;i++){const w=words[i];
+      const s=S.srs[w.id];
+      const m=S.mistakes&&S.mistakes[w.id];
+      if(s&&s.due<=t)c++;
+      else if(!s&&m&&m.n>=2)c++;
+    }
+    return c;
+  }catch(e){return 0;}
+}
 function srsDue(){
   ensureStudy();
   const t=todayStr(),out=[];
-  allWords().forEach(w=>{
+  (typeof dmWords==="function"?dmWords():allWords()).forEach(w=>{
     const s=S.srs[w.id];
     const m=S.mistakes&&S.mistakes[w.id];
     if(s&&s.due<=t)out.push(w);
@@ -200,7 +217,10 @@ function renderStudyDash(){
       host=document.createElement("div");host.id="dashStudy";
       anchor.parentNode.insertBefore(host,anchor.nextSibling);
     }
-    const words=allWords(),known=words.filter(w=>getStatus(w.id)==="known").length;
+    /* Perf 104k bank: cached view (same elements/order). */
+    const snap=(typeof dmDashSnap==="function"?dmDashSnap():null);
+    const words=snap?snap.words:((typeof dmWords==="function")?dmWords():allWords());
+    const known=snap?snap.known:words.filter(w=>getStatus(w.id)==="known").length;
     const gp=goalProgress();
     const gpct=Math.min(100,Math.round(gp.have/Math.max(1,gp.need)*100));
     const last=S.lastActivity;
@@ -209,8 +229,9 @@ function renderStudyDash(){
     /* --- personalized block: A1 mastery + weak grammar + recent + next steps (all from real saved data) --- */
     let a1html="",gwhtml="",acthtml="",rechtml="";
     try{
-      const a1=words.filter(w=>(w.level||"A1")==="A1");
-      const a1k=a1.filter(w=>getStatus(w.id)==="known").length;
+      const a1b=snap&&snap.byLevel?snap.byLevel["A1"]:null;
+      const a1=a1b?{length:a1b.tot}:words.filter(w=>(w.level||"A1")==="A1");
+      const a1k=a1b?a1b.kn:a1.filter(w=>getStatus(w.id)==="known").length;
       const apct=a1.length?Math.round(a1k/a1.length*100):0;
       let gsum=0,gcnt=0;Object.keys((S.grammar||{})).forEach(id=>{try{const m=typeof gramMastery==="function"?gramMastery(id):null;if(m){gsum+=m.pct;gcnt++;}}catch(e){}});
       const gavg=gcnt?Math.round(gsum/gcnt):0;
@@ -232,7 +253,7 @@ function renderStudyDash(){
     }catch(e){acthtml='<div class="muted">لا نشاط بعد.</div>';}
     try{
       const recs=[];
-      let dueN=0;try{dueN=dueWords().length;}catch(e){}
+      let dueN=0;try{dueN=(typeof dueCount==="function")?dueCount():dueWords().length;}catch(e){}
       if(dueN>0)recs.push({t:"🧠 راجع "+dueN+" كلمة مستحقة",go:"review"});
       const openMist=Object.keys(S.mistakes||{}).filter(id=>!S.mistakes[id].done).length;
       if(openMist>0)recs.push({t:"❌ تدرب على "+openMist+" خطأ مفتوح",go:"mistakes"});
