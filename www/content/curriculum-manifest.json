@@ -1,0 +1,1304 @@
+{
+ "version": 1,
+ "generated": "2026-10-11T13:34:04.384Z",
+ "copyright": "All B2C/curriculum texts are ORIGINAL (Arabic explanations, examples, dialogues, questions). No Klett book text, glossary, answer key, audio, or transcript is reproduced. Publisher resources used for alignment reference only.",
+ "sources": [
+  {
+   "title": "Netzwerk neu (Klett Sprachen) – official series page A1–B1",
+   "url": "https://www.klett-sprachen.de/netzwerk-neu/r-0/605",
+   "note": "Series covers A1, A2, B1 only (12 Kapitel each). Chapter topics/objectives used for alignment; no protected content reproduced."
+  },
+  {
+   "title": "Netzwerk neu international page",
+   "url": "https://www.klett-international.com/en/fr/netzwerk-neu/r-1/605",
+   "note": "Confirms A1–B1 scope."
+  },
+  {
+   "title": "Aspekte neu B2 / Aspekte Beruf B2 (Klett Sprachen)",
+   "url": "https://www.klett-sprachen.de/aspekte-beruf/r-1/780",
+   "note": "No Netzwerk neu B2 exists. B2 curriculum aligns to Aspekte (Beruf) B2 + CEFR B2 descriptors with ORIGINAL content. Not labelled as Netzwerk neu."
+  }
+ ],
+ "b2SourceVerification": "Verified 2026-10-11 via Klett catalog: Netzwerk neu ends at B1. B2 = Aspekte neu B2 (general) / Aspekte Beruf B2 (beruflich, 10 Kapitel + Prüfungsmodule). App B2 chapters K12–K17 are original CEFR-B2 content aligned to those objectives; source accurately identified, no false series labelling.",
+ "levels": [
+  {
+   "level": "A1",
+   "source": "Netzwerk neu A1 (12 Kapitel) – alignment reference",
+   "chapters": [
+    {
+     "id": "K0",
+     "level": "A1",
+     "title": "Einführung",
+     "objectives": [
+      "Alphabet, Aussprache",
+      "Begrüßung"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 0
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 0
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 1
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "speaking": {
+       "curr": 0
+      },
+      "situations": {
+       "curr": 0
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "app-base",
+     "validation": "smoke-tested"
+    },
+    {
+     "id": "K1",
+     "level": "A1",
+     "title": "Kapitel 1 – Guten Tag",
+     "objectives": [
+      "sich vorstellen",
+      "Herkunft, Wohnen"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 39
+      },
+      "sentences": {
+       "library": 11787,
+       "curr": 1
+      },
+      "grammar": {
+       "library": 257,
+       "curr": 2
+      },
+      "exercises": {
+       "library": 50564,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "speaking": {
+       "curr": 0
+      },
+      "situations": {
+       "curr": 0
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "app-base+library",
+     "validation": "quality-gate+runtime-qa"
+    },
+    {
+     "id": "K2",
+     "level": "A1",
+     "title": "Kapitel 2 – Freunde und Kollegen",
+     "objectives": [
+      "Familie, Freunde",
+      "Alltag"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 256
+      },
+      "sentences": {
+       "library": 11806,
+       "curr": 4
+      },
+      "grammar": {
+       "library": 211,
+       "curr": 0
+      },
+      "exercises": {
+       "library": 50184,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "speaking": {
+       "curr": 1
+      },
+      "situations": {
+       "curr": 0
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "app-base+library",
+     "validation": "quality-gate+runtime-qa"
+    },
+    {
+     "id": "K3",
+     "level": "A1",
+     "title": "Kapitel 3 – In Hamburg",
+     "objectives": [
+      "Stadt, Orientierung",
+      "Essen/Trinken (A1X See-Text)"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 290
+      },
+      "sentences": {
+       "library": 11837,
+       "curr": 11
+      },
+      "grammar": {
+       "library": 202,
+       "curr": 2
+      },
+      "exercises": {
+       "library": 50565,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "speaking": {
+       "curr": 0
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "app-base+curr-a1x",
+     "validation": "quality-gate+runtime-qa"
+    },
+    {
+     "id": "K4",
+     "level": "A1",
+     "title": "Kapitel 4 – Guten Appetit",
+     "objectives": [
+      "Guten Appetit (verifiziert)",
+      "Einkaufen"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 141
+      },
+      "sentences": {
+       "library": 11857,
+       "curr": 7
+      },
+      "grammar": {
+       "library": 168,
+       "curr": 1
+      },
+      "exercises": {
+       "library": 50244,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "speaking": {
+       "curr": 0
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "app-base+library",
+     "validation": "quality-gate+runtime-qa"
+    },
+    {
+     "id": "K5",
+     "level": "A1",
+     "title": "Kapitel 5 – Alltag und Familie",
+     "objectives": [
+      "Alltag und Familie",
+      "Kleidung/Wetter (A1X)"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 317
+      },
+      "sentences": {
+       "library": 11869,
+       "curr": 7
+      },
+      "grammar": {
+       "library": 201,
+       "curr": 0
+      },
+      "exercises": {
+       "library": 50298,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "speaking": {
+       "curr": 1
+      },
+      "situations": {
+       "curr": 0
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "app-base+curr-a1x",
+     "validation": "quality-gate+runtime-qa"
+    },
+    {
+     "id": "KX",
+     "level": "A1",
+     "title": "KX",
+     "objectives": [
+      "benutzerdefinierte Wörter (Lernkartei)"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 0
+      },
+      "sentences": {
+       "library": 90844,
+       "curr": 0
+      },
+      "grammar": {
+       "library": 2030,
+       "curr": 0
+      },
+      "exercises": {
+       "library": 445475,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "speaking": {
+       "curr": 0
+      },
+      "situations": {
+       "curr": 0
+      }
+     },
+     "status": {
+      "verified": false,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "user-data",
+     "validation": "runtime-tested"
+    }
+   ]
+  },
+  {
+   "level": "A2",
+   "source": "Netzwerk neu A2 (12 Kapitel) – alignment reference",
+   "chapters": [
+    {
+     "id": "K6",
+     "level": "A2",
+     "title": "Kapitel 6 – Alltag und Wohnen",
+     "objectives": [
+      "Alltag und Wohnen",
+      "Perfekt mit haben/sein",
+      "weil/dass"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 105
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 22
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 6
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 1
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-a2",
+     "validation": "merge-tested"
+    },
+    {
+     "id": "K7",
+     "level": "A2",
+     "title": "Kapitel 7 – Arbeit, Termine und Verkehr",
+     "objectives": [
+      "Arbeit, Termine, Verkehr",
+      "Präteritum war/hatte",
+      "Bahnhof/Arzt-Situationen"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 101
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 21
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 7
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-a2",
+     "validation": "merge-tested"
+    },
+    {
+     "id": "K8",
+     "level": "A2",
+     "title": "Kapitel 8 – Reisen, Gesundheit und Einkaufen",
+     "objectives": [
+      "Reisen, Gesundheit, Einkaufen",
+      "wenn/als",
+      "Apotheke/Supermarkt"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 96
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 23
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 5
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 3
+      },
+      "situations": {
+       "curr": 3
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-a2+curr-a2b",
+     "validation": "merge-tested"
+    }
+   ]
+  },
+  {
+   "level": "B1",
+   "source": "Netzwerk neu B1 (12 Kapitel) – alignment reference",
+   "chapters": [
+    {
+     "id": "K9",
+     "level": "B1",
+     "title": "Kapitel 9 – Beruf und Bildung",
+     "objectives": [
+      "Beruf und Bildung",
+      "Bewerbung"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 141
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 25
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 5
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 3
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 3
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b1+curr-b1b",
+     "validation": "merge-tested"
+    },
+    {
+     "id": "K10",
+     "level": "B1",
+     "title": "Kapitel 10 – Medien, Technik und Umwelt",
+     "objectives": [
+      "Medien, Technik, Umwelt"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 93
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 19
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 8
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 1
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b1+curr-b1b",
+     "validation": "merge-tested"
+    },
+    {
+     "id": "K11",
+     "level": "B1",
+     "title": "Kapitel 11 – Meinung und Gesellschaft",
+     "objectives": [
+      "Meinung und Gesellschaft"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 74
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 22
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 5
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "speaking": {
+       "curr": 3
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b1+curr-b1b",
+     "validation": "merge-tested"
+    }
+   ]
+  },
+  {
+   "level": "B2",
+   "source": "Aspekte neu B2 / Aspekte Beruf B2 + CEFR B2 – ORIGINAL content",
+   "chapters": [
+    {
+     "id": "K12",
+     "level": "B2",
+     "title": "Kapitel 12 – Studium und Karriere",
+     "objectives": [
+      "Studium und Karriere",
+      "Wissenschaftssprache"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 78
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 17
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 8
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 1
+      },
+      "situations": {
+       "curr": 3
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2+curr-b2b",
+     "validation": "merge-tested"
+    },
+    {
+     "id": "K13",
+     "level": "B2",
+     "title": "Kapitel 13 – Nachrichten, Wirtschaft und Politik",
+     "objectives": [
+      "Nachrichten, Wirtschaft, Politik"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 60
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 3
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2+curr-b2b",
+     "validation": "merge-tested"
+    },
+    {
+     "id": "K14",
+     "level": "B2",
+     "title": "Kapitel 14 – Kultur und Diskussion",
+     "objectives": [
+      "Kultur und Diskussion"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 92
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 23
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 1
+      },
+      "speaking": {
+       "curr": 3
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": true,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2+curr-b2b",
+     "validation": "merge-tested"
+    },
+    {
+     "id": "K15",
+     "level": "B2",
+     "title": "Kapitel 15 – Berufswelt vertieft",
+     "objectives": [
+      "Berufswelt vertieft",
+      "Konjunktiv II Höflichkeit",
+      "Passiv",
+      "NVV",
+      "Relativsätze+Präp."
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": false,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2c (Batch 1, original)",
+     "validation": "b2c-validator"
+    },
+    {
+     "id": "K16",
+     "level": "B2",
+     "title": "Kapitel 16 – Umwelt, Technik und Gesellschaft",
+     "objectives": [
+      "Umwelt/Technik/Gesellschaft",
+      "obwohl/trotzdem",
+      "je…desto",
+      "Partizipialattribute",
+      "Plusquamperfekt"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": false,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2c (Batch 1, original)",
+     "validation": "b2c-validator"
+    },
+    {
+     "id": "K17",
+     "level": "B2",
+     "title": "Kapitel 17 – Meinung, Medien und Prüfung",
+     "objectives": [
+      "Meinung/Medien/Prüfung",
+      "indirekte Rede",
+      "Infinitivsätze",
+      "Nominalisierung",
+      "Prüfungs-Redemittel"
+     ],
+     "contentTypes": {
+      "vocab": {
+       "library": 0,
+       "curr": 40
+      },
+      "sentences": {
+       "library": 0,
+       "curr": 16
+      },
+      "grammar": {
+       "library": 0,
+       "curr": 4
+      },
+      "exercises": {
+       "library": 0,
+       "currFills": "on-merge"
+      },
+      "dialogues": {
+       "library": "level-only",
+       "curr": 0
+      },
+      "reading": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "listening": {
+       "library": "level-only",
+       "curr": 2
+      },
+      "speaking": {
+       "curr": 2
+      },
+      "situations": {
+       "curr": 1
+      }
+     },
+     "status": {
+      "verified": true,
+      "implemented": true,
+      "tested": false,
+      "awaiting": false,
+      "notYet": false
+     },
+     "provenance": "curr-b2c (Batch 1, original)",
+     "validation": "b2c-validator"
+    }
+   ]
+  }
+ ],
+ "measuredTotals": {
+  "library": {
+   "vocab": {
+    "total": 104640,
+    "byLevel": {
+     "A1": 51975,
+     "A2": 34658,
+     "B1": 16315,
+     "B2": 1692
+    },
+    "kapMapped": "synthetic-only (kapForLevel); word-level kap NONE in cache"
+   },
+   "sentences": {
+    "total": 150000,
+    "byLevel": {
+     "A1": 59156,
+     "B1": 30307,
+     "A2": 60537
+    },
+    "byKap": {
+     "K1": 11787,
+     "K2": 11806,
+     "K3": 11837,
+     "K4": 11857,
+     "K5": 11869,
+     "KX": 90844
+    }
+   },
+   "grammar": {
+    "total": 3069,
+    "byLevel": {
+     "A1": 1039,
+     "A2": 1387,
+     "B1": 643
+    },
+    "byKap": {
+     "K1": 257,
+     "K2": 211,
+     "K3": 202,
+     "K4": 168,
+     "K5": 201,
+     "KX": 2030
+    }
+   },
+   "exercises": {
+    "total": 697330,
+    "byLevel": {
+     "A1": 251855,
+     "A2": 300658,
+     "B1": 144817
+    }
+   },
+   "dialogues": {
+    "total": 10000,
+    "byLevel": {
+     "A1": 3598,
+     "A2": 4775,
+     "B1": 1627
+    }
+   },
+   "reading": {
+    "total": 5000,
+    "byLevel": {
+     "A1": 2000,
+     "B1": 1000,
+     "A2": 2000
+    }
+   },
+   "listening": {
+    "total": 10000,
+    "byLevel": {
+     "A1": 4117,
+     "A2": 4477,
+     "B1": 1406
+    }
+   },
+   "exams": {
+    "total": 10000,
+    "byLevel": {
+     "A1": 3334,
+     "A2": 3333,
+     "B1": 3333
+    }
+   }
+  },
+  "currOverlays": {
+   "currWords": {
+    "K5": 317,
+    "K2": 256,
+    "K3": 290,
+    "K4": 141,
+    "K1": 39,
+    "K6": 105,
+    "K7": 101,
+    "K8": 96,
+    "K9": 141,
+    "K10": 93,
+    "K11": 74,
+    "K12": 78,
+    "K13": 60,
+    "K14": 92,
+    "K15": 40,
+    "K16": 40,
+    "K17": 40
+   },
+   "currSent": {
+    "K5": 7,
+    "K2": 4,
+    "K3": 11,
+    "K4": 7,
+    "K1": 1,
+    "K6": 22,
+    "K7": 21,
+    "K8": 23,
+    "K11": 22,
+    "K10": 19,
+    "K9": 25,
+    "K12": 17,
+    "K13": 16,
+    "K14": 23,
+    "K15": 16,
+    "K16": 16,
+    "K17": 16
+   },
+   "currGram": {
+    "K1": 2,
+    "K0": 1,
+    "K3": 2,
+    "K4": 1,
+    "K6": 6,
+    "K7": 7,
+    "K8": 5,
+    "K9": 5,
+    "K10": 8,
+    "K11": 5,
+    "K12": 8,
+    "K13": 4,
+    "K14": 4,
+    "K15": 4,
+    "K16": 4,
+    "K17": 4
+   },
+   "currRead": {
+    "K3": 1,
+    "K5": 1,
+    "K7": 1,
+    "K8": 1,
+    "K6": 1,
+    "K9": 1,
+    "K10": 1,
+    "K11": 1,
+    "K12": 1,
+    "K13": 1,
+    "K14": 1,
+    "K15": 2,
+    "K16": 2,
+    "K17": 2
+   },
+   "currLis": {
+    "K3": 1,
+    "K4": 1,
+    "K6": 2,
+    "K7": 2,
+    "K8": 2,
+    "K9": 3,
+    "K10": 2,
+    "K11": 1,
+    "K12": 2,
+    "K13": 3,
+    "K14": 1,
+    "K15": 2,
+    "K16": 2,
+    "K17": 2
+   },
+   "currSpk": {
+    "K2": 1,
+    "K5": 1,
+    "K6": 1,
+    "K7": 2,
+    "K8": 3,
+    "K11": 3,
+    "K9": 2,
+    "K10": 1,
+    "K14": 3,
+    "K12": 1,
+    "K13": 2,
+    "K15": 2,
+    "K16": 2,
+    "K17": 2
+   },
+   "currReal": {
+    "K4": 1,
+    "K3": 1,
+    "K7": 1,
+    "K8": 3,
+    "K6": 1,
+    "K9": 3,
+    "K11": 1,
+    "K10": 1,
+    "K12": 3,
+    "K13": 1,
+    "K14": 1,
+    "K15": 1,
+    "K16": 1,
+    "K17": 1
+   }
+  }
+ },
+ "gaps": [
+  "B2 library bank: sentences=0, grammar=0 (library), exercises=0, dialogues=0, reading=0, listening=0, exams=0; B2 vocab=1692 (thin). Covered at app layer by CURR overlays (B2/B2B/B2C).",
+  "Library chapter mapping is synthetic (K1–K5 hash + KX); word-level kap absent in cache. Real chapter mapping lives in CURR overlays (K0–K17). Backlog: preserve cross-chapter associations for shared headwords.",
+  "CURR grammar uses legacy compact shape (title/kap/body/examples/quiz); full encyclopedia prerequisites/related/mistake objects live in library grammar (lg…) for A1–B1. Backlog: B2 library-grammar migration.",
+  "Verb principal parts (Präteritum/Partizip II) not stored per CURR word; conjugation served by runtime engine + library data. Backlog: per-word parts metadata.",
+  "Reading/listening/exam library packs have no B2 rows; B2 served by CURR reading/listening + exam configs reference B2 levels."
+ ],
+ "backlog": [
+  "Batch 2: B2 K18–K21 (Aspekte Beruf B2 Module: Arbeitswelt, Kommunikation, Prüfungsvorbereitung DTB-B2) with same validator.",
+  "A1 chapter wordlist alignment report vs Netzwerk neu A1 Kapitelwortschatz (counts only, no reproduction).",
+  "Cross-chapter headword association model (append kap, never drop) + filter support.",
+  "B2 library-grammar (lg-series) migration for K12–K17.",
+  "Exercise answer-position audit for B2C-derived fills post-merge."
+ ]
+}
