@@ -321,6 +321,28 @@ ok("C2e scan-forward finds later valid occurrence",
 // currRuleQs carries the same guard (source tripwire, honestly labeled)
 ok("C2f currRuleQs article path has boundary guard (source tripwire)",
   /dex\.match\(\/\(\^|\[\\s/.test(currSrc) && /a0=m\.index\+m\[1\]\.length/.test(currSrc));
+// Focused article-gap scenarios on the REAL artGap (B2E census yields 0 article
+// fills, so these branches are otherwise untested; no content touched).
+t2 = probeArtGap("Xder Tag beginnt, der Tag endet.", "der", "Tag");
+ok("C2g glued-first occurrence skipped, later valid one blanked",
+  t2.accepted === true && t2.captured && t2.captured.s === "Xder Tag beginnt, ___ Tag endet." && t2.captured.o[t2.captured.c] === "der",
+  t2.captured ? t2.captured.s : "rejected");
+t2 = probeArtGap("Der Hund bellt laut.", "die", "Katze");
+ok("C2h absent needle rejected, nothing pushed",
+  t2.accepted === false && !t2.captured);
+t2 = probeArtGap("Der Tag, der Tag vergeht.", "der", "Tag");
+ok("C2i first valid occurrence used deterministically",
+  t2.accepted === true && t2.captured && t2.captured.s === "Der Tag, ___ Tag vergeht.",
+  t2.captured ? t2.captured.s : "rejected");
+t2 = probeArtGap("der Tag beginnt früh.", "der", "Tag");
+ok("C2j sentence-initial lowercase article accepted (at===0 branch)",
+  t2.accepted === true && t2.captured && t2.captured.s === "___ Tag beginnt früh." && t2.captured.o[t2.captured.c] === "der",
+  t2.captured ? t2.captured.s : "rejected");
+t2 = probeArtGap("Ich sehe der Frau.", "der", "Frau");
+ok("C2k options are exactly der/die/das with correct index on art",
+  t2.accepted === true && t2.captured &&
+  t2.captured.o.slice().sort().join("/") === "das/der/die" && t2.captured.o[t2.captured.c] === "der",
+  t2.captured ? t2.captured.o.join("/") : "rejected");
 
 // ---------- C3: grammar quizzes + explain drills ----------
 let gBad = [];

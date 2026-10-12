@@ -108,7 +108,14 @@ var DMTestCenter = (function () {
      checks); the interactive selector below uses probeAvail so a Kapitel
      click never blocks the main thread on full test-generation builds. */
   function probeKey(kap, catId, level) {
-    return (level || "*") + "|" + (kap || "*") + "|" + catId + "|" + sel.diff;
+    /* The mistakes probe depends on live user state (open mistake count), not just
+       bank content: without this, probeCache serves a stale count after the learner
+       records or clears mistakes, and the hub card wrongly lingers or stays hidden
+       until an unrelated bank merge busts the cache. The count suffix keeps the
+       cache exact (same count = same result) at zero perf cost. */
+    var mist = "";
+    if (catId === "mistakes") { try { mist = "|m" + openMistakes(); } catch (e) {} }
+    return (level || "*") + "|" + (kap || "*") + "|" + catId + "|" + sel.diff + mist;
   }
   function probeBuild(kap, catId, level) {
     var key = probeKey(kap, catId, level);

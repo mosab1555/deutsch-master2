@@ -202,9 +202,55 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(800);
   await cdp.ev("var b=document.querySelector('[data-as=discard]');if(b)b.click()");
   await sleep(700);
-  const misc = await E("({smart:!!document.querySelector('[data-tc=\"smart\"]'),mist:!!document.querySelector('[data-tc=\"mistakes\"]'),bossLock:document.querySelector('.tc-flow').textContent.includes('🔒 اختبار الزعيم')||document.querySelector('.tc-flow').textContent.includes('👑 اختبار الزعيم'),records:document.body.textContent.includes('سجلاتك الشخصية'),trainLinks:document.querySelectorAll('[data-tcgo]').length})");
+  /* Deterministic hub reset: level -> kap (never rely on leftover sel state after
+     discard). The old TC-MISC used selectors [data-tc="smart"]/[data-tc="mistakes"]
+     that never existed in the app (verified: zero git history) and read them in a
+     state where the mistakes card is CORRECTLY hidden with zero open mistakes. */
+  await cdp.ev("document.querySelector('[data-tc=\"level:A1\"]').click()");
+  await sleep(1200);
+  await cdp.ev("document.querySelector('[data-tc=\"kap:K1\"]').click()");
+  /* Smart card renders once category probes settle: poll (observable condition). */
+  let smartCard = "false";
+  for (let pi = 0; pi < 20; pi++) {
+    smartCard = await E("!!document.querySelector('[data-tc=\"cat:__smart__\"]')");
+    if (smartCard === "true") break;
+    await sleep(500);
+  }
+  rec("TC-MISC-SMART", "smart practice card present in K1 hub", smartCard === "true", "smart=" + smartCard);
+  /* Mistakes-card rule (documented in testcenter.js: hidden entirely with zero open
+     mistakes). Clear through the real confirm-accept path, assert hidden ... */
+  await cdp.ev("(()=>{const real=window.confirm;window.confirm=()=>true;try{const b=document.getElementById('clearMistakes');if(b)b.click();}catch(e){}window.confirm=real;})()");
+  await sleep(500);
+  /* clearMistakes re-renders the mistakes page, not the hub: re-select kap to force
+     a fresh hub render (same as real navigation does via renderCenter). */
+  await cdp.ev("document.querySelector('[data-tc=\"kap:K1\"]').click()");
+  await sleep(800);
+  const open0 = await E("Object.keys(S.mistakes||{}).filter(id=>!S.mistakes[id].done).length");
+  const mistGone = await E("!document.querySelector('[data-tc=\"cat:mistakes\"]')");
+  rec("TC-MISC-MIST0", "mistakes card hidden with zero open mistakes", open0 === "0" && mistGone === "true", "open=" + open0 + " hidden=" + mistGone);
+  /* ... then record ONE real mistake (classic article quiz, wrong option derived
+     from live state — the proven MIST-001 pattern) and assert the card appears. */
+  await cdp.ev("(()=>{const b=document.querySelector('.quiz-type[data-type=article]');if(b)b.click();})()");
+  await sleep(300);
+  await cdp.ev("showPage('quiz')"); await sleep(300);
+  await cdp.ev("document.getElementById('startQuiz').click()");
+  await sleep(1200);
+  const mistForce = await cdp.ev("(()=>{const q=quizQs[quizIdx];if(!q||!q.opts)return 'no-q';const right=(q.kind==='article'?q.opts[q.correct]:q.correctText);const b=[...document.querySelectorAll('#quizOpts .quiz-opt')].find(x=>x.textContent!==String(right));if(!b)return 'no-wrong-opt';b.click();return 'clicked:'+b.textContent.slice(0,20)})()");
+  await sleep(600);
+  const open1 = await E("Object.keys(S.mistakes||{}).filter(id=>!S.mistakes[id].done).length");
+  await cdp.ev("var q=document.querySelector('#quizQuit');if(q)q.click()");
+  await sleep(600);
+  await cdp.ev("document.querySelector('[data-tc=\"kap:K1\"]').click()");
+  let mistCard = "false";
+  for (let mi = 0; mi < 10; mi++) {
+    mistCard = await E("!!document.querySelector('[data-tc=\"cat:mistakes\"]')");
+    if (mistCard === "true") break;
+    await sleep(500);
+  }
+  rec("TC-MISC-MIST1", "mistakes card appears after one real mistake", String(mistForce).startsWith("clicked") && Number(open1) >= 1 && mistCard === "true", mistForce + " open=" + open1 + " card=" + mistCard);
+  const misc = await E("({bossLock:document.querySelector('.tc-flow').textContent.includes('🔒 اختبار الزعيم')||document.querySelector('.tc-flow').textContent.includes('👑 اختبار الزعيم'),records:document.body.textContent.includes('سجلاتك الشخصية'),trainLinks:document.querySelectorAll('[data-tcgo]').length})");
   const miscJ = JSON.parse(misc);
-  rec("TC-MISC", "smart/mistakes/boss/records/train-links present", miscJ.smart === true && miscJ.mist === true && miscJ.bossLock === true && miscJ.records === true && miscJ.trainLinks >= 5, misc);
+  rec("TC-MISC-HUB", "boss/records/train-links present", miscJ.bossLock === true && miscJ.records === true && miscJ.trainLinks >= 5, misc);
 
   /* overflow: 412x915 + 1440x900 */
   let overFails = [];

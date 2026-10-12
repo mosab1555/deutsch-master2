@@ -251,9 +251,25 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const histUI = await E("(()=>{const cards=[...document.querySelectorAll('.mist-card')];const withHist=cards.filter(c=>/🕘/.test(c.textContent));return {cards:cards.length,withHist:withHist.length}})()");
   const hj = JSON.parse(histUI);
   rec("MIST-007", "mistake attempt history renders", hj.cards >= 1 && hj.withHist >= 1, histUI);
-  const retryGoes = await cdp.ev("(()=>{const b=document.querySelector('.mist-card [data-a=test]');if(!b)return 'no-btn';b.click();return document.querySelector('#page-quiz.active')?'quiz':(document.querySelector('#page-career.active')?'career':'none')})()");
-  await sleep(500);
-  rec("MIST-005", "mistake retry navigates to practice", String(retryGoes).includes("quiz") || String(retryGoes).includes("career"), "goes=" + retryGoes);
+  /* Retry from LAST card to first. The MIST-001 mistake (fresh, word-backed, recorded
+     above) is last by insertion order; older cards vary with random question kinds.
+     advMistPractice builds up to 6 questions over the full bank before navigating,
+     so poll per card (bounded). Toast text is captured to distinguish the documented
+     missing-word path from a silent failure. */
+  let retryGoes = "none", retryDetail = "";
+  const retryCount = await cdp.ev("(()=>{return document.querySelectorAll('.mist-card [data-a=test]').length})()");
+  for (let ri = Number(retryCount) - 1; ri >= 0 && retryGoes === "none"; ri--) {
+    const clicked = await cdp.ev("(()=>{const bs=[...document.querySelectorAll('.mist-card [data-a=test]')];const b=bs[" + ri + "];if(!b)return 'no-btn';b.click();return 'clicked:'+bs.length;})()");
+    await sleep(300);
+    const toastTxt = await cdp.ev("(()=>{const box=document.getElementById('toasts');const t=box&&box.lastElementChild;return t?t.textContent.slice(0,60):'no-toast';})()");
+    for (let rpi = 0; rpi < 12; rpi++) {
+      retryGoes = await cdp.ev("(()=>{return document.querySelector('#page-quiz.active')?'quiz':(document.querySelector('#page-career.active')?'career':'none')})()");
+      if (String(retryGoes) !== "none") break;
+      await sleep(250);
+    }
+    if (retryGoes === "none") retryDetail += "[card" + ri + ":" + clicked + " toast=" + toastTxt + "]";
+  }
+  rec("MIST-005", "mistake retry navigates to practice", String(retryGoes).includes("quiz") || String(retryGoes).includes("career"), "goes=" + retryGoes + " " + retryDetail);
   await cdp.ev("showPage('quiz')"); await sleep(300);
   await cdp.ev("document.getElementById('quizQuit').click()"); await sleep(600);
   const resShown = await E("!document.getElementById('quizResult').classList.contains('hidden')");
@@ -465,11 +481,15 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const rm = await E("matchMedia('(prefers-reduced-motion: reduce)').matches");
   await cdp.ev("showPage('quiz')"); await sleep(400);
   await cdp.ev("document.getElementById('startQuiz').click()"); await sleep(1000);
-  await cdp.ev("(()=>{const b=[...document.querySelectorAll('#quizOpts .quiz-opt')];if(b[0])b[0].click();})()");
+  /* Answer through the interaction the RENDERED question kind requires. Write-kind
+     questions show #quizWrite (no .quiz-opt buttons exist); order-kind shows chips.
+     Blindly clicking b[0] fails exactly when the first randomized question is a
+     writing question. Skipping write questions is not an option: it is a real path. */
+  const a11yAns = await cdp.ev("(()=>{const w=document.getElementById('quizWrite');if(w&&!w.classList.contains('hidden')){const inp=document.getElementById('quizWriteInput');const q=(typeof quizQs!=='undefined')?quizQs[quizIdx]:null;inp.value=(q&&q.writeAnswer)||'der';const chk=document.getElementById('quizWriteCheck');if(chk)chk.click();return 'write:'+inp.value;}const chips=[...document.querySelectorAll('#quizOrder .order-chip:not(.used)')];if(chips.length){chips.forEach(c=>c.click());const chk=[...document.querySelectorAll('#quizOrder button')].find(b=>/تحقق/.test(b.textContent));if(chk)chk.click();return 'order:'+chips.length;}const b=[...document.querySelectorAll('#quizOpts .quiz-opt')];if(b[0]){b[0].click();return 'opt';}return 'no-q';})()");
   await sleep(500);
   const rmFb = await E("!document.getElementById('quizFeedback').classList.contains('hidden')");
   await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "no-preference" }] });
-  rec("A11Y-004", "app functions under reduced-motion emulation", rm === "true" && rmFb === "true", "matches=" + rm + " fb=" + rmFb);
+  rec("A11Y-004", "app functions under reduced-motion emulation", rm === "true" && rmFb === "true" && String(a11yAns) !== "no-q", "matches=" + rm + " fb=" + rmFb + " ans=" + a11yAns);
   await cdp.ev("document.getElementById('quizQuit').click()"); await sleep(400);
 
   /* ---- PERF-002 boot + big-list timing ---- */

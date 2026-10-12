@@ -103,3 +103,39 @@ Apply in GitHub → repository Settings (exact values):
 Real-device PWA install, iOS Safari speech, production Supabase RLS live-fire test,
 full screen-reader pass, and learner pilot outcomes. None block the static release;
 all are tracked in the Educational report and test catalog.
+
+## 10. Addendum 2026-10-12 — release-blocker closure cycle
+
+- **MIST-005 (`goes=none`, intermittent)**: root cause was NOT timing. The test always
+  clicked the FIRST mistake card (TEST-004's, kind varies with random questions) while
+  the proven word-backed MIST-001 card is last by insertion order. Fix: retry
+  last-card-first with bounded per-card destination polling + toast diagnostics
+  (`tools/runtime-qa.js`). Verified: `goes=quiz`, 66/66 twice.
+- **A11Y-004 (fails on first-question=writing)**: blind `b[0]` click is a no-op for
+  `write`-kind questions (they render `#quizWrite`, no `.quiz-opt`). Fix: branch on
+  the rendered kind — write fills the input with the live answer key, order answers
+  via chips, else first option. Writing path stays tested, never skipped.
+- **TC-MISC (13/14, "pre-existing")**: two compounded causes. (1) The test used
+  selectors `[data-tc="smart"]`/`[data-tc="mistakes"]` that never existed in any
+  revision (real cards are `cat:__smart__`/`cat:mistakes`). (2) A REAL app defect:
+  `probeCache` never invalidated on mistake-count changes, so the hub mistakes card
+  wrongly lingered or stayed hidden after recording/clearing mistakes. Fix: mistake
+  count folded into `probeKey` (`client/testcenter.js`, synced to `www/`); test now
+  asserts the documented rule both directions with deterministic setup
+  (TC-MISC-SMART / -MIST0 / -MIST1 / -MISC-HUB). Verified 17/17 twice.
+- **B2E article-gap coverage**: census yields 0 article fills, leaving `artGap`
+  branches untested. Added C2g–C2k probes against the REAL implementation
+  (glued-first scan, absent needle, first-match determinism, `at===0` accept,
+  options contract). Suite now 39/39 (`tools/test-b2e-answers.js`).
+- **Results this cycle**: `runtime-qa` 66/66 ×2, `test-tc-runtime` 17/17 ×2,
+  `test-b2e-answers` 39/39, plus `qa-audit` 89/89, `assess` 68/68, `manifest` 20/20,
+  `check-testplan` 13/13, `account-isolation` 32/32, `b2c/b2d-answers` 32/33,
+  `test-tc-selection-freeze` 11/11.
+- **Known FAIL (pre-existing, not mine)**: `test-robustness` R27
+  (`www` identical mod `?v=`) fails because the owner's concurrent uncommitted work
+  on `client/sent-a1.js` postdates the last `www/` sync. Owner files
+  (`client/sent-a1.js`, `tools/test-perf-fix.js`, `tools/test-sentences-perf.js`)
+  were preserved untouched and excluded from this commit; recovery is
+  `npm run www` after that work lands.
+- GitHub description/homepage/topics still require manual update (no `gh` CLI);
+  exact values in §8 above.
