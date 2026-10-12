@@ -54,6 +54,17 @@ ok("merge:idle-warm", /requestIdleCallback\(_warm/.test(curr) && /dmWordHits\("d
 try { require("vm").createScript(script); ok("syntax:script.js", true); } catch (e) { ok("syntax:script.js", false, String(e).slice(0, 120)); }
 try { require("vm").createScript(curr); ok("syntax:curriculum.js", true); } catch (e) { ok("syntax:curriculum.js", false, String(e).slice(0, 120)); }
 
+// 7. sentences first-filter (measured 2026-10-12: merge ~2.4s + index ~0.4s
+//    dominated the ~4.2s first render; filter scans are ~1ms). Full
+//    functional coverage lives in tools/test-sentences-perf.js; these guards
+//    pin the structural invariants here.
+const sentA1 = RD("client/sent-a1.js");
+ok("sent:merge-incremental", /SentA1\._seen/.test(sentA1) && /_doneSentN/.test(sentA1) && /_doneBackfillN/.test(sentA1));
+ok("sent:no-allwords-scan", !/allWords\(\)\.(forEach|find)/.test(sentA1));
+ok("sent:cached-lookups", /function sentVocabCache\(\)/.test(sentA1) && /function sentGramMap\(\)/.test(sentA1));
+ok("sent:empty-fastpath", /function sentA1FilterList\(/.test(sentA1) && /if \(q\) \{ try \{ rows = sentA1SearchRows\(\);/.test(sentA1));
+try { require("vm").createScript(sentA1); ok("syntax:sent-a1.js", true); } catch (e) { ok("syntax:sent-a1.js", false, String(e).slice(0, 120)); }
+
 console.log("----");
 console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
 process.exit(fail ? 1 : 0);

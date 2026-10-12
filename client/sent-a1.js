@@ -412,8 +412,43 @@ var SentA1 = {
   stats: { before: 0, vocabEx: 0, bank: 0, dup: 0, linkedWords: 0, unlinked: 0, gramCovered: 0, kapCovered: 0 },
   importedWid: {},
   rejectedKeys: {},
-  seq: 1
+  seq: 1,
+  /* Incremental-merge cursors (perf fix 2026-10-12): the banks only ever
+     grow (dm-lib/dm-lazy/curriculum merges append), so each merge processes
+     only the slices that arrived since the previous merge. _seen accumulates
+     every normalized key admitted so far, making repeat merges O(delta)
+     instead of O(150k). On the (defensive) shrink path the cursors reset and
+     the next merge reprocesses from zero — identical results, slower once. */
+  _seen: null,
+  _doneSentN: 0,
+  _doneVocabN: 0,
+  _doneCwN: 0,
+  _doneGramN: 0,
+  _doneBackfillN: 0,
+  _wset: null,
+  _gset: null,
+  _kset: null
 };
+/* Drop all incremental merge/index state (shrink path only). Imported-id
+   guards and seq are intentionally kept, matching historical behavior. */
+function sentA1ResetIncremental() {
+  try {
+    SentA1._seen = null;
+    SentA1._doneSentN = 0;
+    SentA1._doneVocabN = 0;
+    SentA1._doneCwN = 0;
+    SentA1._doneGramN = 0;
+    SentA1._doneBackfillN = 0;
+    SentA1._wset = null;
+    SentA1._gset = null;
+    SentA1._kset = null;
+    SentA1._nw = 0;
+    SentA1._ng = 0;
+    SentA1._nk = 0;
+    _sentGramMap = null;
+    _sentVocabCache = null;
+  } catch (e) {}
+}
 
 /* تطبيع للمقارنة: يتجاهل الحالة والمسافات والترقيم */
 function sentNorm(s) {
@@ -423,40 +458,106 @@ function sentNorm(s) {
 }
 function sentKey(de) { return sentNorm(de); }
 
-/* عنوان القاعدة -> id (g1..g40) */
+/* عنوان القاعدة -> id (g1..g40).
+   Perf 2026-10-12: cached title map (first title wins, same as GRAMMAR.find).
+   Rebuilt only when GRAMMAR membership changes; banks only ever grow. */
+var _sentGramMap = null;
+function sentGramMap() {
+  try {
+    var n = (typeof GRAMMAR !== "undefined" && GRAMMAR) ? GRAMMAR.length : -1;
+    if (_sentGramMap && _sentGramMap.n === n) return _sentGramMap.m;
+    var m = {};
+    try {
+      var hasG = Object.prototype.hasOwnProperty;
+      GRAMMAR.forEach(function (g) {
+        try { if (g && g.title && !hasG.call(m, g.title)) m[g.title] = g.id; } catch (e) {}
+      });
+    } catch (e) {}
+    _sentGramMap = { n: n, m: m };
+    return m;
+  } catch (e) { return {}; }
+}
 function sentGramId(title) {
   try {
-    var g = GRAMMAR.find(function (x) { return x.title === title; });
-    return g ? g.id : null;
+    var m = sentGramMap();
+    return (title && m[title]) ? m[title] : null;
   } catch (e) { return null; }
+}
+/* Vocabulary lookup caches for sentFindWid (perf fix 2026-10-12).
+   The old code called allWords() (full-bank concat) on EVERY lookup and
+   re-normalized every word per lookup — O(V) alloc + O(V) sentNorm per call,
+   invoked per bank row and per backfill sentence. The caches below are built
+   once per vocabulary revision and serve O(1) direct hits plus a single
+   pre-normalized array scan for the art-form fallback. Matching semantics are
+   unchanged: first allWords-order hit wins in every branch. */
+var _sentVocabCache = null;
+function sentVocabCache() {
+  try {
+    var cw = [];
+    try { cw = (window.S && window.S.customWords) || []; } catch (e) { cw = []; }
+    var vn = (typeof VOCAB !== "undefined" && VOCAB) ? VOCAB.length : 0;
+    var sig = vn + "|" + cw.length;
+    if (_sentVocabCache && _sentVocabCache.sig === sig &&
+        _sentVocabCache.VOCAB === VOCAB && _sentVocabCache.cw === cw) return _sentVocabCache;
+    var words = null;
+    try {
+      if (typeof dmWords === "function") words = dmWords();
+      else if (typeof allWords === "function") words = allWords();
+      else words = (VOCAB || []).concat(cw || []);
+    } catch (e) { words = []; }
+    var byKey = {}, byDe = {}, norms = [];
+    var hasOwn = Object.prototype.hasOwnProperty;
+    try {
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i];
+        if (!w || !w.de) continue;
+        try {
+          var kk = w.de + "|" + w.art;
+          if (!hasOwn.call(byKey, kk)) byKey[kk] = w.id;
+          if (!hasOwn.call(byDe, w.de)) byDe[w.de] = w.id;
+          norms.push({ id: w.id, nde: sentNorm(w.de), art: w.art });
+        } catch (e2) {}
+      }
+    } catch (e) {}
+    _sentVocabCache = { sig: sig, VOCAB: VOCAB, cw: cw, byKey: byKey, byDe: byDe, norms: norms };
+    return _sentVocabCache;
+  } catch (e) { return { sig: "", byKey: {}, byDe: {}, norms: [] }; }
 }
 /* wordKey "de|art" -> word id ، ثم احتياطي: بحث عن الكلمة داخل الجملة */
 function sentFindWid(de, wordKey) {
   try {
+    var C = sentVocabCache();
+    var has = Object.prototype.hasOwnProperty;
     if (wordKey) {
       var p = String(wordKey).split("|");
-      var hit = allWords().find(function (w) { return w.de === p[0] && String(w.art) === String(p[1] || w.art); });
-      if (hit) return hit.id;
-      hit = allWords().find(function (w) { return w.de === p[0]; });
-      if (hit) return hit.id;
+      var key = p[0] + "|" + (p.length > 1 ? p[1] : "");
+      /* Exact de|art hit (first in bank order wins, as built above). */
+      if (p.length > 1 && p[1] !== "" && has.call(C.byKey, key)) return C.byKey[key];
+      /* Bare-de fallback: mirrors the old two-stage find. When wordKey
+         carries no art part the old first find matched any art, i.e. the
+         first de match — identical to byDe. */
+      if (has.call(C.byDe, p[0])) return C.byDe[p[0]];
+      if (p.length <= 1 || p[1] === "") return C.byDe[p[0]] || null;
     }
     var low = " " + sentNorm(de) + " ";
     var best = null;
-    allWords().forEach(function (w) {
-      if (best) return;
-      var dw = sentNorm(w.de);
-      if (!dw || dw.length < 3) return;
-      if (w.art && w.art !== "-") {
-        var arts = { der: ["der", "den", "dem"], die: ["die", "der", "den"], das: ["das", "dem", "den"] };
-        var forms = arts[w.art] || [w.art];
-        for (var i = 0; i < forms.length; i++) {
-          if (low.indexOf(" " + forms[i] + " " + dw + " ") >= 0 || low.indexOf(" " + forms[i] + " " + dw + "s ") >= 0) { best = w.id; return; }
+    var arts = { der: ["der", "den", "dem"], die: ["die", "der", "den"], das: ["das", "dem", "den"] };
+    for (var i = 0; i < C.norms.length; i++) {
+      if (best) break;
+      var nw = C.norms[i];
+      var dw = nw.nde;
+      if (!dw || dw.length < 3) continue;
+      if (nw.art && nw.art !== "-") {
+        var forms = arts[nw.art] || [nw.art];
+        for (var f = 0; f < forms.length; f++) {
+          if (low.indexOf(" " + forms[f] + " " + dw + " ") >= 0 || low.indexOf(" " + forms[f] + " " + dw + "s ") >= 0) { best = nw.id; break; }
         }
-        if (low.indexOf(" " + dw + " ") >= 0 && dw.length > 5) best = w.id;
+        if (best) break;
+        if (low.indexOf(" " + dw + " ") >= 0 && dw.length > 5) best = nw.id;
       } else {
-        if (low.indexOf(" " + dw + " ") >= 0) best = w.id;
+        if (low.indexOf(" " + dw + " ") >= 0) best = nw.id;
       }
-    });
+    }
     return best;
   } catch (e) { return null; }
 }
@@ -495,11 +596,47 @@ function sentA1Merge() {
       if (SentA1.merged && SentA1._mergeSig === sig) return SentA1.stats;
       SentA1._mergeSig = sig;
     } catch (e) {}
-    var seen = {};
-    SENTENCES.forEach(function (s) { seen[sentKey(s.de)] = 1; });
+    /* Incremental cursors (perf fix 2026-10-12): every known loader only
+       appends, so only the slices that arrived since the previous merge need
+       (re)processing. First merge after a cold start still walks the whole
+       bank once (now with cached lookups); every later merge is O(delta).
+       A shrink (defensive only — no known loader shrinks) resets the cursors
+       and reprocesses from zero, yielding identical results. */
+    var cwArr = [];
+    try { cwArr = (window.S && window.S.customWords) || []; } catch (e) { cwArr = []; }
+    var gramN = 0;
+    try { gramN = (typeof GRAMMAR !== "undefined" && GRAMMAR) ? GRAMMAR.length : 0; } catch (e) { gramN = 0; }
+    if (SentA1._seen && (SENTENCES.length < SentA1._doneSentN ||
+        VOCAB.length < SentA1._doneVocabN || cwArr.length < SentA1._doneCwN || gramN < SentA1._doneGramN)) {
+      sentA1ResetIncremental();
+    }
+    if (!SentA1._seen) {
+      SentA1._seen = {};
+      SentA1._wset = {};
+      SentA1._gset = {};
+      SentA1._kset = {};
+      SentA1._nw = 0;
+      SentA1._ng = 0;
+      SentA1._nk = 0;
+    }
+    var seen = SentA1._seen;
+    var s0 = SentA1._doneSentN, v0 = SentA1._doneVocabN, g0 = SentA1._doneGramN;
+    var i, w0, g0x;
+    /* Pre-pass over NEW slices only: every SENTENCES de key, every VOCAB ex
+       key, every GRAMMAR example key. Set union is order-independent and old
+       slices are already accumulated, so this matches the old full-bank
+       pre-pass exactly (customWords stay out, exactly as before). */
+    for (i = s0; i < SENTENCES.length; i++) {
+      try { seen[sentKey(SENTENCES[i].de)] = 1; } catch (e) {}
+    }
     try {
-      VOCAB.forEach(function (w) { if (w.ex) seen[sentKey(w.ex)] = 1; });
-      GRAMMAR.forEach(function (g) { (g.ex || []).forEach(function (e) { if (e[0]) seen[sentKey(e[0])] = 1; }); });
+      for (i = v0; i < VOCAB.length; i++) { w0 = VOCAB[i]; if (w0 && w0.ex) seen[sentKey(w0.ex)] = 1; }
+      if (typeof GRAMMAR !== "undefined" && GRAMMAR) {
+        for (i = g0; i < GRAMMAR.length; i++) {
+          g0x = GRAMMAR[i];
+          ((g0x && g0x.ex) || []).forEach(function (e) { if (e[0]) seen[sentKey(e[0])] = 1; });
+        }
+      }
     } catch (e) {}
     if (!SentA1.merged) SentA1.stats.before = SENTENCES.length;
     /* مثال ضعيف مولّد آليًا (قالب Ich möchte X)؟ البنك يغطي الأفعال — نتخطاه */
@@ -509,22 +646,26 @@ function sentA1Merge() {
       if (/^\([^)]*\)/.test(w.exAr || "")) return true;
       return false;
     }
-    /* 1) أمثلة المفردات -> جمل مرتبطة بكلماتها */
+    /* 1) أمثلة المفردات -> جمل مرتبطة بكلماتها (NEW VOCAB slice only;
+       old words were decided in bank order by previous merges). */
     var nV = 0, nD = 0;
-    VOCAB.forEach(function (w) {
-      if (!w.ex || sentNorm(w.ex).split(" ").length < 2 || weakAutoEx(w)) return;
-      if (SentA1.importedWid[w.id]) return;
-      var k = sentKey(w.ex);
-      if (seen[k]) { if (!SentA1.rejectedKeys[k]) { SentA1.rejectedKeys[k] = 1; nD++; } return; }
-      seen[k] = 1;
-      SentA1.importedWid[w.id] = 1;
-      SENTENCES.push({
-        id: "sv" + (SentA1.seq++), de: w.ex, ar: w.exAr || "", pron: "",
-        kap: w.kap || "KX", level: w.level || "A1",
-        topic: w.cat || "General", gram: null, wid: w.id, w: w.de, src: "vocab"
-      });
-      nV++;
-    });
+    for (i = v0; i < VOCAB.length; i++) {
+      var w = VOCAB[i];
+      try {
+        if (!w || !w.ex || sentNorm(w.ex).split(" ").length < 2 || weakAutoEx(w)) continue;
+        if (SentA1.importedWid[w.id]) continue;
+        var k = sentKey(w.ex);
+        if (seen[k]) { if (!SentA1.rejectedKeys[k]) { SentA1.rejectedKeys[k] = 1; nD++; } continue; }
+        seen[k] = 1;
+        SentA1.importedWid[w.id] = 1;
+        SENTENCES.push({
+          id: "sv" + (SentA1.seq++), de: w.ex, ar: w.exAr || "", pron: "",
+          kap: w.kap || "KX", level: w.level || "A1",
+          topic: w.cat || "General", gram: null, wid: w.id, w: w.de, src: "vocab"
+        });
+        nV++;
+      } catch (e) {}
+    }
     /* 2) البنك المنظم */
     var nB = 0;
     SENT_A1_EXTRA.forEach(function (r) {
@@ -542,30 +683,45 @@ function sentA1Merge() {
       });
       nB++;
     });
-    /* 3) backfill للجمل القديمة: موضوع + ربط كلمة */
-    SENTENCES.forEach(function (s) {
-      if (!s.topic) s.topic = sentAutoTopic(s.de, s.kap);
-      if (!s.wid && !s.src) { s.wid = sentFindWid(s.de, null); s.src = "core"; }
-      if (!s.level) s.level = "A1";
-    });
+    /* 3) backfill للجمل القديمة: موضوع + ربط كلمة (only sentences that
+       arrived since the previous backfill; earlier ones are already
+       settled — topic/wid/src/level set — so reprocessing is a no-op). */
+    for (i = SentA1._doneBackfillN; i < SENTENCES.length; i++) {
+      var s = SENTENCES[i];
+      try {
+        if (!s.topic) s.topic = sentAutoTopic(s.de, s.kap);
+        if (!s.wid && !s.src) { s.wid = sentFindWid(s.de, null); s.src = "core"; }
+        if (!s.level) s.level = "A1";
+      } catch (e) {}
+    }
     SentA1.stats.vocabEx += nV;
     SentA1.stats.bank += nB;
     SentA1.stats.dup += nD;
-    /* إحصاءات الربط */
+    /* إحصاءات الربط (incremental sets — identical totals to a full scan). */
     try {
-      var wset = {}, gset = {}, kset = {};
-      SENTENCES.forEach(function (s) {
-        if (s.wid) wset[s.wid] = 1;
-        if (s.gram) gset[s.gram] = 1;
-        if (s.kap) kset[s.kap] = 1;
-      });
-      SentA1.stats.linkedWords = Object.keys(wset).length;
-      SentA1.stats.gramCovered = Object.keys(gset).length;
-      SentA1.stats.kapCovered = Object.keys(kset).length;
+      var wset = SentA1._wset, gset = SentA1._gset, kset = SentA1._kset;
+      var hasS = Object.prototype.hasOwnProperty;
+      for (i = s0; i < SENTENCES.length; i++) {
+        var st = SENTENCES[i];
+        try {
+          if (st.wid && !hasS.call(wset, st.wid)) { wset[st.wid] = 1; SentA1._nw++; }
+          if (st.gram && !hasS.call(gset, st.gram)) { gset[st.gram] = 1; SentA1._ng++; }
+          if (st.kap && !hasS.call(kset, st.kap)) { kset[st.kap] = 1; SentA1._nk++; }
+        } catch (e2) {}
+      }
+      SentA1.stats.linkedWords = SentA1._nw;
+      SentA1.stats.gramCovered = SentA1._ng;
+      SentA1.stats.kapCovered = SentA1._nk;
       var totalW = allWords().filter(function (w) { return (w.level || "A1") === "A1"; }).length;
       SentA1.stats.unlinked = Math.max(0, totalW - SentA1.stats.linkedWords);
       SentA1.stats.totalWords = totalW;
     } catch (e) {}
+    /* Advance cursors past everything processed (including our own pushes). */
+    SentA1._doneSentN = SENTENCES.length;
+    SentA1._doneBackfillN = SENTENCES.length;
+    SentA1._doneVocabN = VOCAB.length;
+    SentA1._doneCwN = cwArr.length;
+    SentA1._doneGramN = gramN;
     SentA1.merged = true;
   } catch (e) { if (window.console) console.error("sent-a1 merge", e); }
   return SentA1.stats;
@@ -728,6 +884,38 @@ function sentA1SearchRows() {
     return rows;
   } catch (e) { return []; }
 }
+/* Pure filter over the sentence bank (perf fix 2026-10-12: extracted from
+   sentA1Render so the filtering contract is unit-testable). q must already
+   be dmNorm-normalized+trimmed, qAr raw-trimmed-lowercased. rows is the
+   sentA1SearchRows() index or null/empty when no search text is active — in
+   that case the bank is scanned directly (no normalized strings are needed
+   for kap/topic/level-only filtering). Both paths visit bank order, so
+   result order is identical. */
+function sentA1FilterList(q, qAr, rawTrim, k, tp, lv, rows) {
+  var useIdx = !!(q && rows && rows.length);
+  var bank = (typeof SENTENCES !== "undefined" && SENTENCES) ? SENTENCES : [];
+  var count = useIdx ? rows.length : bank.length;
+  var list = [];
+  for (var ri = 0; ri < count; ri++) {
+    var s = useIdx ? rows[ri].s : bank[ri];
+    try {
+      if (lv !== "all" && (s.level || "A1") !== lv) continue;
+      if (k && s.kap !== k) continue;
+      if (tp && (s.topic || "General") !== tp) continue;
+      if (!q) { list.push(s); continue; }
+      var de = rows[ri].nde;
+      if (de.indexOf(q) >= 0) { list.push(s); continue; }
+      if (rows[ri].nar.indexOf(qAr) >= 0) { list.push(s); continue; }
+      try {
+        if (s.wid && typeof wordById === "function") {
+          var w = wordById(s.wid);
+          if (w && ((w.de || "").toLowerCase().indexOf(qAr) >= 0 || (w.ar || "").indexOf(rawTrim) >= 0)) { list.push(s); continue; }
+        }
+      } catch (e) {}
+    } catch (e) {}
+  }
+  return list;
+}
 function sentA1Render() {
   try {
     try { ensureFullSentences(); } catch (e) {}
@@ -746,24 +934,12 @@ function sentA1Render() {
       box.innerHTML = '<div class="panel glass">⏳ جاري تحميل محتوى ' + lv + ' ...</div>';
       return;
     }
-    var rows = sentA1SearchRows();
-    var list = [];
-    for (var ri = 0; ri < rows.length; ri++) {
-      var s = rows[ri].s;
-      if (lv !== "all" && (s.level || "A1") !== lv) continue;
-      if (k && s.kap !== k) continue;
-      if (tp && (s.topic || "General") !== tp) continue;
-      if (!q) { list.push(s); continue; }
-      var de = rows[ri].nde;
-      if (de.indexOf(q) >= 0) { list.push(s); continue; }
-      if (rows[ri].nar.indexOf(qAr) >= 0) { list.push(s); continue; }
-      try {
-        if (s.wid && typeof wordById === "function") {
-          var w = wordById(s.wid);
-          if (w && ((w.de || "").toLowerCase().indexOf(qAr) >= 0 || (w.ar || "").indexOf(raw.trim()) >= 0)) { list.push(s); continue; }
-        }
-      } catch (e) {}
-    }
+    /* Perf 2026-10-12: with no search text the normalized index is never
+       built — kap/topic/level filtering scans the bank directly (~1ms per
+       150k). The index is built (incrementally) only when a query needs it. */
+    var rows = null;
+    if (q) { try { rows = sentA1SearchRows(); } catch (e) { rows = []; } }
+    var list = sentA1FilterList(q, qAr, raw.trim(), k, tp, lv, rows);
     try {
       var pill = document.getElementById("sentCount");
       if (pill) pill.textContent = list.length + " جملة";
@@ -847,4 +1023,36 @@ try {
   } else {
     setTimeout(_dmWarmSearch, 2500);
   }
+} catch (e) {}
+/* Perf 2026-10-12: keep the merge + search index warm as lazy packs stream
+   in AFTER the one-time boot warms above. dm-lazy dispatches
+   "dm-lib-lazy-ready" per merged pack batch and "dm-lib-kind-ready" per
+   completed kind; each event only advances the incremental cursors by its
+   delta (milliseconds), scheduled idle + coalesced so a 28-pack bulk load
+   queues a single warm-up instead of 28. No rendering happens here — the
+   next visit/filter simply finds hot caches. */
+try {
+  var _sentWarmQueued = false;
+  var _sentWarmRun = function () {
+    _sentWarmQueued = false;
+    try { sentA1Merge(); } catch (e) {}
+    try { sentA1SearchRows(); } catch (e) {}
+  };
+  var _sentWarmSoon = function () {
+    if (_sentWarmQueued) return;
+    _sentWarmQueued = true;
+    try {
+      if (typeof requestIdleCallback === "function") {
+        try { requestIdleCallback(_sentWarmRun, { timeout: 8000 }); return; } catch (e) {}
+      }
+    } catch (e) {}
+    try { setTimeout(_sentWarmRun, 2000); } catch (e) { _sentWarmQueued = false; }
+  };
+  /* dm-lazy dispatches both events on window — listen there. */
+  try {
+    if (typeof window !== "undefined" && window && typeof window.addEventListener === "function") {
+      window.addEventListener("dm-lib-lazy-ready", _sentWarmSoon);
+      window.addEventListener("dm-lib-kind-ready", _sentWarmSoon);
+    }
+  } catch (e) {}
 } catch (e) {}
