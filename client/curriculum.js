@@ -127,6 +127,60 @@ function currBuildFills(dsKey){
 }
 window.currBuildFills=currBuildFills;
 
+/* Generate SENT_FILL sentence-ordering exercises from curriculum sentences
+   (CONTENT_BALANCE_REPORT P1/R3). Runs once per dataset; dedups against the
+   existing bank. Rule-correct by construction: the source sentence IS the
+   answer key, so no human-authored distractor can be wrong — but only
+   sentences whose token order is provably unique qualify (every token
+   distinct after case/punctuation folding, 3..8 tokens, terminal
+   punctuation, Arabic prompt present). Anything ambiguous is skipped, never
+   guessed. Items carry the sentence's REAL chapterId (K6–K25), so chapter
+   isolation keeps working. Semantics are inherited from CURR sentences:
+   structurally valid here, native-speaker spot-check still pending. */
+var currOrdersDone={},orderSeq=1;
+function currBuildOrders(dsKey){
+  try{
+    if(currOrdersDone[dsKey])return;currOrdersDone[dsKey]=1;
+    if(typeof SENT_FILL==="undefined"||!SENT_FILL)return;
+    var D=window["CURR_"+dsKey];if(!D)return;
+    var L=D.level||DS_LEVEL[dsKey]||"A1";
+    var seenO={};
+    SENT_FILL.forEach(function(f){
+      try{
+        if(f&&f.kind==="order"&&f.words&&f.words.length)seenO[f.words.join(" ").toLowerCase()]=1;
+        else if(f&&f.s)seenO[String(f.s).toLowerCase().replace(/\s+/g," ").trim()]=1;
+      }catch(e){}
+    });
+    function kapN(k){try{return kapName(k);}catch(e){return k;}}
+    (D.sentences||[]).forEach(function(s){
+      try{
+        var de=String(s[0]||""),ar=String(s[1]||"");
+        if(!de||ar.length<2)return;
+        var w=de.replace(/["«»„“]/g,"").trim().split(/\s+/).filter(Boolean);
+        if(w.length<3||w.length>8)return;
+        if(!/[.?!]$/.test(w[w.length-1]))return;
+        var key=w.join(" ").toLowerCase();
+        if(seenO[key])return;
+        var u={},okU=true;
+        for(var i=0;i<w.length;i++){
+          var nrm=w[i].toLowerCase().replace(/[.,?!;:…]/g,"");
+          if(!nrm||u[nrm]){okU=false;break;}
+          u[nrm]=1;
+        }
+        if(!okU)return;
+        var chap=s[3]||"KX";
+        seenO[key]=1;
+        SENT_FILL.push({id:"co"+(orderSeq++),kind:"order",words:w,s:de,q:ar,
+          o:[],c:0,why:ar+" — رتّب الكلمات بالترتيب الصحيح.",lvl:L,pos:"full",typ:"order",
+          ctx:"curr-gen",start:w[0],w:"",chapterId:chap,chapterName:kapN(chap),chapterSrc:"curr",
+          lessonId:null,lessonName:"Curriculum "+L,structureType:"order",subjectType:"-",
+          grammarTarget:"wordorder",sentenceStarter:w[0],answerType:"order",blankPosition:"none"});
+      }catch(e){}
+    });
+  }catch(e){if(window.console)console.error("orders",e);}
+}
+window.currBuildOrders=currBuildOrders;
+
 function esc(s){try{return escapeHtml(String(s==null?"":s));}catch(e){return String(s==null?"":s);}}
 function speakOf(t){try{speak(t);}catch(e){try{speakGerman(t);}catch(x){}}}
 function nextGramId(){
@@ -198,6 +252,7 @@ function mergeDataset(key){
       try{CURR_READING.push({id:"cr"+key.toLowerCase()+(i+1),level:L,kap:r.kap||"",title:r.title,de:r.de,ar:r.ar,qs:r.qs||[]});}catch(e){}
     });
     try{currBuildFills(key);}catch(e){}
+    try{currBuildOrders(key);}catch(e){}
   }catch(e){if(window.console)console.error("curr merge",key,e);}
   Curriculum.ds[key]=true;
   if(key==="A2"||key==="B1"||key==="B2")Curriculum.loaded[DS_LEVEL[key]]=true;

@@ -414,7 +414,7 @@ var DMTestCenter = (function () {
     var h = '<div class="panel glass tc-flow"><h3>🧭 مركز الاختبارات — اختر خطوتك</h3>';
     /* step 1: level */
     h += '<div class="tc-step" id="tcLevels"><b>1. اختر المستوى</b><div class="row-flex">';
-    ["A1", "A2", "B1"].forEach(function (lv) {
+    ["A1", "A2", "B1", "B2"].forEach(function (lv) {
       var g = U.levelUnlocked(lv);
       var on = sel.level === lv;
       h += '<button class="btn ' + (on ? "btn-primary" : "btn-ghost") + ' sm" data-tc="level:' + lv + '"' + (g.ok ? "" : ' title="المحتوى قيد التجهيز"') + '>' + (g.ok ? "🇩🇪 " + lv : "🔒 " + lv) + '</button>';
@@ -591,7 +591,7 @@ var DMTestCenter = (function () {
   /* ---------------- custom builder ---------------- */
   function builderHtml() {
     var h = '<div class="tc-builder"><h4>🛠️ إنشاء اختبار خاص</h4>';
-    h += '<div class="tc-brow"><b>المستوى:</b> ' + ["A1", "A2", "B1"].map(function (lv) {
+    h += '<div class="tc-brow"><b>المستوى:</b> ' + ["A1", "A2", "B1", "B2"].map(function (lv) {
       var g = U.levelUnlocked(lv);
       return '<label class="tc-check' + (g.ok ? "" : " tc-dis") + '"><input type="checkbox" data-blvl="' + lv + '"' + (sel.level === lv ? " checked" : "") + (g.ok ? "" : " disabled") + '> ' + lv + '</label>';
     }).join("") + '</div>';

@@ -2720,7 +2720,7 @@ DMAssess.center = (function () {
     /* exams */
     h += '<div class="panel glass"><h3>🏁 الامتحانات الشاملة</h3><div class="grid-2">';
     h += '<div class="asd-exam"><b>🇩🇪 امتحان A1 الشامل</b><div class="muted">Hören • Lesen • Wortschatz • Grammatik • Schreiben • Sprechen — النجاح من ' + C.CONFIG.PASS_A1_EXAM + '% — بتوقيت ⏱️</div><button class="btn btn-gold sm" data-as="start:exam-a1">ابدأ الامتحان 🏁</button></div>';
-    ["A2", "B1"].forEach(function (lv) {
+    ["A2", "B1", "B2"].forEach(function (lv) {
       var g = U.levelUnlocked(lv);
       if (g.ok) h += '<div class="asd-exam"><b>🇩🇪 امتحان ' + lv + ' الشامل</b><div class="muted">محتوى ' + lv + ' متاح (' + g.words + ' كلمة).</div><button class="btn btn-gold sm" data-as="start:exam-' + lv.toLowerCase() + '">ابدأ الامتحان 🏁</button></div>';
       else h += '<div class="asd-exam locked"><b>🔒 امتحان ' + lv + '</b><div class="muted">المحتوى قيد التجهيز (' + (g.words || 0) + ' كلمة، ' + (g.grammar || 0) + ' قواعد) — سيُفتح عند اكتمال المحتوى.</div>' +
@@ -2767,6 +2767,7 @@ DMAssess.center = (function () {
     if (id === "exam-a1") return A.startFlow(Sp.a1ExamSpec());
     if (id === "exam-a2") return A.startFlow(Sp.levelExamSpec("A2"));
     if (id === "exam-b1") return A.startFlow(Sp.levelExamSpec("B1"));
+    if (id === "exam-b2") return A.startFlow(Sp.levelExamSpec("B2"));
     var m = id.match(/^mixed-(\d+)$/);
     if (m) { var n = parseInt(m[1], 10); return A.startFlow(Sp.mixedSpec(n), { limit: n + 6 }); }
     var k = id.match(/^kap-(.+)$/);

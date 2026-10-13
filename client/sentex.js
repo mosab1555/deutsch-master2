@@ -32,6 +32,19 @@ function sentexChapters(){
   return out;
 }
 function sentexChapterName(id){
+  /* KX honesty (CONTENT_BALANCE_REPORT R1): user words never enter SENT_FILL,
+     so a KX group here is always the library overflow pool (A2/B1 drills with
+     no chapter mapping), never "my added words". Label it as such; the
+     KAPITEL entry itself is untouched. */
+  try{
+    if(id==="KX"){
+      var hasLib=false;
+      sentexBank().forEach(function(f){
+        if(f&&f.chapterId==="KX"&&(f.chapterSrc==="lib"||f.ctx==="lib"))hasLib=true;
+      });
+      if(hasLib)return "📚 "+sxTr("sx_kx_lib","مكتبة A2/B1 (KX)");
+    }
+  }catch(e){}
   try{
     if(typeof KAPITEL!=="undefined"){
       const k=KAPITEL.find(function(x){return x.id===id;});
@@ -179,6 +192,35 @@ function sentexTypeCounts(){
   }catch(e){}
   return counts;
 }
+/* i18n with Arabic fallback (same pattern as sentexTypeLabel: never throws,
+   never shows a raw key). */
+function sxTr(key,fb){
+  try{var v=t(key);if(v&&v!==key)return v;}catch(e){}
+  return fb;
+}
+function sxIsLib(f){
+  try{return !!(f&&(f.ctx==="lib"||f.chapterSrc==="lib"));}catch(e){return false;}
+}
+/* Honest counts (CONTENT_BALANCE_REPORT R1/P0): the "fill" tab used to present
+   ~30k library vocabulary drills (article/plural/choice prompts) as sentence
+   practice. This splits every type into curated sentence practice
+   (static + curriculum-generated, ctx!=="lib") vs library drills, display
+   only — pools and filters are untouched. */
+function sentexCounts2(){
+  var by={all:0,fill:0,order:0,qa:0,correct:0,error:0,transform:0,sit:0};
+  var cur={all:0,fill:0,order:0,qa:0,correct:0,error:0,transform:0,sit:0};
+  var lib={all:0,fill:0,order:0,qa:0,correct:0,error:0,transform:0,sit:0};
+  try{
+    sentexBank().forEach(function(f){
+      var k=sentexTypeOf(f);
+      if(by[k]===undefined){by[k]=0;cur[k]=0;lib[k]=0;}
+      by[k]++;by.all++;
+      var T=sxIsLib(f)?lib:cur;
+      T[k]++;T.all++;
+    });
+  }catch(e){}
+  return {total:by.all,by:by,cur:cur,lib:lib,curatedAll:cur.all,libAll:lib.all};
+}
 /* Dedicated Sentence Training UI state (per page; never touches other sections).
    activeSentenceTraining / activePracticeTraining hold the selected TYPE id.
    SXUI / PXUI hold the chapter scope: {chapters:null|[...], mode:"single"|"multi"|"mixed"}.
@@ -228,19 +270,95 @@ function sxSyncSelector(H,box){
     });
   }catch(e){}
 }
+/* Order-pack on-demand loading (CONTENT_BALANCE_REPORT R2/P1).
+   The 52,640 library "order" rows live in lazy ex packs that boot never
+   fetches (dm-lazy idle prefetch explicitly excludes kind "ex", ~176MB over
+   84 packs). Loading all of them is unacceptable, so sentence training pulls
+   ONLY the packs that contain order rows, and only when the learner picks
+   order/all training, with honest byte-accurate progress (same pattern as
+   the vocab/sent views). Merging itself is dm-lazy's mergeAll (dedup by id).
+   The list below is verified against content/src by
+   tools/test-sentex-balance.js (T2): if a library rebuild moves order rows,
+   that test fails loudly instead of silently stranding content. */
+var SENTEX_ORDER_PACKS=["content/dm-ex-74.js","content/dm-ex-75.js","content/dm-ex-76.js","content/dm-ex-77.js","content/dm-ex-78.js","content/dm-ex-79.js","content/dm-ex-80.js"];
+var _sxOrderLoading=null;
+function sxOrderPacksReady(){
+  try{
+    var M=window.DM_LIB_MORE;
+    if(!M||typeof M.loadPack!=="function")return true;
+    var lp=M.loadedPacks||[];
+    for(var i=0;i<SENTEX_ORDER_PACKS.length;i++){
+      if(lp.indexOf(SENTEX_ORDER_PACKS[i])<0)return false;
+    }
+    return true;
+  }catch(e){return true;}
+}
+function sxEnsureOrderPacks(H,done){
+  var finish=function(){try{if(done)done();}catch(e){}};
+  try{
+    if(sxOrderPacksReady()){finish();return;}
+    var M=window.DM_LIB_MORE;
+    if(!M||typeof M.loadPack!=="function"){finish();return;}
+    if(_sxOrderLoading){_sxOrderLoading.push(finish);return;}
+    _sxOrderLoading=[finish];
+    var runId=(H.name==="practice")?"pxRun":"sxRun";
+    var box=$(runId);
+    var files=SENTEX_ORDER_PACKS.slice(),di=0;
+    var paint=function(){
+      try{
+        var live=(H.name==="practice")?$("pxRun"):$("sxRun");
+        if(live&&box&&live===box){
+          box.innerHTML='<div class="panel glass" style="text-align:center"><h3>🔀 '+escapeHtml(sentexTypeLabel("order"))+'</h3>'
+            +'<div class="muted">'+escapeHtml(sxTr("sx_order_load","جاري تحميل تمارين الترتيب من المكتبة"))+' ('+di+' / '+SENTEX_ORDER_PACKS.length+')</div>'
+            +'<div class="progress" style="margin:10px 0"><div class="progress-fill" style="width:'+Math.round(di/SENTEX_ORDER_PACKS.length*100)+'%"></div></div>'
+            +'<div class="muted">📦 ~24MB • '+escapeHtml(sxTr("sx_wifi","يُفضّل Wi-Fi"))+'</div></div>';
+        }
+      }catch(e){}
+    };
+    paint();
+    var step=function(){
+      if(!files.length){
+        var qs=_sxOrderLoading||[];_sxOrderLoading=null;
+        try{renderSxHome(H);}catch(e){}
+        qs.forEach(function(f){try{f();}catch(e){}});
+        return;
+      }
+      var f=files.shift(),p=null;
+      try{p=M.loadPack(f);}catch(e){p=null;}
+      try{
+        Promise.resolve(p).then(function(){di++;paint();step();},function(){di++;paint();step();});
+      }catch(e){di++;paint();step();}
+    };
+    step();
+  }catch(e){try{_sxOrderLoading=null;}catch(_){}finish();}
+}
 /* Central switch: update state -> clear ONLY the active container -> render. */
 function handleSentenceTrainingTypeChange(H,type){
   var box=$(H.boxId);if(!box)return;
   sxSetActiveType(H,type||"all");
   sxSyncSelector(H,box);
-  startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"mixed",sxActiveType(H));
+  var t=sxActiveType(H);
+  if((t==="order"||t==="all")&&!sxOrderPacksReady()){
+    sxEnsureOrderPacks(H,function(){
+      try{startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"mixed",sxActiveType(H));}catch(e){}
+    });
+    return;
+  }
+  startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"mixed",t);
 }
 function handleSentenceTrainingChapterChange(H,chapters,mode){
   var box=$(H.boxId);if(!box)return;
   try{sxUI(H).chapters=(chapters&&chapters.length)?chapters.slice():null;}catch(e){}
   try{sxUI(H).mode=mode||"single";}catch(e){}
   sxSyncSelector(H,box);
-  startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"single",sxActiveType(H));
+  var t=sxActiveType(H);
+  if((t==="order"||t==="all")&&!sxOrderPacksReady()){
+    sxEnsureOrderPacks(H,function(){
+      try{startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"single",sxActiveType(H));}catch(e){}
+    });
+    return;
+  }
+  startSxRun(H,sxScopeChapters(H),sxUI(H).mode||"single",t);
 }
 /* One listen button per question render (fresh DOM each time -> no duplicates). */
 function sxHear(text){
@@ -271,8 +389,11 @@ function renderSxHome(H){
   const counts=sentexTypeCounts();
   const scope=sxScopeChapters(H);
   const uiMode=sxUI(H).mode||"mixed";
+  var cc=sentexCounts2();
   let h='<div class="panel glass"><h3>'+t(H.titleKey)+'</h3>'
-    +'<div class="muted">'+t("sx_sub")+" ("+bank.length+" "+t("sx_questions")+"))</div></div>";
+    +'<div class="muted">'+t("sx_sub")+" ("+bank.length+" "+t("sx_questions")+"))</div>"
+    +'<div class="muted">✏️ '+escapeHtml(sxTr("sx_curated","تمارين الجمل"))+': '+cc.curatedAll
+    +' • 📚 '+escapeHtml(sxTr("sx_libdrills","تدريبات المكتبة"))+': '+cc.libAll+'</div></div>';
   /* 1) training-type selector */
   h+='<div class="sx-types" role="tablist" aria-label="'+escapeHtml(t(H.titleKey))+'">'
     +sentexTypeMeta().map(function(m){
@@ -282,7 +403,10 @@ function renderSxHome(H){
         +'<span class="sx-type-ico">'+m.icon+'</span> '
         +'<span>'+escapeHtml(sentexTypeLabel(m.id))+'</span> '
         +'<span class="sx-type-n">'+(counts[m.id]||0)+'</span></button>';
-    }).join("")+'</div>';
+    }).join("")+'</div>'
+    +'<div class="muted sx-count-note" style="text-align:center">'
+    +escapeHtml(sentexTypeLabel(active))+': ✏️ '+(cc.cur[active]||0)
+    +' • 📚 '+(cc.lib[active]||0)+'</div>';
   /* 2) Kapitel chips (compact; every chapter keeps count + progress, click opens now) */
   h+='<div class="panel glass sx-sel"><div class="sx-sel-h">Kapitel</div><div class="sx-chapters" role="group" aria-label="Kapitel">'
     +chs.map(function(c){

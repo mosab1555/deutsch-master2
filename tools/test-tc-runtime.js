@@ -109,7 +109,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await cdp.ev("showPage('quiz')"); await sleep(1800);
   booted = await E("({tc:typeof DMTestCenter,flow:!!document.querySelector('.tc-flow'),levels:document.querySelectorAll('[data-tc^=\"level:\"]').length})");
   const bj = JSON.parse(booted);
-  rec("TC-BOOT", "testcenter module + picker flow render, zero boot errors", e1.length === 0 && bj.tc === "object" && bj.flow === true && bj.levels === 3, booted + " errs=" + e1.join("|").slice(0, 80));
+  /* 4 level buttons since the content-balance task (A1/A2/B1/B2; B2 locked until merged). */
+  rec("TC-BOOT", "testcenter module + picker flow render, zero boot errors", e1.length === 0 && bj.tc === "object" && bj.flow === true && bj.levels === 4, booted + " errs=" + e1.join("|").slice(0, 80));
 
   /* level -> kapitel */
   await cdp.ev("document.querySelector('[data-tc=\"level:A1\"]').click()");
