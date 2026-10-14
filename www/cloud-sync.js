@@ -705,6 +705,21 @@ const CloudSync = (function () {
         return merged;
     }
 
+    // Canonical snapshot of observable UI state for the no-op-merge guard
+    // below. Sync bookkeeping (_syncVersion) is excluded: it is not read by
+    // any renderer, so a merge that only re-stamps the version must not count
+    // as a visible change.
+    function dmMergeSnapshot(state) {
+        try {
+            var o = {};
+            Object.keys(state || {}).forEach(function (k) {
+                if (k === "_syncVersion") return;
+                o[k] = state[k];
+            });
+            return JSON.stringify(o);
+        } catch (e) { return null; }
+    }
+
     // Apply merged state to local Store
     function applyMergedState(mergedState) {
         if (!window.S) return;
@@ -720,6 +735,17 @@ const CloudSync = (function () {
         const preserved = {};
         preservedFields.forEach(f => { if (window.S[f] !== undefined) preserved[f] = window.S[f]; });
 
+        // No-op-merge render guard: every sync completion (login fullSync,
+        // manual syncNow, 15s retry, cloud-newer auto-sync upload, reconnect
+        // queue drain) used to run a blanket renderAll, which clears and
+        // rebuilds every visited section — visible disappear/reappear with no
+        // data change, at random times, even while idle. When the merge leaves
+        // observable state identical, persist it but skip the rebuild; the
+        // next render would produce byte-identical output anyway. Any guarded
+        // failure (unserializable state) falls through to rendering, so UI
+        // freshness can never be lost by this check.
+        var beforeSnap = dmMergeSnapshot(window.S);
+
         // Merge into S
         Object.assign(window.S, incoming);
 
@@ -728,6 +754,12 @@ const CloudSync = (function () {
 
         // Save to localStorage
         try { window.save?.(); } catch (e) {}
+
+        var afterSnap = dmMergeSnapshot(window.S);
+        if (beforeSnap !== null && afterSnap !== null && beforeSnap === afterSnap) {
+            console.log("[Sync] Merge left state unchanged - skipping UI refresh");
+            return;
+        }
 
         // Trigger UI refresh
         if (typeof window.renderAll === "function") {
