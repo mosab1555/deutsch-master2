@@ -82,7 +82,83 @@
       .replace(/\u00df/g, "ss").replace(/\u00e4/g, "a").replace(/\u00f6/g, "o").replace(/\u00fc/g, "u");
   }
   function normSent(s) {
-    return foldDe(s).replace(/[\u00a1\u00bf.?!\u2026\u060c\u061f\u061b;:,()"«»„“”'']/g, "").replace(/\s+/g, " ").trim();
+    return foldDe(s).replace(/[¡¿.?…،؛:,.()"«»„“”'']/g, "").replace(/\s+/g, " ").trim();
+  }
+  /* Sentence-query normalization for external search (letters preserved,
+   * incl. ä ö ü ß — only punctuation/whitespace is touched). The full
+   * normalized phrase is always tried first; keywords only on empty. */
+  var TAT_PUNCT_RE = /[.?!\u2026\u00a1\u00bf\u060c\u061f\u061b;:,()"\u00ab\u00bb\u201e\u201c\u201d''\[\]{}\u2014\u2013\-/\\|@#*+=<>~^$%&_]/g;
+  function normTatPhrase(q) {
+    return sstr(q).replace(TAT_PUNCT_RE, " ").replace(/\s+/g, " ").trim().slice(0, 200);
+  }
+  function stripFolded(f) {
+    return sstr(f).replace(/[.?…¡¿،؛:,.()"«»„“”'']/g, "").replace(/\s+/g, " ").trim();
+  }
+  /* German stopwords + particles with (almost) no sentence discrimination.
+   * Kept minimal and stable: content words (e.g. "Kaffee") always survive. */
+  /* Base list in natural German spelling. Lookup covers every umlaut
+   * folding (raw ae/oe/ue + single-char a/o/u + ss), so the filter behaves
+   * identically whether root.dmNorm folds "moechte" or "mochte". */
+  var TAT_STOP_WORDS = ("ich du er sie es wir ihr der die das den dem des "
+    + "ein eine einer einen einem eines und oder aber denn doch nur auch sehr "
+    + "bitte mal ja nein nicht kein keine keiner keinen mein meine dein deine "
+    + "sein seine ihre unser unsere ist sind war waren bin bist habe haben hat "
+    + "hast hatte moechte moechten will willst wollen kann kannst koennen muss "
+    + "musst muessen soll sollst sollen darf darfst duerfen mag magst moegen "
+    + "werde werden wird wuerde wuerden haette haetten zu zum zur im in am an "
+    + "ans auf aus bei mit nach von vom fuer um durch ueber unter vor hinter "
+    + "neben zwischen als wie was wer wen wem wo wohin woher wann warum "
+    + "weshalb welcher welche welches diesen diese dieser dieses jeden jede "
+    + "jeder jedes allen alle aller alles man etwas nichts wieder schon noch "
+    + "da dort hier heute morgen gern gerne einmal").split(" ");
+  var TAT_STOP = {};
+  (function () {
+    function foldA(w) {
+      return w.replace(/ae/g, "a").replace(/oe/g, "o").replace(/ue/g, "u");
+    }
+    for (var i = 0; i < TAT_STOP_WORDS.length; i++) {
+      var w = TAT_STOP_WORDS[i];
+      TAT_STOP[w] = 1;
+      try { TAT_STOP[foldA(w)] = 1; } catch (e) {}
+    }
+  })();
+  /* Meaningful fallback phrases for an empty full-phrase result: content
+   * terms joined (max 3), then the single longest term. Never returns the
+   * full phrase itself or duplicates (no duplicate requests). */
+  function tatFallbackPhrases(q, fullPhrase) {
+    var out = [];
+    try {
+      var words = sstr(fullPhrase).split(" ").filter(Boolean);
+      var terms = [];
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i];
+        if (w.length < 3) continue;
+        if (!/[a-zäöüß]/i.test(w)) continue;
+        var wl = null;
+        try { wl = foldDe(w); } catch (e) { wl = w.toLowerCase(); }
+        if (TAT_STOP[wl]) continue;
+        terms.push(w);
+      }
+      var fullFold = null;
+      try { fullFold = foldDe(fullPhrase); } catch (e) { fullFold = fullPhrase; }
+      var seen = {};
+      try { seen[fullFold] = 1; } catch (e) {}
+      function fresh(ph) {
+        if (!ph) return false;
+        var k = null;
+        try { k = foldDe(ph); } catch (e) { k = ph; }
+        if (seen[k]) return false;
+        seen[k] = 1;
+        return true;
+      }
+      var joined = terms.slice(0, 3).join(" ");
+      if (terms.length && fresh(joined)) out.push(joined);
+      if (terms.length > 1) {
+        var longest = terms.slice().sort(function (a, b) { return b.length - a.length; })[0];
+        if (longest && fresh(longest)) out.push(longest);
+      }
+    } catch (e) {}
+    return out.slice(0, 2);
   }
   function isSentenceQuery(q) {
     var t = normQ(q);
@@ -264,11 +340,15 @@
     try {
       if (typeof root.sentA1SearchRows === "function") {
         var rows = root.sentA1SearchRows() || [];
-        var ql = foldDe(q), out2 = [];
+        var ql = foldDe(q), qn = normSent(q), out2 = [];
         for (var i = 0; i < rows.length && out2.length < 4; i++) {
           try {
             var r = rows[i];
-            if (r && r.nde && r.nde.indexOf(ql) >= 0 && r.s) {
+            if (!r || !r.nde || !r.s) continue;
+            /* Literal hit first (cheap); punctuation-stripped hit second so
+             * "Kaffee, bitte." still matches "Kaffee bitte". */
+            if (r.nde.indexOf(ql) >= 0 ||
+                (qn && qn !== ql && stripFolded(r.nde).indexOf(qn) >= 0)) {
               out2.push({ de: sstr(r.s.de), ar: sstr(r.s.ar || ""), kap: sstr(r.s.kap || "") });
             }
           } catch (e2) {}
@@ -276,11 +356,14 @@
         if (out2.length) out.sentences = out2;
       }
       if (!out.sentences.length && root.SENTENCES && root.SENTENCES.length) {
-        var qx = foldDe(q), tmp = [];
+        var qx = foldDe(q), qnx = normSent(q), tmp = [];
         for (var j = 0; j < root.SENTENCES.length && tmp.length < 4; j++) {
           try {
             var s = root.SENTENCES[j];
-            if (s && foldDe(sstr(s.de) + " " + sstr(s.ar)).indexOf(qx) >= 0) {
+            if (!s) continue;
+            var hay = foldDe(sstr(s.de) + " " + sstr(s.ar));
+            if (hay.indexOf(qx) >= 0 ||
+                (qnx && qnx !== qx && stripFolded(hay).indexOf(qnx) >= 0)) {
               tmp.push({ de: sstr(s.de), ar: sstr(s.ar || ""), kap: sstr(s.kap || "") });
             }
           } catch (e3) {}
@@ -545,18 +628,19 @@
     if (!q) return Promise.resolve({ status: "empty", provider: "tatoeba" });
     return cachedFetch("tatoeba", q, function (sig) {
       var s = sig || outerSignal;
-      var u = TAT + "?lang=deu&q=" + encodeURIComponent(q) +
-        "&limit=6&sort=relevance&showtrans=all&include=audios";
-      return fetchJson(u, undefined, s).then(function (r) {
-        if (!r.ok) {
-          if (r.error === "aborted") return { status: "aborted", provider: "tatoeba" };
-          return { status: "error", provider: "tatoeba", error: r.error };
-        }
-        var arr = [];
-        try { arr = r.data.data || []; } catch (e) { arr = []; }
-        if (!arr.length) return { status: "empty", provider: "tatoeba" };
-        var qn = normSent(q);
-        var items = arr.slice(0, 6).map(function (s) {
+      function abortedNow() {
+        try { return !!(s && s.aborted); } catch (e) { return false; }
+      }
+      function tatFetch(phrase) {
+        var u = TAT + "?lang=deu&q=" + encodeURIComponent(phrase) +
+          "&limit=6&sort=relevance&showtrans=all&include=audios";
+        return fetchJson(u, undefined, s);
+      }
+      /* Match labels always use the ORIGINAL query: a fallback hit can only
+       * ever be "similar", never "exact". Nothing is fabricated: item text
+       * and translations are passed through verbatim as text. */
+      function tatItems(arr, qn) {
+        return arr.slice(0, 6).map(function (s) {
           var txt = sstr(s.text);
           var trs = [];
           try { trs = s.translations || []; } catch (e) {}
@@ -580,7 +664,59 @@
             url: "https://tatoeba.org/en/sentences/show/" + s.id,
             ara: ara, eng: eng, audio: aud };
         });
-        return { status: "ok", provider: "tatoeba", items: items };
+      }
+      /* Full normalized phrase first (punctuation stripped, ä ö ü ß kept). */
+      var fullPhrase = normTatPhrase(q) || q;
+      return tatFetch(fullPhrase).then(function (r) {
+        if (!r.ok) {
+          if (r.error === "aborted") return { status: "aborted", provider: "tatoeba" };
+          return { status: "error", provider: "tatoeba", error: r.error };
+        }
+        var arr = [];
+        try { arr = r.data.data || []; } catch (e) { arr = []; }
+        var qn = normSent(q);
+        if (arr.length) {
+          return { status: "ok", provider: "tatoeba", items: tatItems(arr, qn), fallback: false };
+        }
+        /* Technically fine but zero matches: keyword fallback. Never after
+         * cancellation or when a newer query already superseded this one
+         * (both surface as an aborted outer signal). */
+        if (abortedNow()) return { status: "aborted", provider: "tatoeba" };
+        var cands = tatFallbackPhrases(q, fullPhrase);
+        if (!cands.length) return { status: "empty", provider: "tatoeba", fallback: false };
+        if (abortedNow()) return { status: "aborted", provider: "tatoeba" };
+        var jobs = cands.map(function (ph) {
+          return tatFetch(ph).then(function (r2) {
+            if (!r2.ok) return { error: r2.error, arr: [] };
+            var a2 = [];
+            try { a2 = r2.data.data || []; } catch (e) { a2 = []; }
+            return { error: null, arr: a2 };
+          }, function () { return { error: "exception", arr: [] }; });
+        });
+        return Promise.all(jobs).then(function (outs) {
+          if (abortedNow()) return { status: "aborted", provider: "tatoeba" };
+          var seen = {}, merged = [];
+          outs.forEach(function (o) {
+            (o.arr || []).forEach(function (it) {
+              var id = it && it.id;
+              if (id === undefined || id === null || seen[id]) return;
+              seen[id] = 1;
+              merged.push(it);
+            });
+          });
+          if (!merged.length) {
+            var anyAbort = outs.some(function (o) { return o.error === "aborted"; });
+            if (anyAbort) return { status: "aborted", provider: "tatoeba" };
+            var errs = outs.filter(function (o) { return !!o.error; });
+            /* No match anywhere, but every fallback failed: report the
+             * failure honestly instead of a quiet "no match". */
+            if (errs.length && errs.length === outs.length) {
+              return { status: "error", provider: "tatoeba", error: errs[0].error };
+            }
+            return { status: "empty", provider: "tatoeba", fallback: true };
+          }
+          return { status: "ok", provider: "tatoeba", items: tatItems(merged.slice(0, 6), qn), fallback: true };
+        });
       });
     }, outerSignal);
   }
@@ -1792,7 +1928,7 @@
     utils: { normQ: normQ, foldDe: foldDe, normSent: normSent, isSentenceQuery: isSentenceQuery,
       allowedUrl: allowedUrl, parseWik: wikParsePlain, parseWikEn: wikEnParseGerman,
       isCommonsCandidate: commonsCandidate, tatoebaAudioPolicy: tatoebaAudioPolicy,
-      dictFallbackLinks: dictFallbackLinks },
+      dictFallbackLinks: dictFallbackLinks, tatPhrase: normTatPhrase, tatFallback: tatFallbackPhrases },
     ui: { enhance: enhance, retry: retryFailed, install: installEnhance, speak: speakDe,
       leave: leaveSearch, cancel: cancelSearch },
     cancel: cancelSearch,

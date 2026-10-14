@@ -472,6 +472,139 @@ DM.__setFetch(stubFetch);
   })());
   DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
 
+  /* ==== Sentence-query fallback: punctuation normalization + keyword retry ==== */
+  const TAT_KAFFEE = { data: [
+    { id: 101, text: "Ich trinke gern Kaffee.", owner: "uk", license: "CC BY 2.0 FR", audios: [],
+      translations: [{ id: 102, text: "أنا أحب القهوة.", lang: "ara", owner: "ua" }] }
+  ]};
+  /* S1: normalization keeps German chars, strips punctuation/whitespace */
+  ok("S1a phrase normalized", DM.utils.tatPhrase("Ich möchte einen Kaffee, bitte.") === "Ich möchte einen Kaffee bitte");
+  ok("S1b german chars kept", DM.utils.tatPhrase("Grüße, Straße! Müll?") === "Grüße Straße Müll");
+  ok("S1c whitespace collapsed", DM.utils.tatPhrase("  Kaffee   bitte  ") === "Kaffee bitte");
+  ok("S1d fallback terms", JSON.stringify(DM.utils.tatFallback("Ich möchte einen Kaffee, bitte.", "Ich möchte einen Kaffee bitte")) === JSON.stringify(["Kaffee"]));
+  ok("S1e no dup fallback single word", DM.utils.tatFallback("Haus", "Haus").length === 0);
+  /* S2: full-phrase fetch goes out normalized (no punctuation on the wire) */
+  DM.__setFetch(origFetch); DM.__cacheClear(); calls = {};
+  r = await DM.search("Hallo, Welt!");
+  const tatUrls2 = Object.keys(calls).filter(k => k.includes("api.tatoeba.org"));
+  ok("S2a full phrase normalized on wire", tatUrls2.length >= 1 && tatUrls2.every(u => !u.includes("%2C") && !u.includes("%21")),
+    tatUrls2[0] ? tatUrls2[0].slice(-80) : "no-call");
+  /* S3: empty full-phrase -> keyword fallback succeeds with honest labels */
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    calls[u] = (calls[u] || 0) + 1;
+    if (u.includes("api.tatoeba.org")) {
+      if (u.includes("q=" + encodeURIComponent("Kaffee"))) return Promise.resolve(mkRes(200, () => Promise.resolve(TAT_KAFFEE)));
+      return Promise.resolve(mkRes(200, () => Promise.resolve(TAT_EMPTY)));
+    }
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear(); calls = {};
+  r = await DM.search("Ich möchte einen Kaffee, bitte.");
+  const tat3 = r.remote.tatoeba;
+  ok("S3a fallback ok", tat3 && tat3.status === "ok" && tat3.fallback === true && tat3.items.length === 1,
+    "status=" + (tat3 && tat3.status));
+  ok("S3b similar not exact", tat3.items[0].match === "similar" && tat3.items[0].text === "Ich trinke gern Kaffee.");
+  ok("S3c no fabricated translation", tat3.items[0].ara.length === 1 && tat3.items[0].ara[0].text === "أنا أحب القهوة.");
+  const tatUrls3 = Object.keys(calls).filter(k => k.includes("api.tatoeba.org"));
+  ok("S3d full then keyword fetched", tatUrls3.length === 2 &&
+    tatUrls3.some(u => u.includes(encodeURIComponent("Ich m\u00f6chte einen Kaffee bitte"))) &&
+    tatUrls3.some(u => u.includes("q=" + encodeURIComponent("Kaffee"))), tatUrls3.length + " calls");
+  /* S4: overlapping fallback attempts are deduplicated */
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    if (u.includes("api.tatoeba.org")) {
+      if (u.includes("q=" + encodeURIComponent("Schwere Arbeit bitte"))) return Promise.resolve(mkRes(200, () => Promise.resolve(TAT_EMPTY)));
+      if (u.includes("q=" + encodeURIComponent("Schwere Arbeit"))) return Promise.resolve(mkRes(200, () => Promise.resolve({ data: [
+        { id: 1, text: "Eins.", owner: "a", license: "CC BY 2.0 FR", audios: [], translations: [] },
+        { id: 55, text: "Fünfundfünfzig.", owner: "a", license: "CC BY 2.0 FR", audios: [], translations: [] } ] })));
+      if (u.includes("q=" + encodeURIComponent("Schwere"))) return Promise.resolve(mkRes(200, () => Promise.resolve({ data: [
+        { id: 55, text: "Fünfundfünfzig.", owner: "a", license: "CC BY 2.0 FR", audios: [], translations: [] },
+        { id: 77, text: "Siebenundsiebzig.", owner: "a", license: "CC BY 2.0 FR", audios: [], translations: [] } ] })));
+      return Promise.resolve(mkRes(200, () => Promise.resolve(TAT_EMPTY)));
+    }
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear();
+  r = await DM.search("Schwere Arbeit, bitte.");
+  const ids4 = (r.remote.tatoeba.items || []).map(i => i.id);
+  ok("S4 duplicates suppressed", r.remote.tatoeba.status === "ok" && ids4.length === 3 &&
+    ids4.filter(id => id === 55).length === 1, ids4.join(","));
+  /* S5: technical failure is error (not empty) and triggers no fallback */
+  let tatCalls5 = 0;
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    if (u.includes("api.tatoeba.org")) { tatCalls5++; return Promise.resolve(mkRes(500, () => Promise.resolve({}))); }
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear();
+  r = await DM.search("Kaffee, bitte.");
+  ok("S5a failure is error", r.remote.tatoeba.status === "error" && r.remote.tatoeba.error === "http-500",
+    r.remote.tatoeba.status + "/" + r.remote.tatoeba.error);
+  ok("S5b no fallback after failure", tatCalls5 === 1, tatCalls5 + " calls");
+  /* S6: pre-aborted signal -> aborted with zero fetches */
+  DM.__setFetch(origFetch); DM.__cacheClear();
+  let fetchCount6 = 0;
+  DM.__setFetch((url, opts) => { fetchCount6++; return origFetch(url, opts); });
+  const ctrl6 = new AbortController();
+  ctrl6.abort();
+  const ab6 = await DM.adapters.tatoeba("Haus Abbruch Test", ctrl6.signal);
+  ok("S6 cancelled->aborted", ab6.status === "aborted" && fetchCount6 === 0, ab6.status + " fetches=" + fetchCount6);
+  /* S7: abort mid-flight -> aborted, keyword fallback never fires */
+  DM.__cacheClear();
+  let fbCalls7 = [];
+  const ctrl7 = new AbortController();
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    if (u.includes("api.tatoeba.org")) {
+      fbCalls7.push(u);
+      if (u.includes("q=" + encodeURIComponent("Schutz Beispiel Satz"))) {
+        return new Promise((res, rej) => {
+          const t = setTimeout(() => res(mkRes(200, () => Promise.resolve(TAT_EMPTY))), 500);
+          try {
+            const sig = opts && opts.signal;
+            if (sig && typeof sig.addEventListener === "function") {
+              if (sig.aborted) { clearTimeout(t); const e = new Error("ab"); e.name = "AbortError"; rej(e); return; }
+              sig.addEventListener("abort", () => { clearTimeout(t); const e = new Error("ab"); e.name = "AbortError"; rej(e); }, { once: true });
+            }
+          } catch (e) {}
+        });
+      }
+      return Promise.resolve(mkRes(200, () => Promise.resolve(TAT_EMPTY)));
+    }
+    return origFetch(url, opts);
+  });
+  const p7 = DM.adapters.tatoeba("Schutz Beispiel Satz", ctrl7.signal);
+  setTimeout(() => { try { ctrl7.abort(); } catch (e) {} }, 20);
+  const res7 = await p7;
+  const kwCalls7 = fbCalls7.filter(u => !u.includes(encodeURIComponent("Schutz Beispiel Satz")));
+  ok("S7a aborted mid-flight", res7.status === "aborted", res7.status);
+  ok("S7b no fallback after abort", kwCalls7.length === 0, kwCalls7.length + " kw-calls");
+  /* S8: genuine full-phrase hit keeps the exact label */
+  DM.__setFetch(origFetch); DM.__cacheClear();
+  r = await DM.search("Ich gehe zur Arbeit.");
+  const exItems = (r.remote.tatoeba.items || []).filter(i => i.text === "Ich gehe zur Arbeit.");
+  ok("S8 exact label truthful", exItems.length === 1 && exItems[0].match === "exact");
+  /* S9: local matching tolerates punctuation differences */
+  DM.__setFetch(origFetch); DM.__cacheClear();
+  globalThis.SENTENCES = [{ de: "Ich möchte einen Kaffee bitte", ar: "أريد قهوة من فضلك", kap: "K1" }];
+  try {
+    r = await DM.search("Ich möchte einen Kaffee, bitte.");
+  } finally { try { delete globalThis.SENTENCES; } catch (e) {} }
+  const loc9 = (r.local && r.local.sentences) || [];
+  ok("S9 local punct-tolerant", loc9.some(s => s.de === "Ich möchte einen Kaffee bitte"), loc9.length + " sents");
+  DM.__cacheClear();
+  /* S10: working provider with zero matches is empty, not error */
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    if (u.includes("api.tatoeba.org")) return Promise.resolve(mkRes(200, () => Promise.resolve(TAT_EMPTY)));
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear();
+  r = await DM.search("Erfundeneswort Test.");
+  ok("S10 empty distinct from error", r.remote.tatoeba.status === "empty" && !r.remote.tatoeba.error, r.remote.tatoeba.status);
+  DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
+
   /* 7. timeout does not block (slow, last) */
   DM.__cacheClear(); mode = "com-hang";
   const t0 = Date.now();

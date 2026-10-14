@@ -232,6 +232,61 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       "}catch(e){return 'err'}})()");
     ok("U9 retry control present-or-settled", typeof u9 === "string", u9);
 
+    /* U10 sentence fallback: punctuated query, empty full-phrase -> Kaffee
+     * keyword fallback via the REAL adapter + render path. Fully stubbed
+     * fetch (deterministic, no live network for DMSearch here). */
+    const u10arm = await E("(()=>{try{" +
+      "if(!window.DMSearch||!DMSearch.__setFetch)return 'no-dm';" +
+      "window.__realFetch=window.fetch.bind(window);" +
+      "window.__tatCalls=[];" +
+      "var KAF={data:[{id:101,text:'Ich trinke gern Kaffee.',owner:'uk',license:'CC BY 2.0 FR',audios:[]," +
+      "translations:[{id:102,text:'qahwa-ar',lang:'ara',owner:'ua'}]}]};" +
+      "window.__fixFetch=function(url,opts){var u=String(url);" +
+      "if(u.indexOf('api.tatoeba.org')>=0){window.__tatCalls.push(u);" +
+      "var body=(u.indexOf('q=Kaffee')>=0)?KAF:{data:[]};" +
+      "return Promise.resolve({status:200,json:function(){return Promise.resolve(body);}});}" +
+      "if(u.indexOf('wiktionary.org')>=0)return Promise.resolve({status:200,json:function(){return Promise.resolve({query:{search:[]}});}});" +
+      "if(u.indexOf('openthesaurus.de')>=0)return Promise.resolve({status:200,json:function(){return Promise.resolve({synsets:[]});}});" +
+      "if(u.indexOf('mymemory')>=0)return Promise.resolve({status:200,json:function(){return Promise.resolve({responseData:{translatedText:''},responseStatus:200});}});" +
+      "return window.__realFetch(url,opts);};" +
+      "DMSearch.__setFetch(window.__fixFetch);" +
+      "DMSearch.__cacheClear();" +
+      "var s=document.getElementById('globalSearch');" +
+      "s.value='Ich m'+String.fromCharCode(246)+'chte einen Kaffee, bitte.';" +
+      "s.dispatchEvent(new Event('input',{bubbles:true}));" +
+      "return 'armed';" +
+      "}catch(e){return 'arm-err:'+e.message}})()");
+    ok("U10 fixture armed", u10arm === '"armed"', u10arm);
+    let u10snap = null;
+    for (let i = 0; i < 14; i++) {
+      await sleep(750);
+      u10snap = await E("(()=>{var o={calls:(window.__tatCalls||[]).length,card:false,badge:'none'};try{" +
+        "var els=document.querySelectorAll('#dmExt .dm-ext-sent');" +
+        "for(var k=0;k<els.length;k++){var b=els[k].querySelector('b');" +
+        "if(b&&b.textContent.indexOf('Ich trinke gern Kaffee')>=0){o.card=true;" +
+        "var bd=els[k].querySelector('.dm-badge');if(bd){o.badge=bd.className;}break;}}" +
+        "}catch(e){}" +
+        "return JSON.stringify(o);})()");
+      try {
+        const o = JSON.parse(JSON.parse(u10snap));
+        if (o.card && o.calls >= 2) break;
+      } catch (e) {}
+    }
+    const u10calls = await E("JSON.stringify((window.__tatCalls||[]))");
+    console.log("INFO U10 fallback snap=" + u10snap + " calls=" + u10calls);
+    try {
+      const o = JSON.parse(JSON.parse(u10snap));
+      const cu = JSON.parse(JSON.parse(u10calls));
+      ok("U10 fallback card shown", o.card === true, u10snap);
+      ok("U10 full+keyword fetched", cu.length >= 2, "calls=" + cu.length);
+      ok("U10 full normalized on wire", cu.length >= 1 && cu[0].indexOf("%2C") < 0, (cu[0] || "").slice(-70));
+      ok("U10 keyword fetched", cu.some(u => u.indexOf("q=Kaffee") >= 0), "kw-present");
+      ok("U10 badge similar (truthful)", o.badge.indexOf("dm-sim") >= 0 && o.badge.indexOf("dm-exact") < 0, o.badge);
+    } catch (e) { ok("U10 fallback card shown", false, u10snap + " parse-err"); }
+    await E("(()=>{try{if(window.DMSearch&&window.__realFetch)" +
+      "{DMSearch.__setFetch(function(u,op){return window.__realFetch(u,op);});DMSearch.__cacheClear();}" +
+      "return 'restored';}catch(e){return 'restore-err';}})()");
+
     console.log("----");
     console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
     cdp.close(); chrome.kill(); srv.close();
