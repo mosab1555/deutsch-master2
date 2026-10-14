@@ -136,7 +136,22 @@ function commit(cloud) {
   return ok;
 }
 
-/* ================= C. scheduler (DMProgress.srsGrade, namespaced) ================= */
+/* ================= C. scheduler (fixed AnkiDroid intervals, namespaced) =================
+ * Fixed review intervals for the AnkiDroid study flow:
+ *   Again -> 10 minutes (intraday, dueMin), Hard -> 1 day, Good -> 3 days,
+ *   Easy -> 7 days. These are exact persisted due dates, not adaptive
+ *   SM-2 growth: prior ease / laps / iv never change the interval.
+ *   Ease/laps/reps/last are still maintained for history + stats, but the
+ *   due date comes only from the rating above, using the app's existing
+ *   todayKey() day convention + epoch-ms dueMin convention. */
+var ANKI_FIXED_AGAIN_MIN = 10;
+var ANKI_FIXED_HARD_D = 1;
+var ANKI_FIXED_GOOD_D = 3;
+var ANKI_FIXED_EASY_D = 7;
+function clampAnkiEase(e) {
+  e = +e; if (!isFinite(e)) e = 2.5;
+  return Math.min(2.8, Math.max(1.3, +e.toFixed(2)));
+}
 function schedOf(card) {
   var s = (card && card.sched) || {};
   return {
@@ -149,34 +164,55 @@ function schedOf(card) {
     miss: 0, reps: Math.max(0, s.reps | 0)
   };
 }
-/* Grade ONE anki card. Pure w.r.t. flashcards: touches only a.cards. */
+/* Grade ONE anki card. Pure w.r.t. flashcards: touches only a.cards.
+ * Fixed-interval scheduler: the persisted due date depends only on the
+ * rating + now (10m / 1d / 3d / 7d). Prior ease/iv/laps never alter it. */
 function gradeCard(a, cardId, rating, nowMs) {
-  var DP = window.DMProgress;
-  if (!DP || typeof DP.srsGrade !== "function") return null;
-  var card = a.cards[cardId];
+  var card = a && a.cards ? a.cards[cardId] : null;
   if (!card) return null;
+  if (rating !== "again" && rating !== "hard" && rating !== "good" && rating !== "easy") return null;
   var now = (typeof nowMs === "number" && isFinite(nowMs)) ? nowMs : Date.now();
   var prev = schedOf(card);
-  var adapter = { srs: {}, mistakes: {} };
-  adapter.srs[cardId] = JSON.parse(JSON.stringify(prev));
-  var out = DP.srsGrade(adapter, cardId, rating, now, false);
-  card.sched = adapter.srs[cardId];
+  var ease = clampAnkiEase(prev.ease);
+  if (rating === "again") ease = clampAnkiEase(ease - 0.2);
+  else if (rating === "hard") ease = clampAnkiEase(ease - 0.15);
+  else if (rating === "easy") ease = clampAnkiEase(ease + 0.15);
+  var out = {
+    laps: rating === "again" ? 0 : (prev.laps | 0) + 1,
+    ease: ease,
+    miss: prev.miss | 0,
+    reps: (prev.reps | 0) + 1,
+    last: todayKey(new Date(now))
+  };
+  if (rating === "again") {
+    out.st = (prev.st === "review" || prev.st === "relearning") ? "relearning" : "learning";
+    out.step = 0; out.iv = 0;
+    out.dueMin = now + ANKI_FIXED_AGAIN_MIN * 60000;
+    out.due = todayKey(new Date(now));
+  } else if (rating === "hard") {
+    out.st = "review"; out.step = 0; out.iv = ANKI_FIXED_HARD_D;
+    out.dueMin = 0;
+    out.due = todayKey(new Date(now + ANKI_FIXED_HARD_D * 86400000));
+  } else if (rating === "good") {
+    out.st = "review"; out.step = 0; out.iv = ANKI_FIXED_GOOD_D;
+    out.dueMin = 0;
+    out.due = todayKey(new Date(now + ANKI_FIXED_GOOD_D * 86400000));
+  } else { /* easy */
+    out.st = "review"; out.step = 0; out.iv = ANKI_FIXED_EASY_D;
+    out.dueMin = 0;
+    out.due = todayKey(new Date(now + ANKI_FIXED_EASY_D * 86400000));
+  }
+  card.sched = { st: out.st, step: out.step, iv: out.iv, laps: out.laps, ease: out.ease, e: out.ease, due: out.due, dueMin: out.dueMin, last: out.last, miss: out.miss, reps: out.reps };
+  out.intervalD = (out.st === "review") ? out.iv : 0;
   return { prev: prev, next: out };
 }
 function previewInterval(a, cardId, rating) {
   try {
-    var DP = window.DMProgress;
-    if (!DP || typeof DP.srsGrade !== "function") return "";
-    var card = a.cards[cardId];
-    var base = card ? schedOf(card) : { st: "new", step: 0, iv: 0, laps: 0, ease: 2.5, e: 2.5, due: todayKey(), dueMin: 0, last: null, miss: 0, reps: 0 };
-    var adapter = { srs: {}, mistakes: {} };
-    adapter.srs.__pv = base;
-    var r = DP.srsGrade(adapter, "__pv", rating, Date.now(), true);
-    if (r.dueMin && r.dueMin > Date.now()) {
-      var mins = Math.max(1, Math.round((r.dueMin - Date.now()) / 60000));
-      return String(T("anki_inmin")).replace("{n}", mins);
-    }
-    return String(T("anki_indays")).replace("{n}", Math.max(1, r.intervalD || 1));
+    if (rating === "again") return String(T("anki_inmin")).replace("{n}", ANKI_FIXED_AGAIN_MIN);
+    if (rating === "hard") return String(T("anki_indays")).replace("{n}", ANKI_FIXED_HARD_D);
+    if (rating === "good") return String(T("anki_indays")).replace("{n}", ANKI_FIXED_GOOD_D);
+    if (rating === "easy") return String(T("anki_indays")).replace("{n}", ANKI_FIXED_EASY_D);
+    return "";
   } catch (e) { return ""; }
 }
 function cardDue(card, nowMs) {
@@ -1428,11 +1464,11 @@ function studyHTML(a) {
     '<span class="muted">' + esc(prog) + ' · <span class="anki-bucket-badge">' + esc(bucketAr) + '</span>' + (sched.st !== "new" ? ' · ⏱ ' + (sched.iv | 0) + 'd' : '') + '</span></div>' +
     '<section class="anki-study" aria-label="' + esc(deckName || T("anki_study")) + '">' +
     (deckName ? '<h3 class="anki-study-deck" dir="auto">' + esc(deckName) + '</h3>' : '') +
-    '<div class="anki-card" id="ankiCard" tabindex="0" role="button" aria-label="' + esc(T("anki_show_answer")) + '"><div class="anki-card-inner' + (SESS.revealed ? " flipped" : "") + '" id="ankiCardInner">' +
-    '<div class="anki-card-front" dir="auto"><div class="anki-say-line"><button class="mini-btn anki-say" data-asay="front" aria-label="play front">🔊</button></div>' + sides.front +
+    '<div class="anki-card" id="ankiCard" tabindex="0" role="button" aria-label="' + esc(T("anki_show_answer")) + '" aria-live="polite"><div class="anki-card-inner' + (SESS.revealed ? " flipped" : "") + '" id="ankiCardInner">' +
+    '<div class="anki-card-front" dir="auto" aria-hidden="' + (SESS.revealed ? "true" : "false") + '"><div class="anki-say-line"><button class="mini-btn anki-say" data-asay="front" aria-label="play front">🔊</button></div><div class="anki-face-body">' + sides.front + '</div>' +
     '<div class="anki-hint muted">' + esc(T("anki_show_answer")) + ' ⏎</div></div>' +
-    '<div class="anki-card-back' + (SESS.revealed ? "" : " hidden") + '" dir="auto">' +
-    (SESS.revealed ? '<div class="anki-say-line"><button class="mini-btn anki-say" data-asay="back" aria-label="play back">🔊</button></div>' : '') + sides.back + '</div>' +
+    '<div class="anki-card-back" dir="auto" aria-hidden="' + (SESS.revealed ? "false" : "true") + '">' +
+    '<div class="anki-say-line"><button class="mini-btn anki-say" data-asay="back" aria-label="play back">🔊</button></div><div class="anki-face-body">' + sides.back + '</div></div>' +
     '</div></div>' +
     '<div class="anki-audio-row">' +
     (SESS.revealed ? '<button class="btn btn-ghost sm" data-apron="1">🎤 ' + esc(T("anki_check_pron")) + '</button>' : '') + '</div>' +
@@ -1453,19 +1489,33 @@ function studyHTML(a) {
   h += '</div><div class="anki-progress"><div class="progress"><div class="progress-fill" style="width:' + Math.round((SESS.idx) / Math.max(1, SESS.queue.length) * 100) + '%"></div></div></div></section>';
   return h;
 }
+var _rateBusy = false;
 function rateCurrent(rating) {
+  if (_rateBusy) return;
   var a = A();
   if (!SESS) return;
+  if (SESS._grading) return;
   var card = sessCard(a);
   if (!card || !SESS.revealed) return;
-  var g = gradeCard(a, card.id, rating, Date.now());
-  if (!g) return;
-  SESS.undoStack.push({ c: card.id, prev: g.prev });
-  logGrade(a, card.id, rating, g.prev, card.sched);
-  try { if (typeof window.addXP === "function" && (rating === "good" || rating === "easy")) window.addXP(1, "anki"); } catch (e) {}
-  SESS.idx++;
-  SESS.revealed = false;
-  render();
+  if (rating !== "again" && rating !== "hard" && rating !== "good" && rating !== "easy") return;
+  _rateBusy = true; SESS._grading = true;
+  try {
+    var cardId = card.id;
+    var g = gradeCard(a, cardId, rating, Date.now());
+    if (!g) return;
+    SESS.undoStack.push({ c: cardId, prev: g.prev });
+    logGrade(a, cardId, rating, g.prev, a.cards[cardId] ? a.cards[cardId].sched : g.next);
+    try { if (typeof window.addXP === "function" && (rating === "good" || rating === "easy")) window.addXP(1, "anki"); } catch (e) {}
+    /* Advance cleanly: the next card always starts unrevealed (front face).
+     * render() rebuilds the card DOM synchronously so the previous answer
+     * never flashes on the next card. */
+    SESS.idx++;
+    SESS.revealed = false;
+    render();
+  } finally {
+    try { if (SESS) SESS._grading = false; } catch (e) {}
+    _rateBusy = false;
+  }
 }
 /* ---- browser ---- */
 var BROWSE_PAGE = 60;

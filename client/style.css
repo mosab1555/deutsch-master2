@@ -1089,13 +1089,17 @@ html[data-theme="light"] .device-item{background:rgba(0,0,0,.05)}
 .anki-study{max-width:640px;margin:0 auto}
 .anki-study-deck{font-size:16px;color:var(--muted);margin:0 0 12px;font-weight:600;overflow-wrap:anywhere}
 .anki-bucket-badge{font-size:12px;padding:4px 12px;border-radius:20px;background:var(--violet);color:#fff;font-weight:700}
-.anki-card{perspective:1000px;cursor:pointer;margin:10px 0}
+.anki-card{perspective:1200px;-webkit-perspective:1200px;cursor:pointer;margin:10px 0}
 .anki-card:focus{outline:2px solid var(--neon);outline-offset:2px;border-radius:16px}
 .anki-card:focus-visible{outline:3px solid var(--neon);outline-offset:3px}
-.anki-card-inner{position:relative;width:100%;min-height:220px;transition:none}
-.anki-card-front,.anki-card-back{border-radius:18px;padding:28px 20px;text-align:center;font-size:22px;line-height:1.7;background:var(--card);border:1px solid var(--border);overflow-wrap:anywhere;word-break:break-word}
-.anki-card-back{background:linear-gradient(135deg,rgba(34,197,94,.16),rgba(16,185,129,.10))}
-.anki-card-back.hidden{display:none}
+.anki-card-inner{position:relative;width:100%;min-height:220px;display:grid;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform 550ms cubic-bezier(.35,.15,.25,1);will-change:transform}
+.anki-card-inner.flipped{transform:rotateY(180deg);-webkit-transform:rotateY(180deg)}
+.anki-card-inner>.anki-card-front,.anki-card-inner>.anki-card-back{grid-area:1/1;min-width:0;border-radius:18px;padding:28px 20px;text-align:center;font-size:22px;line-height:1.7;background:var(--card);border:1px solid var(--border);overflow-wrap:anywhere;word-break:break-word;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.anki-card-inner>.anki-card-back{background:linear-gradient(135deg,rgba(34,197,94,.16),rgba(16,185,129,.10));transform:rotateY(180deg);-webkit-transform:rotateY(180deg)}
+.anki-card-inner>.anki-card-front{transform:rotateY(0deg);-webkit-transform:rotateY(0deg)}
+.anki-face-body{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.anki-face-body img,.anki-face-body audio,.anki-face-body video{max-width:100%}
+.anki-face-body button,.anki-face-body a{pointer-events:auto}
 .anki-say-line{display:flex;justify-content:center;margin-bottom:12px}
 .anki-say{width:52px;height:52px;font-size:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .anki-hint{margin-top:14px;font-size:13px}
@@ -1183,15 +1187,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .anki-deck-grid{grid-template-columns:minmax(0,1fr)}
   .anki-ratings{grid-template-columns:repeat(2,1fr)}
   .anki-ov-grid{grid-template-columns:repeat(2,1fr)}
-  .anki-card-front,.anki-card-back{font-size:19px;padding:22px 14px}
+  .anki-card-inner>.anki-card-front,.anki-card-inner>.anki-card-back{font-size:19px;padding:22px 14px}
   .anki-count{font-size:11px;padding:4px 8px}
   .anki-deck-actions .btn{flex:1;min-width:120px}
   #ankiRoot{padding:2px 4px 56px}
   .anki-study-hero{min-height:56px;font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){
-  .anki-card-inner,.anki-deck-fill,.anki-progress .progress-fill,.anki-act{transition:none}
+  .anki-card-inner,.anki-deck-fill,.anki-progress .progress-fill,.anki-act{transition:none!important}
+  .anki-card-inner.flipped{transform:rotateY(180deg)}
 }
+/* Reduced-motion still reveals instantly via the flipped state above (no
+ * transition), so answer reveal + review flow keep working. */
 /* AnkiDroid note images: responsive, aspect-preserving, no overflow */
 .anki-img{display:block;max-width:100%;height:auto;border-radius:10px;margin:8px auto;cursor:zoom-in}
 .anki-thumb{width:44px;height:44px;object-fit:cover;border-radius:8px;vertical-align:middle;cursor:zoom-in;flex:none}
@@ -1282,8 +1289,7 @@ html[data-theme="light"] .anki-deck-bar{background:rgba(0,0,0,.08)}
 /* --- study --- */
 .anki-study-deck{font-size:15px;margin:2px 0 8px;color:var(--muted);font-weight:700}
 .anki-say-line{display:flex;justify-content:flex-end;margin-bottom:6px}
-.anki-card-inner{transition:none;min-height:200px}
-.anki-card.flipped-anim .anki-card-inner{transition:transform .12s ease}
+.anki-card-inner{min-height:200px}
 .anki-study-tools{justify-content:center}
 .anki-rate-again,.anki-rate-hard,.anki-rate-good,.anki-rate-easy{min-height:60px}
 /* --- browser --- */
@@ -1333,9 +1339,11 @@ html[data-theme="light"] .anki-deck-bar{background:rgba(0,0,0,.08)}
 }
 
 /* ============ AnkiDroid final UX pass: preview, browse actions, filters ============ */
-/* Fast subtle reveal (never a slow cinematic flip; killed by reduced-motion). */
+/* Study card uses a true 3D flip (see .anki-card-inner above); no slide/fade
+ * reveal on the study faces so both faces never show at once. */
+.anki-preview-card .anki-card-back.hidden{display:none}
 @keyframes ankiReveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.anki-card-back:not(.hidden){animation:ankiReveal .14s ease}
+.anki-preview-card .anki-card-back:not(.hidden){animation:ankiReveal .14s ease}
 /* --- browse rows: compact card + labeled touch actions --- */
 .anki-bcard-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 12px}
 .anki-bcard{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
@@ -1354,7 +1362,8 @@ html[data-theme="light"] .anki-deck-bar{background:rgba(0,0,0,.08)}
 .anki-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .anki-preview-head b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .anki-preview-card{margin-bottom:12px}
-.anki-preview-card .anki-card-front,.anki-preview-card .anki-card-back{font-size:20px}
+.anki-preview-card .anki-card-front,.anki-preview-card .anki-card-back{border-radius:18px;padding:28px 20px;text-align:center;font-size:20px;line-height:1.7;background:var(--card);border:1px solid var(--border);overflow-wrap:anywhere;word-break:break-word}
+.anki-preview-card .anki-card-back{background:linear-gradient(135deg,rgba(34,197,94,.16),rgba(16,185,129,.10))}
 .anki-preview-flip{width:100%;min-height:52px;font-size:16px;font-weight:800;margin-bottom:10px}
 .anki-preview-acts{justify-content:center}
 .anki-preview-acts .btn{min-height:44px}
@@ -1367,7 +1376,7 @@ html[data-theme="light"] .anki-deck-bar{background:rgba(0,0,0,.08)}
   .anki-preview-card .anki-card-front,.anki-preview-card .anki-card-back{font-size:18px;padding:20px 14px}
 }
 @media (prefers-reduced-motion:reduce){
-  .anki-card-back:not(.hidden){animation:none}
+  .anki-preview-card .anki-card-back:not(.hidden){animation:none}
 }
 
 /* ============ AnkiDroid value/selector premium formatting fix ============

@@ -477,9 +477,9 @@ async function main() {
   ok("note-basic-1card", R.cardsBasic === 1, String(R.cardsBasic));
   ok("note-reversed-2cards", R.cardsRev === 2, String(R.cardsRev));
   ok("note-tags", R.tags === "a1|noun", R.tags);
-  ok("sched-new-good-learning", R.afterGood1 === "learning", R.afterGood1);
-  ok("sched-learning-good-review", R.afterGood2 === "review", R.afterGood2);
-  ok("sched-graduated-iv", R.ivAfterGrad >= 1, String(R.ivAfterGrad));
+  ok("sched-new-good-review", R.afterGood1 === "review", R.afterGood1);
+  ok("sched-review-good-stays-review", R.afterGood2 === "review", R.afterGood2);
+  ok("sched-graduated-iv-good-3d", R.ivAfterGrad === 3, String(R.ivAfterGrad));
   ok("sched-review-again-relearning", R.afterAgain === "relearning", R.afterAgain);
   ok("sched-history-kept", R.lapsesKept >= 3, String(R.lapsesKept));
   ok("sched-deterministic", R.deterministic === true, "nondeterministic");
@@ -512,7 +512,7 @@ async function main() {
   ok("no-second-sync", !/supabase|user_progress|dm_sync_queue/.test(src), "own sync engine");
   ok("no-flash-state", !/S\.srs|S\.status|bumpReview|buildFlash|renderFlash/.test(src), "flashcards coupling");
   ok("uses-own-attr", /data-arate/.test(src) && !/data-flash-rate/.test(src), "rating attr collision");
-  ok("uses-srsGrade-namespaced", /srsGrade/.test(src), "no scheduler");
+  ok("uses-fixed-intervals", /ANKI_FIXED_AGAIN_MIN/.test(src) && /ANKI_FIXED_HARD_D/.test(src) && /ANKI_FIXED_GOOD_D/.test(src) && /ANKI_FIXED_EASY_D/.test(src), "no fixed scheduler");
 
   /* ---- J. media ---- */
   let M = {};

@@ -187,7 +187,7 @@ function buildPng() {
   await cdp.ev(`document.querySelector('#ankiRatings [data-arate="good"]').click()`);
   await sleep(400);
   const st1 = await cdp.ev(`(() => { const A = window.AnkiDroid, SA = A.store(); const id = Object.keys(SA.cards)[0]; return SA.cards[id].sched.st; })()`);
-  ok("good-schedules", st0 === "new" && st1 === "learning", st0 + "->" + st1);
+  ok("good-schedules", st0 === "new" && st1 === "review", st0 + "->" + st1);
 
   // 6. keyboard: space reveals, 3 rates good
   const kb = await cdp.ev(`(() => {
@@ -545,7 +545,7 @@ function buildPng() {
     const n = all.find(x => x && x.fields && /der Apfel/.test(x.fields.Front || ""));
     const cid = Object.keys(SA.cards).find(k => SA.cards[k].note === n.id);
     return SA.cards[cid].sched.st; })()`);
-  ok("media-study-grade", mst0 === "new" && mst1 === "learning", mst0 + "->" + mst1);
+  ok("media-study-grade", mst0 === "new" && mst1 === "review", mst0 + "->" + mst1);
 
   // 18. browser shows media indicator
   await cdp.ev(`[...document.querySelectorAll("#ankiRoot [data-aview]")].find(b => b.getAttribute("data-aview") === "browse").click()`);
