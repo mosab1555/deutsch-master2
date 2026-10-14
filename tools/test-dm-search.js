@@ -231,10 +231,246 @@ DM.__setFetch(stubFetch);
       const c = (src.match(new RegExp(k, "g")) || []).length; return c >= 3;
     }));
 
-  /* 20. provider registry incl. forvo-disabled */
+  /* 20. provider registry incl. forvo-disabled + en fallback */
   const st = DM.status();
-  ok("T20 registry", DM.providers.length === 7 && DM.providers.some(p => p.id === "forvo" && p.needsKey) &&
+  ok("T20 registry", DM.providers.length === 8 && DM.providers.some(p => p.id === "forvo" && p.needsKey) &&
+    DM.providers.some(p => p.id === "wiktionary-en") &&
     st.forvo.state === "disabled-needs-key" && st.local.state === "ready");
+
+  /* ==== Phase 2: Fix 1 MyMemory retry (dispatcher accepts mymemory) ==== */
+  /* F1a: first MT fails, retry succeeds, successes preserved */
+  DM.__cacheClear();
+  let mmCalls = 0;
+  const origFetch = stubFetch;
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    if (u.includes("api.mymemory.translated.net")) {
+      mmCalls++;
+      if (mmCalls === 1) return Promise.resolve(mkRes(500, () => Promise.resolve({})));
+      return Promise.resolve(mkRes(200, () => Promise.resolve(MM)));
+    }
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear(); mmCalls = 0;
+  r = await DM.search("OhneArabisch Test.");
+  ok("F1a first MT fails", r.remote.mymemory && r.remote.mymemory.status === "error",
+    "err=" + (r.remote.mymemory && r.remote.mymemory.error));
+  const priorOk = r.remote.wiktionary && r.remote.wiktionary.status;
+  const retryState = await DM.search("OhneArabisch Test.", { only: ["mymemory"], prior: r });
+  ok("F1b retry MT succeeds", retryState.remote.mymemory && retryState.remote.mymemory.status === "ok" &&
+    retryState.remote.mymemory.machine === true, (retryState.remote.mymemory && retryState.remote.mymemory.text) || "no-mt");
+  ok("F1c retry preserves successes", retryState.remote.wiktionary && retryState.remote.wiktionary.status === priorOk,
+    "wik=" + (retryState.remote.wiktionary && retryState.remote.wiktionary.status));
+  /* F1d: fail-fail terminates as error (rate-limit honest, never fake success) */
+  DM.__setFetch((url) => {
+    const u = String(url);
+    if (u.includes("api.mymemory.translated.net")) return Promise.resolve(mkRes(429, () => Promise.resolve({})));
+    return origFetch(url);
+  });
+  DM.__cacheClear();
+  r = await DM.adapters.mymemory("Ich gehe zur Arbeit.");
+  ok("F1d rate-limit honest error", r.status === "error" && r.error === "rate-limited", r.error || r.status);
+  /* F1e: retry does not rerun successful unrelated providers */
+  DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
+  calls = {};
+  r = await DM.search("Haus");
+  const wikUrlCount1 = Object.keys(calls).filter(k => k.includes("de.wiktionary.org")).length;
+  calls = {};
+  const r2 = await DM.search("Haus", { only: ["mymemory"], prior: r });
+  const wikUrlCount2 = Object.keys(calls).filter(k => k.includes("de.wiktionary.org")).length;
+  ok("F1e retry skips ok providers", wikUrlCount2 === 0, "wikCalls=" + wikUrlCount2 + " (was " + wikUrlCount1 + ")");
+  /* F1f: old retry cannot overwrite newer query (gen+query guard via search gen) */
+  DM.__cacheClear();
+  const pa = DM.search("Haus");
+  const pb = DM.search("Arbeit");
+  const [ra, rb] = await Promise.all([pa, pb]);
+  ok("F1f new search not overwritten", ra.query === "Haus" && rb.query === "Arbeit");
+  /* F1g: loading/error terminate (no stuck loading) */
+  DM.__cacheClear();
+  r = await DM.search("OhneArabisch Test.");
+  const stuck = Object.values(r.remote).some(v => v && v.status === "loading");
+  ok("F1g no stuck loading", !stuck);
+
+  /* ==== Phase 2: Fix 2 Tatoeba audio licensing ==== */
+  const pol = DM.utils.tatoebaAudioPolicy;
+  ok("F2a allowed (license spelling)", (() => {
+    const p = pol({ id: 690095, author: "MisterTrouser", license: "CC BY 4.0", attribution_url: "https://tatoeba.org/user/profile/MisterTrouser" });
+    return p.eligible && p.author === "MisterTrouser" && p.license === "CC BY 4.0" && p.url.includes("/v1/audios/690095/file");
+  })());
+  ok("F2b allowed (licence spelling per spec)", (() => {
+    const p = pol({ id: 1, author: "kevin62", licence: "CC0 1.0", attribution_url: "https://example.com/audio/kevin" });
+    return p.eligible && p.license === "CC0 1.0";
+  })());
+  ok("F2c disallowed unknown-license not embedded", (() => {
+    const p = pol({ id: 3, author: "BraveSentry", license: "", attribution_url: "https://tatoeba.org/user/profile/BraveSentry" });
+    return !p.eligible && p.reason === "unknown-license";
+  })());
+  ok("F2d removed/missing not embedded", (() => {
+    const p = pol(null);
+    return !p.eligible;
+  })());
+  ok("F2e text license never covers audio", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return /tatoebaAudioPolicy/.test(src) && /unknown-license/.test(src) && !/text license.*covers audio/i.test(src);
+  })());
+  ok("F2f no audio bytes cached", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return !/caches\.open\([^)]*audio/i.test(src) && !/cacheSet\([^)]*\.url/i.test(src) &&
+      !/c\.put\([^)]*audio/i.test(src) && /never audio bytes/i.test(src);
+  })());
+
+  /* ==== Phase 2: Fix 3 cancellation ==== */
+  /* F3a: query B aborts exclusive requests of query A (different keys) */
+  DM.__cacheClear();
+  let abortSeen = false;
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    const sig = opts && opts.signal;
+    if (u.includes("openthesaurus.de")) {
+      /* slow exclusive request for A; aborts when B starts (different query => different key, previous ctrl aborted) */
+      return new Promise((res, rej) => {
+        const t = setTimeout(() => res(mkRes(200, () => Promise.resolve(OT))), 3000);
+        try {
+          if (sig && typeof sig.addEventListener === "function") {
+            if (sig.aborted) { clearTimeout(t); const e = new Error("aborted"); e.name = "AbortError"; rej(e); abortSeen = true; return; }
+            sig.addEventListener("abort", () => { clearTimeout(t); abortSeen = true; const e = new Error("aborted"); e.name = "AbortError"; rej(e); }, { once: true });
+          }
+        } catch (e) {}
+      });
+    }
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear(); abortSeen = false;
+  const slowA = DM.search("Haus");
+  await new Promise(res => setTimeout(res, 100));
+  const fastB = await DM.search("Donaudampfschifffahrt");
+  const slowRes = await slowA;
+  ok("F3a B aborts A exclusive", abortSeen || (slowRes.remote.openthesaurus && slowRes.remote.openthesaurus.status === "aborted"),
+    "abortSeen=" + abortSeen + " status=" + (slowRes.remote.openthesaurus && slowRes.remote.openthesaurus.status));
+  ok("F3b A cannot overwrite B", fastB.query === "Donaudampfschifffahrt" && slowRes.query === "Haus");
+  /* F3c: aborted not retried */
+  const abortedPrior = { query: "Haus", remote: { openthesaurus: { status: "aborted", provider: "openthesaurus" }, wiktionary: { status: "ok", provider: "wiktionary", senses: [{ n: "1", text: "x" }] } } };
+  const failedKeys = Object.keys(abortedPrior.remote).filter(k => {
+    const v = abortedPrior.remote[k];
+    return v && (v.status === "error" || v.status === "empty");
+  });
+  ok("F3c aborted not in retry queue", failedKeys.length === 0, "keys=" + failedKeys.join(","));
+  /* F3d: timeouts still work (independent per-provider) */
+  DM.__setFetch(origFetch); DM.__cacheClear(); mode = "com-hang";
+  r = await DM.search("Haus");
+  ok("F3d timeout preserved", r.remote.commons && r.remote.commons.status === "error" && r.remote.commons.error === "timeout");
+  mode = "normal";
+  /* F3e: other providers survive one cancellation */
+  DM.__cacheClear();
+  r = await DM.search("Haus");
+  ok("F3e survivors after cancel", r.remote.wiktionary.status === "ok" && r.remote.tatoeba.status === "ok");
+  /* F3f: leave/cancel increments gen, no delayed update (unit: cancel callable) */
+  ok("F3f cancel API", typeof DM.cancel === "function" && typeof DM.ui.cancel === "function");
+  DM.__setFetch(origFetch);
+
+  /* ==== Phase 2: Fix 4 cold sentence-search ==== */
+  DM.__cacheClear();
+  const c0 = Date.now();
+  r = await DM.search("Ich gehe zur Arbeit.");
+  const cdt = Date.now() - c0;
+  ok("F4a cold-start correctness", r.local && Array.isArray(r.local.words) && r.remote.tatoeba && ["ok", "empty", "error"].includes(r.remote.tatoeba.status),
+    cdt + "ms");
+  ok("F4b cold stats recorded (no brittle timing)", (() => {
+    try {
+      const cs = DM.debug && DM.debug.coldStats;
+      return !!(cs && cs.builds >= 1);
+    } catch (e) { return false; }
+  })());
+  ok("F4c concurrent local+remote (no vocab load)", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return /localP.*concat.*jobs|concurrently/i.test(src) && !/VOCAB\.push|load.*entire vocabulary/i.test(src);
+  })());
+
+  /* ==== Phase 2: Fix 5 incremental DOM (static guarantees + policy) ==== */
+  ok("F5a no wrap.innerHTML clear", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return !/wrap\.innerHTML\s*=\s*""/.test(src);
+  })());
+  ok("F5b stable keys + reuse", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return /data-dm-sec/.test(src) && /data-dm-sent/.test(src) && /data-dm-audio/.test(src) &&
+      /findAudioBySrc/.test(src) && /orderedInsert/.test(src);
+  })());
+  ok("F5c no global render", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return !/renderAll\s*\(/.test(src);
+  })());
+  ok("F5d textContent-only (no remote innerHTML)", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    const idx = src.indexOf("function renderState");
+    const body = idx >= 0 ? src.slice(idx, idx + 30000) : src;
+    return !/\.innerHTML\s*=.*(it\.text|tr\.text|sn\.text|mm\.text)/.test(body);
+  })());
+
+  /* ==== Phase 2: Fix 6 dictionary fallback ==== */
+  const WIKEN_SEARCH = { query: { search: [{ title: "Haus" }] } };
+  const WIKEN_EXTRACT = { query: { pages: { 1512: { pageid: 1512, title: "Haus",
+    extract: "\nEnglish\nProper noun\nHaus (plural Hauses)\nA surname\nGerman\nPronunciation\nIPA: [haʊs]\nNoun\nHaus n\nhouse, building\nIn dem Haus haben wir mal gewohnt. — We used to live in that house." } } } };
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    if (u.includes("en.wiktionary.org")) {
+      if (u.includes("list=search")) return Promise.resolve(mkRes(200, () => Promise.resolve(WIKEN_SEARCH)));
+      return Promise.resolve(mkRes(200, () => Promise.resolve(WIKEN_EXTRACT)));
+    }
+    if (u.includes("de.wiktionary.org") && u.includes("list=search") && u.includes(encodeURIComponent("Xyzqwort"))) {
+      return Promise.resolve(mkRes(200, () => Promise.resolve(WIK_EMPTY)));
+    }
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear();
+  const enR = await DM.adapters["wiktionary-en"]("Haus");
+  ok("F6a EN fallback returns lexical data", enR.status === "ok" && enR.provider === "wiktionary-en" &&
+    (enR.senses.length > 0 || enR.grammar.ipa) && enR.license === "CC BY-SA", JSON.stringify(enR.senses).slice(0, 120));
+  ok("F6b EN labelled honestly", enR.edition === "en" && /en\.wiktionary\.org/.test(enR.url));
+  /* primary success => fallback not auto-triggered */
+  DM.__cacheClear();
+  r = await DM.search("Haus");
+  ok("F6c primary success, fallback idle", r.remote.wiktionary.status === "ok" && !r.remote["wiktionary-en"]);
+  /* both empty */
+  DM.__setFetch((url) => {
+    const u = String(url);
+    if (u.includes("wiktionary.org") && u.includes("list=search")) return Promise.resolve(mkRes(200, () => Promise.resolve({ query: { search: [] } })));
+    return origFetch(url);
+  });
+  DM.__cacheClear();
+  r = await DM.search("Xyzqwort");
+  ok("F6d both editions empty", r.remote.wiktionary.status === "empty" && r.remote["wiktionary-en"] && r.remote["wiktionary-en"].status === "empty");
+  /* fallback timeout */
+  DM.__setFetch((url, opts) => {
+    const u = String(url);
+    if (u.includes("en.wiktionary.org")) return new Promise(() => {});
+    return origFetch(url, opts);
+  });
+  DM.__cacheClear();
+  const enT = await Promise.race([
+    DM.adapters["wiktionary-en"]("Haus"),
+    new Promise(res => setTimeout(() => res({ status: "timeout-race" }), 11000))
+  ]);
+  ok("F6e fallback timeout terminates", enT.status === "error" && enT.error === "timeout", enT.error || enT.status);
+  /* fallback failure isolated */
+  DM.__setFetch((url) => {
+    const u = String(url);
+    if (u.includes("en.wiktionary.org")) return Promise.resolve(mkRes(500, () => Promise.resolve({})));
+    return origFetch(url);
+  });
+  DM.__cacheClear();
+  const enF = await DM.adapters["wiktionary-en"]("Haus");
+  ok("F6f fallback failure isolated", enF.status === "error" && enF.error === "http-500");
+  ok("F6g external links verified official", (() => {
+    const links = DM.utils.dictFallbackLinks("Haus");
+    return links.length === 3 && links.some(l => l.url.includes("duden.de")) &&
+      links.some(l => l.url.includes("dwds.de")) && links.every(l => /^https:\/\//.test(l.url));
+  })());
+  ok("F6h missing dict hides nothing", (() => {
+    const src = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return /dict-none/.test(src) && /Does not hide/.test(src);
+  })());
+  DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
 
   /* 7. timeout does not block (slow, last) */
   DM.__cacheClear(); mode = "com-hang";

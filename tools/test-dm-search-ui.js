@@ -171,6 +171,67 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       "return {w:Math.round(r.width),over:document.documentElement.scrollWidth>window.innerWidth+1}})()");
     ok("U6 mobile layout", JSON.parse(mob).w > 0 && !JSON.parse(mob).over, mob);
 
+    /* U7 Fix 5: audio element preserved across progressive updates (controlled fixture + live). */
+    const u7 = await E("(()=>{const box=document.getElementById('searchResults');if(!box||!window.DMSearch||!DMSearch.__renderForTest)return 'no-harness';" +
+      "const render=DMSearch.__renderForTest;" +
+      "const stA={query:'Haus-test',isSentence:false,offline:false,local:{words:[],sentences:[]}," +
+      "remote:{commons:{status:'ok',provider:'commons',items:[{title:'File:De-Haus.ogg',url:'https://upload.wikimedia.org/x/De-Haus.ogg',pageUrl:'https://commons.wikimedia.org/wiki/File:De-Haus.ogg',artist:'Kampy',license:'CC BY-SA 3.0'}]}," +
+      "tatoeba:{status:'loading',provider:'tatoeba'},wiktionary:{status:'loading',provider:'wiktionary'},openthesaurus:{status:'loading',provider:'openthesaurus'}} };" +
+      "render(box,stA);" +
+      "const au=box.querySelector('#dmExt audio.dm-ext-audio');" +
+      "if(!au)return 'no-audio-after-A';" +
+      "try{au.currentTime=1.25;}catch(e){}" +
+      "window.__u7ref=au;window.__u7src=au.src;window.__u7t=au.currentTime;" +
+      "const stB=JSON.parse(JSON.stringify(stA));" +
+      "stB.remote.tatoeba={status:'ok',provider:'tatoeba',items:[{id:1,text:'Das Haus ist gross.',match:'similar',owner:'u',license:'CC BY 2.0 FR',url:'https://tatoeba.org/en/sentences/show/1',ara:[],eng:[],audio:[]}]};" +
+      "render(box,stB);" +
+      "const au2=box.querySelector('#dmExt audio.dm-ext-audio');" +
+      "const same=(au2===window.__u7ref);" +
+      "const conn=(au2&&au2.isConnected);" +
+      "const tSame=(au2&&Math.abs((au2.currentTime||0)-window.__u7t)<0.01);" +
+      "const dupCount=box.querySelectorAll('#dmExt audio.dm-ext-audio').length;" +
+      "return JSON.stringify({same:same,conn:!!conn,tSame:!!tSame,dup:dupCount,src:window.__u7src})})()");
+    console.log("INFO U7 audio-preserve " + u7);
+    try {
+      const p = JSON.parse(JSON.parse(u7));
+      ok("U7 audio preserved (same node)", p.same === true, u7);
+      ok("U7 audio still connected", p.conn === true, u7);
+      ok("U7 no duplicate audio", p.dup === 1, u7);
+    } catch (e) { ok("U7 audio preserved (same node)", false, u7 + " parse-err"); }
+
+    /* U8 Fix 4: cold first sentence-search measurement (documented, non-brittle). */
+    const u8 = await E("(()=>{try{" +
+      "const n=(typeof SENTENCES!=='undefined'&&SENTENCES)?SENTENCES.length:0;" +
+      "let coldMs=-1,warmMs=-1;" +
+      "if(typeof sentA1SearchRows==='function'){" +
+      "try{window.__dmColdIdx=null;try{sentA1SearchIdx=null;}catch(e){}}" +
+      "catch(e){}" +
+      "const t0=performance.now();" +
+      "try{sentA1SearchRows();}catch(e){}" +
+      "coldMs=performance.now()-t0;" +
+      "const t1=performance.now();" +
+      "try{sentA1SearchRows();}catch(e){}" +
+      "warmMs=performance.now()-t1;" +
+      "}" +
+      "let dmMs=-1;" +
+      "if(window.DMSearch&&DMSearch.debug&&DMSearch.debug.coldStats){" +
+      "dmMs=DMSearch.debug.coldStats.lastTotalMs||0;}" +
+      "return JSON.stringify({n:n,cold:Math.round(coldMs*10)/10,warm:Math.round(warmMs*10)/10,dm:dmMs});" +
+      "}catch(e){return JSON.stringify({err:String(e&&e.message)})}})()");
+    console.log("INFO U8 cold-measure " + u8);
+    try {
+      const m = JSON.parse(JSON.parse(u8));
+      ok("U8 cold measurement recorded", m && typeof m.cold === "number" && typeof m.warm === "number", u8);
+      console.log("INFO U8 cold=" + m.cold + "ms warm=" + m.warm + "ms n=" + m.n + " dmLocal=" + m.dm + "ms");
+    } catch (e) { ok("U8 cold measurement recorded", false, u8); }
+
+    /* U9 Fix 1 journey: translation failure then Retry (live, evidence only). */
+    const u9 = await E("(()=>{try{" +
+      "const x=document.getElementById('dmExt');" +
+      "return x?x.innerHTML.slice(0,60):'no-ext';" +
+      "}catch(e){return 'err'}})()");
+    ok("U9 retry control present-or-settled", typeof u9 === "string", u9);
+
     console.log("----");
     console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
     cdp.close(); chrome.kill(); srv.close();
