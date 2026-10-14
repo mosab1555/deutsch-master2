@@ -4200,6 +4200,19 @@ function runGlobalSearch(){
     }
   }catch(e){}
   const hits=dmWordHits(qn,level).slice(0,8);
+  /* DMSearch integration: detach the external-results node before the local
+     wipe so progressive results + audio state survive local re-renders
+     (keystrokes, level change, lazy refresh). Re-attached below only when it
+     belongs to this same query; otherwise dropped (enhance recreates it). */
+  let _dmExtKeep=null;
+  try{
+    const _dmExtCur=document.getElementById("dmExt");
+    if(_dmExtCur&&_dmExtCur.parentNode===box){
+      let _dmExtQ=""; try{ _dmExtQ=_dmExtCur.getAttribute("data-dm-q")||""; }catch(_){}
+      let _dmWantQ=""; try{ _dmWantQ=String(raw).replace(/\s+/g," ").trim().slice(0,200); }catch(_){}
+      if(_dmExtQ&&_dmExtQ===_dmWantQ){ box.removeChild(_dmExtCur); _dmExtKeep=_dmExtCur; }
+    }
+  }catch(e){ _dmExtKeep=null; }
   box.innerHTML="";
   const bar=document.createElement("div");
   bar.className="search-hit";
@@ -4257,17 +4270,26 @@ function runGlobalSearch(){
     try{
       var sHits=[];
       var _rows=null;
+      /* Punctuation-tolerant local sentence matching: "Kaffee, bitte." must
+         still match an indexed "Kaffee bitte" (same rule as DMSearch local). */
+      var _qls=""; try{ _qls=ql.replace(/[¡¿.?…،؛:,.()"«»„“”'']/g,"").replace(/\s+/g," ").trim(); }catch(e){ _qls=""; }
       try{ if(typeof sentA1SearchRows==="function")_rows=sentA1SearchRows(); }catch(e){ _rows=null; }
       if(_rows&&_rows.length){
         for(var _si=0;_si<_rows.length&&sHits.length<2;_si++){
           try{
-            if(_rows[_si].nde.indexOf(ql)>=0||_rows[_si].nar.indexOf(raw.trim().toLowerCase())>=0)sHits.push(_rows[_si].s);
+            var _rn=_rows[_si].nde||"";
+            if(_rn.indexOf(ql)>=0||_rows[_si].nar.indexOf(raw.trim().toLowerCase())>=0)sHits.push(_rows[_si].s);
+            else if(_qls&&_qls!==ql&&_rn.replace(/[¡¿.?…،؛:,.()"«»„“”'']/g,"").replace(/\s+/g," ").trim().indexOf(_qls)>=0)sHits.push(_rows[_si].s);
           }catch(e){}
         }
       }else{
         for(var _sj=0;_sj<SENTENCES.length&&sHits.length<2;_sj++){
           var _s=SENTENCES[_sj];
-          try{ if(dmNorm((_s.de||"")+" "+(_s.ar||"")).indexOf(ql)>=0)sHits.push(_s); }catch(e){}
+          try{
+            var _hay=dmNorm((_s.de||"")+" "+(_s.ar||""));
+            if(_hay.indexOf(ql)>=0)sHits.push(_s);
+            else if(_qls&&_qls!==ql&&_hay.replace(/[¡¿.?…،؛:,.()"«»„“”'']/g,"").replace(/\s+/g," ").trim().indexOf(_qls)>=0)sHits.push(_s);
+          }catch(e){}
         }
       }
       sHits.forEach(function(s){
@@ -4297,7 +4319,15 @@ function runGlobalSearch(){
       box.appendChild(d);
     });
   }catch(e){}
-  if(box.children.length<=1){box.innerHTML='<div class="search-hit">'+window.t("sc_gs_none")+'"'+escapeHtml(raw.trim())+'"</div>';box.appendChild(bar);}
+  if(box.children.length<=1){
+    /* Stable identity for the LOCAL empty state so DMSearch can supersede it
+       (hide while external lookup is pending / has results) without it ever
+       reading as the final overall verdict. Same visible text as before. */
+    const _nm=document.createElement("div");_nm.className="search-hit";_nm.id="dmLocalEmpty";
+    _nm.textContent=window.t("sc_gs_none")+'"'+raw.trim()+'"';
+    box.appendChild(_nm);box.appendChild(bar);
+  }
+  try{ if(_dmExtKeep)box.appendChild(_dmExtKeep); }catch(e){}
   box.classList.add("show");
 }
 /* Single-wiring guard: this classic script may be re-evaluated in tests/HMR;

@@ -287,6 +287,205 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       "{DMSearch.__setFetch(function(u,op){return window.__realFetch(u,op);});DMSearch.__cacheClear();}" +
       "return 'restored';}catch(e){return 'restore-err';}})()");
 
+    /* U11 live: the exact reported query over REAL HTTP. Proves the external
+     * request executes (resource timings) and cards render visibly with the
+     * local empty message suppressed (the reported lifecycle bug). */
+    await E("(()=>{try{performance.clearResourceTimings();}catch(e){}return 'cleared';})()");
+    /* Rotate lastQuery so U11 forces a genuinely fresh live search (U10 used
+     * the identical query with a stubbed fetch; same-query re-entry must
+     * not refetch). */
+    await journey("U11a reset", "Haus");
+    const s11 = await journey("U11 coffee-live", "Ich möchte einen Kaffee, bitte.");
+    console.log("INFO U11 evidence cards=" + s11.secs);
+    const u11 = await E("(()=>{var o={tat:0,kaf:0,cards:0,localEmpty:'missing',firstCard:'',urls:[]};try{" +
+      "var rs=performance.getEntriesByType('resource');" +
+      "for(var i=0;i<rs.length;i++){var u=rs[i].name||'';" +
+      "if(u.indexOf('api.tatoeba.org/v1/sentences')>=0){o.tat++;if(u.indexOf('q=Kaffee')>=0)o.kaf++;" +
+      "var m=u.match(/[?&]q=[^&]*/);o.urls.push(m?m[0]:u.slice(-40));}}" +
+      "var els=document.querySelectorAll('#dmExt .dm-ext-sent');o.cards=els.length;" +
+      "if(els.length){var b=els[0].querySelector('b');o.firstCard=b?b.textContent.slice(0,60):'';}" +
+      "var le=document.getElementById('dmLocalEmpty');" +
+      "if(le){o.localEmpty=(le.style.display==='none')?'hidden':'visible';}" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U11 live " + u11);
+    try {
+      const o = JSON.parse(JSON.parse(u11));
+      ok("U11 tatoeba requested live", o.tat >= 1, "tatCalls=" + o.tat + " kwFallback=" + o.kaf);
+      ok("U11 sentence cards visible", o.cards >= 1, "cards=" + o.cards + " first=" + o.firstCard);
+      ok("U11 no misleading empty state", o.localEmpty === "hidden" || o.localEmpty === "missing",
+        "dmLocalEmpty=" + o.localEmpty);
+    } catch (e) { ok("U11 tatoeba requested live", false, u11 + " parse-err"); }
+
+    /* U12 lifecycle matrix via the REAL renderState with crafted states (no
+     * network): loading / all-empty / all-failed / partial-ok. */
+    const u12 = await E("(()=>{var o={};try{" +
+      "var box=document.getElementById('searchResults');" +
+      "var R=DMSearch.__renderForTest;" +
+      "function le(){var n=document.getElementById('dmLocalEmpty');" +
+      "if(!n){n=document.createElement('div');n.className='search-hit';n.id='dmLocalEmpty';" +
+      "n.textContent='none';box.appendChild(n);}return n;}" +
+      "function vis(n){return !!(n&&n.style.display!=='none');}" +
+      "function st(q,patch){var s={query:q,isSentence:false,offline:false,local:{words:[],sentences:[]},remote:{}};" +
+      "Object.keys(patch).forEach(function(k){s.remote[k]=patch[k];});return s;}" +
+      "var LD={status:'loading',provider:'x'};" +
+      "var EM={status:'empty',provider:'x'};" +
+      "var ER={status:'error',provider:'x',error:'timeout'};" +
+      "le();" +
+      "R(box,st('Lx',{wiktionary:LD,tatoeba:LD,commons:LD,openthesaurus:LD}));" +
+      "o.l1={hidden:!vis(document.getElementById('dmLocalEmpty'))," +
+      "loading:!!document.querySelector('#dmExt .dm-loading')};" +
+      "R(box,st('Lx',{wiktionary:EM,'wiktionary-en':EM,tatoeba:EM,commons:EM,openthesaurus:EM}));" +
+      "o.l2={shown:vis(document.getElementById('dmLocalEmpty'))," +
+      "none:!!document.querySelector('#dmExt [data-dm-sec=none]')};" +
+      "R(box,st('Lx',{wiktionary:ER,'wiktionary-en':ER,tatoeba:ER,commons:ER,openthesaurus:ER}));" +
+      "o.l3={hidden:!vis(document.getElementById('dmLocalEmpty'))," +
+      "retry:!!document.querySelector('#dmExt .dm-retry')," +
+      "errs:!!document.querySelector('#dmExt [data-dm-sec=errs]')," +
+      "none:!!document.querySelector('#dmExt [data-dm-sec=none]')};" +
+      "R(box,st('Lx',{wiktionary:LD,tatoeba:{status:'ok',provider:'tatoeba',items:[{id:7," +
+      "text:'Kaffee ist fertig.',match:'similar',owner:'u',license:'CC BY 2.0 FR'," +
+      "url:'https://tatoeba.org/en/sentences/show/7',ara:[],eng:[],audio:[]}]}," +
+      "commons:LD,openthesaurus:LD}));" +
+      "o.l4={hidden:!vis(document.getElementById('dmLocalEmpty'))," +
+      "cards:document.querySelectorAll('#dmExt .dm-ext-sent').length};" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U12 matrix " + u12);
+    try {
+      const o = JSON.parse(JSON.parse(u12));
+      ok("U12 loading hides empty", o.l1.hidden === true && o.l1.loading === true, JSON.stringify(o.l1));
+      ok("U12 genuine empty shown", o.l2.shown === true && o.l2.none === true, JSON.stringify(o.l2));
+      ok("U12 failure hides empty + retry", o.l3.hidden === true && o.l3.retry === true &&
+        o.l3.errs === true && o.l3.none === false, JSON.stringify(o.l3));
+      ok("U12 partial-ok visible at once", o.l4.hidden === true && o.l4.cards >= 1, JSON.stringify(o.l4));
+    } catch (e) { ok("U12 loading hides empty", false, u12 + " parse-err"); }
+
+    /* U13 rapid typing + cancellation + stale protection (deterministic
+     * fixture): slow Q1 aborted by fast Q2; slow-unabortable Q3 resolved
+     * late must not clobber fast Q4. Exactly one fetch per query. */
+    const u13arm = await E("(()=>{try{" +
+      "window.__realFetch=window.fetch.bind(window);" +
+      "window.__u13={calls:[],abortedQ1:false,attachedQ1:false,sigNullQ1:false,abortEvents:[]};" +
+      "window.__u13fetch=function(url,opts){var u=String(url);var sig=opts&&opts.signal;" +
+      "function res0(body){return Promise.resolve({status:200,json:function(){return Promise.resolve(body);}});}" +
+      "function item(id,tx){return {id:id,text:tx,owner:'a',license:'CC BY 2.0 FR',audios:[],translations:[]};}" +
+      "if(u.indexOf('api.tatoeba.org')>=0){window.__u13.calls.push(u);" +
+      "var m=u.match(/[?&]q=([^&]*)/);var qq=m?decodeURIComponent(m[1]):'';" +
+      "if(qq==='slowoneqq')return new Promise(function(res,rej){var t=setTimeout(function(){res(res0({data:[item(201,'RES slowoneqq')]}));},1800);" +
+      "try{if(!sig){window.__u13.sigNullQ1=true;}" +
+      "if(sig&&sig.addEventListener){if(sig.aborted){clearTimeout(t);var e=new Error('ab');e.name='AbortError';rej(e);return;}" +
+      "window.__u13.attachedQ1=true;" +
+      "sig.addEventListener('abort',function(){clearTimeout(t);window.__u13.abortedQ1=true;window.__u13.abortEvents.push('fixture-inner');var e2=new Error('ab');e2.name='AbortError';rej(e2);},{once:true});}}catch(x){}});" +
+      "if(qq==='slowstaleqq')return new Promise(function(res){setTimeout(function(){res(res0({data:[item(301,'RES slowstaleqq')]}));},1400);});" +
+      "return res0({data:[item(202,'RES '+qq)]});}" +
+      "if(u.indexOf('wiktionary.org')>=0)return res0({query:{search:[]}});" +
+      "if(u.indexOf('commons.wikimedia.org')>=0)return res0({query:{allimages:[]}});" +
+      "if(u.indexOf('openthesaurus.de')>=0)return res0({synsets:[]});" +
+      "if(u.indexOf('mymemory')>=0)return res0({responseData:{translatedText:''},responseStatus:200});" +
+      "return window.__realFetch(url,opts);};" +
+      "DMSearch.__setFetch(window.__u13fetch);DMSearch.__cacheClear();" +
+      "return 'armed';}catch(e){return 'arm-err:'+e.message}})()");
+    ok("U13 fixture armed", u13arm === '"armed"', u13arm);
+    async function typeQuery(qq) {
+      await cdp.ev("(()=>{var s=document.getElementById('globalSearch');s.value=" + JSON.stringify(qq) +
+        ";s.dispatchEvent(new Event('input',{bubbles:true}));return 1;})()");
+    }
+    async function settleExt(condFn, tries) {
+      let snap = null;
+      for (let i = 0; i < (tries || 12); i++) {
+        await sleep(750);
+        snap = await E("(()=>{var o={q:'',loading:1,cards:0,firstCard:'',hits:0,emptyVisible:'missing'};try{" +
+          "var w=document.getElementById('dmExt');o.q=w?w.getAttribute('data-dm-q'):'';" +
+          "o.loading=w?w.querySelectorAll('.dm-loading').length:0;" +
+          "var els=document.querySelectorAll('#dmExt .dm-ext-sent');o.cards=els.length;" +
+          "if(els.length){var b=els[0].querySelector('b');o.firstCard=b?b.textContent.slice(0,40):'';}" +
+          "o.hits=document.querySelectorAll('#searchResults .search-hit').length;" +
+          "var le=document.getElementById('dmLocalEmpty');" +
+          "if(le)o.emptyVisible=(le.style.display==='none')?'hidden':'visible';" +
+          "}catch(e){}return JSON.stringify(o);})()");
+        try { if (condFn(JSON.parse(JSON.parse(snap)))) break; } catch (e) {}
+      }
+      return snap;
+    }
+    /* Phase A: Q1 slow-abortable superseded by fast Q2. */
+    await typeQuery("slowoneqq");
+    await sleep(300);
+    await typeQuery("fasttwoqq");
+    const u13a = await settleExt(o => o.q === "fasttwoqq" && o.loading === 0 && o.cards >= 1, 14);
+    const u13acalls = await E("JSON.stringify(window.__u13.calls)");
+    console.log("INFO U13a " + u13a + " calls=" + u13acalls);
+    console.log("INFO U13a flags=" + await E("JSON.stringify({a:window.__u13.attachedQ1,n:window.__u13.sigNullQ1,ev:window.__u13.abortEvents})"));
+    try {
+      const o = JSON.parse(JSON.parse(u13a));
+      const cu = JSON.parse(JSON.parse(u13acalls));
+      const c1 = cu.filter(u => u.indexOf("q=slowoneqq") >= 0).length;
+      const c2 = cu.filter(u => u.indexOf("q=fasttwoqq") >= 0).length;
+      ok("U13a newest wins", o.firstCard.indexOf("RES fasttwoqq") >= 0, o.firstCard);
+      ok("U13a Q1 cancelled", (await E("JSON.stringify(!!window.__u13.abortedQ1)")) === '"true"', "aborted flag");
+      ok("U13a exactly-once fetches", c1 === 1 && c2 === 1, "slow=" + c1 + " fast=" + c2);
+      ok("U13a local hits intact", o.hits > 1, "hits=" + o.hits);
+    } catch (e) { ok("U13a newest wins", false, u13a + " parse-err"); }
+    /* Phase B: Q3 slow-UNABORTABLE resolves late; fast Q4 must survive it. */
+    await typeQuery("slowstaleqq");
+    await sleep(300);
+    await typeQuery("fastfourqq");
+    const u13b = await settleExt(o => o.q === "fastfourqq" && o.loading === 0 && o.cards >= 1, 14);
+    await sleep(2200);
+    const u13b2 = await E("(()=>{var o={q:'',firstCard:''};try{var w=document.getElementById('dmExt');" +
+      "o.q=w?w.getAttribute('data-dm-q'):'';var b=document.querySelector('#dmExt .dm-ext-sent b');" +
+      "o.firstCard=b?b.textContent.slice(0,40):'';}catch(e){}return JSON.stringify(o);})()");
+    const u13bcalls = await E("JSON.stringify(window.__u13.calls)");
+    console.log("INFO U13b " + u13b2 + " calls=" + u13bcalls);
+    try {
+      const o = JSON.parse(JSON.parse(u13b2));
+      const cu = JSON.parse(JSON.parse(u13bcalls));
+      const c3 = cu.filter(u => u.indexOf("q=slowstaleqq") >= 0).length;
+      const c4 = cu.filter(u => u.indexOf("q=fastfourqq") >= 0).length;
+      ok("U13b stale cannot clobber", o.q === "fastfourqq" && o.firstCard.indexOf("RES fastfourqq") >= 0,
+        o.q + "/" + o.firstCard);
+      ok("U13b exactly-once fetches", c3 === 1 && c4 === 1, "stale=" + c3 + " fast=" + c4);
+    } catch (e) { ok("U13b stale cannot clobber", false, u13b2 + " parse-err"); }
+
+    /* U14 retry refetches failed providers exactly once (deterministic). */
+    const u14arm = await E("(()=>{try{" +
+      "window.__u14={tat:0,wik:0};" +
+      "window.__u14fetch=function(url,opts){var u=String(url);" +
+      "function res0(s,b){return Promise.resolve({status:s,json:function(){return Promise.resolve(b);}});}" +
+      "if(u.indexOf('api.tatoeba.org')>=0){window.__u14.tat++;return res0(500,{});}" +
+      "if(u.indexOf('wiktionary.org')>=0){if(u.indexOf('list=search')>=0)window.__u14.wik++;return res0(500,{});}" +
+      "if(u.indexOf('commons.wikimedia.org')>=0)return res0(200,{query:{allimages:[]}});" +
+      "if(u.indexOf('openthesaurus.de')>=0)return Promise.reject(new Error('blocked'));" +
+      "return window.__realFetch(url,opts);};" +
+      "DMSearch.__setFetch(window.__u14fetch);DMSearch.__cacheClear();" +
+      "return 'armed';}catch(e){return 'arm-err:'+e.message}})()");
+    ok("U14 fixture armed", u14arm === '"armed"', u14arm);
+    await typeQuery("retryprobeqq");
+    const u14a = await settleExt(o => o.q === "retryprobeqq" && o.loading === 0, 14);
+    const u14s = await E("(()=>{var o={retry:false,errs:false,none:false,emptyHidden:'missing'};try{" +
+      "o.retry=!!document.querySelector('#dmExt .dm-retry');" +
+      "o.errs=!!document.querySelector('#dmExt [data-dm-sec=errs]');" +
+      "o.none=!!document.querySelector('#dmExt [data-dm-sec=none]');" +
+      "var le=document.getElementById('dmLocalEmpty');" +
+      "if(le)o.emptyHidden=(le.style.display==='none')?'hidden':'visible';" +
+      "}catch(e){}return JSON.stringify(o);})()");
+    console.log("INFO U14 settled " + u14a + " state=" + u14s);
+    try {
+      const o = JSON.parse(JSON.parse(u14s));
+      ok("U14 failure state + retry", o.retry === true && o.errs === true && o.none === false, u14s);
+      ok("U14 empty suppressed on failure", o.emptyHidden === "hidden", u14s);
+    } catch (e) { ok("U14 failure state + retry", false, u14s + " parse-err"); }
+    await E("(()=>{try{var b=document.querySelector('#dmExt .dm-retry');if(b)b.click();return 'clicked';}catch(e){return 'click-err';}})()");
+    const u14b = await settleExt(o => o.q === "retryprobeqq" && o.loading === 0, 14);
+    await sleep(1000);
+    const u14c = await E("JSON.stringify(window.__u14)");
+    console.log("INFO U14 after-retry " + u14b + " counts=" + u14c);
+    try {
+      const c = JSON.parse(JSON.parse(u14c));
+      ok("U14 retry refetches once", c.tat === 2 && c.wik === 2, "tat=" + c.tat + " wik=" + c.wik);
+    } catch (e) { ok("U14 retry refetches once", false, u14c + " parse-err"); }
+    await E("(()=>{try{if(window.DMSearch&&window.__realFetch)" +
+      "{DMSearch.__setFetch(function(u,op){return window.__realFetch(u,op);});DMSearch.__cacheClear();}" +
+      "return 'restored';}catch(e){return 'restore-err';}})()");
+
     console.log("----");
     console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
     cdp.close(); chrome.kill(); srv.close();

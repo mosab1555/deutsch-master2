@@ -1295,6 +1295,25 @@
     });
     setNote(wrap, ORDER, "offline", state.offline ? "📴 " + T("dm_ext_offline") : "", "dm-ext-note");
     setNote(wrap, ORDER, "loading", (anyLoading && !anyOk) ? "⏳ " + T("dm_ext_loading") : "", "dm-ext-note dm-loading");
+    /* Local-vs-overall state: the local empty message (#dmLocalEmpty, owned
+     * by script.js) must never read as the final verdict while external
+     * lookup is pending or has results. Settled + successful + zero
+     * everywhere: it stays as the genuine final no-results message. */
+    (function syncLocalEmpty() {
+      var le = null;
+      try { le = root.document.getElementById("dmLocalEmpty"); } catch (e) { return; }
+      if (!le) return;
+      var show = true;
+      if (state.offline) show = true;        /* local-only is the verdict offline */
+      else if (anyLoading) show = false;     /* honest loading instead */
+      else if (anyOk) show = false;          /* external results are visible */
+      else if (fails.length) show = false;   /* failure is not "no match" */
+      try {
+        if (!!le.__dmHidden === !show) return;
+        le.__dmHidden = !show;
+        le.style.display = show ? "" : "none";
+      } catch (e) {}
+    })();
     /* --- meaning / grammar (Wiktionary) --- */
     /* --- meaning / grammar (Wiktionary DE primary + EN fallback) --- */
     function renderDictSec(pid, secKey, badgeName) {
@@ -1657,7 +1676,10 @@
     /* --- failures / empty / retry (incremental foot+errs) --- */
     (function renderFootErrs() {
       var showRetry = fails.length > 0;
-      var showNone = (!anyOk && !anyLoading && !state.offline);
+      /* Genuine zero-results (all settled, all successful, none found) is
+       * distinct from failure: the "none" note shows only with zero errors;
+       * failures surface through the errs line + retry instead. */
+      var showNone = (!anyOk && !anyLoading && !state.offline && fails.length === 0);
       setNote(wrap, ORDER, "none", showNone ? "ℹ️ " + T("dm_ext_none") : "", "dm-ext-note");
       if (!anyOk && !anyLoading) showRetry = true;
       var prev = findSec(wrap, "foot");
@@ -1711,9 +1733,10 @@
           }
         } catch (e) {}
       }
-      /* provider errors are accessory facts (failed source ≠ missing word) */
+      /* provider errors: accessory when others succeeded, the whole failure
+       * state when nothing did (local-empty is hidden then, retry offered). */
       var efPrev = findSec(wrap, "errs");
-      if (fails.length && anyOk) {
+      if (fails.length) {
         var txt = "⚠️ " + fails.join(", ") + ": " + T("dm_ext_fail");
         if (!efPrev) {
           var ef = el("div", "dm-ext-errs");
@@ -1739,13 +1762,21 @@
       return i ? normQ(i.value) : "";
     } catch (e) { return ""; }
   }
-  function scheduleEnhance() {
+  function scheduleEnhance(immediate) {
     try {
       if (typeof root.document === "undefined") return;
       if (!$("globalSearch") || !$("searchResults")) return;
     } catch (e) { return; }
+    /* Defensive re-wrap: if script.js was re-evaluated, the live global may
+     * be an unwrapped replacement — re-wrap so level changes and lazy
+     * refreshes keep triggering enhancement exactly once. */
+    try { installEnhance(); } catch (e) {}
     try { if (debounceT) clearTimeout(debounceT); } catch (e) {}
     var myGen = ++gen;
+    if (immediate) {
+      try { enhance(myGen); } catch (e) {}
+      return;
+    }
     debounceT = setTimeout(function () { enhance(myGen); }, 450);
   }
   function viewAlive() {
@@ -1768,8 +1799,12 @@
       return;
     }
     if (q === lastQuery && lastState) {
-      /* same query (e.g. unrelated re-render): keep rendered results */
-      if (!$("dmExt")) renderState(box, lastState);
+      /* Same query re-encountered (re-type, unrelated re-render): re-sync
+       * through the incremental renderer so local/overall states reconcile
+       * (e.g. a rebuilt local-empty message is hidden again when results
+       * stand). Node identity is preserved; sections with matching sigs
+       * are skipped, so this is never a full rerender. */
+      try { renderState(box, lastState); } catch (e) {}
       return;
     }
     lastQuery = q;
@@ -1886,35 +1921,73 @@
 
   var installed = false;
   function installEnhance() {
-    if (installed) return true;
     try {
       if (typeof root.document === "undefined") return false;
       if (typeof root.runGlobalSearch !== "function") return false;
-      if (root.__dmExtInstalled) { installed = true; return true; }
-      var orig = root.runGlobalSearch;
+      /* The __dmWrapped mark on the LIVE function is the authority (not a
+       * one-time flag): script.js re-evaluation replaces the global with an
+       * unwrapped copy, which we detect and re-wrap here. */
+      var cur = root.runGlobalSearch;
+      if (cur && cur.__dmWrapped) { installed = true; return true; }
+      var orig = cur;
       var wrapped = function () {
         var r = orig.apply(this, arguments);
-        try { scheduleEnhance(); } catch (e) {}
+        /* Immediate when local already reports no match: external lookup is
+         * the only remaining hope — never let that message linger as final. */
+        var imm = false;
+        try { imm = !!root.document.getElementById("dmLocalEmpty"); } catch (e) {}
+        try { scheduleEnhance(imm); } catch (e) {}
         return r;
       };
+      try { wrapped.__dmWrapped = true; } catch (e) {}
       try {
         root.runGlobalSearch = wrapped;
       } catch (e) { return false; }
-      root.__dmExtInstalled = true;
+      try { root.__dmExtInstalled = true; } catch (e) {}
       installed = true;
       return true;
     } catch (e) { return false; }
   }
+  /* Independent triggers (survive script.js re-evaluation, which would
+   * silently drop the wrapper): direct input listener on the search field
+   * plus delegated change listener for the level select. scheduleEnhance
+   * dedupes via a single debounce timer + generation counter, so wrapper +
+   * listeners can never double-fire one query, and nothing in the render
+   * path triggers a search (no loops). */
+  var dmInputWired = false;
+  function wireDirectTriggers() {
+    try {
+      if (typeof root.document === "undefined" || !root.document.addEventListener) return;
+      if (!dmInputWired) {
+        var inp = $("globalSearch");
+        if (inp && inp.addEventListener) {
+          inp.addEventListener("input", function () { try { scheduleEnhance(false); } catch (e) {} });
+          dmInputWired = true;
+        }
+      }
+      if (!root.__dmChangeWired) {
+        root.document.addEventListener("change", function (ev) {
+          try {
+            if (ev && ev.target && ev.target.id === "gsLevel") scheduleEnhance(false);
+          } catch (e) {}
+        });
+        try { root.__dmChangeWired = true; } catch (e) {}
+      }
+    } catch (e) {}
+  }
   /* install now (script loads after script.js) + retry on DOM ready */
   try { installEnhance(); } catch (e) {}
+  try { wireDirectTriggers(); } catch (e) {}
   try {
     if (root.document) {
       if (root.document.readyState === "loading") {
         root.document.addEventListener("DOMContentLoaded", function () {
           try { installEnhance(); } catch (e) {}
+          try { wireDirectTriggers(); } catch (e) {}
         });
       } else {
         try { installEnhance(); } catch (e) {}
+        try { wireDirectTriggers(); } catch (e) {}
       }
     }
   } catch (e) {}
