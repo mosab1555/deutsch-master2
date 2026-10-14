@@ -158,9 +158,11 @@ function renderMistakes(){
         if(window.DMProgress){
           const sk=DMProgress.skillOfMistake(m,w);
           const info=DMProgress.SKILLS[sk];
-          if(info)skillHtml='<div class="muted">🏷️ '+escapeHtml(info.ar)+'</div>'
-            +'<div class="mist-why">💡 '+escapeHtml(info.why)
-            +(info.ex&&info.ex[0]?'<br>🇩🇪 '+escapeHtml(info.ex[0])+(info.ex[1]?" — "+escapeHtml(info.ex[1]):""):"")+'</div>';
+          if(!info)skillHtml="";
+          else{const sti=(typeof DMProgress.skillText==="function")?DMProgress.skillText(sk):{name:info.ar,why:info.why,ex:info.ex};
+          skillHtml='<div class="muted">🏷️ '+escapeHtml(sti.name)+'</div>'
+            +'<div class="mist-why">💡 '+escapeHtml(sti.why)
+            +(sti.ex&&sti.ex[0]?'<br>🇩🇪 '+escapeHtml(sti.ex[0])+(sti.ex[1]?" — "+escapeHtml(sti.ex[1]):""):"")+'</div>';}
         }
       }catch(e){}
       try{

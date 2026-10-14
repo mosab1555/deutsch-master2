@@ -215,7 +215,7 @@ var DMProgress = (function () {
     wortstellung: { ar: "ترتيب الجملة", rule: "g9", why: "الفعل المصرف دائمًا في المرتبة الثانية في الجملة الخبرية.", ex: ["Heute lerne ich Deutsch.", "اليوم أتعلم الألمانية."] },
     fragen:       { ar: "تكوين الأسئلة", rule: "g10", why: "سؤال نعم/لا يبدأ بالفعل، وسؤال الاستفهام يبدأ بأداة (Was/Wo/Wer/Wie) ثم الفعل.", ex: ["Wo wohnst du?", "أين تسكن؟"] },
     praepositionen:{ ar: "حروف الجر", rule: "g11", why: "كل حرف جر يحفظ مع حالته: aus/bei/mit/nach/seit/von/zu + Dativ، وin/auf غالبًا مع Akkusativ للاتجاه.", ex: ["Ich komme aus Ägypten.", "أنا من مصر."] },
-    allgemein:    { ar: "مفردات ومعاني", rule: "", why: "راجع معنى الكلمة ومثالها، واحفظها في جملة كاملة لا وحدها.", ex: ["Ich lerne jeden Tag.", "أتعلم كل يوم."] }
+    allgemein:    { ar: "مفردات ومعاني", rule: "", why: "راجع معنى الكلمة ومثالها، واحفظها في جملة كاملة لا وحدها.", ex: ["Ich lerne jeden Tag.", "أتعلم كل يوم."] , en:"Vocabulary and meanings", whyen:"Review the meaning and example; memorize the word in a full sentence.", exen:"I study every day.", de:"Wortschatz und Bedeutung", whyde:"Bedeutung und Beispiel wiederholen; das Wort im ganzen Satz lernen.", exde:"Ich lerne jeden Tag."}
   };
   var KIND_SKILL = { article: "artikel", plural: "plural", write: "artikel", order: "wortstellung", sentence: "wortstellung", listening: "allgemein", "de-ar": "allgemein", "ar-de": "allgemein", conjugation: "konjugation", akkusativ: "akkusativ" };
   function classifyError(o) {
@@ -241,6 +241,26 @@ var DMProgress = (function () {
   function skillOfMistake(m, word) {
     m = m || {};
     return classifyError({ skill: m.skill, kind: m.kind, q: m.q, de: m.de || (word && word.de), correct: m.ok });
+  }
+  /* Language-aware skill display (same i18n system: S.uiLang selects which
+     existing SKILLS field to show). German example sentences are never
+     altered; only the gloss/name/why fields switch. Falls back to Arabic. */
+  function skillText(sk) {
+    var info = SKILLS[sk] || SKILLS.allgemein;
+    try {
+      var L = "ar";
+      try {
+        if (typeof uilang === "function") L = uilang();
+        else if (typeof S !== "undefined" && S && S.uiLang) L = S.uiLang;
+      } catch (e0) {}
+      if (L !== "ar" && info) {
+        var ex0 = (info.ex && info.ex[0]) || "";
+        var ex1 = (info.ex && info.ex[1]) || "";
+        if (L === "de") return { name: info.de || info.en || info.ar, why: info.whyde || info.whyen || info.why, ex: [ex0, info.exde || info.exen || ex1] };
+        return { name: info.en || info.ar, why: info.whyen || info.why, ex: [ex0, info.exen || ex1] };
+      }
+    } catch (e) {}
+    return { name: info.ar, why: info.why, ex: info.ex };
   }
 
   /* ---- Dashboard helpers ---- */
@@ -403,7 +423,7 @@ var DMProgress = (function () {
     nextReview: nextReview, buildQueue: buildQueue,
     LEARN_STEPS: LEARN_STEPS, RELEARN_STEPS: RELEARN_STEPS,
     srsCard: srsCard, srsIsDue: srsIsDue, srsGrade: srsGrade,
-    SKILLS: SKILLS, classifyError: classifyError, skillOfMistake: skillOfMistake,
+    SKILLS: SKILLS, classifyError: classifyError, skillOfMistake: skillOfMistake, skillText: skillText,
     continueTarget: continueTarget, weeklySummary: weeklySummary
   };
 })();

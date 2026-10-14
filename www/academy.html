@@ -826,11 +826,11 @@
 <!-- ULTIMATE mobile bottom navigation (5 targets, syncs with showPage) -->
 <nav class="dm-bnav" id="dmBnav" data-i18n-aria="aria_menu" aria-label="التنقل السريع">
   <div class="dm-bnav-inner">
-    <button type="button" class="dm-bnav-item active" data-page="dashboard" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>الرئيسية</span></button>
-    <button type="button" class="dm-bnav-item" data-page="explain" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg><span>الشرح</span></button>
-    <button type="button" class="dm-bnav-item" data-page="ankidroid" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6v6H9zM12 1v3M12 20v3M1 12h3M20 12h3"/></svg><span>أنكي درويد</span></button>
-    <button type="button" class="dm-bnav-item" data-page="quiz" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M9 9l2 2 4-4M9 14h6"/></svg><span>الاختبارات</span><span class="dm-bnav-badge zero">0</span></button>
-    <button type="button" class="dm-bnav-item" data-page="review" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2 5"/><path d="M4 17v-5h5"/></svg><span>مراجعة</span><span class="dm-bnav-badge zero">0</span></button>
+    <button type="button" class="dm-bnav-item active" data-page="dashboard" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span data-i18n="dashboard">الرئيسية</span></button>
+    <button type="button" class="dm-bnav-item" data-page="explain" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg><span data-i18n="explain">الشرح</span></button>
+    <button type="button" class="dm-bnav-item" data-page="ankidroid" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6v6H9zM12 1v3M12 20v3M1 12h3M20 12h3"/></svg><span data-i18n="bnav_anki">أنكي درويد</span></button>
+    <button type="button" class="dm-bnav-item" data-page="quiz" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M9 9l2 2 4-4M9 14h6"/></svg><span data-i18n="bnav_quiz">الاختبارات</span><span class="dm-bnav-badge zero">0</span></button>
+    <button type="button" class="dm-bnav-item" data-page="review" aria-current="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2 5"/><path d="M4 17v-5h5"/></svg><span data-i18n="review">مراجعة</span><span class="dm-bnav-badge zero">0</span></button>
   </div>
 </nav>
 
@@ -846,7 +846,7 @@
       <label><span data-i18n="f_ex">مثال بالألمانية</span><input id="nwEx" placeholder="Das Haus ist groß."></label>
       <label><span data-i18n="f_exar">ترجمة المثال</span><input id="nwExAr" placeholder="البيت كبير."></label>
       <label><span data-i18n="f_cat">التصنيف</span><select id="nwCat"></select></label>
-      <label><span data-i18n="f_type">النوع</span><select id="nwType"><option data-i18n="t_noun">اسم</option><option data-i18n="t_verb">فعل</option><option data-i18n="t_adj">صفة</option><option data-i18n="t_pron">ضمير</option><option data-i18n="t_part">أداة</option><option data-i18n="t_vocabw">مفردات</option></select></label>
+      <label><span data-i18n="f_type">النوع</span><select id="nwType"><option value="اسم" data-i18n="t_noun">اسم</option><option value="فعل" data-i18n="t_verb">فعل</option><option value="صفة" data-i18n="t_adj">صفة</option><option value="ضمير" data-i18n="t_pron">ضمير</option><option value="أداة" data-i18n="t_part">أداة</option><option value="مفردات" data-i18n="t_vocabw">مفردات</option></select></label>
       <label><span data-i18n="f_level">المستوى</span><select id="nwLevel"><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select></label>
     </div>
     <div class="row-flex"><button class="btn btn-primary" id="addWordBtn" data-i18n="modal_addbtn">Add Word ✅</button><button class="btn btn-ghost" id="closeModal" data-i18n="modal_cancel">إلغاء</button></div>

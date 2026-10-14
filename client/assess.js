@@ -38,6 +38,62 @@
    ("النتيجة غير حاسمة — نحتاج أسئلة إضافية") instead of guessing.
    ========================================================================== */
 "use strict";
+/* ---------- interface language keys (same I18N system; merged additively) ---------- */
+try{
+Object.assign(I18N.ar,{as_sk_vocab:"الكلمات",as_sk_grammar:"القواعد",as_sk_sentences:"الجمل",as_sk_reading:"القراءة",as_sk_listening:"الاستماع",as_sk_writing:"الكتابة",as_sk_speaking:"التحدث",as_sk_practical:"المواقف",as_sk_words:"الكلمات",as_sk_ordering:"ترتيب الجملة",as_sk_verbs:"الأفعال",as_sk_articles:"المقالات",as_sk_plural:"الجمع",as_sk_translate:"الترجمة",as_sk_reallife:"المواقف",as_sk_mistakes:"أخطائي",as_sk_tfquiz:"صح أم خطأ",as_ev_nodata:"بيانات غير كافية",as_ev_strong:"قوي",as_ev_good:"جيد",as_ev_weak:"يحتاج مراجعة",as_ev_poor:"ضعيف — ابدأ من هنا",as_ev_nodata2:"لا بيانات",as_conf_high:"أسئلة كافية وتغطية متوازنة للمهارات",as_conf_med:"عدد أسئلة معقول لكن التغطية جزئية",as_conf_low_few:"أسئلة قليلة جدًا — النتيجة استرشادية",as_conf_low_cov:"تغطية المهارات محدودة",as_note_inconclusive:"النتيجة غير حاسمة — نحتاج أسئلة إضافية",as_note_start:"ابدأ من التأسيس (A1 من الصفر)",as_q_meaning:"ما معنى: ",as_q_mark:"؟",as_q_article:"اختر الأداة الصحيحة: ___ ",as_q_article_why:"تُحفظ الأداة مع الاسم دائمًا.",as_q_plural:"ما جمع: ",as_q_plural_why:"الجمع: ",as_q_translate:"اختر الكلمة الألمانية الصحيحة: ",as_q_tf:"صح أم خطأ: ",as_q_true:"صح ✅",as_q_false:"خطأ ❌",as_q_conj:"اختر التصريف الصحيح: ",as_q_conj_mid:" ___",as_q_fix:"الجملة فيها خطأ: «",as_q_fix_mid:"» — اختر التصحيح الصحيح:",as_q_order:"🔀 رتّب الكلمات لتكوين جملة صحيحة (",as_q_order_end:"):",as_q_order_why:"الجملة الصحيحة: ",as_q_complete:"🧩 أكمل: ",as_q_answer:"الإجابة: ",as_q_write:"✍️ اكتب الكلمة الناقصة: ",as_q_read:"📖 اقرأ ثم اختر المعنى الصحيح:",as_q_read_why:"الإجابة من النص: ",as_q_listen:"🎧 استمع واختر المعنى الصحيح:",as_q_speak:"🎤 أجب بالألمانية: ",as_q_speak_why:"مثال إجابة: ",as_q_sit:" — ما أفضل رد؟",as_q_sit_why:"أفضل رد: ",as_q_dialog:" — ماذا تقول بالألمانية؟",as_q_match:"🔗 وصّل كل كلمة بمعناها:",as_q_neg:"اختر النفي الصحيح: ",as_q_neg_verb:"nicht تنفي الفعل/الجملة: Ich lerne heute nicht.",as_q_neg_noun:"قبل الأسماء نستخدم kein/keine (وليس nicht): ",as_q_conj_all:"⚡ صرّف الفعل (",as_q_conj_all_mid:") مع كل ضمير:",as_q_wclass:"ما نوع الكلمة: ",as_q_wclass_mid:"؟",as_q_wclass_is:" نوعها: ",as_q_sentmean:"💬 ما معنى الجملة: «",as_q_sentmean_end:"»؟",as_q_gap_listen:"🎧 استمع للجملة واختر الكلمة الناقصة: ",as_q_sent_why:"الجملة: ",as_q_hear:"سمعت: ",as_q_match_hint:"اختر كلمة ألمانية ثم معناها بالعربية.",as_q_match_hint_en:"اختر كلمة ألمانية ثم معناها.",as_q_choose_de_first:"اختر الكلمة الألمانية أولًا",as_q_not_right:"❌ ليس المعنى الصحيح — حاول مجددًا",as_q_saved:"💾 تم حفظ تقدمك — يمكنك الاستكمال لاحقًا من المركز",as_q_no_sr:"التعرف الصوتي غير مدعوم — اكتب إجابتك ⌨️",as_q_speak_now:"🎤 تحدث الآن...",as_q_heard:"سمعتك: ",as_q_no_hear:"تعذر السماع — اكتب إجابتك ⌨️",as_q_no_mic:"تعذر تشغيل المايك",as_q_answer_first:"أجب أولًا ✍️",as_q_combo:"🔥 كومبو x",as_q_combo_xp:" — ⭐+5",as_q_perfect:"🏆 Perfect Round! خمس إجابات صحيحة متتالية ⭐+10",as_q_stageup:"🎉 أحسنت! انتقلت للمرحلة ",as_q_fb_ok:"صحيح ✅ ",as_q_fb_no:"❌ ",as_q_fb_right:"الصحيح: ",as_q_no_answer:"— (بدون إجابة)",as_q_timeout:"— (انتهى الوقت)",as_q_time_up:"⏱️ انتهى الوقت — يتم تسليم الاختبار تلقائيًا",as_q_time_q:"⏱️ انتهى وقت السؤال!",as_q_mode_train:"🟢 تدريب",as_q_mode_chal:"🟡 تحدي",as_q_mode_exam:"🔴 امتحان",as_q_mode_test:"🔵 اختبار",as_q_stage:"المرحلة ",as_q_stage_level:" (مستوى ",as_q_stage_close:")",as_q_stage_a:"المرحلة A (مستوى A1) — أجب بتركيز، الصعوبة تتكيف مع مستواك",as_q_quit:"إنهاء وحفظ ✖",as_q_hearbtn:"🔊 استمع",as_q_prev:"⏮ السابق",as_q_submit:"تحقق ✅",as_q_next:"التالي ⏭",as_q_match_auto:"💡 أكمل التوصيل — يتم التقييم تلقائيًا عند الانتهاء.",as_q_lock_hint:"💡 أجب ثم اضغط «تحقق». الإجابة المثبتة لا يمكن تغييرها — مثل الامتحان الحقيقي.",as_q_clear:"مسح 🗑️",as_q_write_ph:"اكتب إجابتك...",as_q_sample:"مثال: ",as_q_no_sr2:" (التعرف الصوتي غير مدعوم في متصفحك — اكتب إجابتك ⌨️)",as_q_mic:"🎤 تحدث",as_q_match_locked:"توصيل (",as_q_match_of:"/",as_q_match_err:", أخطاء: ",as_q_match_end:")",as_q_wordclass_of:"فعل Verb",as_q_wordclass_n:"اسم Nomen",as_q_wordclass_a:"صفة Adjektiv",as_c_head:"🎯 مركز الاختبارات والتقييم",as_c_sub:"هنا تعرف مستواك الحقيقي، والـ Kapitel الذي أنت فيه، ونقاط ضعفك، وماذا تذاكر الآن.",as_c_level:"مستواك الحالي",as_c_level_none:"حدد مستواك أولًا",as_c_kap:"Kapitel الحالي",as_c_kap_start:"ابدأ أول تقييم",as_c_kap_next:"قريب من ",as_c_kap_adv:"متقدم 🎉",as_c_mastery:"الإتقان",as_c_mastery_avg:"متوسط آخر ",as_c_mastery_q:" اختبارات",as_c_mastery_none:"لا اختبارات بعد",as_c_last:"آخر اختبار",as_c_last_go:"ابدأ الآن 🚀",as_c_best:"أفضل نتيجة",as_c_best_n:" اختبارات محلولة",as_c_best_0:"0 اختبارات",as_c_acc:"دقة الإجابات",as_c_acc_n:" إجابة مسجلة",as_c_acc_go:"أجب لتظهر دقتك",as_c_strong:"💪 القوية:",as_c_weak:"⚠️ الضعيفة:",as_c_place_h:"🎯 اختبار تحديد المستوى",as_c_dur:"⚡ حسب المدة",as_c_quick8:"اختبار سريع (8)",as_c_mid16:"اختبار متوسط (16)",as_c_full30:"اختبار شامل (30)",as_c_kap_h:"📖 اختبارات Kapitel",as_c_skill_h:"🧠 اختبارات المهارات",as_c_exam_h:"🏁 الامتحانات الشاملة",as_c_exam:"امتحان",as_c_exam_full:"الشامل",as_c_exam_pass:"النجاح من ",as_c_exam_timed:" — بتوقيت ⏱️",as_c_exam_avail:"محتوى ",as_c_exam_avail2:" متاح (",as_c_exam_words:" كلمة).",as_c_exam_prep:"المحتوى قيد التجهيز (",as_c_exam_rules:" قواعد)",as_c_exam_soon:" — سيُفتح عند اكتمال المحتوى.",as_c_exam_load:"⬇️ تحميل محتوى ",as_c_exam_note:"امتحانات Deutsch Master الداخلية — ليست شهادات رسمية (ليست Goethe).",as_c_map:"🗺️ خريطة الـ Kapitel",as_c_map_hint:"اضغط على أي Kapitel لاختباره أو مراجعته.",as_c_prog:"📈 تقدمك عبر الوقت",as_c_hist:"📜 سجل الاختبارات (",as_c_hist_close:")",as_c_hist_none:"لم تحل أي تقييم بعد — ابدأ بتحديد المستوى! 🚀",as_c_legacy_h:"📝 الاختبارات السريعة",as_c_legacy_sub:"تدريب سريع بالنظام السابق (أدوات، معاني، جمع، استماع...).",as_c_boss_locked:"🔒 اختبار الـ Kapitel مقفل — ",as_c_placement:"اختبار تحديد المستوى",as_c_kap_test:"اختبار ",as_c_exam_a1:"امتحان A1 الشامل — Deutsch Master",as_c_exam_lv:"امتحان ",as_c_exam_lv2:" الشامل — Deutsch Master",as_c_quick:"اختبار سريع",as_c_medium:"اختبار متوسط",as_c_full:"اختبار شامل",as_c_test_q:" سؤالًا",as_c_mine:"اختباري الخاص (",as_c_mine_mid:" • ",as_c_mine_cats:" فئات)",as_c_mistakes_me:"اختبرني في أخطائي",as_c_challenge:"تحدي اليوم 🎯",as_c_boss:"اختبار الزعيم 👑 • ",as_c_cumul:"اختبار تراكمي 📚 (",as_c_cumul_all:"الكل",as_c_smart:"اختبرني بذكاء 🧠 (",as_c_unlock_need:"يحتاج إتقان ",as_c_unlock_or:"% أو 3 اختبارات في ",as_c_unlock_open:" (التعلّم نفسه مفتوح دائمًا)",as_c_unlock_ok:"إتقان ",as_c_unlock_tests:" اختبارات في ",as_c_cat_test:" • ",as_c_sec_title:"🧭 مركز الاختبارات — اختر خطوتك",as_c_s1:"1. اختر المستوى",as_c_s2:"2. اختر Kapitel (",as_c_s2_close:")",as_c_nokap:"لا توجد Kapitel لهذا المستوى بعد.",as_c_locked_tip:"المحتوى قيد التجهيز",as_c_new:"🔒 جديد",as_c_done:"🟢 متقن",as_c_ready:"🟢 جاهز",as_c_rev:"🟡 مراجعة",as_c_train:"🔴 تدريب",as_c_mastery_w:" إتقان • ",as_c_last_r:"آخر نتيجة: ",as_c_never:"لم يُختبر",as_c_tests_n:" اختبارات",as_c_no_thin:"لا يوجد محتوى كافٍ لهذا الاختبار حاليًا (متاح: ",as_c_need:" — المطلوب: ",as_c_honest:"'). هذه نتيجة صادقة وليست درجة مخترعة. جرّب اختبارًا آخر أو أكمل الدروس أولًا.",as_c_cov:"التغطية المتاحة: ",as_c_back:"← عودة للمركز",as_c_boss_why:"الزعيم",as_c_level_q:"المستوى:",as_r_score:"📊 درجات الأقسام",as_r_skills:"📊 المهارات",as_r_thin:" (إجابات قليلة: ",as_r_thin_n:")",as_r_strong:"💪 نقاط القوة",as_r_weak:"⚠️ تحتاج مراجعة",as_r_notop:"لا نقاط قوة مؤكدة بعد — واصل التدرب.",as_r_noweak:"🎉 لا نقاط ضعف مؤكدة!",as_r_weak_det:"🎯 بالتفصيل: ",as_r_rec_rev:"راجع ",as_r_rec_go:"واصل ",as_r_mist:"❌ مراجعة أخطائي",as_r_journey:"🗺️ الرحلة",as_r_next:"➡️ ماذا تفعل الآن؟",as_r_your:"مستواك: ",as_r_kap:" • Kapitel: ",as_r_rev:"🔍 مراجعة الإجابات الخاطئة (",as_r_rev_close:")",as_r_noerr:"ممتاز — بلا أخطاء! 🎉",as_r_you:"إجابتك: ",as_r_right:"الصحيح: ",as_r_retry:"🔄 إعادة الاختبار",as_r_center:"← المركز",as_r_streak:"🔥 أطول سلسلة صحيحة: ",as_r_combo:" • 🏆 Perfect Rounds: ",as_r_record:"🎉 رقم قياسي جديد — أفضل نتيجة لك في هذا النوع!",as_r_conf:"مستوى الثقة",as_r_stages:"المراحل: ",as_r_badge_unconf:"🔒 غير مؤكد",as_r_badge_mastered:"✓ متقن ",as_r_badge_ready:"✓ جاهز ",as_r_badge_rev:" — يحتاج مراجعة",as_r_badge_locked:" — غير جاهز",as_r_resume:"💾 لديك اختبار غير مكتمل: ",as_r_resume_go:"▶️ استكمال الاختبار",as_r_discard:"🗑️ تجاهل",as_r_open_fail:"تعذر فتح النتيجة",as_r_resume_fail:"تعذر الاستكمال — بدء جديد أفضل",as_r_discarded:"تم تجاهل الاختبار غير المكتمل 🗑️",as_r_quit_saved:"💾 تم حفظ تقدمك",as_r_confirm_new:"لديك اختبار غير مكتمل محفوظ. بدء اختبار جديد سيستبدله. متابعة؟",as_r_loading:"⏳ جاري تحميل محتوى ",as_r_why:"لماذا؟ ",as_r_next_kap:"التالي",as_r_exam_pct:"امتحان شامل بنسبة ",as_r_pass_no:"لم تصل لعتبة النجاح ",as_r_passed:"ناجح 🎉",as_r_failed:"لم تنجح هذه المرة 💪",as_r_inconc:"غير حاسمة",as_r_done:"مكتمل ✅",as_r_path_a0:"Start A1 🟢",as_r_path_a1:"أكمل A1 ثم A2 🚀",as_r_path_go:"واصل إلى ",as_r_conf_h:"مرتفع ✅",as_r_conf_m:"متوسط 🟡",as_r_conf_l:"منخفض ⚠️",as_r_train_here:"تدرب على هذا الموضوع 🧪",as_r_train_skill:"تدرب على ",as_r_arrow:" ←",as_r_skill_sec:" • "});
+Object.assign(I18N.en,{as_sk_vocab:"Words",as_sk_grammar:"Grammar",as_sk_sentences:"Sentences",as_sk_reading:"Reading",as_sk_listening:"Listening",as_sk_writing:"Writing",as_sk_speaking:"Speaking",as_sk_practical:"Situations",as_sk_words:"Words",as_sk_ordering:"Sentence structure",as_sk_verbs:"Verbs",as_sk_articles:"Articles",as_sk_plural:"Plural",as_sk_translate:"Translation",as_sk_reallife:"Situations",as_sk_mistakes:"My mistakes",as_sk_tfquiz:"True or False",as_ev_nodata:"Insufficient data",as_ev_strong:"Strong",as_ev_good:"Good",as_ev_weak:"Needs review",as_ev_poor:"Weak — start here",as_ev_nodata2:"No data",as_conf_high:"Enough questions with balanced skill coverage",as_conf_med:"Decent question count but partial coverage",as_conf_low_few:"Too few questions — indicative result only",as_conf_low_cov:"Limited skill coverage",as_note_inconclusive:"Inconclusive — more questions needed",as_note_start:"Start from the basics (A1 from zero)",as_q_meaning:"What does this mean: ",as_q_mark:"?",as_q_article:"Choose the correct article: ___ ",as_q_article_why:"Always memorize the article with the noun.",as_q_plural:"What is the plural of: ",as_q_plural_why:"The plural: ",as_q_translate:"Choose the correct German word: ",as_q_tf:"True or false: ",as_q_true:"True ✅",as_q_false:"False ❌",as_q_conj:"Choose the correct conjugation: ",as_q_conj_mid:" ___",as_q_fix:"This sentence has an error: «",as_q_fix_mid:"» — choose the correct fix:",as_q_order:"🔀 Order the words to build a correct sentence (",as_q_order_end:"):",as_q_order_why:"The correct sentence: ",as_q_complete:"🧩 Complete: ",as_q_answer:"Answer: ",as_q_write:"✍️ Type the missing word: ",as_q_read:"📖 Read, then choose the correct meaning:",as_q_read_why:"The answer comes from the text: ",as_q_listen:"🎧 Listen and choose the correct meaning:",as_q_speak:"🎤 Answer in German: ",as_q_speak_why:"Sample answer: ",as_q_sit:" — what is the best reply?",as_q_sit_why:"Best reply: ",as_q_dialog:" — what do you say in German?",as_q_match:"🔗 Match each word with its meaning:",as_q_neg:"Choose the correct negation: ",as_q_neg_verb:"nicht negates the verb/sentence: Ich lerne heute nicht.",as_q_neg_noun:"Before nouns use kein/keine (not nicht): ",as_q_conj_all:"⚡ Conjugate the verb (",as_q_conj_all_mid:") for each pronoun:",as_q_wclass:"What kind of word is: ",as_q_wclass_mid:"?",as_q_wclass_is:" is a: ",as_q_sentmean:"💬 What does this sentence mean: «",as_q_sentmean_end:"»?",as_q_gap_listen:"🎧 Listen to the sentence and pick the missing word: ",as_q_sent_why:"The sentence: ",as_q_hear:"You heard: ",as_q_match_hint:"Pick a German word, then its Arabic meaning.",as_q_match_hint_en:"Pick a German word, then its meaning.",as_q_choose_de_first:"Pick the German word first",as_q_not_right:"❌ Not the right meaning — try again",as_q_saved:"💾 Progress saved — resume later from the center",as_q_no_sr:"Speech recognition unsupported — type your answer ⌨️",as_q_speak_now:"🎤 Speak now…",as_q_heard:"I heard: ",as_q_no_hear:"Couldn't hear — type your answer ⌨️",as_q_no_mic:"Microphone failed",as_q_answer_first:"Answer first ✍️",as_q_combo:"🔥 Combo x",as_q_combo_xp:" — ⭐+5",as_q_perfect:"🏆 Perfect Round! Five correct in a row ⭐+10",as_q_stageup:"🎉 Well done! Advanced to stage ",as_q_fb_ok:"Correct ✅ ",as_q_fb_no:"❌ ",as_q_fb_right:"Correct: ",as_q_no_answer:"— (no answer)",as_q_timeout:"— (time is up)",as_q_time_up:"⏱️ Time is up — the quiz submits automatically",as_q_time_q:"⏱️ Question time is up!",as_q_mode_train:"🟢 Training",as_q_mode_chal:"🟡 Challenge",as_q_mode_exam:"🔴 Exam",as_q_mode_test:"🔵 Quiz",as_q_stage:"Stage ",as_q_stage_level:" (level ",as_q_stage_close:")",as_q_stage_a:"Stage A (level A1) — answer carefully, difficulty adapts to you",as_q_quit:"Finish & save ✖",as_q_hearbtn:"🔊 Listen",as_q_prev:"⏮ Previous",as_q_submit:"Check ✅",as_q_next:"Next ⏭",as_q_match_auto:"💡 Finish the matching — scored automatically when done.",as_q_lock_hint:"💡 Answer, then press “Check”. A locked answer cannot change — like a real exam.",as_q_clear:"Clear 🗑️",as_q_write_ph:"Type your answer…",as_q_sample:"Example: ",as_q_no_sr2:" (speech recognition unsupported in your browser — type your answer ⌨️)",as_q_mic:"🎤 Speak",as_q_match_locked:"Matching (",as_q_match_of:"/",as_q_match_err:", mistakes: ",as_q_match_end:")",as_q_wordclass_of:"verb Verb",as_q_wordclass_n:"noun Nomen",as_q_wordclass_a:"adjective Adjektiv",as_c_head:"🎯 Assessment & Testing Center",as_c_sub:"Find your real level, your Kapitel, your weak spots, and what to study next.",as_c_level:"Your level",as_c_level_none:"Determine your level first",as_c_kap:"Current Kapitel",as_c_kap_start:"Start your first assessment",as_c_kap_next:"Almost at ",as_c_kap_adv:"Advanced 🎉",as_c_mastery:"Mastery",as_c_mastery_avg:"Average of last ",as_c_mastery_q:" quizzes",as_c_mastery_none:"No quizzes yet",as_c_last:"Last quiz",as_c_last_go:"Start now 🚀",as_c_best:"Best score",as_c_best_n:" quizzes taken",as_c_best_0:"0 quizzes",as_c_acc:"Answer accuracy",as_c_acc_n:" recorded answers",as_c_acc_go:"Answer to see your accuracy",as_c_strong:"💪 Strong:",as_c_weak:"⚠️ Weak:",as_c_place_h:"🎯 Placement test",as_c_dur:"⚡ By duration",as_c_quick8:"Quick quiz (8)",as_c_mid16:"Medium quiz (16)",as_c_full30:"Full quiz (30)",as_c_kap_h:"📖 Kapitel quizzes",as_c_skill_h:"🧠 Skill quizzes",as_c_exam_h:"🏁 Comprehensive exams",as_c_exam:"exam",as_c_exam_full:"comprehensive",as_c_exam_pass:"Pass from ",as_c_exam_timed:" — timed ⏱️",as_c_exam_avail:"Content ",as_c_exam_avail2:" available (",as_c_exam_words:" words).",as_c_exam_prep:"Content in preparation (",as_c_exam_rules:" rules)",as_c_exam_soon:" — unlocks when content is complete.",as_c_exam_load:"⬇️ Load content ",as_c_exam_note:"Internal Deutsch Master exams — not official certificates (not Goethe).",as_c_map:"🗺️ Kapitel map",as_c_map_hint:"Tap any Kapitel to test or review it.",as_c_prog:"📈 Your progress over time",as_c_hist:"📜 Quiz history (",as_c_hist_close:")",as_c_hist_none:"No assessments yet — start with placement! 🚀",as_c_legacy_h:"📝 Quick quizzes",as_c_legacy_sub:"Quick training with classic types (articles, meanings, plurals, listening…).",as_c_boss_locked:"🔒 Kapitel boss test locked — ",as_c_placement:"Placement test",as_c_kap_test:"Quiz ",as_c_exam_a1:"Comprehensive A1 exam — Deutsch Master",as_c_exam_lv:"Comprehensive ",as_c_exam_lv2:" exam — Deutsch Master",as_c_quick:"Quick quiz",as_c_medium:"Medium quiz",as_c_full:"Full quiz",as_c_test_q:" questions",as_c_mine:"My custom quiz (",as_c_mine_mid:" • ",as_c_mine_cats:" categories)",as_c_mistakes_me:"Quiz me on my mistakes",as_c_challenge:"Today's challenge 🎯",as_c_boss:"Boss test 👑 • ",as_c_cumul:"Cumulative quiz 📚 (",as_c_cumul_all:"All",as_c_smart:"Quiz me smart 🧠 (",as_c_unlock_need:"Needs ",as_c_unlock_or:"% or 3 quizzes in ",as_c_unlock_open:" (learning itself is always open)",as_c_unlock_ok:"Mastery ",as_c_unlock_tests:" quizzes in ",as_c_cat_test:" • ",as_c_sec_title:"🧭 Test center — pick your step",as_c_s1:"1. Pick a level",as_c_s2:"2. Pick a Kapitel (",as_c_s2_close:")",as_c_nokap:"No Kapitel for this level yet.",as_c_locked_tip:"Content in preparation",as_c_new:"🔒 New",as_c_done:"🟢 Mastered",as_c_ready:"🟢 Ready",as_c_rev:"🟡 Review",as_c_train:"🔴 Train",as_c_mastery_w:" mastery • ",as_c_last_r:"Last result: ",as_c_never:"Not tested",as_c_tests_n:" quizzes",as_c_no_thin:"Not enough content for this quiz yet (available: ",as_c_need:" — required: ",as_c_honest:"'). Honest result, not a made-up score. Try another quiz or finish lessons first.",as_c_cov:"Available coverage: ",as_c_back:"← Back to center",as_c_boss_why:"Boss",as_c_level_q:"Level:",as_r_score:"📊 Section scores",as_r_skills:"📊 Skills",as_r_thin:" (few answers: ",as_r_thin_n:")",as_r_strong:"💪 Strengths",as_r_weak:"⚠️ Needs review",as_r_notop:"No confirmed strengths yet — keep training.",as_r_noweak:"🎉 No confirmed weaknesses!",as_r_weak_det:"🎯 In detail: ",as_r_rec_rev:"Review ",as_r_rec_go:"Continue ",as_r_mist:"❌ Review my mistakes",as_r_journey:"🗺️ Journey",as_r_next:"➡️ What now?",as_r_your:"Your level: ",as_r_kap:" • Kapitel: ",as_r_rev:"🔍 Reviewing wrong answers (",as_r_rev_close:")",as_r_noerr:"Excellent — no mistakes! 🎉",as_r_you:"Your answer: ",as_r_right:"Correct: ",as_r_retry:"🔄 Retry quiz",as_r_center:"← Center",as_r_streak:"🔥 Longest correct streak: ",as_r_combo:" • 🏆 Perfect Rounds: ",as_r_record:"🎉 New record — your best in this type!",as_r_conf:"Confidence",as_r_stages:"Stages: ",as_r_badge_unconf:"🔒 Unconfirmed",as_r_badge_mastered:"✓ Mastered ",as_r_badge_ready:"✓ Ready ",as_r_badge_rev:" — needs review",as_r_badge_locked:" — not ready",as_r_resume:"💾 You have an unfinished quiz: ",as_r_resume_go:"▶️ Resume quiz",as_r_discard:"🗑️ Discard",as_r_open_fail:"Could not open the result",as_r_resume_fail:"Cannot resume — starting fresh is better",as_r_discarded:"Incomplete quiz discarded 🗑️",as_r_quit_saved:"💾 Your progress was saved",as_r_confirm_new:"You have an unfinished saved quiz. Starting a new one will replace it. Continue?",as_r_loading:"⏳ Loading content ",as_r_why:"Why? ",as_r_next_kap:"Next",as_r_exam_pct:"Comprehensive exam at ",as_r_pass_no:"Didn't reach the pass mark ",as_r_passed:"Passed 🎉",as_r_failed:"Not this time 💪",as_r_inconc:"Inconclusive",as_r_done:"Complete ✅",as_r_path_a0:"Start A1 🟢",as_r_path_a1:"Finish A1 then A2 🚀",as_r_path_go:"Continue to ",as_r_conf_h:"High ✅",as_r_conf_m:"Medium 🟡",as_r_conf_l:"Low ⚠️",as_r_train_here:"Practice this topic 🧪",as_r_train_skill:"Practice ",as_r_arrow:" →",as_r_skill_sec:" • "});
+Object.assign(I18N.de,{as_sk_vocab:"Wörter",as_sk_grammar:"Grammatik",as_sk_sentences:"Sätze",as_sk_reading:"Lesen",as_sk_listening:"Hören",as_sk_writing:"Schreiben",as_sk_speaking:"Sprechen",as_sk_practical:"Situationen",as_sk_words:"Wörter",as_sk_ordering:"Satzbau",as_sk_verbs:"Verben",as_sk_articles:"Artikel",as_sk_plural:"Plural",as_sk_translate:"Übersetzung",as_sk_reallife:"Situationen",as_sk_mistakes:"Meine Fehler",as_sk_tfquiz:"Richtig/Falsch",as_ev_nodata:"Zu wenig Daten",as_ev_strong:"Stark",as_ev_good:"Gut",as_ev_weak:"Braucht Wiederholung",as_ev_poor:"Schwach — hier starten",as_ev_nodata2:"Keine Daten",as_conf_high:"Genug Fragen mit ausgewogener Abdeckung",as_conf_med:"Ordentliche Anzahl, aber lückenhafte Abdeckung",as_conf_low_few:"Zu wenige Fragen — nur Richtwert",as_conf_low_cov:"Begrenzte Abdeckung",as_note_inconclusive:"Unklar — mehr Fragen nötig",as_note_start:"Bei den Grundlagen starten (A1 von Null)",as_q_meaning:"Was bedeutet: ",as_q_mark:"?",as_q_article:"Wähle den richtigen Artikel: ___ ",as_q_article_why:"Lerne den Artikel immer mit dem Nomen.",as_q_plural:"Wie lautet der Plural von: ",as_q_plural_why:"Der Plural: ",as_q_translate:"Wähle das richtige deutsche Wort: ",as_q_tf:"Richtig oder falsch: ",as_q_true:"Richtig ✅",as_q_false:"Falsch ❌",as_q_conj:"Wähle die richtige Konjugation: ",as_q_conj_mid:" ___",as_q_fix:"Dieser Satz hat einen Fehler: «",as_q_fix_mid:"» — wähle die richtige Korrektur:",as_q_order:"🔀 Ordne die Wörter zu einem richtigen Satz: (",as_q_order_end:"):",as_q_order_why:"Der richtige Satz: ",as_q_complete:"🧩 Ergänze: ",as_q_answer:"Antwort: ",as_q_write:"✍️ Schreibe das fehlende Wort: ",as_q_read:"📖 Lies und wähle die richtige Bedeutung:",as_q_read_why:"Die Antwort steht im Text: ",as_q_listen:"🎧 Höre zu und wähle die richtige Bedeutung:",as_q_speak:"🎤 Antworte auf Deutsch: ",as_q_speak_why:"Beispielantwort: ",as_q_sit:" — was ist die beste Antwort?",as_q_sit_why:"Beste Antwort: ",as_q_dialog:" — was sagst du auf Deutsch?",as_q_match:"🔗 Ordne jedes Wort seiner Bedeutung zu:",as_q_neg:"Wähle die richtige Verneinung: ",as_q_neg_verb:"nicht verneint Verb/Satz: Ich lerne heute nicht.",as_q_neg_noun:"Vor Nomen kein/keine (nicht nicht): ",as_q_conj_all:"⚡ Konjugiere das Verb (",as_q_conj_all_mid:") für jedes Pronomen:",as_q_wclass:"Was für ein Wort ist: ",as_q_wclass_mid:"?",as_q_wclass_is:" ist ein: ",as_q_sentmean:"💬 Was bedeutet dieser Satz: «",as_q_sentmean_end:"»?",as_q_gap_listen:"🎧 Höre den Satz und wähle das fehlende Wort: ",as_q_sent_why:"Der Satz: ",as_q_hear:"Gehört: ",as_q_match_hint:"Wähle ein deutsches Wort und seine arabische Bedeutung.",as_q_match_hint_en:"Wähle ein deutsches Wort und seine Bedeutung.",as_q_choose_de_first:"Wähle zuerst das deutsche Wort",as_q_not_right:"❌ Nicht die richtige Bedeutung — versuch es nochmal",as_q_saved:"💾 Fortschritt gespeichert — später im Center fortsetzen",as_q_no_sr:"Spracherkennung nicht unterstützt — schreiben ⌨️",as_q_speak_now:"🎤 Jetzt sprechen …",as_q_heard:"Gehört: ",as_q_no_hear:"Nicht gehört — schreiben ⌨️",as_q_no_mic:"Mikrofon fehlgeschlagen",as_q_answer_first:"Antworte zuerst ✍️",as_q_combo:"🔥 Kombo x",as_q_combo_xp:" — ⭐+5",as_q_perfect:"🏆 Perfect Round! Fünf Richtige in Folge ⭐+10",as_q_stageup:"🎉 Gut gemacht! Weiter zu Phase ",as_q_fb_ok:"Richtig ✅ ",as_q_fb_no:"❌ ",as_q_fb_right:"Richtig: ",as_q_no_answer:"— (keine Antwort)",as_q_timeout:"— (Zeit um)",as_q_time_up:"⏱️ Zeit um — der Test wird automatisch abgegeben",as_q_time_q:"⏱️ Fragezeit um!",as_q_mode_train:"🟢 Training",as_q_mode_chal:"🟡 Challenge",as_q_mode_exam:"🔴 Prüfung",as_q_mode_test:"🔵 Test",as_q_stage:"Phase ",as_q_stage_level:" (Niveau ",as_q_stage_close:")",as_q_stage_a:"Phase A (Niveau A1) — antworte konzentriert, die Stufe passt sich an",as_q_quit:"Beenden & speichern ✖",as_q_hearbtn:"🔊 Anhören",as_q_prev:"⏮ Zurück",as_q_submit:"Prüfen ✅",as_q_next:"Weiter ⏭",as_q_match_auto:"💡 Beende das Zuordnen — automatische Wertung am Ende.",as_q_lock_hint:"💡 Antworte, dann „Prüfen“. Fixierte Antworten ändern sich nicht — wie in echter Prüfung.",as_q_clear:"Löschen 🗑️",as_q_write_ph:"Schreibe deine Antwort …",as_q_sample:"Beispiel: ",as_q_no_sr2:" (Spracherkennung nicht unterstützt — schreiben ⌨️)",as_q_mic:"🎤 Sprechen",as_q_match_locked:"Zuordnung (",as_q_match_of:"/",as_q_match_err:", Fehler: ",as_q_match_end:")",as_q_wordclass_of:"Verb Verb",as_q_wordclass_n:"Nomen Nomen",as_q_wordclass_a:"Adjektiv Adjektiv",as_c_head:"🎯 Test- & Prüfungscenter",as_c_sub:"Finde dein echtes Niveau, dein Kapitel, deine Schwächen und was du jetzt lernen sollst.",as_c_level:"Dein Niveau",as_c_level_none:"Bestimme zuerst dein Niveau",as_c_kap:"Aktuelles Kapitel",as_c_kap_start:"Starte deine erste Prüfung",as_c_kap_next:"Fast bei ",as_c_kap_adv:"Fortgeschritten 🎉",as_c_mastery:"Beherrschung",as_c_mastery_avg:"Schnitt der letzten ",as_c_mastery_q:" Tests",as_c_mastery_none:"Noch keine Tests",as_c_last:"Letzter Test",as_c_last_go:"Jetzt starten 🚀",as_c_best:"Bestleistung",as_c_best_n:" Tests gemacht",as_c_best_0:"0 Tests",as_c_acc:"Antwortgenauigkeit",as_c_acc_n:" gespeicherte Antworten",as_c_acc_go:"Antworte für deine Genauigkeit",as_c_strong:"💪 Stärken:",as_c_weak:"⚠️ Schwächen:",as_c_place_h:"🎯 Einstufungstest",as_c_dur:"⚡ Nach Dauer",as_c_quick8:"Schnelltest (8)",as_c_mid16:"Mittlerer Test (16)",as_c_full30:"Volltest (30)",as_c_kap_h:"📖 Kapitel-Tests",as_c_skill_h:"🧠 Skill-Tests",as_c_exam_h:"🏁 Abschlussprüfungen",as_c_exam:"Prüfung",as_c_exam_full:"umfassende",as_c_exam_pass:"Bestehen ab ",as_c_exam_timed:" — mit Zeit ⏱️",as_c_exam_avail:"Inhalt ",as_c_exam_avail2:" verfügbar (",as_c_exam_words:" Wörter).",as_c_exam_prep:"Inhalt in Vorbereitung (",as_c_exam_rules:" Regeln)",as_c_exam_soon:" — wird bei vollständigem Inhalt freigeschaltet.",as_c_exam_load:"⬇️ Inhalt laden ",as_c_exam_note:"Interne Deutsch-Master-Tests — keine offiziellen Zertifikate (kein Goethe).",as_c_map:"🗺️ Kapitel-Karte",as_c_map_hint:"Tippe auf ein Kapitel zum Testen oder Wiederholen.",as_c_prog:"📈 Dein Fortschritt",as_c_hist:"📜 Testverlauf (",as_c_hist_close:")",as_c_hist_none:"Noch keine Tests — starte mit der Einstufung! 🚀",as_c_legacy_h:"📝 Schnelltests",as_c_legacy_sub:"Schnelles Training mit klassischen Typen (Artikel, Bedeutungen, Plural, Hören …).",as_c_boss_locked:"🔒 Kapitel-Bosstest gesperrt — ",as_c_placement:"Einstufungstest",as_c_kap_test:"Test ",as_c_exam_a1:"Umfassende A1-Prüfung — Deutsch Master",as_c_exam_lv:"Umfassende ",as_c_exam_lv2:" Prüfung — Deutsch Master",as_c_quick:"Schnelltest",as_c_medium:"Mittlerer Test",as_c_full:"Volltest",as_c_test_q:" Fragen",as_c_mine:"Mein eigener Test (",as_c_mine_mid:" • ",as_c_mine_cats:" Kategorien)",as_c_mistakes_me:"Teste mich mit meinen Fehlern",as_c_challenge:"Tages-Challenge 🎯",as_c_boss:"Bosstest 👑 • ",as_c_cumul:"Kumulativer Test 📚 (",as_c_cumul_all:"Alle",as_c_smart:"Teste mich smart 🧠 (",as_c_unlock_need:"Braucht ",as_c_unlock_or:"% oder 3 Tests in ",as_c_unlock_open:" (Lernen selbst ist immer offen)",as_c_unlock_ok:"Beherrschung ",as_c_unlock_tests:" Tests in ",as_c_cat_test:" • ",as_c_sec_title:"🧭 Testcenter — wähle deinen Schritt",as_c_s1:"1. Niveau wählen",as_c_s2:"2. Kapitel wählen (",as_c_s2_close:")",as_c_nokap:"Noch keine Kapitel für dieses Niveau.",as_c_locked_tip:"Inhalt in Vorbereitung",as_c_new:"🔒 Neu",as_c_done:"🟢 Gemeistert",as_c_ready:"🟢 Bereit",as_c_rev:"🟡 Wiederholen",as_c_train:"🔴 Üben",as_c_mastery_w:" Beherrschung • ",as_c_last_r:"Letztes Ergebnis: ",as_c_never:"Nicht getestet",as_c_tests_n:" Tests",as_c_no_thin:"Noch nicht genug Inhalt für diesen Test (verfügbar: ",as_c_need:" — nötig: ",as_c_honest:"'). Ehrliches Ergebnis, keine erfundene Note. Versuche einen anderen Test oder beende Lektionen.",as_c_cov:"Verfügbare Abdeckung: ",as_c_back:"← Zurück zum Center",as_c_boss_why:"Boss",as_c_level_q:"Niveau:",as_r_score:"📊 Bereichsergebnisse",as_r_skills:"📊 Skills",as_r_thin:" (wenige Antworten: ",as_r_thin_n:")",as_r_strong:"💪 Stärken",as_r_weak:"⚠️ Braucht Wiederholung",as_r_notop:"Noch keine bestätigten Stärken — weiter üben.",as_r_noweak:"🎉 Keine bestätigten Schwächen!",as_r_weak_det:"🎯 Im Detail: ",as_r_rec_rev:"Wiederhole ",as_r_rec_go:"Weiter mit ",as_r_mist:"❌ Meine Fehler ansehen",as_r_journey:"🗺️ Reise",as_r_next:"➡️ Was jetzt?",as_r_your:"Dein Niveau: ",as_r_kap:" • Kapitel: ",as_r_rev:"🔍 Falsche Antworten ansehen (",as_r_rev_close:")",as_r_noerr:"Ausgezeichnet — keine Fehler! 🎉",as_r_you:"Deine Antwort: ",as_r_right:"Richtig: ",as_r_retry:"🔄 Test wiederholen",as_r_center:"← Center",as_r_streak:"🔥 Längste richtige Serie: ",as_r_combo:" • 🏆 Perfect Rounds: ",as_r_record:"🎉 Neuer Rekord — dein Bestes in diesem Typ!",as_r_conf:"Konfidenz",as_r_stages:"Phasen: ",as_r_badge_unconf:"🔒 Unbestätigt",as_r_badge_mastered:"✓ Gemeistert ",as_r_badge_ready:"✓ Bereit ",as_r_badge_rev:" — braucht Wiederholung",as_r_badge_locked:" — nicht bereit",as_r_resume:"💾 Unvollendeter Test: ",as_r_resume_go:"▶️ Test fortsetzen",as_r_discard:"🗑️ Verwerfen",as_r_open_fail:"Ergebnis konnte nicht geöffnet werden",as_r_resume_fail:"Fortsetzen nicht möglich — neu starten",as_r_discarded:"Unvollendeter Test verworfen 🗑️",as_r_quit_saved:"💾 Fortschritt gespeichert",as_r_confirm_new:"Du hast einen unvollendeten Test. Ein neuer ersetzt ihn. Fortfahren?",as_r_loading:"⏳ Inhalt wird geladen ",as_r_why:"Warum? ",as_r_next_kap:"Weiter",as_r_exam_pct:"Prüfung mit ",as_r_pass_no:"Bestanden-Marke verfehlt ",as_r_passed:"Bestanden 🎉",as_r_failed:"Diesmal nicht 💪",as_r_inconc:"Unklar",as_r_done:"Fertig ✅",as_r_path_a0:"Start A1 🟢",as_r_path_a1:"Beende A1, dann A2 🚀",as_r_path_go:"Weiter zu ",as_r_conf_h:"Hoch ✅",as_r_conf_m:"Mittel 🟡",as_r_conf_l:"Niedrig ⚠️",as_r_train_here:"Übe dieses Thema 🧪",as_r_train_skill:"Übe ",as_r_arrow:" →",as_r_skill_sec:" • "});
+}catch(__as_i18n_e){}
+/* ---------- interface language keys, batch 2 (same I18N system) ---------- */
+try{
+Object.assign(I18N.ar,{as_note_passed_a:"اجتزت ",as_note_passed_b:" من ",as_note_passed_c:" مراحل",as_ev_test:"اختبار: ",as_ev_q:" أسئلة",as_ev_prog:"من تقدمك العام فقط",as_q_say_w:"مع ",as_q_say_s:" نقول: ",as_q_say_ex:" — مثال حقيقي: ",as_q_right_is:"الصحيح: ",as_q_er_end:" — مع Er يأخذ الفعل نهاية خاصة (",as_q_kein_note:" — الجملة فعلية بدون اسم)",as_q_dlg:"🗣️ أكمل الحوار (",as_q_dlg_said:") — قال: «",as_q_dlg_you:"» فأجبت: «",as_q_dlg_then:"» — ثم قال: «",as_q_dlg_st:"» (",as_q_dlg_ask:") — ما ردك؟",as_q_dlg_why:"الرد الطبيعي: ",as_q_says:" — يقول لك: «"});
+Object.assign(I18N.en,{as_note_passed_a:"Passed ",as_note_passed_b:" of ",as_note_passed_c:" stages",as_ev_test:"Quiz: ",as_ev_q:" questions",as_ev_prog:"from your overall progress only",as_q_say_w:"With ",as_q_say_s:" we say: ",as_q_say_ex:" — real example: ",as_q_right_is:"Correct: ",as_q_er_end:" — with Er the verb takes a special ending (",as_q_kein_note:" — verbless sentence, no noun)",as_q_dlg:"🗣️ Complete the dialogue (",as_q_dlg_said:") — he said: «",as_q_dlg_you:"» you answered: «",as_q_dlg_then:"» — then he said: «",as_q_dlg_st:"» (",as_q_dlg_ask:") — what is your reply?",as_q_dlg_why:"The natural reply: ",as_q_says:" — says to you: «"});
+Object.assign(I18N.de,{as_note_passed_a:"Bestanden ",as_note_passed_b:" von ",as_note_passed_c:" Phasen",as_ev_test:"Test: ",as_ev_q:" Fragen",as_ev_prog:"nur aus deinem Gesamtfortschritt",as_q_say_w:"Bei ",as_q_say_s:" sagen wir: ",as_q_say_ex:" — echtes Beispiel: ",as_q_right_is:"Richtig: ",as_q_er_end:" — mit Er bekommt das Verb eine besondere Endung (",as_q_kein_note:" — verbloser Satz, kein Nomen)",as_q_dlg:"🗣️ Dialog ergänzen (",as_q_dlg_said:") — er sagte: «",as_q_dlg_you:"» du antwortetest: «",as_q_dlg_then:"» — dann sagte er: «",as_q_dlg_st:"» (",as_q_dlg_ask:") — was antwortest du?",as_q_dlg_why:"Die natürliche Antwort: ",as_q_says:" — sagt zu dir: «"});
+}catch(__as_i18n_e2){}
+/* ---------- interface language keys, batch 3 (same I18N system) ---------- */
+try{
+Object.assign(I18N.ar,{as_q_missing:" — ناقصك: "});
+Object.assign(I18N.en,{as_q_missing:" — you are missing: "});
+Object.assign(I18N.de,{as_q_missing:" — dir fehlt: "});
+}catch(__as_i18n_e3){}
+/* ---------- interface language keys, batch 4 (same I18N system) ---------- */
+try{
+Object.assign(I18N.ar,{as_c_kexam_h:"الامتحان الشامل • "});
+Object.assign(I18N.en,{as_c_kexam_h:"Comprehensive exam • "});
+Object.assign(I18N.de,{as_c_kexam_h:"Prüfung • "});
+}catch(__as_i18n_e4){}
+/* ---------- interface language keys, batch 5 (same I18N system) ---------- */
+try{
+Object.assign(I18N.ar,{as_r_notop:"لا نقاط قوة مؤكدة بعد — واصل التدرب.",as_r_noweak:"🎉 لا نقاط ضعف مؤكدة!",as_r_test:"اختبار",as_c_place_sub:"اختبار شامل تكيّفي (A1 ← A2 ← B1): مفردات، قواعد، جمل، قراءة، استماع، مواقف عملية، وتحدث اختياري. يحدد مستواك والـ Kapitel بدقة.",as_c_place_go:"ابدأ تحديد المستوى 🚀",as_c_start_exam:"ابدأ الامتحان 🏁",as_q_match_pct:"تطابق الكلمات: ",as_q_rated:" (تقييم استرشادي)",as_q_ok_n:"صحيح: "});
+Object.assign(I18N.en,{as_r_notop:"No confirmed strengths yet — keep training.",as_r_noweak:"🎉 No confirmed weaknesses!",as_r_test:"Quiz",as_c_place_sub:"Adaptive comprehensive test (A1 ← A2 ← B1): vocabulary, grammar, sentences, reading, listening, real situations, optional speaking. Determines your level and Kapitel precisely.",as_c_place_go:"Start placement 🚀",as_c_start_exam:"Start exam 🏁",as_q_match_pct:"Word match: ",as_q_rated:" (indicative rating)",as_q_ok_n:"Correct: "});
+Object.assign(I18N.de,{as_r_notop:"Noch keine bestätigten Stärken — weiter üben.",as_r_noweak:"🎉 Keine bestätigten Schwächen!",as_r_test:"Test",as_c_place_sub:"Adaptiver Gesamttest (A1 ← A2 ← B1): Wortschatz, Grammatik, Sätze, Lesen, Hören, Alltagssituationen, optionales Sprechen. Bestimmt Niveau und Kapitel präzise.",as_c_place_go:"Einstufung starten 🚀",as_c_start_exam:"Prüfung starten 🏁",as_q_match_pct:"Worttreffer: ",as_q_rated:" (Richtwert)",as_q_ok_n:"Richtig: "});
+}catch(__as_i18n_e5){}
+/* ---------- interface language keys, batch 6 (same I18N system) ---------- */
+try{
+Object.assign(I18N.ar,{as_c_exam_w2:" كلمة، "});
+Object.assign(I18N.en,{as_c_exam_w2:" words, "});
+Object.assign(I18N.de,{as_c_exam_w2:" Wörter,"});
+}catch(__as_i18n_e6){}
+/* ---------- interface language keys, batch 7 (same I18N system) ---------- */
+try{
+Object.assign(I18N.ar,{as_c_varied:"متنوع"});
+Object.assign(I18N.en,{as_c_varied:"Mixed"});
+Object.assign(I18N.de,{as_c_varied:"Gemischt"});
+}catch(__as_i18n_e7){}
+/* Display-entry selectors (same i18n system; data untouched). */
+function askSkillEntry(m){try{var L=askLang();if(L==="en"&&(m.en||""))return m.en;if(L==="de"&&(m.de||m.en||""))return m.de||m.en;return (m&&(m.ar||""))||"";}catch(e){try{return (m&&(m.ar||""))||"";}catch(e2){return "";}}}
+function askModeEntry(m){try{var L=askLang();if(L!=="ar"&&(m.en||""))return m.en;return (m&&(m.ar||""))||"";}catch(e){try{return (m&&(m.ar||""))||"";}catch(e2){return "";}}}
+function askDiffEntry(m){try{var L=askLang();if(L==="en"&&(m.en||""))return m.en;if(L==="de"&&(m.de||m.en||""))return m.de||m.en;return (m&&(m.ar||""))||"";}catch(e){try{return (m&&(m.ar||""))||"";}catch(e2){return "";}}}
+/* Interface language for this module (reads the same S.uiLang). */
+function askLang(){try{if(typeof uilang==="function")return uilang();var L=(typeof S!=="undefined"&&S&&S.uiLang)||"ar";return L==="en"?"en":(L==="de"?"de":"ar");}catch(e){return "ar";}}
+function askT(k,fb){try{if(typeof window!=="undefined"&&typeof window.t==="function"){var v=window.t(k);if(v!==null&&v!==undefined&&v!==""&&v!==k)return v;}}catch(e){}return (fb===undefined||fb===null)?k:fb;}
+function wMean(w){try{if(typeof wordMeaning==="function")return wordMeaning(w);}catch(e){}try{return (w&&(w.ar||w.en))||"";}catch(e2){return "";}}
+function sMean(s){try{if(typeof sentMeaning==="function")return sentMeaning(s);}catch(e){}try{return (s&&(s.ar||s.en))||"";}catch(e2){return "";}}
+function distractMean(pool,w,n){try{var out=[],seen={},rm=wMean(w);seen[rm]=1;n=n||3;if(!pool||!pool.length)return out;var tries=0,mt=Math.max(24,n*12);while(out.length<n&&tries<mt){tries++;var x=pool[(Math.random()*pool.length)|0];if(!x)continue;var m=wMean(x);if(!m||seen[m])continue;seen[m]=1;out.push(m);}return out;}catch(e){return [];}}
+function distractSentMean(pool,s,n){try{var out=[],seen={},rm=sMean(s);seen[rm]=1;n=n||3;if(!pool||!pool.length)return out;var tries=0,mt=Math.max(24,n*12);while(out.length<n&&tries<mt){tries++;var x=pool[(Math.random()*pool.length)|0];if(!x)continue;var m=sMean(x);if(!m||seen[m])continue;seen[m]=1;out.push(m);}return out;}catch(e){return [];}}
+/* Arabic topic label -> English/German equivalent (display only; data untouched). */
+var ASTOPIC=[["معاني الكلمات","Word meanings","Wortbedeutungen"],["الأدوات der/die/das","Articles der/die/das","Artikel der/die/das"],["الجمع Plural","Plural","Plural"],["الترجمة عربي","Arabic translation","Arabische Übersetzung"],["صح أم خطأ — المفردات","True/false vocabulary","Richtig/Falsch Wortschatz"],["تصريف الأفعال","Verb conjugation","Verbkonjugation"],["تصحيح الخطأ","Error correction","Fehlerkorrektur"],["ترتيب الجملة","Sentence order","Wortstellung"],["إكمال الجمل","Sentence completion","Satzergänzung"],["الأدوات في السياق","Articles in context","Artikel im Kontext"],["الأفعال في السياق","Verbs in context","Verben im Kontext"],["الكلمة في السياق","Word in context","Wort im Kontext"],["الكتابة والإملاء","Writing and spelling","Schreiben"],["فهم المقروء","Reading comprehension","Leseverstehen"],["الفهم السمعي","Listening comprehension","Hörverstehen"],["التحدث","Speaking","Sprechen"],["الكلمة الناقصة سمعيًا","Missing word by listening","Fehlendes Wort (Hören)"],["النفي kein / nicht","Negation kein/nicht","Verneinung kein/nicht"],["تصريف الأفعال ich/du/er","Conjugation ich/du/er","Konjugation ich/du/er"],["أقسام الكلام","Parts of speech","Wortarten"],["معنى الجملة","Sentence meaning","Satzbedeutung"],["التوصيل ألماني","Matching German","Zuordnen Deutsch"],["مواقف: ","Situations: ","Situationen: "],["إكمال الحوار: ","Dialogue completion: ","Dialogergänzung: "],["النفي kein / nicht","Negation kein/nicht","Verneinung kein/nicht"]];
+function askTopic(a){try{var L=askLang();if(L==="ar")return a;var s=String(a||"");for(var i=0;i<ASTOPIC.length;i++){if(s.indexOf(ASTOPIC[i][0])===0){return (L==="de"?ASTOPIC[i][2]:ASTOPIC[i][1])+s.slice(ASTOPIC[i][0].length);}}return a;}catch(e){return a;}}
 var DMAssess = (function () {
   /* ============================ PURE CORE ============================ */
   var CONFIG = {
@@ -57,14 +113,14 @@ var DMAssess = (function () {
 
   /* skill registry: key -> Arabic label + learning route (all real pages) */
   var SKILLS = {
-    vocab:     { ar: "الكلمات",   de: "Wortschatz", go: "vocab" },
-    grammar:   { ar: "القواعد",   de: "Grammatik", go: "grammar" },
-    sentences: { ar: "الجمل",     de: "Sätze",     go: "sentences" },
-    reading:   { ar: "القراءة",   de: "Lesen",     go: "sentences" },
-    listening: { ar: "الاستماع",  de: "Hören",     go: "listen" },
-    writing:   { ar: "الكتابة",   de: "Schreiben", go: "sentex" },
-    speaking:  { ar: "التحدث",    de: "Sprechen",  go: "speak" },
-    practical: { ar: "المواقف",   de: "Alltag",    go: "real" }
+    vocab: { ar: "الكلمات", de: "Wortschatz", en: "Words", go: "vocab" },
+    grammar: { ar: "القواعد", de: "Grammatik", en: "Grammar", go: "grammar" },
+    sentences: { ar: "الجمل", de: "Sätze", en: "Sentences", go: "sentences" },
+    reading: { ar: "القراءة", de: "Lesen", en: "Reading", go: "sentences" },
+    listening: { ar: "الاستماع", de: "Hören", en: "Listening", go: "listen" },
+    writing: { ar: "الكتابة", de: "Schreiben", en: "Writing", go: "sentex" },
+    speaking: { ar: "التحدث", de: "Sprechen", en: "Speaking", go: "speak" },
+    practical: { ar: "المواقف", de: "Alltag", en: "Situations", go: "real" },
   };
   var SKILL_KEYS = Object.keys(SKILLS);
 
@@ -212,9 +268,9 @@ var DMAssess = (function () {
     var total = fin({ n: tn, ok: tok });
     var covOk = SKILL_KEYS.filter(function (s) { return sk[s].ev === "ok"; }).length;
     var confidence = "low", why = "";
-    if (tn >= CONFIG.CONF_HIGH_N && covOk >= 4) { confidence = "high"; why = "أسئلة كافية وتغطية متوازنة للمهارات"; }
-    else if (tn >= CONF_MED_N_SAFE() && covOk >= 2) { confidence = "medium"; why = "عدد أسئلة معقول لكن التغطية جزئية"; }
-    else { why = tn < CONFIG.MIN_OVERALL_N ? "أسئلة قليلة جدًا — النتيجة استرشادية" : "تغطية المهارات محدودة"; }
+    if (tn >= CONFIG.CONF_HIGH_N && covOk >= 4) { confidence = "high"; why = askT("as_conf_high", "أسئلة كافية وتغطية متوازنة للمهارات"); }
+    else if (tn >= CONF_MED_N_SAFE() && covOk >= 2) { confidence = "medium"; why = askT("as_conf_med", "عدد أسئلة معقول لكن التغطية جزئية"); }
+    else { why = tn < CONFIG.MIN_OVERALL_N ? askT("as_conf_low_few", "أسئلة قليلة جدًا — النتيجة استرشادية") : askT("as_conf_low_cov", "تغطية المهارات محدودة"); }
     function CONF_MED_N_SAFE() { return CONFIG.CONF_MED_N; }
     var inconclusive = tn < CONFIG.MIN_OVERALL_N;
     return { skills: sk, kaps: kp, topics: tp, total: total, covOk: covOk, confidence: confidence, confWhy: why, inconclusive: inconclusive };
@@ -222,11 +278,11 @@ var DMAssess = (function () {
 
   /* verdict label for a skill/section score (evidence-aware) */
   function statusOf(pct, ev) {
-    if (ev !== "ok") return { k: "nodata", ar: "بيانات غير كافية", ico: "▫️" };
-    if (pct >= CONFIG.STRONG_SKILL) return { k: "strong", ar: "قوي", ico: "✅" };
-    if (pct >= CONFIG.GOOD_SKILL) return { k: "good", ar: "جيد", ico: "🟢" };
-    if (pct >= CONFIG.WEAK_SKILL) return { k: "weak", ar: "يحتاج مراجعة", ico: "⚠️" };
-    return { k: "poor", ar: "ضعيف — ابدأ من هنا", ico: "🔴" };
+    if (ev !== "ok") return { k: "nodata", ar: askT("as_ev_nodata", "بيانات غير كافية"), ico: "▫️" };
+    if (pct >= CONFIG.STRONG_SKILL) return { k: "strong", ar: askT("as_ev_strong", "قوي"), ico: "✅" };
+    if (pct >= CONFIG.GOOD_SKILL) return { k: "good", ar: askT("as_ev_good", "جيد"), ico: "🟢" };
+    if (pct >= CONFIG.WEAK_SKILL) return { k: "weak", ar: askT("as_ev_weak", "يحتاج مراجعة"), ico: "⚠️" };
+    return { k: "poor", ar: askT("as_ev_poor", "ضعيف — ابدأ من هنا"), ico: "🔴" };
   }
 
   /* stages: [{id:'A'|'B'|'C', pct, n}] in order. Returns level verdict. */
@@ -234,14 +290,14 @@ var DMAssess = (function () {
     stages = stages || [];
     var tot = 0; stages.forEach(function (s) { tot += s.n || 0; });
     if (!stages.length || tot < CONFIG.MIN_OVERALL_N)
-      return { level: "?", confidence: "low", inconclusive: true, note: "النتيجة غير حاسمة — نحتاج أسئلة إضافية" };
+      return { level: "?", confidence: "low", inconclusive: true, note: askT("as_note_inconclusive", "النتيجة غير حاسمة — نحتاج أسئلة إضافية") };
     var passed = stages.filter(function (s) { return (s.pct || 0) >= CONFIG.STAGE_PASS; }).length;
     var last = stages[stages.length - 1];
     var map = { 1: "A1", 2: "A2", 3: "B1" };
-    if (!passed) return { level: "A0", confidence: tot >= CONFIG.CONF_MED_N ? "medium" : "low", inconclusive: false, note: "ابدأ من التأسيس (A1 من الصفر)" };
+    if (!passed) return { level: "A0", confidence: tot >= CONFIG.CONF_MED_N ? "medium" : "low", inconclusive: false, note: askT("as_note_start", "ابدأ من التأسيس (A1 من الصفر)") };
     var lvl = map[passed] || "A1";
     var conf = (tot >= CONFIG.CONF_HIGH_N && (last.pct >= CONFIG.STAGE_PASS + 10 || passed < stages.length)) ? "high" : (tot >= CONFIG.CONF_MED_N ? "medium" : "low");
-    return { level: lvl, confidence: conf, inconclusive: false, note: "اجتزت " + passed + " من " + stages.length + " مراحل" };
+    return { level: lvl, confidence: conf, inconclusive: false, note: askT("as_note_passed_a", "اجتزت ") + passed + askT("as_note_passed_b", " من ") + stages.length + askT("as_note_passed_c", " مراحل") };
   }
 
   /* Kapitel readiness: test = {n,ok,pct}|null, prog = 0..100|null.
@@ -250,12 +306,12 @@ var DMAssess = (function () {
   function kapitelReadiness(test, prog) {
     var hasT = !!(test && test.n >= CONFIG.MIN_KAP_TEST_N);
     var hasP = (typeof prog === "number" && prog !== null);
-    if (!hasT && !hasP) return { pct: 0, conf: "none", why: "لا بيانات" };
+    if (!hasT && !hasP) return { pct: 0, conf: "none", why: askT("as_ev_nodata2", "لا بيانات") };
     var r, conf;
     if (hasT && hasP) { r = CONFIG.TEST_W_KAP * test.pct + CONFIG.PROG_W_KAP * prog; conf = "high"; }
     else if (hasT) { r = test.pct; conf = test.n >= CONFIG.CONF_MED_N ? "medium" : "low"; }
     else { r = prog; conf = "low"; }
-    return { pct: clampPct(r), conf: conf, why: hasT ? ("اختبار: " + test.n + " أسئلة") : "من تقدمك العام فقط" };
+    return { pct: clampPct(r), conf: conf, why: hasT ? (askT("as_ev_test", "اختبار: ") + test.n + askT("as_ev_q", " أسئلة")) : askT("as_ev_prog", "من تقدمك العام فقط") };
   }
   /* order: array of kapitel ids in learning order.
      current = highest kap with readiness >= KAP_READY. */
@@ -651,12 +707,12 @@ DMAssess.ui = (function () {
     var pool = vocabPool(o);
     if (pool.length < 4) return null;
     var w = pickOne(pool);
-    var opts = shuffle([w.ar].concat(distractAr(pool, w.ar, 3)));
+    var opts = shuffle([wMean(w)].concat(distractMean(pool, w, 3)));
     if (opts.length < 4) return null;
     var q = baseQ("mc", "vocab", { topic: "meaning", topicAr: "معاني الكلمات", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
-    q.prompt = "ما معنى: " + fullDe(w) + "؟";
-    q.de = fullDe(w); q.opts = opts; q.correct = opts.indexOf(w.ar);
-    q.why = fullDe(w) + " = " + w.ar;
+    q.prompt = askT("as_q_meaning", "ما معنى: ") + fullDe(w) + askT("as_q_mark", "؟");
+    q.de = fullDe(w); q.opts = opts; q.correct = opts.indexOf(wMean(w));
+    q.why = fullDe(w) + " = " + wMean(w);
     return q;
   }
   function mkArticle(o) {
@@ -665,9 +721,9 @@ DMAssess.ui = (function () {
     var w = pickOne(pool);
     var base = shuffle(["der", "die", "das"]);
     var q = baseQ("mc", "vocab", { topic: "article", topicAr: "الأدوات der/die/das", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
-    q.prompt = "اختر الأداة الصحيحة: ___ " + w.de;
+    q.prompt = askT("as_q_article", "اختر الأداة الصحيحة: ___ ") + w.de;
     q.de = w.de; q.opts = base; q.correct = base.indexOf(w.art);
-    q.why = w.art + " " + w.de + " = " + w.ar + ". تُحفظ الأداة مع الاسم دائمًا.";
+    q.why = w.art + " " + w.de + " = " + wMean(w) + ". " + askT("as_q_article_why", "تُحفظ الأداة مع الاسم دائمًا.");
     return q;
   }
   function mkPlural(o) {
@@ -680,9 +736,9 @@ DMAssess.ui = (function () {
     ["die " + w.de, (w.art === "der" ? "die " : "der ") + String(w.plural).replace(/^(der|die|das)\s+/, ""), "das " + w.de].forEach(function (c) { if (opts.length < 4 && !set[c]) { set[c] = 1; opts.push(c); } });
     if (opts.length < 3) return null;
     var q = baseQ("mc", "vocab", { topic: "plural", topicAr: "الجمع Plural", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
-    q.prompt = "ما جمع: " + fullDe(w) + "؟";
+    q.prompt = askT("as_q_plural", "ما جمع: ") + fullDe(w) + askT("as_q_mark", "؟");
     q.de = fullDe(w); q.opts = shuffle(opts); q.correct = q.opts.indexOf(right);
-    q.why = "الجمع: " + right + " (" + w.ar + ")";
+    q.why = askT("as_q_plural_why", "الجمع: ") + right + " (" + wMean(w) + ")";
     return q;
   }
   function mkTranslate(o) {
@@ -692,9 +748,9 @@ DMAssess.ui = (function () {
     var opts = shuffle([fullDe(w)].concat(distractDe(pool, fullDe(w), 3)));
     if (opts.length < 4) return null;
     var q = baseQ("mc", "vocab", { topic: "translation", topicAr: "الترجمة عربي ← ألماني", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
-    q.prompt = "اختر الكلمة الألمانية الصحيحة: " + w.ar;
+    q.prompt = askT("as_q_translate", "اختر الكلمة الألمانية الصحيحة: ") + wMean(w);
     q.opts = opts; q.correct = opts.indexOf(fullDe(w));
-    q.why = fullDe(w) + " = " + w.ar;
+    q.why = fullDe(w) + " = " + wMean(w);
     return q;
   }
   function mkTF(o) {
@@ -704,18 +760,18 @@ DMAssess.ui = (function () {
     var truth = Math.random() < 0.5;
     /* Bounded distinct pick (freeze fix): sample instead of filtering +
        shuffling the whole kap pool per attempt. */
-    var claim = truth ? w.ar : null;
+    var claim = truth ? wMean(w) : null;
     if (!truth) {
       for (var ti = 0; ti < 24 && claim == null; ti++) {
         var cand = pickOne(pool);
-        if (cand && cand.id !== w.id && cand.ar && cand.ar !== w.ar) claim = cand.ar;
+        if (cand && cand.id !== w.id && wMean(cand) && wMean(cand) !== wMean(w)) claim = wMean(cand);
       }
     }
     if (!claim) return null;
     var q = baseQ("tf", "vocab", { topic: "meaning", topicAr: "صح أم خطأ — المفردات", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
-    q.prompt = "صح أم خطأ: " + fullDe(w) + " = " + claim + "؟";
-    q.de = fullDe(w); q.opts = shuffle(["صح ✅", "خطأ ❌"]); q.correct = q.opts.indexOf(truth ? "صح ✅" : "خطأ ❌");
-    q.why = fullDe(w) + " = " + w.ar;
+    q.prompt = askT("as_q_tf", "صح أم خطأ: ") + fullDe(w) + " = " + claim + askT("as_q_mark", "؟");
+    q.de = fullDe(w); q.opts = shuffle([askT("as_q_true", "صح ✅"), askT("as_q_false", "خطأ ❌")]); q.correct = q.opts.indexOf(truth ? askT("as_q_true", "صح ✅") : askT("as_q_false", "خطأ ❌"));
+    q.why = fullDe(w) + " = " + wMean(w);
     return q;
   }
   function mkGrammar(o) {
@@ -784,9 +840,9 @@ DMAssess.ui = (function () {
       while (distract.length < 3) distract.push(w.de);
       var opts = shuffle([form].concat(distract.slice(0, 3)));
       var q = baseQ("mc", "grammar", { topic: "conjugation", topicAr: "تصريف الأفعال", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
-      q.prompt = "اختر التصريف الصحيح: " + subs[pi] + " ___" + tail + " (" + w.ar + ")";
+      q.prompt = askT("as_q_conj", "اختر التصريف الصحيح: ") + subs[pi] + askT("as_q_conj_mid", " ___") + tail + " (" + wMean(w) + ")";
       q.de = subs[pi] + " " + form + tail; q.opts = opts; q.correct = opts.indexOf(form);
-      q.why = "مع " + subs[pi] + " نقول: " + subs[pi] + " " + form + (host ? " — مثال حقيقي: " + host.de : "");
+      q.why = askT("as_q_say_w", "مع ") + subs[pi] + askT("as_q_say_s", " نقول: ") + subs[pi] + " " + form + (host ? askT("as_q_say_ex", " — مثال حقيقي: ") + host.de : "");
       return q;
     }
     return null;
@@ -819,9 +875,9 @@ DMAssess.ui = (function () {
       opts.forEach(function (x) { if (uni.indexOf(x) < 0) uni.push(x); });
       if (uni.length < 2) continue;
       var q = baseQ("mc", "grammar", { topic: "correction", topicAr: "تصحيح الخطأ", kap: w.kap, level: w.level || "A1", diff: "hard", refId: w.id, refKind: "word" });
-      q.prompt = "الجملة فيها خطأ: «" + wrong + "» — اختر التصحيح الصحيح:";
+      q.prompt = askT("as_q_fix", "الجملة فيها خطأ: «") + wrong + askT("as_q_fix_mid", "» — اختر التصحيح الصحيح:");
       q.de = wrong; q.opts = uni; q.correct = uni.indexOf(host.de);
-      q.why = "الصحيح: " + host.de + " — مع Er يأخذ الفعل نهاية خاصة (" + erF + ").";
+      q.why = askT("as_q_right_is", "الصحيح: ") + host.de + askT("as_q_er_end", " — مع Er يأخذ الفعل نهاية خاصة (") + erF + ").";
       return q;
     }
     return null;
@@ -835,9 +891,9 @@ DMAssess.ui = (function () {
     var s = pickOne(pool);
     var parts = shuffle(String(s.de).replace(/[.?!,]/g, "").split(" ").filter(Boolean));
     var q = baseQ("order", "sentences", { topic: "word-order", topicAr: "ترتيب الجملة", kap: s.kap, level: (s.level || s.lvl) || "A1", diff: "medium", refId: s.id, refKind: "sentence" });
-    q.prompt = "🔀 رتّب الكلمات لتكوين جملة صحيحة (" + s.ar + "):";
+    q.prompt = askT("as_q_order", "🔀 رتّب الكلمات لتكوين جملة صحيحة (") + sMean(s) + askT("as_q_order_end", "):");
     q.promptAr = s.ar; q.chips = parts; q.answer = String(s.de).replace(/[.?!,]/g, "").trim();
-    q.why = "الجملة الصحيحة: " + s.de;
+    q.why = askT("as_q_order_why", "الجملة الصحيحة: ") + s.de;
     return q;
   }
   function mkSentenceGap(o) {
@@ -851,9 +907,9 @@ DMAssess.ui = (function () {
     else if (/verb|conjug/.test(gt)) { skill = "grammar"; topic = "conjugation"; topicAr = "الأفعال في السياق"; }
     else if (/meaning|vocab/.test(gt)) { skill = "vocab"; topic = "context"; topicAr = "الكلمة في السياق"; }
     var q = baseQ("mc", skill, { topic: topic, topicAr: topicAr, kap: f.chapterId, level: f.lvl || "A1", diff: "medium", refId: f.id, refKind: "fill" });
-    q.prompt = "🧩 أكمل: " + f.s;
+    q.prompt = askT("as_q_complete", "🧩 أكمل: ") + f.s;
     q.de = f.s; q.opts = f.o.slice(); q.correct = f.c;
-    q.why = f.why || ("الإجابة: " + f.o[f.c]);
+    q.why = f.why || (askT("as_q_answer", "الإجابة: ") + f.o[f.c]);
     return q;
   }
   function mkFillWrite(o) {
@@ -863,9 +919,9 @@ DMAssess.ui = (function () {
     if (!pool.length) return null;
     var f = pickOne(pool);
     var q = baseQ("fill", "writing", { topic: "writing", topicAr: "الكتابة والإملاء", kap: f.chapterId, level: f.lvl || "A1", diff: "medium", refId: f.id, refKind: "fill" });
-    q.prompt = "✍️ اكتب الكلمة الناقصة: " + f.s;
+    q.prompt = askT("as_q_write", "✍️ اكتب الكلمة الناقصة: ") + f.s;
     q.de = f.s; q.accept = [String(f.o[f.c])]; q.answer = String(f.o[f.c]);
-    q.why = f.why || ("الإجابة: " + f.o[f.c]);
+    q.why = f.why || (askT("as_q_answer", "الإجابة: ") + f.o[f.c]);
     return q;
   }
   function mkReading(o) {
@@ -878,7 +934,7 @@ DMAssess.ui = (function () {
       q.passageAr = r.ar ? String(r.ar).slice(0, 300) : "";
       q.prompt = "📖 " + qq.q;
       q.opts = qq.opts.slice(); q.correct = qq.correct;
-      q.why = "الإجابة من النص: " + (r.title || "") + " — " + q.opts[q.correct];
+      q.why = askT("as_q_read_why", "الإجابة من النص: ") + (r.title || "") + " — " + q.opts[q.correct];
       return q;
     }
     /* fallback: real sentence as micro-text + meaning question */
@@ -887,24 +943,24 @@ DMAssess.ui = (function () {
     var s = pickOne(pool);
     /* Distractor source stays the full bank (same variety as before); the
        bounded sampler makes it O(1) instead of a 60k+ shuffle per attempt. */
-    var opts = shuffle([s.ar].concat(distractAr(vocabPool({}), s.ar, 3)));
+    var opts = shuffle([sMean(s)].concat(distractMean(vocabPool({}), {ar: sMean(s)}, 3)));
     if (opts.length < 4) return null;
     var q2 = baseQ("read", "reading", { topic: "comprehension", topicAr: "فهم المقروء", kap: s.kap, level: (s.level || s.lvl) || "A1", diff: "easy", refId: s.id, refKind: "sentence" });
-    q2.passage = s.de; q2.prompt = "📖 اقرأ ثم اختر المعنى الصحيح:";
-    q2.opts = opts; q2.correct = opts.indexOf(s.ar);
-    q2.why = s.de + " = " + s.ar;
+    q2.passage = s.de; q2.prompt = askT("as_q_read", "📖 اقرأ ثم اختر المعنى الصحيح:");
+    q2.opts = opts; q2.correct = opts.indexOf(sMean(s));
+    q2.why = s.de + " = " + sMean(s);
     return q2;
   }
   function mkListening(o) {
     var pool = listenPool();
     if (pool.length < 4) return null;
     var it = pickOne(pool);
-    var others = pickNUnique(pool.filter(function (x) { return x !== it; }), 3).map(function (x) { return x.ar; });
-    var opts = shuffle([it.ar].concat(others));
+    var others = pickNUnique(pool.filter(function (x) { return x !== it; }), 3).map(function (x) { return wMean(x); });
+    var opts = shuffle([wMean(it)].concat(others));
     var q = baseQ("listen", "listening", { topic: "listening", topicAr: "الفهم السمعي", kap: o.kap || null, level: o.level || "A1", diff: "medium" });
-    q.prompt = "🎧 استمع واختر المعنى الصحيح:";
-    q.listenText = it.de; q.opts = opts; q.correct = opts.indexOf(it.ar);
-    q.why = it.de + " = " + it.ar;
+    q.prompt = askT("as_q_listen", "🎧 استمع واختر المعنى الصحيح:");
+    q.listenText = it.de; q.opts = opts; q.correct = opts.indexOf(wMean(it));
+    q.why = it.de + " = " + wMean(it);
     return q;
   }
   function mkSpeaking(o) {
@@ -912,9 +968,9 @@ DMAssess.ui = (function () {
     if (!pool.length) return null;
     var it = pickOne(pool);
     var q = baseQ("speak", "speaking", { topic: "speaking", topicAr: "التحدث", kap: o.kap || null, level: o.level || "A1", diff: "medium" });
-    q.prompt = "🎤 أجب بالألمانية: " + it.q;
+    q.prompt = askT("as_q_speak", "🎤 أجب بالألمانية: ") + it.q;
     q.promptAr = it.ar; q.sample = it.sample;
-    q.why = "مثال إجابة: " + it.sample;
+    q.why = askT("as_q_speak_why", "مثال إجابة: ") + it.sample;
     return q;
   }
   function speakKeywords(sample) {
@@ -926,7 +982,7 @@ DMAssess.ui = (function () {
   function gradeSpeaking(text, sample) {
     try {
       var f = FN("evaluateSpoken");
-      if (f) { var ev = f(text, sample); return { pct: ev.vocab || 0, notes: (ev.notes || []).join(" ") + (ev.missing && ev.missing.length ? " — ناقصك: " + ev.missing.join("، ") : "") }; }
+      if (f) { var ev = f(text, sample); return { pct: ev.vocab || 0, notes: (ev.notes || []).join(" ") + (ev.missing && ev.missing.length ? askT("as_q_missing", " — ناقصك: ") + ev.missing.join(askLang()==="en"||askLang()==="de" ? ", " : "، ") : "") }; }
     } catch (e) {}
     var tw = String(text || "").toLowerCase().split(/\s+/).filter(Boolean);
     var keys = speakKeywords(sample);
@@ -943,9 +999,9 @@ DMAssess.ui = (function () {
         var st = shuffle(steps)[0];
         var ord = shuffle(st[2].map(function (_, i) { return i; }));
         var q = baseQ("mc", "practical", { topic: "situation:" + s.id, topicAr: "مواقف: " + s.t, kap: o.kap || null, level: o.level || "A1", diff: "medium" });
-        q.prompt = "🌍 " + s.t + " — يقول لك: «" + st[0] + "» (" + st[1] + ") — ما أفضل رد؟";
+        q.prompt = "🌍 " + s.t + askT("as_q_says", " — يقول لك: «") + st[0] + "» (" + st[1] + ")" + askT("as_q_sit", " — ما أفضل رد؟");
         q.de = st[0]; q.opts = ord.map(function (i) { return st[2][i]; }); q.correct = ord.indexOf(st[3]);
-        q.why = "أفضل رد: " + st[2][st[3]];
+        q.why = askT("as_q_sit_why", "أفضل رد: ") + st[2][st[3]];
         return q;
       }
     }
@@ -959,7 +1015,7 @@ DMAssess.ui = (function () {
     var opts = shuffle([pick[0]].concat(distract));
     if (opts.length < 3) return null;
     var q2 = baseQ("mc", "practical", { topic: "situation:" + r.id, topicAr: "مواقف: " + r.t, kap: o.kap || null, level: o.level || "A1", diff: "medium" });
-    q2.prompt = "🌍 " + r.t + " — «" + pick[1] + "» — ماذا تقول بالألمانية؟";
+    q2.prompt = "🌍 " + r.t + " — «" + pick[1] + "»" + askT("as_q_dialog", " — ماذا تقول بالألمانية؟");
     q2.opts = opts; q2.correct = opts.indexOf(pick[0]);
     q2.why = pick[0] + " = " + pick[1];
     return q2;
@@ -970,9 +1026,9 @@ DMAssess.ui = (function () {
     var ws = pickNUnique(pool, 4);
     if (ws.some(function (w) { return !w.ar; })) return null;
     var q = baseQ("match", "vocab", { topic: "match", topicAr: "التوصيل ألماني ↔ عربي", kap: ws[0].kap, level: o.level || "A1", diff: "medium" });
-    q.prompt = "🔗 وصّل كل كلمة بمعناها:";
-    q.pairs = ws.map(function (w) { return { de: fullDe(w), ar: w.ar, id: w.id }; });
-    q.why = ws.map(function (w) { return fullDe(w) + " = " + w.ar; }).join(" • ");
+    q.prompt = askT("as_q_match", "🔗 وصّل كل كلمة بمعناها:");
+    q.pairs = ws.map(function (w) { return { de: fullDe(w), ar: wMean(w), id: w.id }; });
+    q.why = ws.map(function (w) { return fullDe(w) + " = " + wMean(w); }).join(" • ");
     return q;
   }
   function mkKein(o) {
@@ -984,7 +1040,7 @@ DMAssess.ui = (function () {
     var right, wrongs, sentence;
     if (useNicht) {
       right = "nicht"; wrongs = ["kein", "keine"];
-      sentence = "Ich lerne heute ___ . (" + w.ar + " — الجملة فعلية بدون اسم)";
+      sentence = "Ich lerne heute ___ . (" + wMean(w) + askT("as_q_kein_note", " — الجملة فعلية بدون اسم)");
     } else {
       right = (w.art === "die") ? "keine" : "kein";
       wrongs = [right === "kein" ? "keine" : "kein", "nicht"];
@@ -992,11 +1048,11 @@ DMAssess.ui = (function () {
     }
     var opts = shuffle([right].concat(wrongs));
     var q = baseQ("mc", "grammar", { topic: "negation", topicAr: "النفي kein / nicht", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
-    q.prompt = "اختر النفي الصحيح: " + sentence;
+    q.prompt = askT("as_q_neg", "اختر النفي الصحيح: ") + sentence;
     q.de = sentence; q.opts = opts; q.correct = opts.indexOf(right);
     q.why = useNicht
-      ? "nicht تنفي الفعل/الجملة: Ich lerne heute nicht."
-      : "قبل الأسماء نستخدم kein/keine (وليس nicht): " + (w.art === "die" ? "keine " + w.de : "kein " + w.de) + " — " + w.ar;
+      ? askT("as_q_neg_verb", "nicht تنفي الفعل/الجملة: Ich lerne heute nicht.")
+      : askT("as_q_neg_noun", "قبل الأسماء نستخدم kein/keine (وليس nicht): ") + (w.art === "die" ? "keine " + w.de : "kein " + w.de) + " — " + wMean(w);
     return q;
   }
   function mkConj(o) {
@@ -1029,7 +1085,7 @@ DMAssess.ui = (function () {
       });
       if (!okAll || rows.length < 2) continue;
       var q = baseQ("conj", "grammar", { topic: "conjugation", topicAr: "تصريف الأفعال ich/du/er", kap: w.kap, level: w.level || "A1", diff: "medium", refId: w.id, refKind: "word" });
-      q.prompt = "⚡ صرّف الفعل (" + w.de + " — " + w.ar + ") مع كل ضمير:";
+      q.prompt = askT("as_q_conj_all", "⚡ صرّف الفعل (") + w.de + " — " + wMean(w) + askT("as_q_conj_all_mid", ") مع كل ضمير:");
       q.rows = rows;
       q.why = picks.map(function (p) { return p[1] + " " + forms[p[0]]; }).join(" • ");
       return q;
@@ -1045,9 +1101,9 @@ DMAssess.ui = (function () {
     var others = ["فعل", "اسم", "صفة"].filter(function (t) { return t !== w.type; });
     var opts = shuffle([arOf[w.type]].concat(others.map(function (t) { return arOf[t]; })));
     var q = baseQ("mc", "vocab", { topic: "wordclass", topicAr: "أقسام الكلام", kap: w.kap, level: w.level || "A1", diff: "easy", refId: w.id, refKind: "word" });
-    q.prompt = "ما نوع الكلمة: " + fullDe(w) + " (" + w.ar + ")؟";
+    q.prompt = askT("as_q_wclass", "ما نوع الكلمة: ") + fullDe(w) + " (" + wMean(w) + askT("as_q_wclass_mid", ")؟");
     q.de = fullDe(w); q.opts = opts; q.correct = opts.indexOf(arOf[w.type]);
-    q.why = fullDe(w) + " نوعها: " + arOf[w.type];
+    q.why = fullDe(w) + askT("as_q_wclass_is", " نوعها: ") + arOf[w.type];
     return q;
   }
   function mkSentMean(o) {
@@ -1055,12 +1111,12 @@ DMAssess.ui = (function () {
     var pool = memoPool(o.memo, memoKey(o, "sent5"), sentPool(o), function (s) { return String(s.de || "").split(" ").length >= 5; });
     if (pool.length < 4) return null;
     var s = pickOne(pool);
-    var opts = shuffle([s.ar].concat(distractAr(vocabPool({}), s.ar, 3)));
+    var opts = shuffle([sMean(s)].concat(distractMean(vocabPool({}), {ar: sMean(s)}, 3)));
     if (opts.length < 4) return null;
     var q = baseQ("mc", "sentences", { topic: "sentmean", topicAr: "معنى الجملة", kap: s.kap, level: (s.level || s.lvl) || "A1", diff: "easy", refId: s.id, refKind: "sentence" });
-    q.prompt = "💬 ما معنى الجملة: «" + s.de + "»؟";
-    q.de = s.de; q.opts = opts; q.correct = opts.indexOf(s.ar);
-    q.why = s.de + " = " + s.ar;
+    q.prompt = askT("as_q_sentmean", "💬 ما معنى الجملة: «") + s.de + askT("as_q_sentmean_end", "»؟");
+    q.de = s.de; q.opts = opts; q.correct = opts.indexOf(sMean(s));
+    q.why = s.de + " = " + sMean(s);
     return q;
   }
   function mkDialogue(o) {
@@ -1076,9 +1132,9 @@ DMAssess.ui = (function () {
     var i2 = shuffle(valid)[0], prev = s.steps[i2 - 1], st = s.steps[i2];
     var ord = shuffle(st[2].map(function (_, i3) { return i3; }));
     var q = baseQ("mc", "practical", { topic: "dialogue:" + s.id, topicAr: "إكمال الحوار: " + s.t, kap: o.kap || null, level: o.level || "A1", diff: "medium" });
-    q.prompt = "🗣️ أكمل الحوار (" + s.t + ") — قال: «" + prev[0] + "» فأجبت: «" + prev[2][prev[3]] + "» — ثم قال: «" + st[0] + "» (" + st[1] + ") — ما ردك؟";
+    q.prompt = askT("as_q_dlg", "🗣️ أكمل الحوار (") + s.t + askT("as_q_dlg_said", ") — قال: «") + prev[0] + askT("as_q_dlg_you", "» فأجبت: «") + prev[2][prev[3]] + askT("as_q_dlg_then", "» — ثم قال: «") + st[0] + askT("as_q_dlg_st", "» (") + st[1] + askT("as_q_dlg_ask", ") — ما ردك؟");
     q.de = st[0]; q.opts = ord.map(function (i4) { return st[2][i4]; }); q.correct = ord.indexOf(st[3]);
-    q.why = "الرد الطبيعي: " + st[2][st[3]];
+    q.why = askT("as_q_dlg_why", "الرد الطبيعي: ") + st[2][st[3]];
     return q;
   }
   function mkListenGap(o) {
@@ -1108,9 +1164,9 @@ DMAssess.ui = (function () {
     var opts = shuffle([missing].concat(pickNUnique(others, 3)));
     var blanked = toks.slice(); blanked[bi] = "___";
     var q = baseQ("mc", "listening", { topic: "listen-gap", topicAr: "الكلمة الناقصة سمعيًا", kap: o.kap || null, level: o.level || "A1", diff: "medium" });
-    q.prompt = "🎧 استمع للجملة واختر الكلمة الناقصة: " + blanked.join(" ");
+    q.prompt = askT("as_q_gap_listen", "🎧 استمع للجملة واختر الكلمة الناقصة: ") + blanked.join(" ");
     q.listenText = it.de; q.opts = opts; q.correct = opts.indexOf(missing);
-    q.why = "الجملة: " + it.de + " = " + it.ar;
+    q.why = askT("as_q_sent_why", "الجملة: ") + it.de + " = " + sMean(it);
     return q;
   }
 
@@ -1229,7 +1285,7 @@ DMAssess.specs = (function () {
     var lv = level || null;
     var per = Math.max(1, Math.floor(count / 8));
     return {
-      id: "mixed-" + count, kind: "general", modeTitle: count <= 10 ? "اختبار سريع" : (count <= 25 ? "اختبار متوسط" : "اختبار شامل"),
+      id: "mixed-" + count, kind: "general", modeTitle: count <= 10 ? askT("as_c_quick", "اختبار سريع") : (count <= 25 ? askT("as_c_medium", "اختبار متوسط") : askT("as_c_full", "اختبار شامل")),
       minQ: Math.min(count, 6), timed: false,
       build: function () {
         return U.buildPool([
@@ -1253,7 +1309,7 @@ DMAssess.specs = (function () {
       ];
     }
     return {
-      id: "placement", kind: "placement", modeTitle: "اختبار تحديد المستوى", minQ: 8, timed: false, adaptive: true,
+      id: "placement", kind: "placement", modeTitle: askT("as_c_placement", "اختبار تحديد المستوى"), minQ: 8, timed: false, adaptive: true,
       stages: [
         { id: "A", level: "A1", plan: stage("A1", 0), need: 8 },
         { id: "B", level: "A2", plan: stage("A2", 0), need: 8 },
@@ -1265,7 +1321,7 @@ DMAssess.specs = (function () {
   /* Kapitel test: only that Kapitel's real content. */
   function kapitelSpec(kap) {
     return {
-      id: "kap-" + kap, kind: "kapitel", kap: kap, modeTitle: "اختبار " + kap, minQ: 8, timed: false,
+      id: "kap-" + kap, kind: "kapitel", kap: kap, modeTitle: askT("as_c_kap_test", "اختبار ") + kap, minQ: 8, timed: false,
       build: function () {
         var o = { kap: kap };
         return U.buildPool([
@@ -1291,7 +1347,7 @@ DMAssess.specs = (function () {
     var facs = SKILL_FACTORIES[skill] || ["vocabMean"];
     return {
       id: "skill-" + skill, kind: "skill", skill: skill,
-      modeTitle: "اختبار " + ((DMAssess.SKILLS[skill] || {}).ar || skill), minQ: 6, timed: false,
+      modeTitle: askT("as_c_kap_test", "اختبار ") + (askSkillEntry(DMAssess.SKILLS[skill]||{})||skill), minQ: 6, timed: false,
       build: function () {
         var per = Math.ceil(10 / facs.length), plan = facs.map(function (f) { return F(f, per); });
         return U.buildPool(plan, 4).pool;
@@ -1301,9 +1357,9 @@ DMAssess.specs = (function () {
   /* Full A1 exam: 6 sections x 4 + 2 speaking, timed. */
   function a1ExamSpec() {
     return {
-      id: "exam-a1", kind: "exam", level: "A1", modeTitle: "امتحان A1 الشامل — Deutsch Master",
+      id: "exam-a1", kind: "exam", level: "A1", modeTitle: askT("as_c_exam_a1", "امتحان A1 الشامل — Deutsch Master"),
       minQ: 20, timed: true, secs: DMAssess.CONFIG.EXAM_TIME_SEC, passPct: DMAssess.CONFIG.PASS_A1_EXAM,
-      sections: [["Hören — الاستماع", "listening"], ["Lesen — القراءة", "reading"], ["Wortschatz — المفردات", "vocab"], ["Grammatik — القواعد", "grammar"], ["Schreiben — الكتابة", "writing"], ["Sprechen — التحدث", "speaking"]],
+      sections: [[askSec("listening"), "listening"], [askSec("reading"), "reading"], [askSec("vocab"), "vocab"], [askSec("grammar"), "grammar"], [askSec("writing"), "writing"], [askSec("speaking"), "speaking"]],
       build: function () {
         var L = { level: "A1" };
         return U.buildPool([
@@ -1321,7 +1377,7 @@ DMAssess.specs = (function () {
     var L = { level: level };
     return {
       id: "exam-" + level.toLowerCase(), kind: "exam", level: level,
-      modeTitle: "امتحان " + level + " الشامل — Deutsch Master",
+      modeTitle: askT("as_c_exam", "امتحان ") + level + askT("as_c_exam_lv2", " الشامل — Deutsch Master"),
       minQ: 20, timed: true, secs: DMAssess.CONFIG.EXAM_TIME_SEC, passPct: DMAssess.CONFIG.PASS_A1_EXAM,
       build: function () {
         return U.buildPool([
@@ -1337,7 +1393,7 @@ DMAssess.specs = (function () {
     var L = { level: level };
     return {
       id: "exam-" + level.toLowerCase(), kind: "exam", level: level,
-      modeTitle: "امتحان " + level + " الشامل — Deutsch Master",
+      modeTitle: askT("as_c_exam", "امتحان ") + level + askT("as_c_exam_lv2", " الشامل — Deutsch Master"),
       minQ: 20, timed: true, secs: DMAssess.CONFIG.EXAM_TIME_SEC, passPct: DMAssess.CONFIG.PASS_A1_EXAM,
       build: function () {
         return U.buildPool([
@@ -1353,35 +1409,35 @@ DMAssess.specs = (function () {
      Single source of truth for picker cards AND builders. Counts shown in the
      UI are probed live from real content (never hardcoded). */
   var CATS = {
-    words:     { ar: "الكلمات",      de: "Wörter",      ico: "🟦", facs: ["vocabMean", "match", "wordClass"], skill: "vocab" },
-    sentences: { ar: "الجمل",        de: "Sätze",       ico: "🟩", facs: ["gap", "sentMean", "match"], skill: "sentences" },
-    ordering:  { ar: "ترتيب الجملة", de: "Satzbau",     ico: "🟨", facs: ["order"], skill: "sentences" },
-    grammar:   { ar: "القواعد",      de: "Grammatik",   ico: "🟥", facs: ["grammar", "kein", "gap"], skill: "grammar" },
-    verbs:     { ar: "الأفعال",      de: "Verben",      ico: "🟪", facs: ["verb", "conj", "error"], skill: "grammar" },
-    articles:  { ar: "المقالات",     de: "Artikel",     ico: "🟧", facs: ["article"], skill: "vocab" },
-    plural:    { ar: "الجمع",        de: "Plural",      ico: "🟫", facs: ["plural"], skill: "vocab" },
-    translate: { ar: "الترجمة",      de: "Übersetzung", ico: "🔁", facs: ["translate", "sentMean"], skill: "vocab" },
-    reading:   { ar: "القراءة",      de: "Lesen",       ico: "📖", facs: ["reading", "sentMean"], skill: "reading" },
-    listening: { ar: "الاستماع",     de: "Hören",       ico: "🎧", facs: ["listening", "listenGap"], skill: "listening" },
-    reallife:  { ar: "المواقف",      de: "Alltag",      ico: "🌍", facs: ["situation", "dialogue"], skill: "practical" },
-    mistakes:  { ar: "أخطائي",       de: "Fehler",      ico: "❌", facs: null, skill: null },
-    tfquiz:    { ar: "صح أم خطأ",    de: "Richtig/Falsch", ico: "⚖️", facs: ["tf"], skill: "vocab" },
-    writing:   { ar: "الكتابة",      de: "Schreiben",   ico: "✍️", facs: ["fillWrite", "order"], skill: "writing" },
-    speaking:  { ar: "التحدث",       de: "Sprechen",    ico: "🎤", facs: ["speaking"], skill: "speaking" }
+    words:     { ar: "الكلمات",      de: "Wörter",      en: "Words", ico: "🟦", facs: ["vocabMean", "match", "wordClass"], skill: "vocab" },
+    sentences: { ar: "الجمل",        de: "Sätze",       en: "Sentences", ico: "🟩", facs: ["gap", "sentMean", "match"], skill: "sentences" },
+    ordering:  { ar: "ترتيب الجملة", de: "Satzbau",     en: "Sentence structure", ico: "🟨", facs: ["order"], skill: "sentences" },
+    grammar:   { ar: "القواعد",      de: "Grammatik",   en: "Grammar", ico: "🟥", facs: ["grammar", "kein", "gap"], skill: "grammar" },
+    verbs:     { ar: "الأفعال",      de: "Verben",      en: "Verbs", ico: "🟪", facs: ["verb", "conj", "error"], skill: "grammar" },
+    articles:  { ar: "المقالات",     de: "Artikel",     en: "Articles", ico: "🟧", facs: ["article"], skill: "vocab" },
+    plural:    { ar: "الجمع",        de: "Plural",      en: "Plural", ico: "🟫", facs: ["plural"], skill: "vocab" },
+    translate: { ar: "الترجمة",      de: "Übersetzung", en: "Translation", ico: "🔁", facs: ["translate", "sentMean"], skill: "vocab" },
+    reading:   { ar: "القراءة",      de: "Lesen",       en: "Reading", ico: "📖", facs: ["reading", "sentMean"], skill: "reading" },
+    listening: { ar: "الاستماع",     de: "Hören",       en: "Listening", ico: "🎧", facs: ["listening", "listenGap"], skill: "listening" },
+    reallife:  { ar: "المواقف",      de: "Alltag",      en: "Situations", ico: "🌍", facs: ["situation", "dialogue"], skill: "practical" },
+    mistakes:  { ar: "أخطائي",       de: "Fehler",      en: "My mistakes", ico: "❌", facs: null, skill: null },
+    tfquiz:    { ar: "صح أم خطأ",    de: "Richtig/Falsch", en: "True/False", ico: "⚖️", facs: ["tf"], skill: "vocab" },
+    writing:   { ar: "الكتابة",      de: "Schreiben",   en: "Writing", ico: "✍️", facs: ["fillWrite", "order"], skill: "writing" },
+    speaking:  { ar: "التحدث",       de: "Sprechen",    en: "Speaking", ico: "🎤", facs: ["speaking"], skill: "speaking" }
   };
   var CAT_IDS = Object.keys(CATS);
   var MODES = {
-    quick:     { ar: "سريع",  n: 20, de: "20 سؤالًا" },
-    normal:    { ar: "عادي",  n: 40, de: "40 سؤالًا" },
-    intensive: { ar: "مكثف",  n: 60, de: "60 سؤالًا" },
-    advanced:  { ar: "شامل",  n: 80, de: "80 سؤالًا" },
-    master:    { ar: "Master", n: 0,  de: "كل المحتوى المتاح" }
+    quick: { ar: "سريع", n: 20, de: "20 سؤالًا", en: "Quick", end: "20 questions"  },
+    normal: { ar: "عادي", n: 40, de: "40 سؤالًا", en: "Normal", end: "40 questions"  },
+    intensive: { ar: "مكثف", n: 60, de: "60 سؤالًا", en: "Intensive", end: "60 questions"  },
+    advanced: { ar: "شامل", n: 80, de: "80 سؤالًا", en: "Comprehensive", end: "80 questions"  },
+    master: { ar: "Master", n: 0, de: "كل المحتوى المتاح", en: "Master", end: "all available content"  }
   };
   var DIFFS = {
-    easy:   { ar: "سهل",   de: "leichte Fragen" },
-    medium: { ar: "متوسط", de: "mittlere Fragen" },
-    hard:   { ar: "صعب",   de: "schwere Fragen" },
-    graded: { ar: "متدرج", de: "سهل ← صعب" }
+    easy:   { ar: "سهل",   de: "leichte Fragen", en: "Easy" },
+    medium: { ar: "متوسط", de: "mittlere Fragen", en: "Medium" },
+    hard:   { ar: "صعب",   de: "schwere Fragen", en: "Hard" },
+    graded: { ar: "متدرج", de: "سهل ← صعب" , en: "Graded"}
   };
   /* one category inside one Kapitel, sized by mode + filtered by difficulty.
      mode.n is a TARGET: the pool is sliced to real valid content, and the
@@ -1398,7 +1454,7 @@ DMAssess.specs = (function () {
     return {
       id: "kc-" + kap + "-" + catId + "-" + modeKey + "-" + diff,
       kind: "kapitel", cat: catId, kap: kap, level: level || null, target: target,
-      modeTitle: (cat ? cat.ar : catId) + " • " + kap + " (" + mode.ar + "، " + (DIFFS[diffKey] || DIFFS.medium).ar + ")",
+      modeTitle: (cat ? askSkillEntry(cat) : catId) + " • " + kap + " (" + askModeEntry(mode) + (askLang()==="ar"?"، ":" / ") + askDiffEntry(DIFFS[diffKey] || DIFFS.medium) + ")",
       minQ: 5, timed: false, diffKey: diff,
       build: function () {
         if (catId === "mistakes") return mistakeSpec(kap).build();
@@ -1427,7 +1483,7 @@ DMAssess.specs = (function () {
     total = Math.max(8, Math.min(total || 60, DMAssess.CONFIG.MASTER_CAP));
     return {
       id: "kexam-" + kap, kind: "kapitel", cat: "full", kap: kap, level: level || null, target: total,
-      modeTitle: "الامتحان الشامل • " + kap + " (" + total + " سؤالًا)",
+      modeTitle: askT("as_c_kexam_h", "الامتحان الشامل • ") + kap + " (" + total + askT("as_c_test_q", " سؤالًا") + ")",
       minQ: 8, timed: false,
       build: function () {
         var o = { kap: kap };
@@ -1471,7 +1527,7 @@ DMAssess.specs = (function () {
     };
     return {
       id: "dist-" + Date.now().toString(36), kind: "general",
-      modeTitle: "اختبار متنوع (" + (o.total || 20) + " سؤالًا)", minQ: 5, timed: false,
+      modeTitle: askT("as_c_kap_test", "اختبار ") + askT("as_c_varied", "متنوع") + " (" + (o.total || 20) + askT("as_c_test_q", " سؤالًا") + ")", minQ: 5, timed: false,
       build: function () {
         var plan = [];
         Object.keys(counts).forEach(function (sk) {
@@ -1494,7 +1550,7 @@ DMAssess.specs = (function () {
     var total = b.count || 10, diff = b.diff || "mixed", mode = b.mode || "test";
     return {
       id: "custom-" + Date.now().toString(36), kind: "general", customMode: mode,
-      modeTitle: "اختباري الخاص (" + total + " • " + cats.length + " فئات)",
+      modeTitle: askT("as_c_mine", "اختباري الخاص (") + total + askT("as_c_mine_mid", " • ") + cats.length + askT("as_c_mine_cats", " فئات)"),
       minQ: 5, timed: mode === "exam",
       secs: mode === "exam" ? DMAssess.CONFIG.EXAM_TIME_SEC : 0,
       qTimed: mode === "challenge", qSecs: DMAssess.CONFIG.QTIME_SEC,
@@ -1530,7 +1586,7 @@ DMAssess.specs = (function () {
   function mistakeSpec(kap) {
     return {
       id: "mist-" + (kap || "all") + "-" + Date.now().toString(36), kind: "skill", skill: "mixed-weak",
-      modeTitle: "اختبرني في أخطائي" + (kap ? " • " + kap : ""), minQ: 4, timed: false,
+      modeTitle: askT("as_c_mistakes_me", "اختبرني في أخطائي") + (kap ? askT("as_c_cat_test", " • ") + kap : ""), minQ: 4, timed: false,
       build: function () {
         var mp = U.mistakePlan(12);
         if (!mp.plan.length) return [];
@@ -1548,7 +1604,7 @@ DMAssess.specs = (function () {
     var seed = dateStr || "today";
     return {
       id: "daily-" + seed, kind: "general",
-      modeTitle: "تحدي اليوم 🎯", minQ: 8, timed: false, seed: seed,
+      modeTitle: askT("as_c_challenge", "تحدي اليوم 🎯"), minQ: 8, timed: false, seed: seed,
       build: function () {
         var rng = DMAssess.seededRng(seed);
         var got = U.buildPool([
@@ -1568,15 +1624,15 @@ DMAssess.specs = (function () {
         if (h.kapitel === kap || (h.kaps && h.kaps[kap] && h.kaps[kap].n >= 4)) tested++;
       });
     } catch (e) {}
-    if (r && r.pct >= DMAssess.CONFIG.BOSS_UNLOCK_READY) return { ok: true, why: "إتقان " + kap + ": " + r.pct + "%" };
-    if (tested >= 3) return { ok: true, why: tested + " اختبارات في " + kap };
-    return { ok: false, why: "يحتاج إتقان " + DMAssess.CONFIG.BOSS_UNLOCK_READY + "% أو 3 اختبارات في " + kap + " (التعلّم نفسه مفتوح دائمًا)" };
+    if (r && r.pct >= DMAssess.CONFIG.BOSS_UNLOCK_READY) return { ok: true, why: askT("as_c_unlock_ok", "إتقان ") + kap + ": " + r.pct + "%" };
+    if (tested >= 3) return { ok: true, why: tested + askT("as_c_unlock_tests", " اختبارات في ") + kap };
+    return { ok: false, why: askT("as_c_unlock_need", "يحتاج إتقان ") + DMAssess.CONFIG.BOSS_UNLOCK_READY + askT("as_c_unlock_or", "% أو 3 اختبارات في ") + kap + askT("as_c_unlock_open", " (التعلّم نفسه مفتوح دائمًا)") };
   }
   function bossSpec(kap, total) {
     total = Math.max(10, Math.min(total || 40, DMAssess.CONFIG.MASTER_CAP));
     return {
       id: "boss-" + kap, kind: "kapitel", cat: "boss", kap: kap, target: total,
-      modeTitle: "اختبار الزعيم 👑 • " + kap + " (" + total + " سؤالًا)",
+      modeTitle: askT("as_c_boss", "اختبار الزعيم 👑 • ") + kap + " (" + total + askT("as_c_test_q", " سؤالًا") + ")",
       minQ: 8, timed: false, adaptiveDiff: true,
       build: function () {
         var o = { kap: kap };
@@ -1605,7 +1661,7 @@ DMAssess.specs = (function () {
     return {
       id: "cumul-" + kaps.join("-") + "-" + total, kind: "kapitel", cat: "cumul",
       kap: kaps.length === 1 ? kaps[0] : null, kaps: kaps, level: o.level || null, target: total,
-      modeTitle: "اختبار تراكمي 📚 (" + (kaps.join(" + ") || "الكل") + ") • " + total + " سؤالًا)",
+      modeTitle: askT("as_c_cumul", "اختبار تراكمي 📚 (") + (kaps.join(" + ") || askT("as_c_cumul_all", "الكل")) + ") • " + total + askT("as_c_test_q", " سؤالًا") + ")",
       minQ: 8, timed: false,
       build: function () {
         var dist = { vocab: 22, grammar: 18, sentences: 16, verbs: 12, listening: 10, reading: 10, practical: 12 };
@@ -1650,7 +1706,7 @@ DMAssess.specs = (function () {
     return {
       id: "smart-" + Date.now().toString(36), kind: "general", cat: "smart",
       kap: o.kap || null, level: o.level || null, target: total,
-      modeTitle: "اختبرني بذكاء 🧠 (" + total + " سؤالًا)", minQ: 6, timed: false,
+      modeTitle: askT("as_c_smart", "اختبرني بذكاء 🧠 (") + total + askT("as_c_test_q", " سؤالًا") + ")", minQ: 6, timed: false,
       build: function () {
         var dist = { vocab: 15, grammar: 15, sentences: 15, verbs: 10, listening: 10, reading: 10, practical: 10, writing: 8, speaking: 7 };
         try {
@@ -1696,7 +1752,7 @@ DMAssess.app = (function () {
      * served as typed input are articles/short words where this does not
      * occur in the bank. */
   function normWrite(s) { return String(s || "").trim().toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[.?!،؛:"]+$/g, "").replace(/\s+/g, " ").trim(); }
-  function skillAr(s) { return ((C.SKILLS[s] || {}).ar) || s; }
+  function skillAr(s) { try { var m = (C.SKILLS[s] || {}); var L = "ar"; try { L = (typeof askLang === "function") ? askLang() : (((typeof S !== "undefined" && S && S.uiLang) || "ar")); } catch (e0) {} if (L === "en" && m.en) return m.en; if (L === "de" && (m.de || m.en)) return m.de || m.en; return m.ar || s; } catch (e) { try { return ((C.SKILLS[s] || {}).ar) || s; } catch (e2) { return s; } } }
 
   /* ---------- progress integration (evidence-based, no double count) ---------- */
   function wordById(id) {
@@ -1749,10 +1805,9 @@ DMAssess.app = (function () {
     var bySkill = {};
     pool.forEach(function (q) { bySkill[q.skill] = (bySkill[q.skill] || 0) + 1; });
     return '<div class="panel glass"><h3>⚠️ ' + esc(title) + '</h3>' +
-      '<div class="muted">لا يوجد محتوى كافٍ لهذا الاختبار حاليًا (متاح: ' + pool.length + ' — المطلوب: ' + minQ + '). ' +
-      'هذه نتيجة صادقة وليست درجة مخترعة. جرّب اختبارًا آخر أو أكمل الدروس أولًا.</div>' +
+      '<div class="muted">'+askT("as_c_no_thin", "لا يوجد محتوى كافٍ لهذا الاختبار حاليًا (متاح: ")+pool.length+askT("as_c_need", " — المطلوب: ")+minQ+askT("as_c_honest", "'). هذه نتيجة صادقة وليست درجة مخترعة. جرّب اختبارًا آخر أو أكمل الدروس أولًا.'")+'</div>' + +
       '<div class="muted">التغطية المتاحة: ' + Object.keys(bySkill).map(function (s) { return esc(skillAr(s)) + " (" + bySkill[s] + ")"; }).join(" • ") + '</div>' +
-      '<div class="row-flex"><button class="btn btn-ghost sm" data-as="dash">← عودة للمركز</button></div></div>';
+      '<div class="row-flex"><button class="btn btn-ghost sm" data-as="dash">' + askT("as_c_back", "← عودة للمركز") + '</button></div></div>';
   }
   /* Header-aware focus: smooth-scrolls an element into view without hiding
      it under the fixed top header or the mobile bottom nav. Uses CSS
@@ -1895,7 +1950,7 @@ DMAssess.app = (function () {
         el.classList.toggle("asr-danger", left < 180);
       }
       persistThrottleTick(left);
-      if (left <= 0) { toast("⏱️ انتهى الوقت — يتم تسليم الاختبار تلقائيًا", "err"); finish(true); return; }
+      if (left <= 0) { toast(askT("as_q_time_up", "⏱️ انتهى الوقت — يتم تسليم الاختبار تلقائيًا"), "err"); finish(true); return; }
     }
     /* challenge per-question countdown */
     if (sess.qTimed && sess.qDeadline && !sess.ans[sess.idx]) {
@@ -1917,8 +1972,8 @@ DMAssess.app = (function () {
         }
         if (ql <= 0) {
           var q = sess.qs[sess.idx];
-          toast("⏱️ انتهى وقت السؤال!", "err");
-          lockAnswer(q, { ok: false, user: "— (انتهى الوقت)", correct: correctTextOf(q), timeout: true });
+          toast(askT("as_q_time_q", "⏱️ انتهى وقت السؤال!"), "err");
+          lockAnswer(q, { ok: false, user: askT("as_q_timeout", "— (انتهى الوقت)"), correct: correctTextOf(q), timeout: true });
         }
       }
     }
@@ -1949,7 +2004,7 @@ DMAssess.app = (function () {
   }
   function modeBadge() {
     var m = (sess && sess.spec.mode) || "test";
-    return m === "training" ? "🟢 تدريب" : m === "challenge" ? "🟡 تحدي" : m === "exam" ? "🔴 امتحان" : "🔵 اختبار";
+    return m === "training" ? askT("as_q_mode_train", "🟢 تدريب") : m === "challenge" ? askT("as_q_mode_chal", "🟡 تحدي") : m === "exam" ? askT("as_q_mode_exam", "🔴 امتحان") : askT("as_q_mode_test", "🔵 اختبار");
   }
   function qStatusLine() {
     var done = sess.ans.filter(Boolean).length;
@@ -1967,23 +2022,23 @@ DMAssess.app = (function () {
     var stageTag = "";
     if (sess.stages && sess.stages.length > 1) {
       var st = sess.stages[sess.stageIdx];
-      stageTag = '<div class="muted">المرحلة ' + esc(st.id) + ' (مستوى ' + esc(st.level) + ')</div>';
+      stageTag = '<div class="muted">' + askT("as_q_stage", "المرحلة ") + esc(st.id) + askT("as_q_stage_level", " (مستوى ") + esc(st.level) + askT("as_q_stage_close", ")") + '</div>';
     } else if (sess.spec.kind === "placement") {
-      stageTag = '<div class="muted">المرحلة A (مستوى A1) — أجب بتركيز، الصعوبة تتكيف مع مستواك</div>';
+      stageTag = '<div class="muted">' + askT("as_q_stage_a", "المرحلة A (مستوى A1) — أجب بتركيز، الصعوبة تتكيف مع مستواك") + '</div>';
     }
     var h = '<div class="panel glass"><div class="asr-head"><b>' + esc(sess.spec.modeTitle) + '</b>' +
-      '<button class="btn btn-ghost sm" data-as="quit">إنهاء وحفظ ✖</button></div>' +
+      '<button class="btn btn-ghost sm" data-as="quit">' + askT("as_q_quit", "إنهاء وحفظ ✖") + '</button></div>' +
       stageTag + qStatusLine();
     if (q.passage) h += '<div class="asr-passage" dir="auto"><div class="asr-de" dir="ltr">' + esc(q.passage) + '</div>' + (q.passageAr ? '<div class="muted">' + esc(q.passageAr) + '</div>' : '') + '</div>';
     h += '<h3 class="asr-prompt">' + esc(q.prompt) + '</h3>';
     if (q.promptAr) h += '<div class="muted">' + esc(q.promptAr) + '</div>';
-    if (q.type === "listen") h += '<div class="row-flex"><button class="btn btn-gold sm" data-as="hear">🔊 استمع</button></div>';
+    if (q.type === "listen") h += '<div class="row-flex"><button class="btn btn-gold sm" data-as="hear">' + askT("as_q_hearbtn", "🔊 استمع") + '</button></div>';
     h += '<div id="asrBody"></div><div class="quiz-feedback hidden" id="asrFb"></div>';
-    h += '<div class="row-flex asr-nav"><button class="btn btn-ghost sm" data-as="prev">⏮ السابق</button>' +
-      ((a || q.type === "match") ? "" : '<button class="btn btn-primary sm" data-as="submit">تحقق ✅</button>') +
-      '<button class="btn btn-ghost sm" data-as="next">التالي ⏭</button></div>';
-    if (!a && q.type === "match") h += '<div class="muted">💡 أكمل التوصيل — يتم التقييم تلقائيًا عند الانتهاء.</div>';
-    if (!a) h += '<div class="muted">💡 أجب ثم اضغط «تحقق». الإجابة المثبتة لا يمكن تغييرها — مثل الامتحان الحقيقي.</div>';
+    h += '<div class="row-flex asr-nav"><button class="btn btn-ghost sm" data-as="prev">' + askT("as_q_prev", "⏮ السابق") + '</button>' +
+      ((a || q.type === "match") ? "" : '<button class="btn btn-primary sm" data-as="submit">' + askT("as_q_submit", "تحقق ✅") + '</button>') +
+      '<button class="btn btn-ghost sm" data-as="next">' + askT("as_q_next", "التالي ⏭") + '</button></div>';
+    if (!a && q.type === "match") h += '<div class="muted">' + askT("as_q_match_auto", "💡 أكمل التوصيل — يتم التقييم تلقائيًا عند الانتهاء.") + '</div>';
+    if (!a) h += '<div class="muted">' + askT("as_q_lock_hint", "💡 أجب ثم اضغط «تحقق». الإجابة المثبتة لا يمكن تغييرها — مثل الامتحان الحقيقي.") + '</div>';
     h += '</div>';
     box.innerHTML = h;
     renderBody(q, a);
@@ -1997,7 +2052,7 @@ DMAssess.app = (function () {
     if (q.type === "order") {
       b.innerHTML = '<div class="quiz-opts" id="asrPool" dir="ltr"></div>' +
         '<div class="asr-ans" id="asrAns" dir="ltr"></div>' +
-        (a ? '' : '<div class="row-flex"><button class="btn btn-ghost sm" data-as="clear">مسح 🗑️</button></div>');
+        (a ? '' : '<div class="row-flex"><button class="btn btn-ghost sm" data-as="clear">' + askT("as_q_clear", "مسح 🗑️") + '</button></div>');
       var pool = $("asrPool");
       var picked = a ? a.pickedArr || [] : [];
       if (a) {
@@ -2031,15 +2086,15 @@ DMAssess.app = (function () {
       return;
     }
     if (q.type === "fill") {
-      b.innerHTML = '<div class="quiz-write"><input type="text" id="asrIn" autocomplete="off" placeholder="اكتب إجابتك..." ' + (a ? 'disabled value="' + esc(a.user) + '"' : '') + '></div>';
+      b.innerHTML = '<div class="quiz-write"><input type="text" id="asrIn" autocomplete="off" placeholder="' + askT("as_q_write_ph", "اكتب إجابتك...") + '" ' + (a ? 'disabled value="' + esc(a.user) + '"' : '') + '></div>';
       return;
     }
     if (q.type === "speak") {
       var sr = false;
       try { sr = !!(window.SpeechRecognition || window.webkitSpeechRecognition); } catch (e) {}
       b.innerHTML = '<div class="quiz-write"><input type="text" id="asrIn" autocomplete="off" placeholder="Antwort auf Deutsch..." ' + (a ? 'disabled value="' + esc(a.user) + '"' : '') + '>' +
-        (!a && sr ? '<button class="btn btn-ghost sm" data-as="mic">🎤 تحدث</button>' : '') + '</div>' +
-        '<div class="muted">مثال: ' + esc(q.sample || "") + (sr ? '' : ' (التعرف الصوتي غير مدعوم في متصفحك — اكتب إجابتك ⌨️)') + '</div>';
+        (!a && sr ? '<button class="btn btn-ghost sm" data-as="mic">' + askT("as_q_mic", "🎤 تحدث") + '</button>' : '') + '</div>' +
+        '<div class="muted">' + askT("as_q_sample", "مثال: ") + esc(q.sample || "") + (sr ? '' : askT("as_q_no_sr2", " (التعرف الصوتي غير مدعوم في متصفحك — اكتب إجابتك ⌨️)")) + '</div>';
       return;
     }
     if (q.type === "conj") {
@@ -2078,7 +2133,7 @@ DMAssess.app = (function () {
           var isL = locked.indexOf(p.de) >= 0;
           return '<button class="quiz-opt asr-mbtn' + (isL ? ' correct' : '') + '" data-mar="' + esc(p.ar) + '" data-mde-ref="' + esc(p.de) + '"' + (isL ? ' disabled' : '') + '>' + esc(p.ar) + '</button>';
         }).join("") + '</div></div>' +
-        (a ? '' : '<div class="muted" id="asrMHint">اختر كلمة ألمانية ثم معناها بالعربية.</div>');
+        (a ? '' : '<div class="muted" id="asrMHint">' + (askLang()!=="ar"?askT("as_q_match_hint_en","اختر كلمة ألمانية ثم معناها."):askT("as_q_match_hint","اختر كلمة ألمانية ثم معناها بالعربية.")) + '</div>');
       if (!a) {
         sess._msel = null; sess._merr = 0; sess._mlock = [];
         b.querySelectorAll("[data-mde]").forEach(function (x) {
@@ -2090,7 +2145,7 @@ DMAssess.app = (function () {
         });
         b.querySelectorAll("[data-mar]").forEach(function (x) {
           x.addEventListener("click", function () {
-            if (x.disabled || sess._msel === null) { toast("اختر الكلمة الألمانية أولًا"); return; }
+            if (x.disabled || sess._msel === null) { toast(askT("as_q_choose_de_first", "اختر الكلمة الألمانية أولًا")); return; }
             var di = parseInt(sess._msel, 10), deBtn = b.querySelector('[data-mde="' + di + '"]');
             var want = q.pairs[di].ar, got = x.getAttribute("data-mar");
             if (want === got) {
@@ -2103,7 +2158,7 @@ DMAssess.app = (function () {
               sess._merr = (sess._merr || 0) + 1;
               x.classList.add("wrong");
               setTimeout(function () { try { x.classList.remove("wrong"); } catch (e) {} }, 700);
-              toast("❌ ليس المعنى الصحيح — حاول مجددًا", "err");
+              toast(askT("as_q_not_right", "❌ ليس المعنى الصحيح — حاول مجددًا"), "err");
             }
           });
         });
@@ -2146,7 +2201,7 @@ DMAssess.app = (function () {
           stopTimer();
           try { if (window.onbeforeunload) window.onbeforeunload = null; } catch (e0) {}
           sess = null;
-          toast("💾 تم حفظ تقدمك — يمكنك الاستكمال لاحقًا من المركز");
+          toast(askT("as_q_saved", "💾 تم حفظ تقدمك — يمكنك الاستكمال لاحقًا من المركز"));
           renderCenter();
           try { if (typeof showPage === "function") showPage("quiz"); } catch (e) {}
         }
@@ -2170,21 +2225,21 @@ DMAssess.app = (function () {
     var Ctor = null;
     try { Ctor = window.SpeechRecognition || window.webkitSpeechRecognition; } catch (e) {}
     var inp = $("asrIn");
-    if (!Ctor) { toast("التعرف الصوتي غير مدعوم — اكتب إجابتك ⌨️", "err"); return; }
+    if (!Ctor) { toast(askT("as_q_no_sr", "التعرف الصوتي غير مدعوم — اكتب إجابتك ⌨️"), "err"); return; }
     try {
       var r = new Ctor();
       r.lang = "de-DE"; r.interimResults = false;
-      toast("🎤 تحدث الآن...");
+      toast(askT("as_q_speak_now", "🎤 تحدث الآن..."));
       r.onresult = function (e) {
         try {
           var tx = e.results[0][0].transcript;
           if (inp) inp.value = tx;
-          toast("سمعتك: " + tx);
+          toast(askT("as_q_heard", "سمعتك: ") + tx);
         } catch (ex) {}
       };
-      r.onerror = function () { toast("تعذر السماع — اكتب إجابتك ⌨️", "err"); };
+      r.onerror = function () { toast(askT("as_q_no_hear", "تعذر السماع — اكتب إجابتك ⌨️"), "err"); };
       r.start();
-    } catch (e) { toast("تعذر تشغيل المايك", "err"); }
+    } catch (e) { toast(askT("as_q_no_mic", "تعذر تشغيل المايك"), "err"); }
   }
   function collectAnswer(q) {
     if (q.type === "order") {
@@ -2205,7 +2260,7 @@ DMAssess.app = (function () {
       if (t.trim().length < 2) return { empty: true };
       var g = U.gradeSpeaking(t, q.sample);
       var okS = g.pct >= 60;
-      return { ok: okS, user: t.trim(), correct: q.sample, extra: "تطابق الكلمات: " + g.pct + "%" + (g.notes ? " — " + g.notes : "") + " (تقييم استرشادي)" };
+      return { ok: okS, user: t.trim(), correct: q.sample, extra: askT("as_q_match_pct", "تطابق الكلمات: ") + g.pct + "%" + (g.notes ? " — " + g.notes : "") + askT("as_q_rated", " (تقييم استرشادي)") };
     }
     if (q.type === "match") return null; /* match submits itself when complete */
     if (q.type === "conj") {
@@ -2218,7 +2273,7 @@ DMAssess.app = (function () {
         return r.pron + " " + r.opts[cmap[ri]];
       });
       var okC = okRows >= Math.ceil(q.rows.length * 0.75);
-      return { ok: okC, user: parts.join(" • "), correct: correctTextOf(q), conjAns: cmap, extra: "صحيح: " + okRows + "/" + q.rows.length };
+      return { ok: okC, user: parts.join(" • "), correct: correctTextOf(q), conjAns: cmap, extra: askT("as_q_ok_n", "صحيح: ") + okRows + "/" + q.rows.length };
     }
     if (sess._sel === null || sess._sel === undefined) return { empty: true };
     var pi = sess._sel;
@@ -2230,11 +2285,11 @@ DMAssess.app = (function () {
     if (sess.ans[sess.idx]) return;
     if (q.type === "match") {
       var allOk = (sess._mlock || []).length >= q.pairs.length && (sess._merr || 0) <= 1;
-      return lockAnswer(q, { ok: allOk, user: "توصيل (" + (sess._mlock || []).length + "/" + q.pairs.length + ", أخطاء: " + (sess._merr || 0) + ")", correct: q.why, lockedPairs: sess._mlock || [] });
+      return lockAnswer(q, { ok: allOk, user: askT("as_q_match_locked", "توصيل (") + (sess._mlock || []).length + askT("as_q_match_of", "/") + q.pairs.length + askT("as_q_match_err", ", أخطاء: ") + (sess._merr || 0) + askT("as_q_match_end", ")"), correct: q.why, lockedPairs: sess._mlock || [] });
     }
     var r = collectAnswer(q);
     if (!r) return;
-    if (r.empty) { toast("أجب أولًا ✍️", "err"); return; }
+    if (r.empty) { toast(askT("as_q_answer_first", "أجب أولًا ✍️"), "err"); return; }
     lockAnswer(q, r);
   }
   /* adaptive difficulty: after a miss, pull an easier unanswered question
@@ -2276,7 +2331,7 @@ DMAssess.app = (function () {
       if (sess.combo > (sess.bestCombo || 0)) sess.bestCombo = sess.combo;
       if (sess.combo > 0 && sess.combo % 5 === 0) {
         try { if (FN("addXP")) FN("addXP")(5); } catch (e) {}
-        toast("🔥 كومبو x" + sess.combo + " — ⭐+5", "ok");
+        toast(askT("as_q_combo", "🔥 كومبو x") + sess.combo + askT("as_q_combo_xp", " — ⭐+5"), "ok");
       }
     } else sess.combo = 0;
     var answeredN = sess.ans.filter(Boolean).length;
@@ -2285,7 +2340,7 @@ DMAssess.app = (function () {
       if (round.length === C.CONFIG.PERFECT_ROUND_N && round.every(function (x) { return x && x.ok; })) {
         sess.perfects = (sess.perfects || 0) + 1;
         try { if (FN("addXP")) FN("addXP")(10); } catch (e2) {}
-        toast("🏆 Perfect Round! خمس إجابات صحيحة متتالية ⭐+10", "ok");
+        toast(askT("as_q_perfect", "🏆 Perfect Round! خمس إجابات صحيحة متتالية ⭐+10"), "ok");
       }
     }
     if (sess.stages) {
@@ -2317,7 +2372,7 @@ DMAssess.app = (function () {
               sess.stageIdx++;
               sess.idx++;
               persistInProgress();
-              toast("🎉 أحسنت! انتقلت للمرحلة " + specRef.stages[next].id + " (مستوى " + lvl + ")");
+              toast(askT("as_q_stageup", "🎉 أحسنت! انتقلت للمرحلة ") + specRef.stages[next].id + " (مستوى " + lvl + ")");
               renderQ();
               return;
             }
@@ -2340,7 +2395,7 @@ DMAssess.app = (function () {
     var fb = $("asrFb"); if (!fb) return;
     fb.classList.remove("hidden");
     fb.classList.add(a.ok ? "ok" : "no");
-    fb.innerHTML = (a.ok ? "صحيح ✅ " : "❌ ") + esc(q.why || ("الصحيح: " + a.correct)) + (a.extra ? '<br><span class="muted">' + esc(a.extra) + '</span>' : '');
+    fb.innerHTML = (a.ok ? askT("as_q_fb_ok", "صحيح ✅ ") : askT("as_q_fb_no", "❌ ")) + esc(q.why || (askT("as_q_fb_right", "الصحيح: ") + a.correct)) + (a.extra ? '<br><span class="muted">' + esc(a.extra) + '</span>' : '');
   }
   /*__APPEND4__*/
   return {
@@ -2364,7 +2419,7 @@ DMAssess.center = (function () {
   function toast(m, k) { try { var f = FN("toast"); if (f) f(m, k || "ok"); } catch (e) {} }
   function save() { try { var f = FN("save"); if (f) f(); } catch (e) {} }
   function today() { try { var f = FN("todayStr"); if (f) return f(); } catch (e) {} return new Date().toISOString().slice(0, 10); }
-  function skillAr(s) { return ((C.SKILLS[s] || {}).ar) || s; }
+  function skillAr(s) { try { var m = (C.SKILLS[s] || {}); var L = "ar"; try { L = (typeof askLang === "function") ? askLang() : (((typeof S !== "undefined" && S && S.uiLang) || "ar")); } catch (e0) {} if (L === "en" && m.en) return m.en; if (L === "de" && (m.de || m.en)) return m.de || m.en; return m.ar || s; } catch (e) { try { return ((C.SKILLS[s] || {}).ar) || s; } catch (e2) { return s; } } }
   function goPage(p) { try { if (typeof showPage === "function") showPage(p); } catch (e) {} }
 
   function hist() { try { var st = A.ensureStore(); return (st && st.history) || []; } catch (e) { return []; } }
@@ -2436,7 +2491,7 @@ DMAssess.center = (function () {
     A.stopTimer();
     try { if (sess._prevUnload !== undefined) window.onbeforeunload = sess._prevUnload || null; else window.onbeforeunload = null; } catch (e) {}
     sess.qs.forEach(function (q, i) {
-      if (!sess.ans[i]) sess.ans[i] = { ok: false, user: "— (بدون إجابة)", correct: A.correctTextOf(q), picked: -1, extra: "", skipped: true };
+      if (!sess.ans[i]) sess.ans[i] = { ok: false, user: askT("as_q_no_answer", "— (بدون إجابة)"), correct: A.correctTextOf(q), picked: -1, extra: "", skipped: true };
     });
     var items = sess.qs.map(function (q, i) {
       return { skill: q.skill, topic: q.topicAr || q.topic, kap: q.kap, ok: !!sess.ans[i].ok, w: q.type === "speak" ? 0.5 : 1 };
@@ -2448,16 +2503,16 @@ DMAssess.center = (function () {
     else if (sess.spec.kind === "exam") {
       var pass = scored.total.pct >= (sess.spec.passPct || C.CONFIG.PASS_A1_EXAM);
       levelVerdict = pass
-        ? { level: sess.spec.level || "A1", confidence: scored.confidence, inconclusive: false, note: "امتحان شامل بنسبة " + scored.total.pct + "%" }
-        : { level: "pre-" + (sess.spec.level || "A1"), confidence: scored.confidence, inconclusive: scored.inconclusive, note: "لم تصل لعتبة النجاح " + (sess.spec.passPct || C.CONFIG.PASS_A1_EXAM) + "% — واصل التدرب" };
+        ? { level: sess.spec.level || "A1", confidence: scored.confidence, inconclusive: false, note: askT("as_r_exam_pct", "امتحان شامل بنسبة ") + scored.total.pct + "%" }
+        : { level: "pre-" + (sess.spec.level || "A1"), confidence: scored.confidence, inconclusive: scored.inconclusive, note: askT("as_r_pass_no", "لم تصل لعتبة النجاح ") + (sess.spec.passPct || C.CONFIG.PASS_A1_EXAM) + "% — واصل التدرب" };
     }
     var rmap = kapitelReadinessMap(scored.kaps);
     var order = U.kapitelList().map(function (k) { return k.id; });
     var cur = C.currentKapitel(rmap, order);
     var dur = Math.max(0, Math.round((Date.now() - sess.startedAt) / 1000));
     var status = sess.spec.kind === "exam"
-      ? (scored.total.pct >= (sess.spec.passPct || C.CONFIG.PASS_A1_EXAM) ? "ناجح 🎉" : "لم تنجح هذه المرة 💪")
-      : (scored.inconclusive ? "غير حاسمة" : "مكتمل ✅");
+      ? (scored.total.pct >= (sess.spec.passPct || C.CONFIG.PASS_A1_EXAM) ? askT("as_r_passed", "ناجح 🎉") : askT("as_r_failed", "لم تنجح هذه المرة 💪"))
+      : (scored.inconclusive ? askT("as_r_inconc", "غير حاسمة") : askT("as_r_done", "مكتمل ✅"));
     var review = [];
     sess.qs.forEach(function (q, i) {
       var a = sess.ans[i];
@@ -2514,7 +2569,7 @@ DMAssess.center = (function () {
         S.quizHistory = S.quizHistory.slice(0, 20);
         if (sess.spec.kind === "placement" && levelVerdict && !levelVerdict.inconclusive) {
           var det = C.SKILL_KEYS.filter(function (s) { return entry.skills[s] && entry.skills[s].n; }).map(function (s) { return { k: s, n: Math.round(entry.skills[s].n), ok: Math.round(entry.skills[s].ok), pct: entry.skills[s].pct }; });
-          var path = entry.level === "A0" ? "Start A1 🟢" : (entry.level === "A1" ? "أكمل A1 ثم A2 🚀" : "واصل naar " + entry.level);
+          var path = entry.level === "A0" ? askT("as_r_path_a0", "Start A1 🟢") : (entry.level === "A1" ? askT("as_r_path_a1", "أكمل A1 ثم A2 🚀") : askT("as_r_path_go", "واصل إلى ") + entry.level);
           S.place = { score: Math.round(entry.pct / 100 * 12), total: 12, pct: entry.pct, lvl: entry.level, path: path, date: today(), skills: det };
           S.placeHistory = S.placeHistory || [];
           S.placeHistory.unshift({ score: Math.round(entry.pct / 100 * 12), lvl: entry.level, date: today(), skills: det });
@@ -2540,11 +2595,11 @@ DMAssess.center = (function () {
     return entry;
   }
 
-  function confAr(c) { return c === "high" ? "مرتفع ✅" : c === "medium" ? "متوسط 🟡" : "منخفض ⚠️"; }
+  function confAr(c) { return c === "high" ? askT("as_r_conf_h", "مرتفع ✅") : c === "medium" ? askT("as_r_conf_m", "متوسط 🟡") : askT("as_r_conf_l", "منخفض ⚠️"); }
   function pracGoFor(entry, r) {
     var sk = r.sk, go = ((C.SKILLS[sk] || {}).go) || "practice";
-    if (r.gid) return { go: "labs", gid: r.gid, label: "تدرب على هذا الموضوع 🧪" };
-    return { go: go, label: "تدرب على " + skillAr(sk) + " ←" };
+    if (r.gid) return { go: "labs", gid: r.gid, label: askT("as_r_train_here", "تدرب على هذا الموضوع 🧪") };
+    return { go: go, label: askT("as_r_train_skill", "تدرب على ") + skillAr(sk) + askT("as_r_arrow", " ←") };
   }
   /* ---------------- result page ---------------- */
   function renderResult(entry) {
@@ -2553,64 +2608,64 @@ DMAssess.center = (function () {
     h += '<div class="panel glass asd-hero"><div class="muted">' + esc(entry.title) + ' • ' + esc(entry.date) + ' • ⏱️ ' + Math.floor(entry.dur / 60) + ':' + String(entry.dur % 60).padStart(2, "0") + '</div>';
     h += '<div class="asr-big">' + entry.pct + '%</div>';
     h += '<div><b>' + esc(entry.status) + '</b> <span class="muted">(' + entry.score + '/' + entry.total + ')</span></div>';
-    if (entry.newRecord) h += '<div class="quiz-feedback ok">🎉 رقم قياسي جديد — أفضل نتيجة لك في هذا النوع!</div>';
-    if (entry.comboBest >= 3) h += '<div class="muted">🔥 أطول سلسلة صحيحة: <b>x' + entry.comboBest + '</b>' + (entry.perfects ? ' • 🏆 Perfect Rounds: ' + entry.perfects : '') + '</div>';
+    if (entry.newRecord) h += '<div class="quiz-feedback ok">' + askT("as_r_record", "🎉 رقم قياسي جديد — أفضل نتيجة لك في هذا النوع!") + '</div>';
+    if (entry.comboBest >= 3) h += '<div class="muted">' + askT("as_r_streak", "🔥 أطول سلسلة صحيحة: ") + '<b>x' + entry.comboBest + '</b>' + (entry.perfects ? askT("as_r_combo", " • 🏆 Perfect Rounds: ") + entry.perfects : '') + '</div>';
     if (entry.level) {
-      h += '<div class="asd-lvlrow"><div class="asd-lvl"><span class="muted">مستواك</span><b>' + esc(entry.level) + '</b></div>';
+      h += '<div class="asd-lvlrow"><div class="asd-lvl"><span class="muted">' + askT("as_r_your", "مستواك: ").replace(/:\s*$/, "") + '</span><b>' + esc(entry.level) + '</b></div>';
       h += '<div class="asd-lvl"><span class="muted">Kapitel</span><b>' + esc(entry.kapitel || "—") + '</b></div>';
-      h += '<div class="asd-lvl"><span class="muted">مستوى الثقة</span><b>' + esc(confAr(entry.levelConf || entry.conf)) + '</b></div></div>';
+      h += '<div class="asd-lvl"><span class="muted">'+askT("as_r_conf", "مستوى الثقة")+'</span><b>' + esc(confAr(entry.levelConf || entry.conf)) + '</b></div></div>';
     } else {
-      h += '<div class="asd-lvlrow"><div class="asd-lvl"><span class="muted">Kapitel الحالي</span><b>' + esc(entry.kapitel || "—") + '</b></div>';
-      if (entry.kapitelNext) h += '<div class="asd-lvl"><span class="muted">التالي</span><b>' + esc(entry.kapitelNext) + '</b></div>';
-      h += '<div class="asd-lvl"><span class="muted">مستوى الثقة</span><b>' + esc(confAr(entry.conf)) + '</b></div></div>';
-      if (entry.confWhy) h += '<div class="muted">لماذا؟ ' + esc(entry.confWhy) + '</div>';
+      h += '<div class="asd-lvlrow"><div class="asd-lvl"><span class="muted">' + askT("as_c_kap", "Kapitel الحالي") + '</span><b>' + esc(entry.kapitel || "—") + '</b></div>';
+      if (entry.kapitelNext) h += '<div class="asd-lvl"><span class="muted">' + askT("as_r_next_kap", "التالي") + '</span><b>' + esc(entry.kapitelNext) + '</b></div>';
+      h += '<div class="asd-lvl"><span class="muted">'+askT("as_r_conf", "مستوى الثقة")+'</span><b>' + esc(confAr(entry.conf)) + '</b></div></div>';
+      if (entry.confWhy) h += '<div class="muted">' + askT("as_r_why", "لماذا؟ ") + esc(entry.confWhy) + '</div>';
     }
     if (entry.stages && entry.stages.length > 1) {
-      h += '<div class="muted">المراحل: ' + entry.stages.map(function (s) { return esc(s.id) + " " + s.pct + "%"; }).join(" ← ") + '</div>';
+      h += '<div class="muted">' + askT("as_r_stages", "المراحل: ") + entry.stages.map(function (s) { return esc(s.id) + " " + s.pct + "%"; }).join(askLang()==="ar"?" ← ":" → ") + '</div>';
     }
     h += '</div>';
     /* skill table (exam mode uses official section names) */
     var SEC_AR = { listening: "Hören — الاستماع 🎧", reading: "Lesen — القراءة 📖", vocab: "Wortschatz — المفردات 📚", grammar: "Grammatik — القواعد 📐", writing: "Schreiben — الكتابة ✍️", speaking: "Sprechen — التحدث 🎤" };
-    h += '<div class="panel glass"><h3>' + (entry.mode === "exam" ? "📊 درجات الأقسام" : "📊 المهارات") + '</h3><div class="asd-skills">';
+    h += '<div class="panel glass"><h3>' + (entry.mode === "exam" ? askT("as_r_score", "📊 درجات الأقسام") : askT("as_r_skills", "📊 المهارات")) + '</h3><div class="asd-skills">';
     C.SKILL_KEYS.forEach(function (s) {
       var m = entry.skills[s];
       if (!m || !m.n) return;
       st = C.statusOf(m.pct, m.ev);
-      var lbl = (entry.mode === "exam" && SEC_AR[s]) ? SEC_AR[s] : skillAr(s);
+      var lbl = (entry.mode === "exam" && SEC_AR[s]) ? askSec(s) : skillAr(s);
       h += '<div class="asd-skill"><div class="row-flex"><b>' + esc(lbl) + '</b><span>' + m.pct + '%</span></div>' +
         '<div class="progress sm"><div class="progress-fill" style="width:' + m.pct + '%"></div></div>' +
-        '<div class="muted">' + st.ico + ' ' + st.ar + (m.ev === "thin" ? ' (إجابات قليلة: ' + Math.round(m.n) + ')' : '') + '</div></div>';
+        '<div class="muted">' + st.ico + ' ' + st.ar + (m.ev === "thin" ? askT("as_r_thin", " (إجابات قليلة: ") + Math.round(m.n) + askT("as_r_thin_n", ")") : '') + '</div></div>';
     });
     h += '</div></div>';
     /* strengths / weaknesses */
-    h += '<div class="grid-2"><div class="panel glass"><h3>💪 نقاط القوة</h3>' +
-      (entry.strong.length ? entry.strong.map(function (s) { return '<div class="muted">✅ ' + esc(skillAr(s)) + ' (' + entry.skills[s].pct + '%)</div>'; }).join("") : '<div class="muted">لا نقاط قوة مؤكدة بعد — واصل التدرب.</div>') + '</div>';
-    h += '<div class="panel glass"><h3>⚠️ تحتاج مراجعة</h3>' +
-      (entry.weak.length ? entry.weak.map(function (s) { return '<div class="muted">🔴 ' + esc(skillAr(s)) + ' (' + entry.skills[s].pct + '%)</div>'; }).join("") : '<div class="muted">🎉 لا نقاط ضعف مؤكدة!</div>') +
-      (entry.weakTopics.length ? '<div class="muted">🎯 بالتفصيل: ' + entry.weakTopics.map(function (t) { return esc(t.tp) + " (" + t.pct + "%)"; }).join(" • ") + '</div>' : '') + '</div></div>';
+    h += '<div class="grid-2"><div class="panel glass"><h3>' + askT("as_r_strong", "💪 نقاط القوة") + '</h3>' +
+      (entry.strong.length ? entry.strong.map(function (s) { return '<div class="muted">✅ ' + esc(skillAr(s)) + ' (' + entry.skills[s].pct + '%)</div>'; }).join("") : '<div class="muted">'+askT("as_r_notop", "لا نقاط قوة مؤكدة بعد — واصل التدرب.")+'</div>') + '</div>';
+    h += '<div class="panel glass"><h3>' + askT("as_r_weak", "⚠️ تحتاج مراجعة") + '</h3>' +
+      (entry.weak.length ? entry.weak.map(function (s) { return '<div class="muted">🔴 ' + esc(skillAr(s)) + ' (' + entry.skills[s].pct + '%)</div>'; }).join("") : '<div class="muted">'+askT("as_r_noweak", "🎉 لا نقاط ضعف مؤكدة!")+'</div>') +
+      (entry.weakTopics.length ? '<div class="muted">'+askT("as_r_weak_det", "🎯 بالتفصيل: ") + entry.weakTopics.map(function (t) { return esc(typeof askTopic==="function"?askTopic(t.tp):t.tp) + " (" + t.pct + "%)"; }).join(" • ") + '</div>' : '') + '</div></div>';
     /* next steps */
     var recs = [];
     (entry.weak.length ? entry.weak : C.SKILL_KEYS.filter(function (s) { return entry.skills[s] && entry.skills[s].n; }).slice(0, 3)).slice(0, 3).forEach(function (s) {
-      recs.push({ label: (entry.weak.length ? "راجع " : "واصل ") + skillAr(s), go: ((C.SKILLS[s] || {}).go) || "practice" });
+      recs.push({ label: (entry.weak.length ? askT("as_r_rec_rev", "راجع ") : askT("as_r_rec_go", "واصل ")) + skillAr(s), go: ((C.SKILLS[s] || {}).go) || "practice" });
     });
-    recs.push({ label: "❌ مراجعة أخطائي", go: "mistakes" });
-    recs.push({ label: "🗺️ الرحلة", go: "journey" });
-    h += '<div class="panel glass"><h3>➡️ ماذا تفعل الآن؟</h3><div class="muted">مستواك: <b>' + esc(entry.level || "—") + '</b> • Kapitel: <b>' + esc(entry.kapitel || "—") + '</b></div><div class="row-flex">' +
+    recs.push({ label: askT("as_r_mist", "❌ مراجعة أخطائي"), go: "mistakes" });
+    recs.push({ label: askT("as_r_journey", "🗺️ الرحلة"), go: "journey" });
+    h += '<div class="panel glass"><h3>' + askT("as_r_next", "➡️ ماذا تفعل الآن؟") + '</h3><div class="muted">' + askT("as_r_your", "مستواك: ") + '<b>' + esc(entry.level || "—") + '</b>' + askT("as_r_kap", " • Kapitel: ") + '<b>' + esc(entry.kapitel || "—") + '</b></div><div class="row-flex">' +
       recs.map(function (r, i) { return '<button class="btn btn-ghost sm" data-asgo="' + esc(r.go) + '">' + esc(r.label) + '</button>'; }).join("") + '</div></div>';
     /* answer review */
-    h += '<div class="panel glass"><h3>🔍 مراجعة الإجابات الخاطئة (' + entry.review.length + ')</h3>';
-    if (!entry.review.length) h += '<div class="quiz-feedback ok">ممتاز — بلا أخطاء! 🎉</div>';
+    h += '<div class="panel glass"><h3>' + askT("as_r_rev", "🔍 مراجعة الإجابات الخاطئة (") + entry.review.length + askT("as_r_rev_close", ")") + '</h3>';
+    if (!entry.review.length) h += '<div class="quiz-feedback ok">' + window.t("sc_quiz_noerr") + '</div>';
     h += entry.review.map(function (r, i) {
       var pg = pracGoFor(entry, r);
       return '<div class="asr-rev"><div><b>' + esc(r.p) + '</b></div>' +
         (r.ps ? '<div class="muted asr-de" dir="ltr">' + esc(r.ps) + '</div>' : '') +
-        '<div>إجابتك: <b style="color:var(--red,#e5484d)">' + esc(r.u) + '</b></div>' +
-        '<div>الصحيح: <b style="color:var(--green,#30a46c)">' + esc(r.c) + '</b></div>' +
+        '<div>' + askT("as_r_you", "إجابتك: ") + '<b style="color:var(--red,#e5484d)">' + esc(r.u) + '</b></div>' +
+        '<div>' + askT("as_r_right", "الصحيح: ") + '<b style="color:var(--green,#30a46c)">' + esc(r.c) + '</b></div>' +
         (r.why ? '<div class="muted">💡 ' + esc(r.why) + '</div>' : '') +
-        '<div class="muted">🏷️ ' + esc(skillAr(r.sk)) + ' • ' + esc(r.tp || "") + (r.kap ? ' • ' + esc(r.kap) : '') + '</div>' +
+        '<div class="muted">🏷️ ' + esc(skillAr(r.sk)) + askT("as_r_skill_sec", " • ") + esc(typeof askTopic==="function"?askTopic(r.tp || ""):r.tp || "") + (r.kap ? askT("as_r_skill_sec", " • ") + esc(r.kap) : '') + '</div>' +
         '<div class="row-flex"><button class="btn btn-ghost sm" data-asgo="' + esc(pg.go) + '"' + (r.gid ? ' data-gid="' + esc(r.gid) + '"' : '') + '>' + esc(pg.label) + '</button></div></div>';
     }).join("") + '</div>';
-    h += '<div class="row-flex"><button class="btn btn-primary sm" data-as="retry">🔄 إعادة الاختبار</button><button class="btn btn-ghost sm" data-as="dash">← المركز</button><button class="btn btn-ghost sm" data-asgo="practice">🎯 تدريب ذكي</button></div>';
+    h += '<div class="row-flex"><button class="btn btn-primary sm" data-as="retry">' + askT("sc_retry", "🔄 إعادة الاختبار") + '</button><button class="btn btn-ghost sm" data-as="dash">' + askT("as_r_center", "← المركز") + '</button><button class="btn btn-ghost sm" data-asgo="practice">🎯 '+window.t("practice")+'</button></div>';
     h += '</div>';
     root.innerHTML = h;
     wireDashBtns(root);
@@ -2639,7 +2694,7 @@ DMAssess.center = (function () {
       if (!ip || ip.v !== C.CONFIG.STORE_V || !ip.qs || !ip.qs.length) return null;
       if (Date.now() - (ip.startedAt || 0) > C.CONFIG.RESUME_TTL_DAYS * 86400000) return null;
       var done = (ip.ans || []).filter(Boolean).length;
-      return { title: (ip.specMeta || {}).modeTitle || "اختبار", done: done, total: ip.qs.length };
+      return { title: (ip.specMeta || {}).modeTitle || askT("as_r_test", "اختبار"), done: done, total: ip.qs.length };
     } catch (e) { return null; }
   }
   function dashboardData() {
@@ -2662,11 +2717,11 @@ DMAssess.center = (function () {
     return { last: last, best: best, count: H.length, mastery: mastery, masteryN: masteryN, agg: agg, rmap: rmap, cur: cur, lvl: lvl, order: order };
   }
   function kapStateChip(r) {
-    if (!r || r.conf === "none") return '<span class="muted">🔒 غير مؤكد</span>';
-    if (r.pct >= C.CONFIG.KAP_MASTERED) return '<span class="as-ok">✓ متقن ' + r.pct + '%</span>';
-    if (r.pct >= C.CONFIG.KAP_READY) return '<span class="as-ok">✓ جاهز ' + r.pct + '%</span>';
-    if (r.pct >= 40) return '<span class="as-warn">🟡 ' + r.pct + '% — يحتاج مراجعة</span>';
-    return '<span class="muted">🔒 ' + r.pct + '% — غير جاهز</span>';
+    if (!r || r.conf === "none") return '<span class="muted">' + askT("as_r_badge_unconf", "🔒 غير مؤكد") + '</span>';
+    if (r.pct >= C.CONFIG.KAP_MASTERED) return '<span class="as-ok">' + askT("as_r_badge_mastered", "✓ متقن ") + r.pct + '%</span>';
+    if (r.pct >= C.CONFIG.KAP_READY) return '<span class="as-ok">' + askT("as_r_badge_ready", "✓ جاهز ") + r.pct + '%</span>';
+    if (r.pct >= 40) return '<span class="as-warn">🟡 ' + r.pct + '%' + askT("as_r_badge_rev", " — يحتاج مراجعة") + '</span>';
+    return '<span class="muted">🔒 ' + r.pct + '%' + askT("as_r_badge_locked", " — غير جاهز") + '</span>';
   }
   function renderCenter() {
     A.stopTimer();
@@ -2674,61 +2729,61 @@ DMAssess.center = (function () {
     var d = dashboardData(), ip = inProgressValid();
     var h = '<div id="assessDash">';
     if (ip) {
-      h += '<div class="panel glass as-resume"><b>💾 لديك اختبار غير مكتمل: ' + esc(ip.title) + ' (' + ip.done + '/' + ip.total + ')</b>' +
-        '<div class="row-flex"><button class="btn btn-primary sm" data-as="resume">▶️ استكمال الاختبار</button><button class="btn btn-ghost sm" data-as="discard">🗑️ تجاهل</button></div></div>';
+      h += '<div class="panel glass as-resume"><b>' + askT("as_r_resume", "💾 لديك اختبار غير مكتمل: ") + esc(ip.title) + ' (' + ip.done + '/' + ip.total + ')</b>' +
+        '<div class="row-flex"><button class="btn btn-primary sm" data-as="resume">' + askT("as_r_resume_go", "▶️ استكمال الاختبار") + '</button><button class="btn btn-ghost sm" data-as="discard">' + askT("as_r_discard", "🗑️ تجاهل") + '</button></div></div>';
     }
     /* guided Test Center flow (testcenter.js, additive; guarded) */
     try { if (typeof DMTestCenter !== "undefined" && DMTestCenter && DMTestCenter.renderSection) h += DMTestCenter.renderSection(d); } catch (e) {}
     /* status */
     var kapTxt = d.cur.current ? d.cur.current : "—";
-    var kapSub = !d.cur.current ? "ابدأ أول تقييم" : (d.cur.next ? "قريب من " + d.cur.next : "متقدم 🎉");
-    h += '<div class="panel glass"><h3>🎯 مركز الاختبارات والتقييم</h3><div class="muted">هنا تعرف مستواك الحقيقي، والـ Kapitel الذي أنت فيه، ونقاط ضعفك، وماذا تذاكر الآن.</div>';
+    var kapSub = !d.cur.current ? askT("as_c_kap_start", "ابدأ أول تقييم") : (d.cur.next ? askT("as_c_kap_next", "قريب من ") + d.cur.next : askT("as_c_kap_adv", "متقدم 🎉"));
+    h += '<div class="panel glass"><h3>' + askT("as_c_head", "🎯 مركز الاختبارات والتقييم") + '</h3><div class="muted">' + askT("as_c_sub", "هنا تعرف مستواك الحقيقي، والـ Kapitel الذي أنت فيه، ونقاط ضعفك، وماذا تذاكر الآن.") + '</div>';
     h += '<div class="asd-grid">' +
-      statCard("📊", "مستواك الحالي", d.lvl || "—", d.lvl ? "" : "حدد مستواك أولًا") +
-      statCard("📖", "Kapitel الحالي", kapTxt, kapSub) +
-      statCard("🏆", "الإتقان", d.masteryN ? d.mastery + "%" : "—", d.masteryN ? "متوسط آخر " + d.masteryN + " اختبارات" : "لا اختبارات بعد") +
-      statCard("🕘", "آخر اختبار", d.last ? d.last.pct + "%" : "—", d.last ? esc(d.last.title) : "ابدأ الآن 🚀") +
-      statCard("⭐", "أفضل نتيجة", d.count ? d.best + "%" : "—", d.count ? d.count + " اختبارات محلولة" : "0 اختبارات") +
-      statCard("🎯", "دقة الإجابات", d.agg.total.n ? Math.round(d.agg.total.ok / d.agg.total.n * 100) + "%" : "—", d.agg.total.n ? d.agg.total.n + " إجابة مسجلة" : "أجب لتظهر دقتك") +
+      statCard("📊", askT("as_c_level", "مستواك الحالي"), d.lvl || "—", d.lvl ? "" : askT("as_c_level_none", "حدد مستواك أولًا")) +
+      statCard("📖", askT("as_c_kap", "Kapitel الحالي"), kapTxt, kapSub) +
+      statCard("🏆", askT("as_c_mastery", "الإتقان"), d.masteryN ? d.mastery + "%" : "—", d.masteryN ? askT("as_c_mastery_avg", "متوسط آخر ") + d.masteryN + askT("as_c_mastery_q", " اختبارات") : askT("as_c_mastery_none", "لا اختبارات بعد")) +
+      statCard("🕘", askT("as_c_last", "آخر اختبار"), d.last ? d.last.pct + "%" : "—", d.last ? esc(d.last.title) : askT("as_c_last_go", "ابدأ الآن 🚀")) +
+      statCard("⭐", askT("as_c_best", "أفضل نتيجة"), d.count ? d.best + "%" : "—", d.count ? d.count + askT("as_c_best_n", " اختبارات محلولة") : askT("as_c_best_0", "0 اختبارات")) +
+      statCard("🎯", askT("as_c_acc", "دقة الإجابات"), d.agg.total.n ? Math.round(d.agg.total.ok / d.agg.total.n * 100) + "%" : "—", d.agg.total.n ? d.agg.total.n + askT("as_c_acc_n", " إجابة مسجلة") : askT("as_c_acc_go", "أجب لتظهر دقتك")) +
       '</div>';
     var sk = d.agg.skills;
     var strong = C.SKILL_KEYS.filter(function (s) { return sk[s].ev === "ok" && sk[s].pct >= C.CONFIG.STRONG_SKILL; });
     var weak = C.SKILL_KEYS.filter(function (s) { return sk[s].ev === "ok" && sk[s].pct < C.CONFIG.GOOD_SKILL; });
-    h += '<div class="row-flex"><span class="muted">💪 القوية:</span>' + (strong.length ? strong.map(function (s) { return '<span class="tag">' + esc(skillAr(s)) + '</span>'; }).join("") : '<span class="muted">—</span>') + '</div>';
-    h += '<div class="row-flex"><span class="muted">⚠️ الضعيفة:</span>' + (weak.length ? weak.map(function (s) { return '<span class="tag">' + esc(skillAr(s)) + ' ' + sk[s].pct + '%</span>'; }).join("") : '<span class="muted">—</span>') + '</div>';
+    h += '<div class="row-flex"><span class="muted">' + askT("as_c_strong", "💪 القوية:") + '</span>' + (strong.length ? strong.map(function (s) { return '<span class="tag">' + esc(skillAr(s)) + '</span>'; }).join("") : '<span class="muted">—</span>') + '</div>';
+    h += '<div class="row-flex"><span class="muted">' + askT("as_c_weak", "⚠️ الضعيفة:") + '</span>' + (weak.length ? weak.map(function (s) { return '<span class="tag">' + esc(skillAr(s)) + ' ' + sk[s].pct + '%</span>'; }).join("") : '<span class="muted">—</span>') + '</div>';
     h += '</div>';
     /* placement hero */
-    h += '<div class="panel glass as-hero"><div><h3>🎯 اختبار تحديد المستوى</h3><div class="muted">اختبار شامل تكيّفي (A1 ← A2 ← B1): مفردات، قواعد، جمل، قراءة، استماع، مواقف عملية، وتحدث اختياري. يحدد مستواك والـ Kapitel بدقة.</div></div>' +
-      '<button class="btn btn-primary" data-as="start:placement">ابدأ تحديد المستوى 🚀</button></div>';
+    h += '<div class="panel glass as-hero"><div><h3>' + askT("as_c_place_h", "🎯 اختبار تحديد المستوى") + '</h3><div class="muted">' + askT("as_c_place_sub", "اختبار شامل تكيّفي (A1 ← A2 ← B1): مفردات، قواعد، جمل، قراءة، استماع، مواقف عملية، وتحدث اختياري. يحدد مستواك والـ Kapitel بدقة.") + '</div></div>' +
+      '<button class="btn btn-primary" data-as="start:placement">' + askT("as_c_place_go", "ابدأ تحديد المستوى 🚀") + '</button></div>';
     /* general modes */
-    h += '<div class="panel glass"><h3>⚡ حسب المدة</h3><div class="row-flex">' +
-      '<button class="btn btn-ghost sm" data-as="start:mixed-8">اختبار سريع (8)</button>' +
-      '<button class="btn btn-ghost sm" data-as="start:mixed-16">اختبار متوسط (16)</button>' +
-      '<button class="btn btn-ghost sm" data-as="start:mixed-30">اختبار شامل (30)</button></div></div>';
+    h += '<div class="panel glass"><h3>' + askT("as_c_dur", "⚡ حسب المدة") + '</h3><div class="row-flex">' +
+      '<button class="btn btn-ghost sm" data-as="start:mixed-8">' + askT("as_c_quick8", "اختبار سريع (8)") + '</button>' +
+      '<button class="btn btn-ghost sm" data-as="start:mixed-16">' + askT("as_c_mid16", "اختبار متوسط (16)") + '</button>' +
+      '<button class="btn btn-ghost sm" data-as="start:mixed-30">' + askT("as_c_full30", "اختبار شامل (30)") + '</button></div></div>';
     /* kapitel tests (dynamic from real KAPITEL) */
-    h += '<div class="panel glass"><h3>📖 اختبارات Kapitel</h3><div class="asd-kaps">';
+    h += '<div class="panel glass"><h3>' + askT("as_c_kap_h", "📖 اختبارات Kapitel") + '</h3><div class="asd-kaps">';
     U.kapitelList().forEach(function (k) {
       h += '<button class="quick-btn" data-as="start:kap-' + esc(k.id) + '">' + esc(k.icon || "📖") + ' ' + esc(k.id) + '<br><small>' + esc(k.name) + '</small></button>';
     });
     h += '</div></div>';
     /* skill tests */
-    h += '<div class="panel glass"><h3>🧠 اختبارات المهارات</h3><div class="asd-kaps">';
+    h += '<div class="panel glass"><h3>' + askT("as_c_skill_h", "🧠 اختبارات المهارات") + '</h3><div class="asd-kaps">';
     C.SKILL_KEYS.forEach(function (s) {
       h += '<button class="quick-btn" data-as="start:skill-' + s + '">' + esc(skillAr(s)) + '<br><small>' + esc((C.SKILLS[s] || {}).de || "") + '</small></button>';
     });
     h += '</div></div>';
     /* exams */
-    h += '<div class="panel glass"><h3>🏁 الامتحانات الشاملة</h3><div class="grid-2">';
-    h += '<div class="asd-exam"><b>🇩🇪 امتحان A1 الشامل</b><div class="muted">Hören • Lesen • Wortschatz • Grammatik • Schreiben • Sprechen — النجاح من ' + C.CONFIG.PASS_A1_EXAM + '% — بتوقيت ⏱️</div><button class="btn btn-gold sm" data-as="start:exam-a1">ابدأ الامتحان 🏁</button></div>';
+    h += '<div class="panel glass"><h3>' + askT("as_c_exam_h", "🏁 الامتحانات الشاملة") + '</h3><div class="grid-2">';
+    h += '<div class="asd-exam"><b>🇩🇪 ' + askT("as_c_exam_a1", "امتحان A1 الشامل") + '</b><div class="muted">Hören • Lesen • Wortschatz • Grammatik • Schreiben • Sprechen — ' + askT("as_c_exam_pass", "النجاح من ") + C.CONFIG.PASS_A1_EXAM + '% ' + askT("as_c_exam_timed", "— بتوقيت ⏱️") + '</div><button class="btn btn-gold sm" data-as="start:exam-a1">' + askT("as_c_start_exam", "ابدأ الامتحان 🏁") + '</button></div>';
     ["A2", "B1", "B2"].forEach(function (lv) {
       var g = U.levelUnlocked(lv);
-      if (g.ok) h += '<div class="asd-exam"><b>🇩🇪 امتحان ' + lv + ' الشامل</b><div class="muted">محتوى ' + lv + ' متاح (' + g.words + ' كلمة).</div><button class="btn btn-gold sm" data-as="start:exam-' + lv.toLowerCase() + '">ابدأ الامتحان 🏁</button></div>';
-      else h += '<div class="asd-exam locked"><b>🔒 امتحان ' + lv + '</b><div class="muted">المحتوى قيد التجهيز (' + (g.words || 0) + ' كلمة، ' + (g.grammar || 0) + ' قواعد) — سيُفتح عند اكتمال المحتوى.</div>' +
-        (typeof Curriculum !== "undefined" ? '<button class="btn btn-ghost sm" data-as="load:' + lv + '">⬇️ تحميل محتوى ' + lv + '</button>' : '') + '</div>';
+      if (g.ok) h += '<div class="asd-exam"><b>🇩🇪 ' + askT("as_c_exam", "امتحان ") + lv + ' ' + askT("as_c_exam_full", "الشامل") + '</b><div class="muted">' + askT("as_c_exam_avail", "محتوى ") + lv + askT("as_c_exam_avail2", " متاح (") + g.words + askT("as_c_exam_words", " كلمة).") + '</div><button class="btn btn-gold sm" data-as="start:exam-' + lv.toLowerCase() + '">' + askT("as_c_start_exam", "ابدأ الامتحان 🏁") + '</button></div>';
+      else h += '<div class="asd-exam locked"><b>🔒 ' + askT("as_c_exam", "امتحان ") + lv + '</b><div class="muted">' + askT("as_c_exam_prep", "المحتوى قيد التجهيز (") + (g.words || 0) + askT("as_c_exam_w2", " كلمة، ") + (g.grammar || 0) + askT("as_c_exam_rules", " قواعد)") + askT("as_c_exam_soon", " — سيُفتح عند اكتمال المحتوى.") + '</div>' +
+        (typeof Curriculum !== "undefined" ? '<button class="btn btn-ghost sm" data-as="load:' + lv + '">' + askT("as_c_exam_load", "⬇️ تحميل محتوى ") + lv + '</button>' : '') + '</div>';
     });
-    h += '</div><div class="muted">امتحانات Deutsch Master الداخلية — ليست شهادات رسمية (ليست Goethe).</div></div>';
+    h += '</div><div class="muted">' + askT("as_c_exam_note", "امتحانات Deutsch Master الداخلية — ليست شهادات رسمية (ليست Goethe).") + '</div></div>';
     /* kapitel map */
-    h += '<div class="panel glass"><h3>🗺️ خريطة الـ Kapitel</h3><div class="asd-map">';
+    h += '<div class="panel glass"><h3>' + askT("as_c_map", "🗺️ خريطة الـ Kapitel") + '</h3><div class="asd-map">';
     var kl = U.kapitelList();
     kl.forEach(function (k, i) {
       var r = d.rmap[k.id];
@@ -2736,22 +2791,22 @@ DMAssess.center = (function () {
       h += '<button class="asd-maprow" data-as="start:kap-' + esc(k.id) + '"><span class="asd-mapico">' + ico + '</span><span><b>' + esc(k.id) + ' • ' + esc(k.name) + '</b><br>' + kapStateChip(r) + '</span><span>←</span></button>';
       if (i < kl.length - 1) h += '<div class="asd-mapdown">↓</div>';
     });
-    h += '</div><div class="muted">اضغط على أي Kapitel لاختباره أو مراجعته.</div></div>';
+    h += '</div><div class="muted">' + askT("as_c_map_hint", "اضغط على أي Kapitel لاختباره أو مراجعته.") + '</div></div>';
     /* trends */
     var H = hist().slice(0, 5).reverse();
     if (H.length) {
-      h += '<div class="panel glass"><h3>📈 تقدمك عبر الوقت</h3><div class="asd-bars">' +
+      h += '<div class="panel glass"><h3>' + askT("as_c_prog", "📈 تقدمك عبر الوقت") + '</h3><div class="asd-bars">' +
         H.map(function (x) { return '<div class="asd-bar"><div class="asd-barfill" style="height:' + Math.max(4, x.pct) + '%"></div><span>' + x.pct + '%</span><small>' + esc(x.date.slice(5)) + '</small></div>'; }).join("") +
         '</div></div>';
     }
     /* history */
-    h += '<div class="panel glass"><h3>📜 سجل الاختبارات (' + d.count + ')</h3><div class="history-list">';
-    if (!d.count) h += '<div class="muted">لم تحل أي تقييم بعد — ابدأ بتحديد المستوى! 🚀</div>';
+    h += '<div class="panel glass"><h3>' + askT("as_c_hist", "📜 سجل الاختبارات (") + d.count + askT("as_c_hist_close", ")") + '</h3><div class="history-list">';
+    if (!d.count) h += '<div class="muted">' + askT("as_c_hist_none", "لم تحل أي تقييم بعد — ابدأ بتحديد المستوى! 🚀") + '</div>';
     h += hist().slice(0, 8).map(function (x) {
       return '<div class="history-item"><span>🎯 ' + esc(x.title) + ' • ' + esc(x.date) + ' • ⏱️ ' + Math.floor(x.dur / 60) + ':' + String(x.dur % 60).padStart(2, "0") + (x.level ? ' • ' + esc(x.level) : '') + '</span><span><b>' + x.pct + '%</b> <button class="btn btn-ghost sm" data-as="hist:' + x.id + '">فتح ←</button></span></div>';
     }).join("") + '</div></div>';
     /* legacy quick tests anchor */
-    h += '<div class="panel glass"><h3>📝 الاختبارات السريعة</h3><div class="muted">تدريب سريع بالنظام السابق (أدوات، معاني، جمع، استماع...).</div><div class="row-flex"><button class="btn btn-ghost sm" data-as="oldquiz">فتح الاختبارات السريعة ↓</button></div></div>';
+    h += '<div class="panel glass"><h3>' + askT("as_c_legacy_h", "📝 الاختبارات السريعة") + '</h3><div class="muted">' + askT("as_c_legacy_sub", "تدريب سريع بالنظام السابق (أدوات، معاني، جمع، استماع...).") + '</div><div class="row-flex"><button class="btn btn-ghost sm" data-as="oldquiz">فتح الاختبارات السريعة ↓</button></div></div>';
     h += '</div>';
     root.innerHTML = h;
     wireDashBtns(root);
@@ -2779,7 +2834,7 @@ DMAssess.center = (function () {
   function openHistory(id) {
     var H = hist();
     for (var i = 0; i < H.length; i++) if (H[i].id === id) { renderResult(H[i]); return; }
-    toast("تعذر فتح النتيجة", "err");
+    toast(askT("as_r_open_fail", "تعذر فتح النتيجة"), "err");
   }
   function wireDashBtns(root) {
     if (!root) return;
@@ -2788,9 +2843,9 @@ DMAssess.center = (function () {
       b.addEventListener("click", function () {
         var k = b.getAttribute("data-as");
         if (k === "dash" || k === "center") renderCenter();
-        else if (k === "resume") { if (!A.resumeFlow()) { toast("تعذر الاستكمال — بدء جديد أفضل", "err"); renderCenter(); } }
-        else if (k === "discard") { A.discardFlow(); toast("تم تجاهل الاختبار غير المكتمل 🗑️"); }
-        else if (k === "quit") { A.persistInProgress(); toast("💾 تم حفظ تقدمك"); renderCenter(); }
+        else if (k === "resume") { if (!A.resumeFlow()) { toast(askT("as_r_resume_fail", "تعذر الاستكمال — بدء جديد أفضل"), "err"); renderCenter(); } }
+        else if (k === "discard") { A.discardFlow(); toast(askT("as_r_discarded", "تم تجاهل الاختبار غير المكتمل 🗑️")); }
+        else if (k === "quit") { A.persistInProgress(); toast(askT("as_r_quit_saved", "💾 تم حفظ تقدمك")); renderCenter(); }
         else if (k === "retry") {
           var s = A.getSess(), id = null;
           try { var H = hist(); id = H[0] ? H[0].specId : null; } catch (e) {}
@@ -2806,7 +2861,7 @@ DMAssess.center = (function () {
         else if (k.indexOf("start:") === 0) {
           if (!A.getSess() && inProgressValid()) {
             var okNew = false;
-            try { okNew = window.confirm("لديك اختبار غير مكتمل محفوظ. بدء اختبار جديد سيستبدله. متابعة؟"); } catch (e) { okNew = true; }
+            try { okNew = window.confirm(askT("as_r_confirm_new", "لديك اختبار غير مكتمل محفوظ. بدء اختبار جديد سيستبدله. متابعة؟")); } catch (e) { okNew = true; }
             if (!okNew) return;
             try { var st0 = A.ensureStore(); if (st0) { st0.inProgress = null; } } catch (e2) {}
           }
@@ -2816,7 +2871,7 @@ DMAssess.center = (function () {
           var lv = k.slice(5);
           try {
             if (typeof Curriculum !== "undefined" && Curriculum.ensure) {
-              toast("⏳ جاري تحميل محتوى " + lv + " ...");
+              toast(askT("as_r_loading", "⏳ جاري تحميل محتوى ") + lv + " ...");
               Curriculum.ensure(lv, function () { try { if (!document.querySelector("#page-quiz.active")) return; } catch (e) {} renderCenter(); });
             }
           } catch (e) {}

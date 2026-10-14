@@ -1,5 +1,39 @@
 /* Deutsch Master - App Logic (Vanilla JS) */
 "use strict";
+/* ---------- interface language keys (same I18N system; queued: this file loads
+   before study.js, merged there once - see __earlyI18N) ---------- */
+try{
+(window.__earlyI18N=window.__earlyI18N||[]).push({ar:{sc_detail_title:"اضغط للتفاصيل والنطق 🔊",sc_say:"نطق",sc_say_pl:"نطق الجمع",sc_fav:"مفضلة",sc_pron:"النطق: ",sc_card_known:"✅ أعرفها",sc_card_hard:"🔴 صعبة",sc_card_review:"🔁 مراجعة",sc_card_later:"⏳ لاحقًا",sc_card_ex:"🔊 المثال",sc_card_quiz:"❓ اختبرني",sc_status_saved:"أحسنت! كلمة محفوظة ✅",sc_status_updated:"تم تحديث حالة الكلمة 📌",sc_fav_added:"أُضيفت للمفضلة ❤️",sc_fav_removed:"أُزيلت من المفضلة",sc_kap_my:"➕ كلماتي المضافة",sc_sent_listen:"🔊 استماع",sc_sent_more:"عرض المزيد (",sc_q_article:"ما الأداة الصحيحة؟ — ",sc_q_article_ex:"احفظ الأداة مع الكلمة!",sc_q_meaning:"اختر المعنى الصحيح: ",sc_q_translate:"اختر الكلمة الألمانية الصحيحة: ",sc_q_plural:"ما جمع الكلمة؟ — ",sc_q_plural_ex:"الجمع: ",sc_q_write:"اكتب الأداة الصحيحة: ___ ",sc_q_write_ex:"الإجابة: ",sc_q_listen:"🎧 استمع واختر الكلمة التي سمعتها",sc_q_listen_ex:"سمعت: ",sc_q_sentence:"أكمل الجملة: ",sc_q_order:"🔀 رتّب الكلمات لتكوين جملة صحيحة: (",sc_q_order_ex:"الجملة الصحيحة: ",sc_q_listen1:"🎧 استمع للكلمة (١) — ما الكلمة التي سمعتها؟",sc_q_listen2:"🎧 (٢) ما أداة الكلمة التي سمعتها؟",sc_fb_ok:"صحيح ✅ ",sc_fb_no:"خطأ ❌ ",sc_qt_mist:"❌ أخطائي",sc_quiz_done:"🎉 اختبار مكتمل — ",sc_quiz_your:"إجابتك:",sc_quiz_right:"الصحيحة:",sc_quiz_noerr:"ممتاز — بلا أخطاء! 🎉",sc_u_sent:"جملة",sc_u_rule:"قاعدة",sc_u_word:"كلمة",sc_u_err:"خطأ",sc_u_due:"مستحقة",sc_practice:"🎯 تدريب"},en:{sc_detail_title:"Tap for details and pronunciation 🔊",sc_say:"Pronounce 🔊",sc_say_pl:"Pronounce plural 🔊",sc_fav:"Favorite ❤️",sc_pron:"Pronunciation: ",sc_card_known:"✅ I know it",sc_card_hard:"🔴 Hard",sc_card_review:"🔁 Review",sc_card_later:"⏳ Later",sc_card_ex:"🔊 Example",sc_card_quiz:"❓ Quiz me",sc_status_saved:"Well done! Word saved ✅",sc_status_updated:"Word status updated 📌",sc_fav_added:"Added to favorites ❤️",sc_fav_removed:"Removed from favorites",sc_kap_my:"➕ My added words",sc_sent_listen:"🔊 Listen",sc_sent_more:"Show more (",sc_q_article:"What is the correct article? — ",sc_q_article_ex:"Always learn the article with the word!",sc_q_meaning:"Choose the correct meaning: ",sc_q_translate:"Choose the correct German word: ",sc_q_plural:"What is the plural? — ",sc_q_plural_ex:"Plural: ",sc_q_write:"Type the correct article: ___ ",sc_q_write_ex:"Answer: ",sc_q_listen:"🎧 Listen and pick the word you heard",sc_q_listen_ex:"You heard: ",sc_q_sentence:"Complete the sentence: ",sc_q_order:"🔀 Order the words to build a correct sentence: (",sc_q_order_ex:"Correct sentence: ",sc_q_listen1:"🎧 Listen to the word (1) — which word did you hear?",sc_q_listen2:"🎧 (2) What is the article of the word you heard?",sc_fb_ok:"Correct ✅ ",sc_fb_no:"Wrong ❌ ",sc_qt_mist:"❌ My mistakes",sc_quiz_done:"🎉 Quiz complete — ",sc_quiz_your:"Your answer:",sc_quiz_right:"Correct:",sc_quiz_noerr:"Excellent — no mistakes! 🎉",sc_u_sent:"sentences",sc_u_rule:"rules",sc_u_word:"word",sc_u_err:"mistake",sc_u_due:"due",sc_practice:"🎯 Practice"},de:{sc_detail_title:"Für Details und Aussprache tippen 🔊",sc_say:"Anhören 🔊",sc_say_pl:"Plural anhören 🔊",sc_fav:"Favorit ❤️",sc_pron:"Aussprache: ",sc_card_known:"✅ Ich kann es",sc_card_hard:"🔴 Schwer",sc_card_review:"🔁 Wiederholen",sc_card_later:"⏳ Später",sc_card_ex:"🔊 Beispiel",sc_card_quiz:"❓ Teste mich",sc_status_saved:"Gut gemacht! Wort gespeichert ✅",sc_status_updated:"Wortstatus aktualisiert 📌",sc_fav_added:"Zu Favoriten hinzugefügt ❤️",sc_fav_removed:"Aus Favoriten entfernt",sc_kap_my:"➕ Meine Wörter",sc_sent_listen:"🔊 Anhören",sc_sent_more:"Mehr anzeigen (",sc_q_article:"Welcher Artikel ist richtig? — ",sc_q_article_ex:"Lerne den Artikel immer mit!",sc_q_meaning:"Wähle die richtige Bedeutung: ",sc_q_translate:"Wähle das richtige deutsche Wort: ",sc_q_plural:"Wie lautet der Plural? — ",sc_q_plural_ex:"Plural: ",sc_q_write:"Schreibe den richtigen Artikel: ___ ",sc_q_write_ex:"Antwort: ",sc_q_listen:"🎧 Höre zu und wähle das gehörte Wort",sc_q_listen_ex:"Gehört: ",sc_q_sentence:"Vervollständige den Satz: ",sc_q_order:"🔀 Ordne die Wörter zu einem richtigen Satz: (",sc_q_order_ex:"Richtiger Satz: ",sc_q_listen1:"🎧 Höre das Wort (1) — welches Wort hast du gehört?",sc_q_listen2:"🎧 (2) Welchen Artikel hat das gehörte Wort?",sc_fb_ok:"Richtig ✅ ",sc_fb_no:"Falsch ❌ ",sc_qt_mist:"❌ Meine Fehler",sc_quiz_done:"🎉 Test beendet — ",sc_quiz_your:"Deine Antwort:",sc_quiz_right:"Richtig:",sc_quiz_noerr:"Ausgezeichnet — keine Fehler! 🎉",sc_u_sent:"Sätze",sc_u_rule:"Regeln",sc_u_word:"Wort",sc_u_err:"Fehler",sc_u_due:"fällig",sc_practice:"🎯 Üben"}});
+}catch(__sc_i18n_e){}
+/* ---------- interface language keys batch 2 (same I18N system; queued) ---------- */
+try{
+(window.__earlyI18N=window.__earlyI18N||[]).push({ar:{sc_empty_vocab:"لا توجد نتائج. جرّب بحثًا آخر أو أضف كلمة جديدة ➕",sc_empty_sent:"لا توجد جمل هنا بعد.",sc_empty_verbs:"لا توجد أفعال هنا بعد.",sc_empty_gram:"لا توجد قواعد هنا بعد.",sc_empty_explain:"لا توجد شروحات هنا بعد.",sc_empty_fav:"لا توجد مفضلة بعد. اضغط ❤️ على أي كلمة!",sc_empty_quizhist:"لم تحل أي اختبار بعد. ابدأ الآن! 🚀",sc_rv_none:"لا توجد كلمات للمراجعة 🎉",sc_rv_done:"🎉 انتهت جلسة المراجعة!",sc_rv_head:"مراجعة",sc_rv_why:"لماذا الآن؟",sc_rv_try_mean:"حاول تذكر المعنى ثم أظهر الإجابة",sc_rv_try_de:"حاول تذكر الكلمة الألمانية ثم أظهر الإجابة",sc_rv_show:"👁️ إظهار الإجابة",sc_rv_m2d:"المعنى → ألماني",sc_rv_d2m:"ألماني → المعنى",sc_rv_know:"✅ عرفتها",sc_rv_miss:"❌ أخطأت",sc_rv_day_none:"ممتاز! لا توجد كلمات تحتاج مراجعة اليوم 🎉",sc_why_over_a:"موعد مراجعتها كان",sc_why_over_b:"— حان وقت التثبيت 🗓️",sc_why_today:"مجدولة لمراجعة اليوم 📌",sc_why_err:"أخطأت فيها",sc_why_err_b:"مرات — تحتاج تثبيتًا 🔁",sc_why_hard:"علّمتها كصعبة — راجعها بتركيز 🔴",sc_why_new:"كلمة جديدة لم تُراجع بعد 🆕",sc_why_daily:"ضمن قائمة المراجعة اليومية 📌",sc_listen_now:"🔊 استمع الآن",sc_check:"تحقق ✅",sc_write_first:"اكتب الأداة أولًا ✍️",sc_time_up:"⏱️ انتهى الوقت!",sc_time_up_q:"(انتهى الوقت)",sc_order_ok:"ترتيب صحيح! 🎉",sc_q_correct_n:"✅ صحيحة:",sc_q_wrong_n:"❌ خاطئة:",sc_xp:"⭐ XP:",sc_best_combo:"🔥 أفضل Combo:",sc_res_excellent:"ممتاز! 🎉",sc_res_good:"جيد، واصل! 💪",sc_res_review:"تحتاج مراجعة، لا تستسلم! 📚",sc_res_mistwords:"الكلمات التي أخطأت فيها",sc_retry:"🔄 إعادة الاختبار",sc_go_mistakes:"❌ مراجعة الأخطاء",sc_no_art_mixed:"هذه الكلمة بدون أداة، اخترنا لك اختبارًا شاملًا",sc_no_words_quiz:"لا توجد كلمات مناسبة لهذا الاختبار ⚠️",sc_no_mist_quiz:"لا توجد أخطاء للاختبار 🎉",sc_set_color:"تم تطبيق اللون ✅",sc_set_theme:"تم تبديل المظهر ✅",sc_tts_fail:"تعذر تشغيل النطق على هذا الجهاز 😢",sc_shuffled:"تم الخلط 🔀",sc_hear_plural:"اضغط لسماع الجمع 🔊",sc_gr_explain:"📖 شرح القاعدة",sc_gr_quiz:"❓ اختبار سريع:",sc_vb_expr:"📌 تعبير: ",sc_vb_fixed:"يُستخدم كتعبير ثابت — استمع له 🔊",sc_career_retry:"راجع الوحدة وأعد اختبارها 🎯",sc_word_missing:"الكلمة غير موجودة",sc_added_review:"أُضيفت للمراجعة 🔁",sc_test_me:"🎯 اختبرني",sc_last_quiz:"آخر اختبار: ",sc_on:"بتاريخ",sc_no_quiz_yet:"لم تحل أي اختبار بعد — ابدأ الآن! 🚀",sc_mc_all:"الكل",sc_mc_article:"🎯 أدوات التعريف",sc_mc_plural:"👥 الجمع",sc_mc_verb:"⚡ الأفعال",sc_mc_grammar:"📐 القواعد",sc_mc_akk:"📍 المفعول به",sc_mc_wordorder:"🔤 ترتيب الجملة",sc_mc_tr:"🔄 الترجمة",sc_ph1:"der Tisch = الطاولة 🍎",sc_ph2:"احفظ الأداة مع الكلمة دائمًا! der / die / das",sc_ph3:"Ich lerne Deutsch 🇩🇪",sc_ph4:"راجع 20 كلمة يوميًا لتصل إلى A1 بسرعة ⚡",sc_ph5:"Streak اليوم: افتح التطبيق وذاكر 🔥"},en:{sc_empty_vocab:"No results. Try another search or add a new word ➕",sc_empty_sent:"No sentences here yet.",sc_empty_verbs:"No verbs here yet.",sc_empty_gram:"No rules here yet.",sc_empty_explain:"No lessons here yet.",sc_empty_fav:"No favorites yet. Tap ❤️ on any word!",sc_empty_quizhist:"No quizzes taken yet. Start now! 🚀",sc_rv_none:"No words to review 🎉",sc_rv_done:"🎉 Review session complete!",sc_rv_head:"Review",sc_rv_why:"Why now?",sc_rv_try_mean:"Try to recall the meaning, then reveal",sc_rv_try_de:"Try to recall the German word, then reveal",sc_rv_show:"👁️ Show answer",sc_rv_m2d:"Meaning → German",sc_rv_d2m:"German → meaning",sc_rv_know:"✅ I knew it",sc_rv_miss:"❌ I missed it",sc_rv_day_none:"Great! No words due for review today 🎉",sc_why_over_a:"It was due on",sc_why_over_b:"— time to lock it in 🗓️",sc_why_today:"Scheduled for review today 📌",sc_why_err:"You missed it",sc_why_err_b:"times — needs reinforcement 🔁",sc_why_hard:"Marked hard — review with focus 🔴",sc_why_new:"New word, not reviewed yet 🆕",sc_why_daily:"On today's review list 📌",sc_listen_now:"🔊 Listen now",sc_check:"Check ✅",sc_write_first:"Type the article first ✍️",sc_time_up:"⏱️ Time is up!",sc_time_up_q:"(time is up)",sc_order_ok:"Correct order! 🎉",sc_q_correct_n:"✅ Correct:",sc_q_wrong_n:"❌ Wrong:",sc_xp:"⭐ XP:",sc_best_combo:"🔥 Best combo:",sc_res_excellent:"Excellent! 🎉",sc_res_good:"Good, keep going! 💪",sc_res_review:"Needs review — don't give up! 📚",sc_res_mistwords:"Words you missed",sc_retry:"🔄 Retry quiz",sc_go_mistakes:"❌ Review mistakes",sc_no_art_mixed:"This word has no article, so we picked a mixed quiz",sc_no_words_quiz:"No suitable words for this quiz ⚠️",sc_no_mist_quiz:"No mistakes to quiz 🎉",sc_set_color:"Color applied ✅",sc_set_theme:"Theme switched ✅",sc_tts_fail:"Speech unavailable on this device 😢",sc_shuffled:"Shuffled 🔀",sc_hear_plural:"Tap to hear the plural 🔊",sc_gr_explain:"📖 Explain rule",sc_gr_quiz:"❓ Quick quiz:",sc_vb_expr:"📌 Expression: ",sc_vb_fixed:"Used as a fixed expression — listen 🔊",sc_career_retry:"Review the unit and retake its quiz 🎯",sc_word_missing:"Word not found",sc_added_review:"Added to review 🔁",sc_test_me:"🎯 Test me",sc_last_quiz:"Last quiz: ",sc_on:"on",sc_no_quiz_yet:"No quizzes yet — start now! 🚀",sc_mc_all:"All",sc_mc_article:"🎯 Articles",sc_mc_plural:"👥 Plural",sc_mc_verb:"⚡ Verbs",sc_mc_grammar:"📐 Grammar",sc_mc_akk:"📍 Direct object",sc_mc_wordorder:"🔤 Word order",sc_mc_tr:"🔄 Translation",sc_ph1:"der Tisch = table 🍎",sc_ph2:"Always learn the article: der / die / das",sc_ph3:"Ich lerne Deutsch 🇩🇪",sc_ph4:"Review 20 words a day to reach A1 fast ⚡",sc_ph5:"Today's streak: open the app and study 🔥"},de:{sc_empty_vocab:"Keine Treffer. Versuche eine andere Suche oder füge ein Wort hinzu ➕",sc_empty_sent:"Noch keine Sätze.",sc_empty_verbs:"Noch keine Verben.",sc_empty_gram:"Noch keine Regeln.",sc_empty_explain:"Noch keine Lektionen.",sc_empty_fav:"Noch keine Favoriten. Tippe auf ❤️ bei einem Wort!",sc_empty_quizhist:"Noch keine Tests. Starte jetzt! 🚀",sc_rv_none:"Keine Wörter zu wiederholen 🎉",sc_rv_done:"🎉 Wiederholung beendet!",sc_rv_head:"Wiederholung",sc_rv_why:"Warum jetzt?",sc_rv_try_mean:"Versuche, dich an die Bedeutung zu erinnern",sc_rv_try_de:"Versuche, dich an das deutsche Wort zu erinnern",sc_rv_show:"👁️ Antwort zeigen",sc_rv_m2d:"Bedeutung → Deutsch",sc_rv_d2m:"Deutsch → Bedeutung",sc_rv_know:"✅ Gewusst",sc_rv_miss:"❌ Nicht gewusst",sc_rv_day_none:"Super! Heute keine fälligen Wörter 🎉",sc_why_over_a:"Fällig seit",sc_why_over_b:"— jetzt festigen 🗓️",sc_why_today:"Heute zur Wiederholung geplant 📌",sc_why_err:"Fehler",sc_why_err_b:"Mal — braucht Festigung 🔁",sc_why_new:"Neues Wort, noch nicht wiederholt 🆕",sc_why_hard:"Als schwer markiert — gezielt wiederholen 🔴",sc_why_daily:"Auf der heutigen Wiederholungsliste 📌",sc_listen_now:"🔊 Jetzt anhören",sc_check:"Prüfen ✅",sc_write_first:"Schreibe zuerst den Artikel ✍️",sc_time_up:"⏱️ Zeit um!",sc_time_up_q:"(Zeit um)",sc_order_ok:"Richtige Reihenfolge! 🎉",sc_q_correct_n:"✅ Richtig:",sc_q_wrong_n:"❌ Falsch:",sc_xp:"⭐ XP:",sc_best_combo:"🔥 Beste Combo:",sc_res_excellent:"Ausgezeichnet! 🎉",sc_res_good:"Gut, weiter so! 💪",sc_res_review:"Braucht Wiederholung — nicht aufgeben! 📚",sc_res_mistwords:"Deine Fehlerwörter",sc_retry:"🔄 Test wiederholen",sc_go_mistakes:"❌ Fehler ansehen",sc_no_art_mixed:"Dieses Wort hat keinen Artikel — gemischtes Quiz gewählt",sc_no_words_quiz:"Keine passenden Wörter für dieses Quiz ⚠️",sc_no_mist_quiz:"Keine Fehler zum Üben 🎉",sc_set_color:"Farbe übernommen ✅",sc_set_theme:"Theme gewechselt ✅",sc_tts_fail:"Sprachausgabe auf diesem Gerät nicht möglich 😢",sc_shuffled:"Gemischt 🔀",sc_hear_plural:"Tippen für Plural-Audio 🔊",sc_gr_explain:"📖 Regel erklären",sc_gr_quiz:"❓ Kurztest:",sc_vb_expr:"📌 Ausdruck: ",sc_vb_fixed:"Feste Wendung — anhören 🔊",sc_career_retry:"Lerne die Einheit und wiederhole ihr Quiz 🎯",sc_word_missing:"Wort nicht gefunden",sc_added_review:"Zur Wiederholung hinzugefügt 🔁",sc_test_me:"🎯 Teste mich",sc_last_quiz:"Letzter Test: ",sc_on:"am",sc_no_quiz_yet:"Noch keine Tests — starte jetzt! 🚀",sc_mc_all:"Alle",sc_mc_article:"🎯 Artikel",sc_mc_plural:"👥 Plural",sc_mc_verb:"⚡ Verben",sc_mc_grammar:"📐 Grammatik",sc_mc_akk:"📍 Akkusativ",sc_mc_wordorder:"🔤 Wortstellung",sc_mc_tr:"🔄 Übersetzung",sc_ph1:"der Tisch = Tisch 🍎",sc_ph2:"Lerne immer den Artikel: der / die / das",sc_ph3:"Ich lerne Deutsch 🇩🇪",sc_ph4:"Wiederhole täglich 20 Wörter für schnelles A1 ⚡",sc_ph5:"Heutige Serie: App öffnen und lernen 🔥"}});
+}catch(__sc_i18n2_e){}
+/* ---------- interface language keys batch 3 (same I18N system; queued) ---------- */
+try{
+(window.__earlyI18N=window.__earlyI18N||[]).push({ar:{sc_dash_words:"📚 كلمات",sc_dash_sents:"💬 جمل",sc_dash_mins:"⏱️ دقائق",sc_go_now:"ابدأ الآن",sc_step_review_l:"راجع",sc_step_review_r:"كلمة مستحقة",sc_step_review_why:"لديك كلمات كثيرة تنتظر المراجعة — SRS يضمن عدم نسيانها.",sc_step_mist_l:"صحح خطأك المتكرر:",sc_step_mist_why:"هذا الخطأ تكرر مرات — راجع وافهمه.",sc_step_mists_l:"راجع أخطاءك",sc_step_mists_why:"كل خطأ فرصة للتعلم — راجعها الآن.",sc_step_hard_l:"تدرب على",sc_step_hard_r:"كلمة صعبة",sc_step_hard_why:"الكلمات الصعبة تحتاج تدريبًا مركّزًا — التدريب الذكي يختارها تلقائيًا.",sc_step_new_l:"تعلم كلمات جديدة",sc_step_new_r:"متاحة",sc_step_new_why:"بناء قاعدة مفردات قوية هو الأساس — ابدأ بالكلمات الجديدة.",sc_step_goal_l:"أكمل هدفك اليومي:",sc_step_goal_r:"كلمة",sc_step_goal_why:"الاستمرارية اليومية تبني العادة.",sc_step_sent_l:"أكمل هدف الجمل:",sc_step_sent_r:"جملة",sc_step_sent_why:"الجمل تعلمك السياق والترتيب.",sc_step_first_l:"ابدأ سلسلة أيامك الأولى 🔥",sc_step_first_why:"أول يوم في السلسلة هو الأصعب — ابدأ بكلمة واحدة.",sc_step_last_l:"قوِّ نقاط ضعفك من آخر اختبار",sc_step_last_why:"التدريب الذكي يركز على ما أخطأت فيه.",sc_step_journey_l:"واصل رحلتك الألمانية",sc_step_journey_why:"تقدم ممتاز! تابع المسار المنظم من A1 إلى B2.",sc_focus_empty:"ممتاز! لا توجد نقاط ضعف واضحة حاليًا 🎉",sc_wa_due:"مراجعة مستحقة",sc_wa_hard:"كلمات صعبة",sc_wa_art:"أدوات التعريف",sc_wa_pl:"الجمع",sc_wa_v:"تصريف الأفعال",sc_wa_g:"قواعد",sc_wa_errs:"أخطاء",sc_streak_u:"يوم متتالية",sc_clear_mist_q:"مسح كل الأخطاء؟",sc_cleared:"تم المسح 🗑️",sc_stats_reset_q:"تصفير الإحصائيات؟",sc_reset_done:"تم التصفير 🗑️",sc_st_tot_words:"إجمالي الكلمات",sc_st_known:"محفوظة",sc_st_hard:"صعبة",sc_st_tests:"اختبارات",sc_st_acc:"نسبة النجاح",sc_st_days:"أيام المذاكرة",sc_st_best:"أطول Streak",sc2_days:"أحد,اثنين,ثلاثاء,أربعاء,خميس,جمعة,سبت",sc_week_title:"📊 التقرير الأسبوعي",sc_week_last:"آخر ٧ أيام: ",sc_week_tries:"محاولة",sc_week_ok:"صحيحة",sc_week_prev:"الأسبوع السابق: ",sc_week_diff:"الفرق: ",sc_week_try2:"محاولة / ",sc_week_nodata:"لا بيانات كافية بعد — أجب على بعض الأسئلة وسيظهر تقريرك هنا.",sc_week_export:"⬇️ تنزيل التقرير (.txt)",sc_exp_title:"تقرير Deutsch Master الأسبوعي — ",sc_exp_streak:"Streak: ",sc_exp_day_u:"يوم (الأطول: ",sc_exp_studydays:"أيام المذاكرة: ",sc_exp_known:"كلمات محفوظة: ",sc_exported:"تم تنزيل التقرير ⬇️",sc_export_fail:"تعذّر التنزيل",sc_plan_saved:"تم حفظ الخطة 💾",sc_add_need:"أدخل الكلمة الألمانية والترجمة على الأقل ⚠️",sc_add_dup:"الكلمة موجودة بالفعل: ",sc_added:"تمت إضافة الكلمة ✅",sc_exported2:"تم التصدير 📤",sc_imported:"تم الاستيراد ✅",sc_bad_file:"ملف غير صالح ❌",sc_wipe_all_q:"مسح كل البيانات نهائيًا؟",sc_wiped:"تم المسح 🗑️",sc_search_res:"نتيجة",sc_search_match:"مطابقة: ",sc_gs_say:"🔊 نطق",sc_gs_detail:"📖 التفاصيل",sc_gs_explain:"📚 شرح: ",sc_gs_none:"لا نتائج لـ ",sc_via_de:"بداية الكلمة",sc_via_full:"الكلمة مع الأداة",sc_via_plural:"الجمع",sc_via_ar:"المعنى العربي",sc_via_en:"المعنى الإنجليزي",sc_via_pron:"النطق",sc_via_ex:"المثال",sc_via_fuzzy:"اقتراح قريب",sc_dt_review:"🔁 تحتاج مراجعة",sc_dt_unfav:"💔 إزالة من المفضلة",sc_dt_great:"أحسنت! ✅",sc_dt_later:"ستُراجع لاحقًا 🔁",sc_conn_flash:"🃏 فلاش كارد",sc_conn_mist:"❌ في أخطائي",sc_conn_due:"🧠 مستحقة للمراجعة",sc_level_tag:"مستوى",sc_ex_count:"قاعدة",sc_exh_toc:"📖 فهرس شرح A1 — من الأسهل إلى الأصعب",sc_exh_toc_sub:"اضغط أي قاعدة لفتح شرحها المفصل 👇",sc_exh_goals:"🎯 ماذا سأتعلم؟",sc_exh_l1:"🟢 المستوى 1: الأساسيات",sc_exh_what:"1️⃣ ما هي القاعدة؟",sc_exh_why:"2️⃣ لماذا نستخدمها؟",sc_exh_ex:"5️⃣ أمثلة بسيطة",sc_exh_l2:"🟡 المستوى 2: التعمق",sc_exh_when:"3️⃣ متى نستخدمها؟",sc_exh_how:"4️⃣ كيف نستخدمها؟",sc_exh_daily:"6️⃣ أمثلة من الحياة اليومية",sc_exh_cmp:"9️⃣ مقارنة سريعة",sc_exh_l3:"🔴 المستوى 3: الأخطاء والمراجعة",sc_exh_notes:"7️⃣ ملاحظات مهمة ⭐",sc_exh_mist:"8️⃣ الأخطاء الشائعة",sc_exh_sum:"🔟 خلاصة القاعدة",sc_exh_drill:"✍️ تدريب سريع:",sc_exh_short:"الشرح المختصر",sc_exh_quiz:"❓ اختبار قصير:",sc_exh_learned:"📌 ماذا تعلمت؟",sc_exh_index:"📖 الفهرس",sc_exh_none:"لا يوجد",sc_exh_added:"أُضيف الدرس للمراجعة 🔁",sc_exh_simple:"ببساطة، فكر فيها كده: ",sc_exh_first:"كأنك تتعلم أول مرة 🌱",sc_exh_keep:"✅ احفظ هذه فقط: ",sc_exh_whyq:"ليه؟ ",sc_exh_rule:"القاعدة: ",sc_exh_words:"كلمات مهمة: "},en:{sc_dash_words:"📚 Words",sc_dash_sents:"💬 Sentences",sc_dash_mins:"⏱️ Minutes",sc_go_now:"Start now",sc_step_review_l:"Review",sc_step_review_r:"due words",sc_step_review_why:"You have many words awaiting review — SRS keeps them fresh.",sc_step_mist_l:"Fix your repeated mistake:",sc_step_mist_why:"This mistake recurred — review and understand it.",sc_step_mists_l:"Review your mistakes",sc_step_mists_why:"Every mistake is a chance to learn — review them now.",sc_step_hard_l:"Train",sc_step_hard_r:"hard words",sc_step_hard_why:"Hard words need focused training — smart training picks them automatically.",sc_step_new_l:"Learn new words",sc_step_new_r:"available",sc_step_new_why:"A strong vocabulary base is key — start with new words.",sc_step_goal_l:"Finish your daily goal:",sc_step_goal_r:"words",sc_step_goal_why:"Daily consistency builds the habit.",sc_step_sent_l:"Finish your sentences goal:",sc_step_sent_r:"sentences",sc_step_sent_why:"Sentences teach context and word order.",sc_step_first_l:"Start your first day-streak 🔥",sc_step_first_why:"The first streak day is the hardest — start with one word.",sc_step_last_l:"Strengthen your weak spots from the last quiz",sc_step_last_why:"Smart training focuses on what you missed.",sc_step_journey_l:"Continue your German journey",sc_step_journey_why:"Great progress! Follow the structured path from A1 to B2.",sc_focus_empty:"Great! No clear weak areas right now 🎉",sc_wa_due:"Due review",sc_wa_hard:"Hard words",sc_wa_art:"Articles",sc_wa_pl:"Plural",sc_wa_v:"Verb conjugation",sc_wa_g:"Grammar",sc_wa_errs:"mistakes",sc_streak_u:"day streak",sc_clear_mist_q:"Clear all mistakes?",sc_cleared:"Cleared 🗑️",sc_stats_reset_q:"Reset statistics?",sc_reset_done:"Reset done 🗑️",sc_st_tot_words:"Total words",sc_st_known:"Known",sc_st_hard:"Hard",sc_st_tests:"Quizzes",sc_st_acc:"Success rate",sc_st_days:"Study days",sc_st_best:"Longest streak",sc2_days:"Sun,Mon,Tue,Wed,Thu,Fri,Sat",sc_week_title:"📊 Weekly report",sc_week_last:"Last 7 days: ",sc_week_tries:"attempts",sc_week_ok:"correct",sc_week_prev:"Previous week: ",sc_week_diff:"Difference: ",sc_week_try2:"attempts / ",sc_week_nodata:"Not enough data yet — answer some questions and your report will appear here.",sc_week_export:"⬇️ Download report (.txt)",sc_exp_title:"Deutsch Master weekly report — ",sc_exp_streak:"Streak: ",sc_exp_day_u:"day(s) (longest: ",sc_exp_studydays:"Study days: ",sc_exp_known:"Known words: ",sc_exported:"Report downloaded ⬇️",sc_export_fail:"Download failed",sc_plan_saved:"Plan saved 💾",sc_add_need:"Enter at least the German word and its translation ⚠️",sc_add_dup:"Word already exists: ",sc_added:"Word added ✅",sc_exported2:"Exported 📤",sc_imported:"Imported ✅",sc_bad_file:"Invalid file ❌",sc_wipe_all_q:"Wipe all data permanently?",sc_wiped:"Wiped 🗑️",sc_search_res:"results",sc_search_match:"Match: ",sc_gs_say:"🔊 Pronounce",sc_gs_detail:"📖 Details",sc_gs_explain:"📚 Explanation: ",sc_gs_none:"No results for ",sc_via_de:"Word start",sc_via_full:"Word with article",sc_via_plural:"Plural",sc_via_ar:"Arabic meaning",sc_via_en:"English meaning",sc_via_pron:"Pronunciation",sc_via_ex:"Example",sc_via_fuzzy:"Close match",sc_dt_review:"🔁 Needs review",sc_dt_unfav:"💔 Remove from favorites",sc_dt_great:"Well done! ✅",sc_dt_later:"Will review later 🔁",sc_conn_flash:"🃏 Flashcards",sc_conn_mist:"❌ In my mistakes",sc_conn_due:"🧠 Due for review",sc_level_tag:"Level",sc_ex_count:"rules",sc_exh_toc:"📖 A1 lessons index — easiest first",sc_exh_toc_sub:"Tap any rule for its full lesson 👇",sc_exh_goals:"🎯 What will I learn?",sc_exh_l1:"🟢 Level 1: Basics",sc_exh_what:"1️⃣ What is the rule?",sc_exh_why:"2️⃣ Why do we use it?",sc_exh_ex:"5️⃣ Simple examples",sc_exh_l2:"🟡 Level 2: Details",sc_exh_when:"3️⃣ When do we use it?",sc_exh_how:"4️⃣ How do we use it?",sc_exh_daily:"6️⃣ Everyday examples",sc_exh_cmp:"9️⃣ Quick comparison",sc_exh_l3:"🔴 Level 3: Mistakes & review",sc_exh_notes:"7️⃣ Important notes ⭐",sc_exh_mist:"8️⃣ Common mistakes",sc_exh_sum:"🔟 Rule summary",sc_exh_drill:"✍️ Quick drill:",sc_exh_short:"Short version",sc_exh_quiz:"❓ Short quiz:",sc_exh_learned:"📌 What did you learn?",sc_exh_index:"📖 Index",sc_exh_none:"None",sc_exh_added:"Lesson added to review 🔁",sc_exh_simple:"Simply put: ",sc_exh_first:"As if learning it first time 🌱",sc_exh_keep:"✅ Just remember this: ",sc_exh_whyq:"Why? ",sc_exh_rule:"Rule: ",sc_exh_words:"Key words: "},de:{sc_dash_words:"📚 Wörter",sc_dash_sents:"💬 Sätze",sc_dash_mins:"⏱️ Minuten",sc_go_now:"Jetzt starten",sc_step_review_l:"Wiederhole",sc_step_review_r:"fällige Wörter",sc_step_review_why:"Viele Wörter warten auf Wiederholung — SRS hält sie frisch.",sc_step_mist_l:"Korrigiere deinen wiederholten Fehler:",sc_step_mist_why:"Dieser Fehler kam wieder — sieh ihn dir an.",sc_step_mists_l:"Sieh deine Fehler an",sc_step_mists_why:"Jeder Fehler ist eine Lernchance — jetzt wiederholen.",sc_step_hard_l:"Trainiere",sc_step_hard_r:"schwere Wörter",sc_step_hard_why:"Schwere Wörter brauchen gezieltes Training — das smarte Training wählt sie automatisch.",sc_step_new_l:"Lerne neue Wörter",sc_step_new_r:"verfügbar",sc_step_new_why:"Ein starker Wortschatz ist die Basis — starte mit neuen Wörtern.",sc_step_goal_l:"Erreiche dein Tagesziel:",sc_step_goal_r:"Wörter",sc_step_goal_why:"Tägliche Routine baut Gewohnheit auf.",sc_step_sent_l:"Erreiche dein Sätze-Ziel:",sc_step_sent_r:"Sätze",sc_step_sent_why:"Sätze lehren Kontext und Wortstellung.",sc_step_first_l:"Starte deine erste Tages-Serie 🔥",sc_step_first_why:"Der erste Serientag ist der schwerste — starte mit einem Wort.",sc_step_last_l:"Stärke deine Schwächen aus dem letzten Test",sc_step_last_why:"Das smarte Training konzentriert sich auf deine Fehler.",sc_step_journey_l:"Setze deine Deutsch-Reise fort",sc_step_journey_why:"Großer Fortschritt! Folge dem strukturierten Pfad von A1 bis B2.",sc_focus_empty:"Super! Aktuell keine klaren Schwächen 🎉",sc_wa_due:"Fällige Wiederholung",sc_wa_hard:"Schwere Wörter",sc_wa_art:"Artikel",sc_wa_pl:"Plural",sc_wa_v:"Verbkonjugation",sc_wa_g:"Grammatik",sc_wa_errs:"Fehler",sc_streak_u:"Tage-Serie",sc_clear_mist_q:"Alle Fehler löschen?",sc_cleared:"Gelöscht 🗑️",sc_stats_reset_q:"Statistiken zurücksetzen?",sc_reset_done:"Zurückgesetzt 🗑️",sc_st_tot_words:"Wörter gesamt",sc_st_known:"Gewusst",sc_st_hard:"Schwer",sc_st_tests:"Tests",sc_st_acc:"Erfolgsquote",sc_st_days:"Lerntage",sc_st_best:"Längste Serie",sc2_days:"So,Mo,Di,Mi,Do,Fr,Sa",sc_week_title:"📊 Wochenbericht",sc_week_last:"Letzte 7 Tage: ",sc_week_tries:"Versuche",sc_week_ok:"richtig",sc_week_prev:"Vorwoche: ",sc_week_diff:"Differenz: ",sc_week_try2:"Versuche / ",sc_week_nodata:"Noch nicht genug Daten — beantworte einige Fragen.",sc_week_export:"⬇️ Bericht laden (.txt)",sc_exp_title:"Deutsch-Master-Wochenbericht — ",sc_exp_streak:"Serie: ",sc_exp_day_u:"Tag(e) (längste: ",sc_exp_studydays:"Lerntage: ",sc_exp_known:"Gewusste Wörter: ",sc_exported:"Bericht geladen ⬇️",sc_export_fail:"Laden fehlgeschlagen",sc_plan_saved:"Plan gespeichert 💾",sc_add_need:"Gib mindestens Wort und Übersetzung ein ⚠️",sc_add_dup:"Wort existiert bereits: ",sc_added:"Wort hinzugefügt ✅",sc_exported2:"Exportiert 📤",sc_imported:"Importiert ✅",sc_bad_file:"Ungültige Datei ❌",sc_wipe_all_q:"Alle Daten endgültig löschen?",sc_wiped:"Gelöscht 🗑️",sc_search_res:"Treffer",sc_search_match:"Trefferart: ",sc_gs_say:"🔊 Anhören",sc_gs_detail:"📖 Details",sc_gs_explain:"📚 Erklärung: ",sc_gs_none:"Keine Treffer für ",sc_via_de:"Wortanfang",sc_via_full:"Wort mit Artikel",sc_via_plural:"Plural",sc_via_ar:"Arabische Bedeutung",sc_via_en:"Englische Bedeutung",sc_via_pron:"Aussprache",sc_via_ex:"Beispiel",sc_via_fuzzy:"Ähnlicher Treffer",sc_dt_review:"🔁 Muss wiederholt werden",sc_dt_unfav:"💔 Aus Favoriten entfernen",sc_dt_great:"Gut gemacht! ✅",sc_dt_later:"Wird später wiederholt 🔁",sc_conn_flash:"🃏 Flashcards",sc_conn_mist:"❌ Bei meinen Fehlern",sc_conn_due:"🧠 Zur Wiederholung fällig",sc_level_tag:"Niveau",sc_ex_count:"Regeln",sc_exh_toc:"📖 A1-Lektionsindex — vom Leichtesten",sc_exh_toc_sub:"Tippe auf eine Regel für die Lektion 👇",sc_exh_goals:"🎯 Was lerne ich?",sc_exh_l1:"🟢 Stufe 1: Grundlagen",sc_exh_what:"1️⃣ Was ist die Regel?",sc_exh_why:"2️⃣ Warum verwenden wir sie?",sc_exh_ex:"5️⃣ Einfache Beispiele",sc_exh_l2:"🟡 Stufe 2: Vertiefung",sc_exh_when:"3️⃣ Wann verwenden wir sie?",sc_exh_how:"4️⃣ Wie verwenden wir sie?",sc_exh_daily:"6️⃣ Alltagsbeispiele",sc_exh_cmp:"9️⃣ Kurzer Vergleich",sc_exh_l3:"🔴 Stufe 3: Fehler & Wiederholung",sc_exh_notes:"7️⃣ Wichtige Hinweise ⭐",sc_exh_mist:"8️⃣ Häufige Fehler",sc_exh_sum:"🔟 Regelzusammenfassung",sc_exh_drill:"✍️ Kurztraining:",sc_exh_short:"Kurzfassung",sc_exh_quiz:"❓ Kurztest:",sc_exh_learned:"📌 Was hast du gelernt?",sc_exh_index:"📖 Index",sc_exh_none:"Keine",sc_exh_added:"Lektion zur Wiederholung hinzugefügt 🔁",sc_exh_simple:"Einfach gesagt: ",sc_exh_first:"Als ob du es zum ersten Mal lernst 🌱",sc_exh_keep:"✅ Merke dir nur das: ",sc_exh_whyq:"Warum? ",sc_exh_rule:"Regel: ",sc_exh_words:"Wichtige Wörter: "}});
+}catch(__sc_i18n3_e){}
+/* ---------- interface language keys batch 4 (same I18N system; queued) ---------- */
+try{
+(window.__earlyI18N=window.__earlyI18N||[]).push({ar:{sc_exh_ex:"أهم مثال: ",sc_exh_avoid:"خطأ تجنبه: ",sc_exh_q:"سؤال سريع: ",sc_exh_later:"🔁 راجع الدرس لاحقًا"},en:{sc_exh_ex:"Key example: ",sc_exh_avoid:"Mistake to avoid: ",sc_exh_q:"Quick question: ",sc_exh_later:"🔁 Review lesson later"},de:{sc_exh_ex:"Wichtigstes Beispiel: ",sc_exh_avoid:"Zu vermeidender Fehler: ",sc_exh_q:"Kurze Frage: ",sc_exh_later:"🔁 Lektion später wiederholen"}});
+}catch(__sc_i18n4_e){}
+/* ---------- interface language keys batch 5 (same I18N system; queued) ---------- */
+try{
+(window.__earlyI18N=window.__earlyI18N||[]).push({ar:{sc_step_mist_n1:"هذا الخطأ تكرر",sc_step_mist_n2:"مرات — راجع وافهمه.",sc_step_goal2:"هدفك",sc_step_goal3:"كلمة/يوم",sc_step_sent2:"هدفك",sc_step_sent3:"جملة/يوم",sc_step_last_pct:"نتيجتك",sc_why_q:"لماذا؟ "},en:{sc_step_mist_n1:"This mistake recurred",sc_step_mist_n2:"times — review and understand it.",sc_step_goal2:"your goal",sc_step_goal3:"words/day",sc_step_sent2:"your goal",sc_step_sent3:"sentences/day",sc_step_last_pct:"Your score",sc_why_q:"Why? "},de:{sc_step_mist_n1:"Dieser Fehler kam wieder",sc_step_mist_n2:"Mal — sieh ihn dir an.",sc_step_goal2:"dein Ziel",sc_step_goal3:"Wörter/Tag",sc_step_sent2:"dein Ziel",sc_step_sent3:"Sätze/Tag",sc_step_last_pct:"Dein Ergebnis",sc_why_q:"Warum? "}});
+}catch(__sc_i18n5_e){}
+/* ---------- interface language keys batch 6 (same I18N system; queued) ---------- */
+try{
+(window.__earlyI18N=window.__earlyI18N||[]).push({ar:{sc_mist_your:"❌ خطأك:",sc_mist_rep:"تكرر"},en:{sc_mist_your:"❌ Your mistake:",sc_mist_rep:"repeated"},de:{sc_mist_your:"❌ Dein Fehler:",sc_mist_rep:"wiederholt"}});
+}catch(__sc_i18n6_e){}
+function viaLang(v){try{var m={de:"sc2_via_de",full:"sc2_via_full",plural:"sc2_via_plural",ar:"sc2_via_ar",en:"sc2_via_en",pron:"sc2_via_pron",ex:"sc2_via_ex",fuzzy:"sc2_via_fuzzy"};if(m[v]&&typeof window.t==="function"){var s=window.t(m[v]);if(s&&s!==m[v])return s;}}catch(e){}try{return VIA_AR[v]||v;}catch(e){return v;}}
+function daysLang(){try{if(typeof window.t==="function"){var v=window.t("sc2_days");if(v&&v!=="sc2_days"&&v.indexOf(",")>0)return v.split(",");}}catch(e){}try{return daysAr;}catch(e){return[];}}
+function catLang(c){try{if(typeof uilang==="function"&&uilang()!=="ar")return c||"";}catch(e){}try{return (typeof CAT_AR!=="undefined"&&CAT_AR[c])||c||"";}catch(e){return c||"";}}
+/* Load-order-safe translator for code that can run before study.js is
+   evaluated (top-level INIT renders). Post-load it behaves exactly like t();
+   pre-load it returns the Arabic fallback (previous behavior), never throws. */
+function __t(k,fb){try{if(typeof t==="function"){var v=t(k);if(v!==null&&v!==undefined&&v!==""&&v!==k)return v;}}catch(e){}return fb;}
+function statusLang(st){try{var m={new:"s_new",review:"s_review",hard:"s_hard",known:"s_known",later:"s_later"};if(m[st]&&typeof t==="function"){var v=t(m[st]);if(v&&v!==m[st])return v;}}catch(e){}try{return STATUS_AR[st]||st;}catch(e){return st;}}
+function wordTypeLang(ty){try{var m={"اسم":"t_noun","فعل":"t_verb","صفة":"t_adj","ضمير":"t_pron","أداة":"t_part","مفردات":"t_vocabw"};if(m[ty]&&typeof t==="function"){var v=t(m[ty]);if(v&&v!==m[ty])return v;}}catch(e){}return ty;}
 
 /* ============ DATA ============ */
 const CATEGORIES = ["Family","Food","Drinks","Home","School","University","Work","Travel","Shopping","Body","Time","Days","Months","Numbers","Colors","Animals","Clothes","Languages","General","Common Verbs","Adjectives"];
@@ -917,13 +951,14 @@ const KAPITEL = [
 function kapName(k){
   /* KAPITEL is static: index once, O(1) per card instead of O(K) find.
      Called per card across vocab/sentences/verbs/grammar renders. */
+  function kapLoc(nm){try{if(typeof uilang==="function"&&uilang()!=="ar"&&typeof t==="function"){nm=String(nm).replace("➕ كلماتي المضافة","➕ "+t("sc_kap_my")).replace("– مقدمة","– Intro");}}catch(e){}return nm;}
   try{
     let m=kapName._m;
     if(!m){ m=new Map(); try{KAPITEL.forEach(x=>m.set(x.id,x));}catch(e){} kapName._m=m; }
     const f=m.get(k);
-    return f?f.icon+" "+f.id+" • "+f.name:k||"";
+    return f?kapLoc(f.icon+" "+f.id+" • "+f.name):k||"";
   }catch(e){
-    const f=KAPITEL.find(x=>x.id===k);return f?f.icon+" "+f.id+" • "+f.name:k||"";
+    const f=KAPITEL.find(x=>x.id===k);return f?kapLoc(f.icon+" "+f.id+" • "+f.name):k||"";
   }
 }
 /* الصيغ الكاملة: der Tisch / die Tische */
@@ -1364,7 +1399,7 @@ function allVerbs(){
   allWords().forEach(function(w){
     if(w.type!=="فعل"||seen[w.de])return;seen[w.de]=1;n++;
     const c=conjugateVerb(w.de);
-    out.push({id:"v"+n,inf:w.de,ar:w.ar,pron:w.pron,kap:w.kap||"KX",conj:c,phrase:!c});
+    out.push({id:"v"+n,inf:w.de,ar:w.ar,en:w.en||"",pron:w.pron,kap:w.kap||"KX",conj:c,phrase:!c});
   });
   return out;
 }
@@ -1883,7 +1918,7 @@ function speakGerman(text){
     try{if(speakWithWeb(t,rate))return;}catch(e){}
   }
   try{if(speakWithAudioUrl(t,rate))return;}catch(e){}
-  toast("تعذر تشغيل النطق على هذا الجهاز 😢","err");
+  toast(window.t("sc_tts_fail"),"err");
 }
 function speak(text){speakGerman(text);}
 /* Single mic slot: starting a new SpeechRecognition session always stops the
@@ -1928,7 +1963,7 @@ function speakAr(text){
     }catch(e){}
   }
   try{if(speakWithAudioUrl(t,rate,"ar"))return;}catch(e){}
-  try{toast("تعذر تشغيل النطق على هذا الجهاز 😢","err");}catch(e){}
+  try{toast(window.t("sc_tts_fail"),"err");}catch(e){}
 }
 /* real=true (default): genuine learning activity → streak + study day.
    real=false ("light"): trivial UI actions (audio preview, saving settings) →
@@ -1955,7 +1990,7 @@ function markStudyDay(real){
 }
 function renderStreak(){
   $("topStreak").textContent="🔥 "+(S.streak.count||0);
-  $("sideStreak").textContent="🔥 "+(S.streak.count||0)+" يوم متتالية";
+  $("sideStreak").textContent="🔥 "+(S.streak.count||0)+" "+window.t("sc_streak_u");
 }
 
 /* ============ NAV ============ */
@@ -2029,6 +2064,10 @@ function showPage(name){
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
   document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));
   try{ensureSection(name);}catch(e){console.error(e);}
+  /* Flashcards keep a persistent deck (never rebuilt on visit); re-render the
+     current card so it follows the interface language (incl. after a switch,
+     which invalidates the preserved-DOM cache but must not reshuffle). */
+  try{if(name==="flashcards"){if(typeof backfillWordEn==="function")backfillWordEn();if(flashList&&flashList.length){if(typeof renderFlash==="function")renderFlash();}else if(typeof buildFlash==="function")buildFlash();}}catch(e){console.error(e);}
   try{if(typeof dmRefreshSectionIfStale==="function")dmRefreshSectionIfStale(name,"visit");}catch(e){console.error(e);}
   try{if(window.DMDrawer&&typeof window.DMDrawer.close==="function"){window.DMDrawer.close();}else{const _sb=$("sidebar");if(_sb)_sb.classList.remove("open");const _so=$("sidebarOverlay");if(_so)_so.classList.remove("show");try{document.body.classList.remove("drawer-open");}catch(e){}}}catch(e){}
   /* Page-state preservation: when DMPageState will restore a saved scroll
@@ -2159,7 +2198,7 @@ function applyColor(id){
   }
   if(t.surf){for(const k in t.surf){if(Object.prototype.hasOwnProperty.call(t.surf,k))r.setProperty("--"+k,t.surf[k]);}}
 }
-function setColor(id){S.settings.color=id;save();applyColor(id);renderThemes();toast("تم تطبيق اللون ✅","ok");}
+function setColor(id){S.settings.color=id;save();applyColor(id);renderThemes();toast(window.t("sc_set_color"),"ok");}
 function renderThemes(){
   const box=$("themeGrid");if(!box)return;
   const cur=(S.settings&&S.settings.color)||"default";
@@ -2167,7 +2206,7 @@ function renderThemes(){
   box.querySelectorAll("[data-th]").forEach(c=>c.addEventListener("click",()=>setColor(c.getAttribute("data-th"))));
 }
 $("themeBtn").addEventListener("click",()=>{S.settings.theme=S.settings.theme==="dark"?"light":"dark";save();applyTheme();});
-$("themeBtn2").addEventListener("click",()=>{S.settings.theme=S.settings.theme==="dark"?"light":"dark";save();applyTheme();toast("تم تبديل المظهر ✅","ok");});
+$("themeBtn2").addEventListener("click",()=>{S.settings.theme=S.settings.theme==="dark"?"light":"dark";save();applyTheme();toast(window.t("sc_set_theme"),"ok");});
 function syncSpeed(v){S.settings.speed=parseFloat(v);$("speedSelect").value=String(S.settings.speed);$("speedSelect2").value=String(S.settings.speed);save();}
 $("speedSelect").addEventListener("change",e=>syncSpeed(e.target.value));
 $("speedSelect2").addEventListener("change",e=>syncSpeed(e.target.value));
@@ -2196,7 +2235,8 @@ let phraseI=0,charI=0,del=false;
    other page open. When nothing is visible we skip the write/advance and
    re-check once per second; the visible animation keeps its exact timing. */
 function typingIdle(){try{if(typeof document!=="undefined"&&document.hidden)return true;}catch(e){}try{var d=document.querySelector?document.querySelector("#page-dashboard"):null;if(d&&d.classList&&!d.classList.contains("active"))return true;}catch(e){}return false;}
-function typingLoop(){const el=$("typingText");if(!el)return;if(typingIdle()){setTimeout(typingLoop,1000);return;}const p=PHRASES[phraseI];el.textContent=p.slice(0,charI);if(!del){charI++;if(charI>p.length+8)del=true;}else{charI--;if(charI<=0){del=false;phraseI=(phraseI+1)%PHRASES.length;}}setTimeout(typingLoop,del?35:70);}
+function dmPhrases(){try{if(typeof uilang==="function"&&typeof window.t==="function"&&uilang()!=="ar"){var a=[window.t("sc_ph1"),window.t("sc_ph2"),window.t("sc_ph3"),window.t("sc_ph4"),window.t("sc_ph5")];if(a.every(function(x){return x&&x.indexOf("sc_ph")!==0;}))return a;}}catch(e){}return PHRASES;}
+function typingLoop(){const el=$("typingText");if(!el)return;if(typingIdle()){setTimeout(typingLoop,1000);return;}const arr=dmPhrases();if(phraseI>=arr.length)phraseI=0;const p=arr[phraseI];el.textContent=p.slice(0,charI);if(!del){charI++;if(charI>p.length+8)del=true;}else{charI--;if(charI<=0){del=false;phraseI=(phraseI+1)%arr.length;}}setTimeout(typingLoop,del?35:70);}
 
 /* ============ REVEAL ============ */
 let observer=null;
@@ -2224,24 +2264,24 @@ function wordCard(w){
   try{d.setAttribute("data-wid",w.id);}catch(e){}
   const hasArt=w.art!=="-";
   const deLine=hasArt?'<span class="article '+artCls+'">'+artTxt+'</span><span class="word-de">'+escapeHtml(w.de)+'</span>':'<span class="word-de">'+escapeHtml(w.de)+'</span>';
-  const plLine=(w.type==="اسم"&&w.plural)?'<div class="de-plural"><span class="article '+artCls+' sm">'+artTxt+'</span><span>'+escapeHtml(w.plural)+'</span><button class="mini-btn" data-act="speakPl" title="نطق الجمع">🔊</button></div>':'';
+  const plLine=(w.type==="اسم"&&w.plural)?'<div class="de-plural"><span class="article '+artCls+' sm">'+artTxt+'</span><span>'+escapeHtml(w.plural)+'</span><button class="mini-btn" data-act="speakPl" title="'+t("sc_say_pl")+'">🔊</button></div>':'';
   const imgLine=w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(full)+'" loading="lazy">':'';
   d.innerHTML=
-    '<div class="de-line" data-act="detail" title="اضغط للتفاصيل والنطق 🔊">'+deLine+
-    '<button class="mini-btn" data-act="speak" title="نطق">🔊</button>'+
-    '<button class="mini-btn fav '+(fav?"active":"")+'" data-act="fav" title="مفضلة">❤️</button></div>'+
+    '<div class="de-line" data-act="detail" title="'+t("sc_detail_title")+'">'+deLine+
+    '<button class="mini-btn" data-act="speak" title="'+t("sc_say")+'">🔊</button>'+
+    '<button class="mini-btn fav '+(fav?"active":"")+'" data-act="fav" title="'+t("sc_fav")+'">❤️</button></div>'+
     plLine+imgLine+
-    '<div class="word-ar">'+escapeHtml(w.ar)+'</div>'+
-    '<div class="word-pron">النطق: '+escapeHtml(w.pron)+'</div>'+
-    '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div>'+
-    '<div class="word-meta"><span class="tag kap-tag">'+kapName(w.kap||"KX")+'</span><span class="tag">'+escapeHtml(w.cat)+' • '+(CAT_AR[w.cat]||"")+'</span><span class="tag">'+escapeHtml(w.type)+'</span><span class="tag">'+escapeHtml(w.level||"A1")+'</span><span class="status-tag '+st+'">'+STATUS_AR[st]+'</span></div>'+
+    '<div class="word-ar">'+escapeHtml(wordMeaning(w))+'</div>'+
+    '<div class="word-pron">'+t("sc_pron")+escapeHtml(w.pron)+'</div>'+
+    '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(wordExMeaning(w))+'</div></div>'+
+    '<div class="word-meta"><span class="tag kap-tag">'+kapName(w.kap||"KX")+'</span><span class="tag">'+((typeof uilang==="function"&&uilang()!=="ar")?escapeHtml(catLang(w.cat)):escapeHtml(w.cat)+' • '+(CAT_AR[w.cat]||""))+'</span><span class="tag">'+escapeHtml(wordTypeLang(w.type))+'</span><span class="tag">'+escapeHtml(w.level||"A1")+'</span><span class="status-tag '+st+'">'+statusLang(st)+'</span></div>'+
     '<div class="card-actions">'+
-    '<button class="mini-btn" data-act="known">✅ أعرفها</button>'+
-    '<button class="mini-btn" data-act="hard">🔴 صعبة</button>'+
-    '<button class="mini-btn" data-act="review">🔁 مراجعة</button>'+
-    '<button class="mini-btn" data-act="later">⏳ لاحقًا</button>'+
-    '<button class="mini-btn" data-act="speakEx">🔊 المثال</button>'+
-    '<button class="mini-btn" data-act="quiz">❓ اختبرني</button></div>';
+    '<button class="mini-btn" data-act="known">'+t("sc_card_known")+'</button>'+
+    '<button class="mini-btn" data-act="hard">'+t("sc_card_hard")+'</button>'+
+    '<button class="mini-btn" data-act="review">'+t("sc_card_review")+'</button>'+
+    '<button class="mini-btn" data-act="later">'+t("sc_card_later")+'</button>'+
+    '<button class="mini-btn" data-act="speakEx">'+t("sc_card_ex")+'</button>'+
+    '<button class="mini-btn" data-act="quiz">'+t("sc_card_quiz")+'</button></div>';
   return d;
 }
 /* Per-render favorites Set: O(1) membership per card instead of O(F) indexOf.
@@ -2279,7 +2319,7 @@ function dmVocabGridClick(ev){
       else if(a==="speakEx")speak(w.ex);
       else if(a==="fav")toggleFav(w.id);
       else if(a==="quiz")quickArticleQuiz(w);
-      else{setStatus(w.id,a==="known"?"known":a);markStudyDay();renderAll();toast(a==="known"?"أحسنت! كلمة محفوظة ✅":"تم تحديث حالة الكلمة 📌","ok");}
+      else{setStatus(w.id,a==="known"?"known":a);markStudyDay();renderAll();toast(a==="known"?t("sc_status_saved"):t("sc_status_updated"),"ok");}
       return;
     }
     const line=t.closest(".de-line");
@@ -2294,14 +2334,14 @@ function toggleFav(id){
   const i=S.favs.indexOf(id);
   if(i>=0)S.favs.splice(i,1);else S.favs.push(id);
   save();renderAll();
-  toast(i>=0?"أُزيلت من المفضلة":"أُضيفت للمفضلة ❤️","ok");
+  toast(i>=0?t("sc_fav_removed"):t("sc_fav_added"),"ok");
 }
 
 /* ============ VOCAB ============ */
 function fillCategories(){
-  const opts=CATEGORIES.map(c=>'<option value="'+c+'">'+c+' • '+(CAT_AR[c]||"")+'</option>').join("");
-  $("filterCategory").innerHTML='<option value="">كل التصنيفات</option>'+opts;
-  $("flashCategory").innerHTML='<option value="">كل التصنيفات</option>'+opts;
+  const opts=CATEGORIES.map(c=>'<option value="'+c+'">'+((typeof uilang==="function"&&uilang()!=="ar")?c:(c+' • '+(CAT_AR[c]||"")))+'</option>').join("");
+  $("filterCategory").innerHTML='<option value="">'+__t("f_allcats","كل التصنيفات")+'</option>'+opts;
+  $("flashCategory").innerHTML='<option value="">'+__t("f_allcats","كل التصنيفات")+'</option>'+opts;
   $("nwCat").innerHTML=opts;
 }
 function fillKapitels(){
@@ -2313,9 +2353,9 @@ function fillKapitels(){
   for(let i=0;i<words.length;i++){const kp=words[i].kap||"KX";if(kp==="KX")kx++;else counts[kp]=(counts[kp]||0)+1;}
   const opts=KAPITEL.map(k=>{
     const n=k.id==="KX"?kx:(counts[k.id]||0);
-    return '<option value="'+k.id+'">'+k.icon+" "+k.id+" • "+k.name+" ("+n+")</option>";
+    return '<option value="'+k.id+'">'+kapName(k.id)+" ("+n+")</option>";
   }).join("");
-  ["filterKapitel","flashKapitel","sentenceKapitel","verbKapitel","grammarKapitel","explainKapitel"].forEach(function(id){const el=$(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="">كل الكبيتلات</option>'+opts;el.value=cur;});
+  ["filterKapitel","flashKapitel","sentenceKapitel","verbKapitel","grammarKapitel","explainKapitel"].forEach(function(id){const el=$(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="">'+__t("f_allkap","كل الكبيتلات")+'</option>'+opts;el.value=cur;});
 }
 function filteredVocab(){
   const raw=($("vocabSearch").value||"");
@@ -2392,11 +2432,12 @@ function ensureFullVocab(){
 }
 function renderVocab(more){
   try{ensureFullVocab();}catch(e){}
+  try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   if(!more)vocabLimit=VOCAB_PAGE;
   const list=filteredVocab();
   $("vocabCount").textContent=list.length;
   const g=$("vocabGrid");g.innerHTML="";
-  if(!list.length){g.innerHTML='<div class="panel glass">لا توجد نتائج. جرّب بحثًا آخر أو أضف كلمة جديدة ➕</div>';try{if(typeof dmStampRev==="function")dmStampRev("vocab");}catch(e){}return;}
+  if(!list.length){g.innerHTML='<div class="panel glass">'+window.t("sc_empty_vocab")+'</div>';try{if(typeof dmStampRev==="function")dmStampRev("vocab");}catch(e){}return;}
   /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
   const frag=document.createDocumentFragment();
   list.slice(0,vocabLimit).forEach(w=>frag.appendChild(wordCard(w)));
@@ -2404,7 +2445,7 @@ function renderVocab(more){
   if(list.length>vocabLimit){
     const b=document.createElement("button");
     b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
-    b.textContent="عرض المزيد ("+(list.length-vocabLimit)+" ⬇)";
+    b.textContent=t("sc_sent_more")+(list.length-vocabLimit)+" ⬇)";
     b.addEventListener("click",()=>{vocabLimit+=VOCAB_PAGE;try{renderVocab(true);}catch(e){console.error(e);}});
     g.appendChild(b);
   }
@@ -2490,12 +2531,12 @@ function renderDashboard(){
   $("accNum").textContent=acc+"%";
   $("bestNum").textContent=(S.bestPct||0)+"%";
   $("comboNum").textContent=(S.maxCombo||0);
-  $("lastQuizTxt").textContent=S.lastQuiz?("آخر اختبار: "+S.lastQuiz.type+" — "+S.lastQuiz.score+"/"+S.lastQuiz.total+" ("+S.lastQuiz.pct+"%) ⭐+"+S.lastQuiz.xp+" بتاريخ "+S.lastQuiz.date):"لم تحل أي اختبار بعد — ابدأ الآن! 🚀";
+  $("lastQuizTxt").textContent=S.lastQuiz?(window.t("sc_last_quiz")+S.lastQuiz.type+" — "+S.lastQuiz.score+"/"+S.lastQuiz.total+" ("+S.lastQuiz.pct+"%) ⭐+"+S.lastQuiz.xp+" "+window.t("sc_on")+" "+S.lastQuiz.date):window.t("sc_no_quiz_yet");
   const p=S.planner;const t=todayStr();
   const dw=p.day===t?p.dw:0,ds=p.day===t?p.ds:0,dm=p.day===t?p.dm:0;
-  $("dashPlanner").innerHTML='<div class="stat-bar-row"><span class="lbl">📚 كلمات</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dw/Math.max(1,p.words)*100)+'%;background:linear-gradient(90deg,#285DFF,#4DA3FF)"></div></div><b>'+dw+'/'+p.words+'</b></div>'+
-  '<div class="stat-bar-row"><span class="lbl">💬 جمل</span><div class="bar"><div class="fill" style="width:'+Math.min(100,ds/Math.max(1,p.sentences)*100)+'%;background:linear-gradient(90deg,#1E7A55,#2FA97C)"></div></div><b>'+ds+'/'+p.sentences+'</b></div>'+
-  '<div class="stat-bar-row"><span class="lbl">⏱️ دقائق</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dm/Math.max(1,p.minutes)*100)+'%;background:linear-gradient(90deg,#8A6A2E,#D8B56A)"></div></div><b>'+dm+'/'+p.minutes+'</b></div>';
+  $("dashPlanner").innerHTML='<div class="stat-bar-row"><span class="lbl">'+window.t("sc_dash_words")+'</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dw/Math.max(1,p.words)*100)+'%;background:linear-gradient(90deg,#285DFF,#4DA3FF)"></div></div><b>'+dw+'/'+p.words+'</b></div>'+
+  '<div class="stat-bar-row"><span class="lbl">'+window.t("sc_dash_sents")+'</span><div class="bar"><div class="fill" style="width:'+Math.min(100,ds/Math.max(1,p.sentences)*100)+'%;background:linear-gradient(90deg,#1E7A55,#2FA97C)"></div></div><b>'+ds+'/'+p.sentences+'</b></div>'+
+  '<div class="stat-bar-row"><span class="lbl">'+window.t("sc_dash_mins")+'</span><div class="bar"><div class="fill" style="width:'+Math.min(100,dm/Math.max(1,p.minutes)*100)+'%;background:linear-gradient(90deg,#8A6A2E,#D8B56A)"></div></div><b>'+dm+'/'+p.minutes+'</b></div>';
   renderNextBestStep({words:words,known:known,due:due,hard:hard,fresh:fresh});
   renderFocusRow({words:words,known:known,due:due,hard:hard,fresh:fresh});
   try{if(typeof dmStampRev==="function")dmStampRev("dashboard");}catch(e){}
@@ -2519,34 +2560,34 @@ function computeNextBestStep(pre){
   const ds=S.planner.day===today?S.planner.ds:0;
 
   if(due>10){
-    return {action:"review",label:"راجع "+due+" كلمة مستحقة",goto:"review",icon:"🧠",reason:"لديك كلمات كثيرة تنتظر المراجعة — SRS يضمن عدم نسيانها."};
+    return {action:"review",label:window.t("sc_step_review_l")+" "+due+" "+window.t("sc_step_review_r"),goto:"review",icon:"🧠",reason:window.t("sc_step_review_why")};
   }
   if(mistakesCount>0){
     const topMistake=Object.entries(S.mistakes).sort((a,b)=>b[1].n-a[1].n)[0];
     if(topMistake && topMistake[1].n>=2){
-      return {action:"mistakes",label:"صحح خطأك المتكرر: "+(topMistake[1].de||""),goto:"mistakes",icon:"❌",reason:"هذا الخطأ تكرر "+topMistake[1].n+" مرات — راجع وافهمه."};
+      return {action:"mistakes",label:window.t("sc_step_mist_l")+" "+(topMistake[1].de||""),goto:"mistakes",icon:"❌",reason:window.t("sc_step_mist_n1")+" "+topMistake[1].n+" "+window.t("sc_step_mist_n2")};
     }
-    return {action:"mistakes",label:"راجع أخطاءك ("+mistakesCount+")",goto:"mistakes",icon:"❌",reason:"كل خطأ فرصة للتعلم — راجعها الآن."};
+    return {action:"mistakes",label:window.t("sc_step_mists_l")+" ("+mistakesCount+")",goto:"mistakes",icon:"❌",reason:window.t("sc_step_mists_why")};
   }
   if(hardCount>5){
-    return {action:"practice",label:"تدرب على "+hardCount+" كلمة صعبة",goto:"practice",icon:"🎯",reason:"الكلمات الصعبة تحتاج تدريبًا مركّزًا — التدريب الذكي يختارها تلقائيًا."};
+    return {action:"practice",label:window.t("sc_step_hard_l")+" "+hardCount+" "+window.t("sc_step_hard_r"),goto:"practice",icon:"🎯",reason:window.t("sc_step_hard_why")};
   }
   if(newCount>0 && known/words.length<0.3){
-    return {action:"vocab",label:"تعلم كلمات جديدة ("+newCount+" متاحة)",goto:"vocab",icon:"📚",reason:"بناء قاعدة مفردات قوية هو الأساس — ابدأ بالكلمات الجديدة."};
+    return {action:"vocab",label:window.t("sc_step_new_l")+" ("+newCount+" "+window.t("sc_step_new_r")+")",goto:"vocab",icon:"📚",reason:window.t("sc_step_new_why")};
   }
   if(dw < (S.planner.words||20)){
-    return {action:"vocab",label:"أكمل هدفك اليومي: "+((S.planner.words||20)-dw)+" كلمة",goto:"vocab",icon:"📚",reason:"الاستمرارية اليومية تبني العادة — هدفك "+(S.planner.words||20)+" كلمة/يوم."};
+    return {action:"vocab",label:window.t("sc_step_goal_l")+" "+((S.planner.words||20)-dw)+" "+window.t("sc_step_goal_r"),goto:"vocab",icon:"📚",reason:window.t("sc_step_goal_why")+" — "+window.t("sc_step_goal2")+" "+(S.planner.words||20)+" "+window.t("sc_step_goal3")};
   }
   if(ds < (S.planner.sentences||10)){
-    return {action:"sentences",label:"أكمل هدف الجمل: "+((S.planner.sentences||10)-ds)+" جملة",goto:"sentences",icon:"💬",reason:"الجمل تعلمك السياق والترتيب — هدفك "+(S.planner.sentences||10)+" جملة/يوم."};
+    return {action:"sentences",label:window.t("sc_step_sent_l")+" "+((S.planner.sentences||10)-ds)+" "+window.t("sc_step_sent_r"),goto:"sentences",icon:"💬",reason:window.t("sc_step_sent_why")+" — "+window.t("sc_step_sent2")+" "+(S.planner.sentences||10)+" "+window.t("sc_step_sent3")};
   }
   if(streak===0){
-    return {action:"vocab",label:"ابدأ سلسلة أيامك الأولى 🔥",goto:"vocab",icon:"🔥",reason:"أول يوم في السلسلة هو الأصعب — ابدأ بكلمة واحدة."};
+    return {action:"vocab",label:window.t("sc_step_first_l"),goto:"vocab",icon:"🔥",reason:window.t("sc_step_first_why")};
   }
   if(lastQuiz && lastQuiz.pct<60){
-    return {action:"practice",label:"قوِّ نقاط ضعفك من آخر اختبار",goto:"practice",icon:"🎯",reason:"نتيجتك "+lastQuiz.pct+"% — التدريب الذكي يركز على ما أخطأت فيه."};
+    return {action:"practice",label:window.t("sc_step_last_l"),goto:"practice",icon:"🎯",reason:window.t("sc_step_last_pct")+" "+lastQuiz.pct+"% — "+window.t("sc_step_last_why")};
   }
-  return {action:"journey",label:"واصل رحلتك الألمانية",goto:"journey",icon:"🗺️",reason:"تقدم ممتاز! تابع المسار المنظم من A1 إلى B2."};
+  return {action:"journey",label:window.t("sc_step_journey_l"),goto:"journey",icon:"🗺️",reason:window.t("sc_step_journey_why")};
 }
 
 function renderNextBestStep(pre){
@@ -2556,7 +2597,7 @@ function renderNextBestStep(pre){
   el.innerHTML='<div class="cmd-next-card glass">'+
     '<div class="cmd-next-icon">'+step.icon+'</div>'+
     '<div class="cmd-next-text"><b>'+step.label+'</b><div class="muted">'+step.reason+'</div></div>'+
-    '<button class="btn btn-primary" data-goto="'+step.goto+'">ابدأ الآن</button>'+
+    '<button class="btn btn-primary" data-goto="'+step.goto+'">'+window.t("sc_go_now")+'</button>'+
     '</div>';
   el.querySelector("button").addEventListener("click",()=>showPage(step.goto));
 }
@@ -2575,13 +2616,13 @@ function computeWeakAreas(pre){
   const verbMistakes=Object.values(mistakes).filter(m=>m.kind==="verb"||m.kind==="sm-verb"||m.kind==="conjugation"||m.kind==="sm-conjugation").length;
   const grammarMistakes=Object.values(mistakes).filter(m=>m.kind==="grammar"||m.kind==="sm-grammar"||m.kind==="akkusativ"||m.kind==="wortstellung").length;
 
-  if(dueCount>0)areas.push({id:"review",label:"مراجعة مستحقة ("+dueCount+")",count:dueCount,icon:"🧠",goto:"review"});
-  if(hardN>0)areas.push({id:"hard",label:"كلمات صعبة ("+hardN+")",count:hardN,icon:"🔴",goto:"practice"});
-  if(articleMistakes>0)areas.push({id:"article",label:"أدوات التعريف ("+articleMistakes+" أخطاء)",count:articleMistakes,icon:"🎯",goto:"practice"});
-  if(pluralMistakes>0)areas.push({id:"plural",label:"الجمع ("+pluralMistakes+" أخطاء)",count:pluralMistakes,icon:"👥",goto:"practice"});
-  if(verbMistakes>0)areas.push({id:"verb",label:"تصريف الأفعال ("+verbMistakes+" أخطاء)",count:verbMistakes,icon:"⚡",goto:"practice"});
-  if(grammarMistakes>0)areas.push({id:"grammar",label:"قواعد ("+grammarMistakes+" أخطاء)",count:grammarMistakes,icon:"📐",goto:"practice"});
-  if(newWords>0 && (((pre&&typeof pre.known==="number")?pre.known:words.filter(w=>getStatus(w.id)==="known").length)/words.length<0.3))areas.push({id:"vocab",label:"كلمات جديدة ("+newWords+")",count:newWords,icon:"📚",goto:"vocab"});
+  if(dueCount>0)areas.push({id:"review",label:window.t("sc_wa_due")+" ("+dueCount+")",count:dueCount,icon:"🧠",goto:"review"});
+  if(hardN>0)areas.push({id:"hard",label:window.t("sc_wa_hard")+" ("+hardN+")",count:hardN,icon:"🔴",goto:"practice"});
+  if(articleMistakes>0)areas.push({id:"article",label:window.t("sc_wa_art")+" ("+articleMistakes+" "+window.t("sc_wa_errs")+")",count:articleMistakes,icon:"🎯",goto:"practice"});
+  if(pluralMistakes>0)areas.push({id:"plural",label:window.t("sc_wa_pl")+" ("+pluralMistakes+" "+window.t("sc_wa_errs")+")",count:pluralMistakes,icon:"👥",goto:"practice"});
+  if(verbMistakes>0)areas.push({id:"verb",label:window.t("sc_wa_v")+" ("+verbMistakes+" "+window.t("sc_wa_errs")+")",count:verbMistakes,icon:"⚡",goto:"practice"});
+  if(grammarMistakes>0)areas.push({id:"grammar",label:window.t("sc_wa_g")+" ("+grammarMistakes+" "+window.t("sc_wa_errs")+")",count:grammarMistakes,icon:"📐",goto:"practice"});
+  if(newWords>0 && (((pre&&typeof pre.known==="number")?pre.known:words.filter(w=>getStatus(w.id)==="known").length)/words.length<0.3))areas.push({id:"vocab",label:window.t("sc_step_new_l")+" ("+newWords+")",count:newWords,icon:"📚",goto:"vocab"});
 
   areas.sort((a,b)=>b.count-a.count);
   return areas.slice(0,4);
@@ -2592,7 +2633,7 @@ function renderFocusRow(pre){
   const el=$("cmdFocusRow");
   if(!el)return;
   if(!areas.length){
-    el.innerHTML='<div class="muted">ممتاز! لا توجد نقاط ضعف واضحة حاليًا 🎉</div>';
+    el.innerHTML='<div class="muted">'+window.t("sc_focus_empty")+'</div>';
     return;
   }
   el.innerHTML=areas.map(a=>'<button class="focus-chip glass" data-goto="'+a.goto+'"><span class="fi">'+a.icon+'</span><span>'+a.label+'</span></button>').join("");
@@ -2617,14 +2658,14 @@ function srsOverdue(id,today){
 function srsWhy(id){
   try{
     const s=S.srs&&S.srs[id];
-    if(s&&s.due&&s.due<todayStr())return "موعد مراجعتها كان "+s.due+" — حان وقت التثبيت 🗓️";
-    if(s&&s.due&&s.due===todayStr())return "مجدولة لمراجعة اليوم 📌";
+    if(s&&s.due&&s.due<todayStr())return window.t("sc_why_over_a")+" "+s.due+" "+window.t("sc_why_over_b");
+    if(s&&s.due&&s.due===todayStr())return window.t("sc_why_today");
     const m=S.mistakes&&S.mistakes[id];
-    if(m&&!m.done&&m.n>=2)return "أخطأت فيها "+m.n+" مرات — تحتاج تثبيتًا 🔁";
+    if(m&&!m.done&&m.n>=2)return window.t("sc_why_err")+" "+m.n+" "+window.t("sc_why_err_b");
     const st=getStatus(id);
-    if(st==="hard")return "علّمتها كصعبة — راجعها بتركيز 🔴";
-    if(st==="new")return "كلمة جديدة لم تُراجع بعد 🆕";
-    return "ضمن قائمة المراجعة اليومية 📌";
+    if(st==="hard")return window.t("sc_why_hard");
+    if(st==="new")return window.t("sc_why_new");
+    return window.t("sc_why_daily");
   }catch(e){return "";}
 }
 /* Perf 104k bank: dashboard-class callers need only the COUNT, not the
@@ -2706,41 +2747,41 @@ function renderReview(){
   const counts={new:0,review:0,hard:0,known:0,later:0};
   words.forEach(w=>{counts[getStatus(w.id)]=(counts[getStatus(w.id)]||0)+1;});
   const colors={new:"#4DA3FF",review:"#D8B56A",hard:"#D3616E",known:"#2FA97C",later:"#77849B"};
-  $("reviewLevels").innerHTML=Object.keys(counts).map(k=>'<div class="level-card glass"><div class="level-num" style="color:'+colors[k]+'">'+counts[k]+'</div><div>'+STATUS_AR[k]+'</div></div>').join("");
+  $("reviewLevels").innerHTML=Object.keys(counts).map(k=>'<div class="level-card glass"><div class="level-num" style="color:'+colors[k]+'">'+counts[k]+'</div><div>'+statusLang(k)+'</div></div>').join("");
   const due=dueWords();
   $("dueCount").textContent=due.length;
   $("navReviewBadge").textContent=due.length;
   const g=$("dueGrid");g.innerHTML="";
   due.slice(0,9).forEach(w=>g.appendChild(wordCard(w)));
-  if(!due.length)g.innerHTML='<div class="muted">ممتاز! لا توجد كلمات تحتاج مراجعة اليوم 🎉</div>';
+  if(!due.length)g.innerHTML='<div class="muted">'+window.t("sc_rv_day_none")+'</div>';
   try{if(typeof dmStampRev==="function")dmStampRev("review");}catch(e){}
 }
 let reviewQueue=[],reviewIdx=0,reviewDir="de-ar";
 $("startReview").addEventListener("click",()=>{
   reviewQueue=dueWords().slice(0,15);
-  if(!reviewQueue.length){toast("لا توجد كلمات للمراجعة 🎉","ok");return;}
+  if(!reviewQueue.length){toast(window.t("sc_rv_none"),"ok");return;}
   reviewIdx=0;renderReviewQ();markStudyDay();
 });
 function renderReviewQ(){
   const box=$("reviewSession");box.classList.remove("hidden");
-  const w=reviewQueue[reviewIdx];if(!w){box.innerHTML='<h3>🎉 انتهت جلسة المراجعة!</h3><button class="btn btn-primary" onclick="document.getElementById(\'reviewSession\').classList.add(\'hidden\')">إغلاق</button>';renderAll();return;}
+  const w=reviewQueue[reviewIdx];if(!w){box.innerHTML='<h3>'+window.t("sc_rv_done")+'</h3><button class="btn btn-primary" onclick="document.getElementById(\'reviewSession\').classList.add(\'hidden\')">'+window.t("sc_close")+'</button>';renderAll();return;}
   const full=(w.art!=="-"?w.art+" ":"")+w.de;
   const deFirst=reviewDir!=="ar-de";
   const front=deFirst
     ?'<div class="word-de word-de-ltr" style="font-size:32px">'+escapeHtml(full)+' <button class="mini-btn" id="rvSpeak">🔊</button></div>'
-    :'<div class="word-ar" style="font-size:32px">'+escapeHtml(w.ar)+'</div>';
+    :'<div class="word-ar" style="font-size:32px">'+escapeHtml(wordMeaning(w))+'</div>';
   const back=deFirst
-    ?'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-ar" style="font-size:26px">'+escapeHtml(w.ar)+'</div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div></div>'
-    :'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-de word-de-ltr" style="font-size:26px">'+escapeHtml(full)+' <button class="mini-btn" id="rvSpeak2">🔊</button></div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div></div>';
-  box.innerHTML='<h3>مراجعة '+(reviewIdx+1)+' / '+reviewQueue.length+'</h3>'+
-  '<div class="muted">لماذا الآن؟ '+escapeHtml(srsWhy(w.id))+'</div>'+
+    ?'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-ar" style="font-size:26px">'+escapeHtml(wordMeaning(w))+'</div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+wordExMeaning(w)+'</div></div></div>'
+    :'<div id="rvAns" class="hidden" style="margin:12px 0"><div class="word-de word-de-ltr" style="font-size:26px">'+escapeHtml(full)+' <button class="mini-btn" id="rvSpeak2">🔊</button></div><div class="word-pron">'+escapeHtml(w.pron)+'</div><div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+wordExMeaning(w)+'</div></div></div>';
+  box.innerHTML='<h3>'+window.t("sc_rv_head")+' '+(reviewIdx+1)+' / '+reviewQueue.length+'</h3>'+
+  '<div class="muted">'+window.t("sc_rv_why")+' '+escapeHtml(srsWhy(w.id))+'</div>'+
   front+
-  '<div class="muted">'+(deFirst?"حاول تذكر المعنى ثم أظهر الإجابة":"حاول تذكر الكلمة الألمانية ثم أظهر الإجابة")+'</div>'+
+  '<div class="muted">'+(deFirst?window.t("sc_rv_try_mean"):window.t("sc_rv_try_de"))+'</div>'+
   back+
-  '<div class="row-flex"><button class="btn btn-ghost sm" id="rvShow">👁️ إظهار الإجابة</button>'+
-  '<button class="btn btn-ghost sm" id="rvDir">🔄 '+(deFirst?"عربي → ألماني":"ألماني → عربي")+'</button>'+
-  '<button class="btn btn-green sm" id="rvOk">✅ عرفتها</button>'+
-  '<button class="btn btn-red sm" id="rvNo">❌ أخطأت</button></div>';
+  '<div class="row-flex"><button class="btn btn-ghost sm" id="rvShow">'+window.t("sc_rv_show")+'</button>'+
+  '<button class="btn btn-ghost sm" id="rvDir">🔄 '+(deFirst?window.t("sc_rv_m2d"):window.t("sc_rv_d2m"))+'</button>'+
+  '<button class="btn btn-green sm" id="rvOk">'+window.t("sc_rv_know")+'</button>'+
+  '<button class="btn btn-red sm" id="rvNo">'+window.t("sc_rv_miss")+'</button></div>';
   box.scrollIntoView({behavior:"smooth"});
   const rvSpk=()=>speak(full);
   if($("rvSpeak"))$("rvSpeak").addEventListener("click",rvSpk);
@@ -2807,6 +2848,7 @@ function flashEnsureLevel(){
   return false;
 }
 function buildFlash(){
+  try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   if(flashEnsureLevel())return;
   flashList=shuffle(getFilteredFlashcards());
   try{refreshFlashList._seen=null;refreshFlashList._key=null;}catch(e){}
@@ -2817,6 +2859,7 @@ function buildFlash(){
    session: matching new words are appended (shuffled), removed words are
    dropped, and the current card position is preserved when possible. */
 function refreshFlashList(){
+  try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   try{
     if(!flashList)flashList=[];
     /* Perf 104k bank: the 4 filter inputs were read from the DOM on EVERY
@@ -2915,17 +2958,17 @@ function renderFlash(){
     }
     /* --- back face: always the other language --- */
     if(frontDe){
-      $("flashAr").textContent=w.ar;
+      $("flashAr").textContent=wordMeaning(w);
       $("flashAr").setAttribute("dir","auto");
-      $("flashPron").textContent="النطق: "+w.pron;
-      $("flashEx").innerHTML=escapeHtml(w.exAr||"");
+      $("flashPron").textContent=t("sc_pron")+w.pron;
+      $("flashEx").innerHTML=escapeHtml(wordExMeaning(w)||"");
       $("flashEx").setAttribute("dir","auto");
       $("flashEx").style.display=w.exAr?"":"none";
       $("flashSaySBack").style.display=w.exAr?"":"none";
     }else{
       $("flashAr").textContent=deWord;
       $("flashAr").setAttribute("dir","ltr");
-      $("flashPron").textContent="النطق: "+w.pron;
+      $("flashPron").textContent=t("sc_pron")+w.pron;
       $("flashEx").innerHTML=escapeHtml(w.ex||"");
       $("flashEx").setAttribute("dir","ltr");
       $("flashEx").style.display=w.ex?"":"none";
@@ -2944,12 +2987,12 @@ function renderFlash(){
       const isDue=dueWords().some(dw=>dw.id===w.id);
 
       let connHtml='';
-      if(relatedSentences.length)connHtml+='<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' جملة</button>';
-      if(relatedGrammar.length)connHtml+='<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' قاعدة</button>';
-      if(w.type==="اسم")connHtml+='<button class="btn btn-ghost sm" data-goto="vocab" data-search="'+escapeHtml(w.de)+'">📚 كلمة</button>';
-      if(isMistake)connHtml+='<button class="btn btn-red sm" data-goto="mistakes">❌ خطأ ('+isMistake.n+'x)</button>';
-      if(isDue)connHtml+='<button class="btn btn-green sm" data-goto="review">🧠 مستحقة</button>';
-      connHtml+='<button class="btn btn-primary sm" data-goto="practice">🎯 تدريب</button>';
+      if(relatedSentences.length)connHtml+='<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' '+t("sc_u_sent")+'</button>';
+      if(relatedGrammar.length)connHtml+='<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' '+t("sc_u_rule")+'</button>';
+      if(w.type==="اسم")connHtml+='<button class="btn btn-ghost sm" data-goto="vocab" data-search="'+escapeHtml(w.de)+'">📚 '+t("sc_u_word")+'</button>';
+      if(isMistake)connHtml+='<button class="btn btn-red sm" data-goto="mistakes">❌ '+t("sc_u_err")+' ('+isMistake.n+'x)</button>';
+      if(isDue)connHtml+='<button class="btn btn-green sm" data-goto="review">🧠 '+t("sc_u_due")+'</button>';
+      connHtml+='<button class="btn btn-primary sm" data-goto="practice">'+t("sc_practice")+'</button>';
 
       connBox.innerHTML=connHtml;
       connBox.querySelectorAll("[data-goto]").forEach(btn=>{
@@ -2984,7 +3027,7 @@ function flashSayFace(face,kind){
     const lang=flashFaceLang(face);
     let text="";
     if(lang==="de")text=(kind==="word")?((w.art&&w.art!=="-"?w.art+" ":"")+w.de):(w.ex||"");
-    else text=(kind==="word")?(w.ar||""):(w.exAr||"");
+    else text=(kind==="word")?wordMeaning(w):wordExMeaning(w);
     if(!text)return false;
     if(lang==="de")speak(text);else speakAr(text);
     return true;
@@ -3019,10 +3062,10 @@ $("flashcard").addEventListener("click",e=>{
   $("flashcard").classList.toggle("flipped");
 });
 $("flashPlural").addEventListener("click",e=>{e.stopPropagation();pulseFlashSayButton(e.currentTarget||$("flashPlural"));const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(w&&w.plural)speak(pluralFull(w));});
-$("flashPlural").style.cursor="pointer";$("flashPlural").title="اضغط لسماع الجمع 🔊";
+$("flashPlural").style.cursor="pointer";$("flashPlural").title=__t("sc_hear_plural","اضغط لسماع الجمع 🔊");
 $("flashNext").addEventListener("click",()=>{if(!flashList.length)return;flashIdx++;renderFlash();});
 $("flashPrev").addEventListener("click",()=>{if(!flashList.length)return;flashIdx=(flashIdx-1+flashList.length)%flashList.length;renderFlash();});
-$("flashShuffle").addEventListener("click",()=>{buildFlash();toast("تم الخلط 🔀","ok");});
+$("flashShuffle").addEventListener("click",()=>{buildFlash();toast(window.t("sc_shuffled"),"ok");});
 $("flashDir").addEventListener("click",e=>{e.stopPropagation();toggleFlashDir();});
 ["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.addEventListener("change",buildFlash);});
 function resetFlashFilters(){["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.value="";});buildFlash();}
@@ -3051,21 +3094,23 @@ function renderSentences(more){
     if(!q)return{score:0,s:s};
     const de=typeof dmNorm==="function"?dmNorm(s.de):s.de.toLowerCase();
     const ar=(s.ar||"").toLowerCase();
+    const sen=(s.en||"").toLowerCase();
     let score=-1;
     if(de===q)score=0;
     else if(de.indexOf(q)===0)score=10+q.length/100;
     else{const bi=de.indexOf(" "+q);if(bi>=0)score=20+bi;else{const si=de.indexOf(q);if(si>=0)score=30+si;}}
     if(score<0&&ar.indexOf(raw.trim().toLowerCase())>=0)score=40;
+    if(score<0&&sen&&sen.indexOf(raw.trim().toLowerCase())>=0)score=41;
     return{score:score,s:s};
   }).filter(x=>!q||x.score>=0).sort((a,b)=>a.score-b.score).map(x=>x.s);
   const list=scored;
   const box=$("sentList");box.innerHTML="";
-  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد جمل هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("sentences");}catch(e){}return;}
+  if(!list.length){box.innerHTML='<div class="panel glass">'+window.t("sc_empty_sent")+'</div>';try{if(typeof dmStampRev==="function")dmStampRev("sentences");}catch(e){}return;}
   const frag=document.createDocumentFragment();
   list.slice(0,sentPageLimit).forEach((s,i)=>{
     const d=document.createElement("div");d.className="sent-card glass";
     const pron=s.pron?'<div class="sent-pron">🔊 '+escapeHtml(s.pron)+'</div>':'';
-    d.innerHTML='<div class="sent-num">'+(i+1)+'</div><div style="flex:1"><div class="sent-de">'+escapeHtml(s.de)+'</div><div class="sent-ar">'+escapeHtml(s.ar)+'</div>'+pron+'<div><span class="tag kap-tag">'+kapName(s.kap)+'</span></div></div><button class="icon-btn" title="استماع">🔊</button>';
+    d.innerHTML='<div class="sent-num">'+(i+1)+'</div><div style="flex:1"><div class="sent-de">'+escapeHtml(s.de)+'</div><div class="sent-ar">'+escapeHtml(sentMeaning(s))+'</div>'+pron+'<div><span class="tag kap-tag">'+kapName(s.kap)+'</span></div></div><button class="icon-btn" title="'+window.t("sc_sent_listen")+'">🔊</button>';
     d.querySelector("button").addEventListener("click",()=>{speak(s.de);});
     frag.appendChild(d);
   });
@@ -3073,7 +3118,7 @@ function renderSentences(more){
   if(list.length>sentPageLimit){
     const b=document.createElement("button");
     b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
-    b.textContent="عرض المزيد ("+(list.length-sentPageLimit)+" ⬇)";
+    b.textContent=window.t("sc_sent_more")+(list.length-sentPageLimit)+" ⬇)";
     b.addEventListener("click",()=>{sentPageLimit+=SENT_PAGE;try{renderSentences(true);}catch(e){console.error(e);}});
     box.appendChild(b);
   }
@@ -3113,15 +3158,17 @@ function renderVerbs(more){
     if(!q)return{score:0,v:v};
     const inf=typeof dmNorm==="function"?dmNorm(v.inf):v.inf.toLowerCase();
     const ar=(v.ar||"").toLowerCase();
+    const ven=((v.en||"")+"").toLowerCase();
     let score=-1;
     if(inf===q)score=0;
     else if(inf.indexOf(q)===0)score=10;
     else if(inf.indexOf(q)>0)score=30+inf.indexOf(q);
     else if(ar.indexOf(raw.trim().toLowerCase())>=0)score=40;
+    else if(ven&&ven.indexOf(raw.trim().toLowerCase())>=0)score=41;
     return{score:score,v:v};
   }).filter(x=>!q||x.score>=0).sort((a,b)=>a.score-b.score).map(x=>x.v);
   const list=scored;
-  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد أفعال هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("verbs");}catch(e){}return;}
+  if(!list.length){box.innerHTML='<div class="panel glass">'+window.t("sc_empty_verbs")+'</div>';try{if(typeof dmStampRev==="function")dmStampRev("verbs");}catch(e){}return;}
   /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
   const vfrag=document.createDocumentFragment();
   list.slice(0,verbPageLimit).forEach(v=>{
@@ -3131,10 +3178,10 @@ function renderVerbs(more){
       const rows=["ich","du","er","wir","ihr","sie"].map(k2=>'<tr><td>'+k2+'</td><td>'+escapeHtml(v.conj[k2])+'</td></tr>').join("");
       body='<table class="conj-table">'+rows+'</table>';
     }else{
-      body='<div class="word-ex"><div class="ex-de">📌 تعبير: '+escapeHtml(v.inf)+'</div><div>يُستخدم كتعبير ثابت — استمع له 🔊</div></div>';
+      body='<div class="word-ex"><div class="ex-de">'+window.t("sc_vb_expr")+escapeHtml(v.inf)+'</div><div>'+window.t("sc_vb_fixed")+'</div></div>';
     }
     d.innerHTML='<div class="word-top"><span class="verb-de">'+escapeHtml(v.inf)+'</span><button class="mini-btn">🔊</button></div>'+
-    '<div class="word-ar">'+escapeHtml(v.ar)+'</div><div class="word-pron">النطق: '+escapeHtml(v.pron)+'</div>'+
+    '<div class="word-ar">'+escapeHtml(wordMeaning(v))+'</div><div class="word-pron">'+window.t("sc_pron")+escapeHtml(v.pron)+'</div>'+
     '<div class="word-meta"><span class="tag kap-tag">'+kapName(v.kap)+'</span></div>'+body;
     d.querySelector("button").addEventListener("click",()=>speak(v.inf));
     vfrag.appendChild(d);
@@ -3143,7 +3190,7 @@ function renderVerbs(more){
   if(list.length>verbPageLimit){
     const b=document.createElement("button");
     b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
-    b.textContent="عرض المزيد ("+(list.length-verbPageLimit)+" ⬇)";
+    b.textContent=window.t("sc_sent_more")+(list.length-verbPageLimit)+" ⬇)";
     b.addEventListener("click",()=>{verbPageLimit+=VERB_PAGE;try{renderVerbs(true);}catch(e){console.error(e);}});
     box.appendChild(b);
   }
@@ -3168,14 +3215,14 @@ function renderGrammar(more){
   const box=$("grammarList");box.innerHTML="";
   const k=$("grammarKapitel")?$("grammarKapitel").value:"";
   const list=GRAMMAR.filter(g=>!k||g.kap===k);
-  if(!list.length){box.innerHTML='<div class="panel glass">لا توجد قواعد هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("grammar");}catch(e){}return;}
+  if(!list.length){box.innerHTML='<div class="panel glass">'+window.t("sc_empty_gram")+'</div>';try{if(typeof dmStampRev==="function")dmStampRev("grammar");}catch(e){}return;}
   const gfrag=document.createDocumentFragment();
   list.slice(0,gramPageLimit).forEach((g,gi)=>{
     const d=document.createElement("div");d.className="grammar-card glass";
     const ex=g.ex.map(e=>'<div class="grammar-ex"><div style="direction:ltr;text-align:left;font-weight:800">'+escapeHtml(e[0])+'</div><div style="color:var(--gold)">'+escapeHtml(e[1])+'</div></div>').join("");
     d.innerHTML='<h3>📐 '+escapeHtml(g.title)+'</h3><div style="margin-bottom:8px"><span class="tag kap-tag">'+kapName(g.kap)+'</span>'+(function(){try{const m=gramMastery(g.id);return m?'<span class="tag">'+m.badge+' إتقان '+m.pct+'% ('+m.ok+'/'+m.n+')</span>':'<span class="tag">⚪ لم تُختبر بعد</span>';}catch(e){return "";}})()+'</div><div class="grammar-body">'+escapeHtml(g.body)+'</div>'+ex+
-    '<div class="row-flex" style="margin:10px 0"><button class="btn btn-primary sm" data-explain="'+g.id+'">📖 شرح القاعدة</button></div>'+
-    '<div class="grammar-quiz"><b>❓ اختبار سريع:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" style="margin:8px 0">'+g.quiz.opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
+    '<div class="row-flex" style="margin:10px 0"><button class="btn btn-primary sm" data-explain="'+g.id+'">'+window.t("sc_gr_explain")+'</button></div>'+
+    '<div class="grammar-quiz"><b>'+window.t("sc_gr_quiz")+'</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" style="margin:8px 0">'+g.quiz.opts.map((o,i)=>'<button class="quiz-opt" data-i="'+i+'">'+escapeHtml(o)+'</button>').join("")+'</div><div class="quiz-feedback hidden"></div></div>';
     d.querySelector("[data-explain]").addEventListener("click",()=>openExplain(g.id));
     // Shuffle display order per render (Fisher-Yates over indices) so correct position is not fixed
     const gOrder=shuffle(g.quiz.opts.map((_,ix)=>ix));
@@ -3188,8 +3235,8 @@ function renderGrammar(more){
       const fb=d.querySelector(".quiz-feedback");fb.classList.remove("hidden");
       d.querySelectorAll(".quiz-opt").forEach(x=>x.disabled=true);
       const isCorrect=r.origIx===g.quiz.correct;
-      if(isCorrect){r.el.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;S.totalCorrect++;markStudyDay();gramRecord(g.id,true);}
-      else{r.el.classList.add("wrong");d.querySelectorAll(".quiz-opt")[gOrder.indexOf(g.quiz.correct)].classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;gramRecord(g.id,false);}
+      if(isCorrect){r.el.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent=window.t("sc_fb_ok")+g.quiz.explain;S.totalCorrect++;markStudyDay();gramRecord(g.id,true);}
+      else{r.el.classList.add("wrong");d.querySelectorAll(".quiz-opt")[gOrder.indexOf(g.quiz.correct)].classList.add("correct");fb.className="quiz-feedback no";fb.textContent=window.t("sc_fb_no")+g.quiz.explain;gramRecord(g.id,false);}
       S.totalAnswered++;save();renderDashboard();renderStats();
     }));
     gfrag.appendChild(d);
@@ -3198,7 +3245,7 @@ function renderGrammar(more){
   if(list.length>gramPageLimit){
     const b=document.createElement("button");
     b.className="btn btn-ghost";b.style.display="block";b.style.margin="12px auto";
-    b.textContent="عرض المزيد ("+(list.length-gramPageLimit)+" ⬇)";
+    b.textContent=window.t("sc_sent_more")+(list.length-gramPageLimit)+" ⬇)";
     b.addEventListener("click",()=>{gramPageLimit+=GRAM_PAGE;try{renderGrammar(true);}catch(e){console.error(e);}});
     box.appendChild(b);
   }
@@ -3222,9 +3269,9 @@ function renderExplainIndex(){
   const k=$("explainKapitel")?$("explainKapitel").value:"";
   const order=explainOrder();
   const list=order.map(id=>GRAMMAR.find(g=>g.id===id)).filter(g=>g&&(!k||g.kap===k));
-  $("explainCount").textContent="A1 • "+list.length+" قاعدة";
-  if(!list.length){idx.innerHTML='<div class="panel glass">لا توجد شروحات هنا بعد.</div>';try{if(typeof dmStampRev==="function")dmStampRev("explain");}catch(e){}return;}
-  let h='<div class="panel glass ex-toc"><h3>📖 فهرس شرح A1 — من الأسهل إلى الأصعب</h3><div class="muted">اضغط أي قاعدة لفتح شرحها المفصل 👇</div><div class="ex-toc-list">';
+  $("explainCount").textContent="A1 • "+list.length+" "+window.t("sc_ex_count");
+  if(!list.length){idx.innerHTML='<div class="panel glass">'+window.t("sc_empty_explain")+'</div>';try{if(typeof dmStampRev==="function")dmStampRev("explain");}catch(e){}return;}
+  let h='<div class="panel glass ex-toc"><h3>'+window.t("sc_exh_toc")+'</h3><div class="muted">'+window.t("sc_exh_toc_sub")+'</div><div class="ex-toc-list">';
   list.forEach((g,i)=>{
     h+='<button class="ex-toc-item" data-ex="'+g.id+'"><span class="ex-num">'+(i+1)+'</span><span class="ex-t">'+escapeHtml(g.title)+'</span><span class="tag kap-tag">'+escapeHtml(g.kap||"")+'</span><span>←</span></button>';
   });
@@ -3234,7 +3281,7 @@ function renderExplainIndex(){
   try{if(typeof dmStampRev==="function")dmStampRev("explain");}catch(e){}
 }
 function exBlock(title,inner){return '<div class="ex-block glass"><h4>'+title+'</h4>'+inner+'</div>';}
-function exOne(e){return '<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+' <button class="mini-btn" data-spk="'+escapeHtml(e[0])+'" title="استمع 🔊">🔊</button></div><div class="ex-ar">'+escapeHtml(e[1])+'</div>'+(e[2]?'<div class="ex-pron">🗣️ نطق تقريبي: '+escapeHtml(e[2])+' <span class="muted">(تقريبي فقط — اعتمد على الصوت 🔊)</span></div>':"")+'</div>';}
+function exOne(e){return '<div class="ex-de"><div class="ex-de-l">'+escapeHtml(e[0])+' <button class="mini-btn" data-spk="'+escapeHtml(e[0])+'" title="'+window.t("sc_sent_listen")+'">🔊</button></div><div class="ex-ar">'+escapeHtml(e[1])+'</div>'+(e[2]?'<div class="ex-pron">🗣️ نطق تقريبي: '+escapeHtml(e[2])+' <span class="muted">(تقريبي فقط — اعتمد على الصوت 🔊)</span></div>':"")+'</div>';}
 function exTable(t){return '<div class="ex-block glass"><h4>📊 '+escapeHtml(t.cap)+'</h4><div class="tbl-wrap"><table class="ex-table"><tr>'+t.head.map(h=>'<th>'+escapeHtml(h)+'</th>').join("")+'</tr>'+t.rows.map(r=>'<tr>'+r.map(c=>'<td>'+escapeHtml(c)+'</td>').join("")+'</tr>').join("")+'</table></div></div>';}
 function openExplain(id){
   const g=GRAMMAR.find(x=>x.id===id);if(!g)return;
@@ -3247,36 +3294,36 @@ function openExplain(id){
   idx.classList.add("hidden");det.classList.remove("hidden");
   showPage("explain");
   const LV=(E&&E.level)||"A1";
-  let h='<div class="ex-nav"><button class="btn btn-ghost sm" id="exBack">📖 الفهرس</button><span class="tag kap-tag">'+kapName(g.kap)+'</span><span class="tag">مستوى '+LV+'</span></div>';
+  let h='<div class="ex-nav"><button class="btn btn-ghost sm" id="exBack">'+window.t("sc_exh_index")+'</button><span class="tag kap-tag">'+kapName(g.kap)+'</span><span class="tag">'+window.t("sc_level_tag")+' '+LV+'</span></div>';
   h+='<div class="panel glass ex-hero"><h2>📚 '+escapeHtml(g.title)+'</h2><div class="ex-short">'+escapeHtml(g.body)+'</div></div>';
   if(E){
-    if(E.goals&&E.goals.length)h+=exBlock("🎯 ماذا سأتعلم؟",'<ul class="ex-ul">'+E.goals.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul><div class="row-flex"><button class="btn btn-ghost sm" id="exSimple">❓ مش فاهم — اشرح أبسط</button></div><div id="exSimpleBox"></div>');
-    h+='<details class="ex-lvl glass" open><summary>🟢 المستوى 1: الأساسيات</summary>'+
-    exBlock("1️⃣ ما هي القاعدة؟",'<p>'+escapeHtml(E.what)+'</p>')+
-    exBlock("2️⃣ لماذا نستخدمها؟",'<p>'+escapeHtml(E.why)+'</p>')+
-    exBlock("5️⃣ أمثلة بسيطة",E.examples.map(exOne).join(""))+'</details>';
-    h+='<details class="ex-lvl glass"><summary>🟡 المستوى 2: التعمق</summary>'+
-    exBlock("3️⃣ متى نستخدمها؟",'<ul class="ex-ul">'+E.when.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
-    exBlock("4️⃣ كيف نستخدمها؟",'<ol class="ex-ul">'+E.how.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ol>')+
+    if(E.goals&&E.goals.length)h+=exBlock(window.t("sc_exh_goals"),'<ul class="ex-ul">'+E.goals.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul><div class="row-flex"><button class="btn btn-ghost sm" id="exSimple">❓ مش فاهم — اشرح أبسط</button></div><div id="exSimpleBox"></div>');
+    h+='<details class="ex-lvl glass" open><summary>'+window.t("sc_exh_l1")+'</summary>'+
+    exBlock(window.t("sc_exh_what"),'<p>'+escapeHtml(E.what)+'</p>')+
+    exBlock(window.t("sc_exh_why"),'<p>'+escapeHtml(E.why)+'</p>')+
+    exBlock(window.t("sc_exh_ex"),E.examples.map(exOne).join(""))+'</details>';
+    h+='<details class="ex-lvl glass"><summary>'+window.t("sc_exh_l2")+'</summary>'+
+    exBlock(window.t("sc_exh_when"),'<ul class="ex-ul">'+E.when.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
+    exBlock(window.t("sc_exh_how"),'<ol class="ex-ul">'+E.how.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ol>')+
     (E.tables&&E.tables.length?E.tables.map(exTable).join(""):"")+
-    exBlock("6️⃣ أمثلة من الحياة اليومية",E.daily.map(exOne).join(""))+
-    exBlock("9️⃣ مقارنة سريعة",'<p>'+escapeHtml(E.compare)+'</p>')+'</details>';
-    h+='<details class="ex-lvl glass"><summary>🔴 المستوى 3: الأخطاء والمراجعة</summary>'+
-    exBlock("7️⃣ ملاحظات مهمة ⭐",'<ul class="ex-ul">'+E.notes.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
-    exBlock("8️⃣ الأخطاء الشائعة",E.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ خطأ: '+escapeHtml(m.w)+'</div><div class="ex-right">✅ الصحيح: '+escapeHtml(m.r)+'</div><div class="muted">لماذا؟ '+escapeHtml(m.why)+'</div></div>').join(""))+
-    exBlock("🔟 خلاصة القاعدة",'<div class="ex-sum">'+escapeHtml(E.summary)+'</div>')+'</details>';
+    exBlock(window.t("sc_exh_daily"),E.daily.map(exOne).join(""))+
+    exBlock(window.t("sc_exh_cmp"),'<p>'+escapeHtml(E.compare)+'</p>')+'</details>';
+    h+='<details class="ex-lvl glass"><summary>'+window.t("sc_exh_l3")+'</summary>'+
+    exBlock(window.t("sc_exh_notes"),'<ul class="ex-ul">'+E.notes.map(w=>'<li>'+escapeHtml(w)+'</li>').join("")+'</ul>')+
+    exBlock(window.t("sc_exh_mist"),E.mistakes.map(m=>'<div class="ex-mist"><div class="ex-wrong">❌ خطأ: '+escapeHtml(m.w)+'</div><div class="ex-right">✅ الصحيح: '+escapeHtml(m.r)+'</div><div class="muted">'+window.t("sc_why_q")+escapeHtml(m.why)+'</div></div>').join(""))+
+    exBlock(window.t("sc_exh_sum"),'<div class="ex-sum">'+escapeHtml(E.summary)+'</div>')+'</details>';
     if(E.drill&&E.drill.length){
-      h+='<div class="panel glass"><b>✍️ تدريب سريع:</b> '+escapeHtml(E.drill[0].t)+'<div class="quiz-opts" id="exDrillOpts" style="margin:8px 0">'+dmQuizOrder(E.drill[0].opts.length).map((o)=>'<button class="quiz-opt" data-i="'+o+'">'+escapeHtml(E.drill[0].opts[o])+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exDrillFb"></div></div>';
+      h+='<div class="panel glass"><b>'+window.t("sc_exh_drill")+'</b> '+escapeHtml(E.drill[0].t)+'<div class="quiz-opts" id="exDrillOpts" style="margin:8px 0">'+dmQuizOrder(E.drill[0].opts.length).map((o)=>'<button class="quiz-opt" data-i="'+o+'">'+escapeHtml(E.drill[0].opts[o])+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exDrillFb"></div></div>';
     }
   }else{
-    h+=exBlock("الشرح المختصر",'<p>'+escapeHtml(g.body)+'</p>');
+    h+=exBlock(window.t("sc_exh_short"),'<p>'+escapeHtml(g.body)+'</p>');
   }
-  const q=g.quiz?'<div class="panel glass"><b>❓ اختبار قصير:</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" id="exQuizOpts" style="margin:8px 0">'+dmQuizOrder(g.quiz.opts.length).map((o)=>'<button class="quiz-opt" data-i="'+o+'">'+escapeHtml(g.quiz.opts[o])+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exQuizFb"></div></div>':'';
+  const q=g.quiz?'<div class="panel glass"><b>'+window.t("sc_exh_quiz")+'</b> '+escapeHtml(g.quiz.q)+'<div class="quiz-opts" id="exQuizOpts" style="margin:8px 0">'+dmQuizOrder(g.quiz.opts.length).map((o)=>'<button class="quiz-opt" data-i="'+o+'">'+escapeHtml(g.quiz.opts[o])+'</button>').join("")+'</div><div class="quiz-feedback hidden" id="exQuizFb"></div></div>':'';
   h+=q;
   if(E&&E.review){
-    h+='<div class="panel glass"><b>📌 ماذا تعلمت؟ Was habe ich gelernt?</b><ul class="ex-ul"><li>القاعدة: '+escapeHtml(E.review.rule)+'</li><li>كلمات مهمة: '+escapeHtml(E.review.words)+'</li><li>أهم مثال: '+escapeHtml(E.review.example)+'</li><li>خطأ تجنبه: '+escapeHtml(E.review.mistake)+'</li><li>سؤال سريع: '+escapeHtml(E.review.q)+'</li></ul><div class="row-flex"><button class="btn btn-gold sm" id="exReviewLater">🔁 راجع الدرس لاحقًا</button></div></div>';
+    h+='<div class="panel glass"><b>'+window.t("sc_exh_learned")+'</b><ul class="ex-ul"><li>'+window.t("sc_exh_rule")+escapeHtml(E.review.rule)+'</li><li>'+window.t("sc_exh_words")+escapeHtml(E.review.words)+'</li><li>'+window.t("sc_exh_ex")+escapeHtml(E.review.example)+'</li><li>'+window.t("sc_exh_avoid")+escapeHtml(E.review.mistake)+'</li><li>'+window.t("sc_exh_q")+escapeHtml(E.review.q)+'</li></ul><div class="row-flex"><button class="btn btn-gold sm" id="exReviewLater">'+window.t("sc_exh_later")+'</button></div></div>';
   }
-  h+='<div class="ex-nav bottom"><button class="btn btn-ghost sm" id="exPrev" '+(gPrev?'':'disabled')+'>→ '+(gPrev?escapeHtml(gPrev.title):'لا يوجد')+'</button><button class="btn btn-gold sm" id="exIdx">📖 الفهرس</button><button class="btn btn-ghost sm" id="exNext" '+(gNext?'':'disabled')+'>'+(gNext?escapeHtml(gNext.title):'لا يوجد')+' ←</button></div>';
+  h+='<div class="ex-nav bottom"><button class="btn btn-ghost sm" id="exPrev" '+(gPrev?'':'disabled')+'>→ '+(gPrev?escapeHtml(gPrev.title):window.t("sc_exh_none"))+'</button><button class="btn btn-gold sm" id="exIdx">'+window.t("sc_exh_index")+'</button><button class="btn btn-ghost sm" id="exNext" '+(gNext?'':'disabled')+'>'+(gNext?escapeHtml(gNext.title):window.t("sc_exh_none"))+' ←</button></div>';
   det.innerHTML=h;
   window.scrollTo({top:0,behavior:"smooth"});
   const goIdx=()=>renderExplainIndex();
@@ -3290,15 +3337,15 @@ function openExplain(id){
       if(E&&E.relWords)E.relWords.forEach(function(dw){const w=allWords().find(x=>x.de===dw);if(w)setStatus(w.id,"review");});
       save();markStudyDay();
     }catch(e){}
-    toast("أُضيف الدرس للمراجعة 🔁","ok");showPage("review");
+    toast(window.t("sc_exh_added"),"ok");showPage("review");
   });
   if($("exSimple"))$("exSimple").addEventListener("click",()=>{
     const bx=$("exSimpleBox");if(!bx)return;
     const n=parseInt(bx.dataset.n||"0",10)+1;bx.dataset.n=n;
     const ex0=(E.examples&&E.examples[0])||["",""];
     const m0=(E.mistakes&&E.mistakes[0])||{r:"",why:""};
-    if(n===1){bx.innerHTML='<div class="ex-sum">ببساطة، فكر فيها كده: '+escapeHtml(E.summary)+'<br>مثال: '+escapeHtml(ex0[0])+' = '+escapeHtml(ex0[1])+'</div>';}
-    else{bx.innerHTML='<div class="ex-sum" style="font-size:18px">كأنك تتعلم أول مرة 🌱<br>'+escapeHtml(E.summary)+'<br>✅ احفظ هذه فقط: '+escapeHtml(m0.r||ex0[0])+(m0.why?'<br>ليه؟ '+escapeHtml(m0.why):"")+'</div>';bx.dataset.n=0;}
+    if(n===1){bx.innerHTML='<div class="ex-sum">'+window.t("sc_exh_simple")+escapeHtml(E.summary)+'<br>مثال: '+escapeHtml(ex0[0])+' = '+escapeHtml(ex0[1])+'</div>';}
+    else{bx.innerHTML='<div class="ex-sum" style="font-size:18px">'+window.t("sc_exh_first")+'<br>'+escapeHtml(E.summary)+'<br>'+window.t("sc_exh_keep")+escapeHtml(m0.r||ex0[0])+(m0.why?'<br>'+window.t("sc_exh_whyq")+escapeHtml(m0.why):"")+'</div>';bx.dataset.n=0;}
     bx.scrollIntoView({behavior:"smooth",block:"nearest"});
   });
   if(E&&E.drill&&E.drill.length){
@@ -3307,8 +3354,8 @@ function openExplain(id){
       const i=parseInt(btn.getAttribute("data-i"),10);
       const fb=$("exDrillFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exDrillOpts .quiz-opt").forEach(x=>x.disabled=true);
-      if(i===dr.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+dr.why;gramRecord(g.id,true);}
-      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exDrillOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===dr.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ الصحيح: "+dr.opts[dr.correct]+" — لماذا؟ "+dr.why;gramRecord(g.id,false);}
+      if(i===dr.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent=window.t("sc_fb_ok")+dr.why;gramRecord(g.id,true);}
+      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exDrillOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===dr.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent=window.t("sc_fb_no")+" "+window.t("sc_quiz_right")+" "+dr.opts[dr.correct]+" — "+window.t("sc_why_q")+dr.why;gramRecord(g.id,false);}
     }));
   }
   if(g.quiz){
@@ -3316,8 +3363,8 @@ function openExplain(id){
       const i=parseInt(btn.getAttribute("data-i"),10);
       const fb=$("exQuizFb");fb.classList.remove("hidden");
       det.querySelectorAll("#exQuizOpts .quiz-opt").forEach(x=>x.disabled=true);
-      if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent="صحيح ✅ "+g.quiz.explain;try{if(typeof completeLesson==="function")completeLesson(g.id);}catch(e){}gramRecord(g.id,true);}
-      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exQuizOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===g.quiz.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent="خطأ ❌ "+g.quiz.explain;try{if(S){S.gweak=S.gweak||{};S.gweak[g.id]=(S.gweak[g.id]||0)+1;save();}}catch(e){}gramRecord(g.id,false);}
+      if(i===g.quiz.correct){btn.classList.add("correct");fb.className="quiz-feedback ok";fb.textContent=window.t("sc_fb_ok")+g.quiz.explain;try{if(typeof completeLesson==="function")completeLesson(g.id);}catch(e){}gramRecord(g.id,true);}
+      else{btn.classList.add("wrong");const cb=Array.from(det.querySelectorAll("#exQuizOpts .quiz-opt")).find(x=>parseInt(x.getAttribute("data-i"),10)===g.quiz.correct);if(cb)cb.classList.add("correct");fb.className="quiz-feedback no";fb.textContent=window.t("sc_fb_no")+g.quiz.explain;try{if(S){S.gweak=S.gweak||{};S.gweak[g.id]=(S.gweak[g.id]||0)+1;save();}}catch(e){}gramRecord(g.id,false);}
     }));
   }
 }
@@ -3368,7 +3415,10 @@ function randOpts(words,correct,fn){
    صيغة السؤال: {kind, w, prompt, opts?, correctText?, writeAnswer?, listen?, replay?, parts?, correct?, explain}
    ============================================================ */
 const LVL_NAMES=["مبتدئ","متعلم","مجتهد","متقدم","محترف","خبير","أسطورة"];
-function levelFor(xp){const lvl=Math.floor(Math.sqrt((xp||0)/100))+1;const base=100*(lvl-1)*(lvl-1);const need=100*lvl*lvl-base;return{lvl:lvl,cur:(xp||0)-base,need:need,name:LVL_NAMES[Math.min(lvl-1,LVL_NAMES.length-1)]};}
+const LVL_NAMES_EN=["Beginner","Learner","Hard worker","Advanced","Pro","Expert","Legend"];
+const LVL_NAMES_DE=["Anfänger","Lerner","Fleißig","Fortgeschritten","Profi","Experte","Legende"];
+function lvlNames(){try{if(typeof uilang==="function"){if(uilang()==="en")return LVL_NAMES_EN;if(uilang()==="de")return LVL_NAMES_DE;}}catch(e){}return LVL_NAMES;}
+function levelFor(xp){const lvl=Math.floor(Math.sqrt((xp||0)/100))+1;const base=100*(lvl-1)*(lvl-1);const need=100*lvl*lvl-base;return{lvl:lvl,cur:(xp||0)-base,need:need,name:lvlNames()[Math.min(lvl-1,lvlNames().length-1)]};}
 function addXP(n){S.xp=(S.xp||0)+n;save();return n;}
 function recordMistake(w,picked,kind,extra){
   if(!w||!w.id)return;
@@ -3479,14 +3529,14 @@ function pickWeighted(words,n){
    ملاحظة fairness: أسئلة article تُخلط خياراتها (Fisher-Yates) عند التوليد
    حتى لا يكون موضع الإجابة الصحيحة ثابتًا (der=0/die=1/das=2). */
 function shuffledArticleOpts(correctArt){const base=shuffle(["der","die","das"]);return{opts:base,correct:base.indexOf(correctArt)};}
-function genArticle(w,words){const s=shuffledArticleOpts(w.art);return{kind:"article",w:w,prompt:"ما الأداة الصحيحة؟  —  "+w.de,opts:s.opts,correct:s.correct,explain:w.art+" "+w.de+" = "+w.ar+". احفظ الأداة مع الكلمة!"};}
-function genMeaning(w,words){return{kind:"de-ar",w:w,prompt:"اختر المعنى الصحيح:  "+fullDe(w),opts:randOpts(words,w,x=>x.ar),correctText:w.ar,explain:fullDe(w)+" = "+w.ar+" — النطق: "+w.pron};}
-function genTranslate(w,words){return{kind:"ar-de",w:w,prompt:"اختر الكلمة الألمانية الصحيحة:  "+w.ar,opts:randOpts(words,w,x=>fullDe(x)),correctText:fullDe(w),explain:fullDe(w)+" = "+w.ar+" — "+w.ex};}
-function genPlural(w,words){const c=pluralFull(w);return{kind:"plural",w:w,prompt:"ما جمع الكلمة؟  —  "+fullDe(w),opts:pluralDistractors(w),correctText:c,explain:"الجمع: "+c+" ("+w.ar+")"};}
-function genWrite(w,words){return{kind:"write",w:w,prompt:"اكتب الأداة الصحيحة:  ___ "+w.de,writeAnswer:w.art,explain:"الإجابة: "+w.art+" "+w.de+" = "+w.ar};}
-function genListening(w,words){const f=fullDe(w);return{kind:"listening",w:w,prompt:"🎧 استمع واختر الكلمة التي سمعتها",opts:randOpts(words,w,x=>fullDe(x)),correctText:f,listen:f,explain:"سمعت: "+f+" = "+w.ar};}
-function genSentence(w,words){const blank=w.ex.replace(w.de,"_____").replace(w.de.toLowerCase(),"_____");return{kind:"sentence",w:w,prompt:"أكمل الجملة: "+blank+" ("+w.exAr+")",opts:randOpts(words,w,x=>x.de),correctText:w.de,explain:"الإجابة: "+w.de+" — "+w.ex};}
-function genOrder(w,words){const parts=w.ex.replace(/[.?!,]/g,"").split(" ").filter(Boolean);return{kind:"order",w:w,prompt:"🔀 رتّب الكلمات لتكوين جملة صحيحة: ("+w.exAr+")",parts:shuffle(parts),correct:w.ex,explain:"الجملة الصحيحة: "+w.ex};}
+function genArticle(w,words){const s=shuffledArticleOpts(w.art);return{kind:"article",w:w,prompt:t("sc_q_article")+w.de,opts:s.opts,correct:s.correct,explain:w.art+" "+w.de+" = "+wordMeaning(w)+". "+t("sc_q_article_ex")};}
+function genMeaning(w,words){return{kind:"de-ar",w:w,prompt:t("sc_q_meaning")+fullDe(w),opts:randOpts(words,w,x=>wordMeaning(x)),correctText:wordMeaning(w),explain:fullDe(w)+" = "+wordMeaning(w)+" — "+t("sc_pron")+w.pron};}
+function genTranslate(w,words){return{kind:"ar-de",w:w,prompt:t("sc_q_translate")+wordMeaning(w),opts:randOpts(words,w,x=>fullDe(x)),correctText:fullDe(w),explain:fullDe(w)+" = "+wordMeaning(w)+" — "+w.ex};}
+function genPlural(w,words){const c=pluralFull(w);return{kind:"plural",w:w,prompt:t("sc_q_plural")+fullDe(w),opts:pluralDistractors(w),correctText:c,explain:t("sc_q_plural_ex")+c+" ("+wordMeaning(w)+")"};}
+function genWrite(w,words){return{kind:"write",w:w,prompt:t("sc_q_write")+w.de,writeAnswer:w.art,explain:t("sc_q_write_ex")+w.art+" "+w.de+" = "+wordMeaning(w)};}
+function genListening(w,words){const f=fullDe(w);return{kind:"listening",w:w,prompt:t("sc_q_listen"),opts:randOpts(words,w,x=>fullDe(x)),correctText:f,listen:f,explain:t("sc_q_listen_ex")+f+" = "+wordMeaning(w)};}
+function genSentence(w,words){const blank=w.ex.replace(w.de,"_____").replace(w.de.toLowerCase(),"_____");return{kind:"sentence",w:w,prompt:t("sc_q_sentence")+blank+" ("+wordExMeaning(w)+")",opts:randOpts(words,w,x=>x.de),correctText:w.de,explain:t("sc_q_write_ex")+w.de+" — "+w.ex};}
+function genOrder(w,words){const parts=w.ex.replace(/[.?!,]/g,"").split(" ").filter(Boolean);return{kind:"order",w:w,prompt:t("sc_q_order")+wordExMeaning(w)+")",parts:shuffle(parts),correct:w.ex,explain:t("sc_q_order_ex")+w.ex};}
 const MIXED_KINDS=["article","de-ar","ar-de","plural","write","listening","sentence","order"];
 function kindFits(t,w){
   if(t==="article"||t==="write")return w.art!=="-";
@@ -3507,6 +3557,7 @@ function makeQ(t,w,words){
   return genMeaning(w,words);
 }
 function buildQuestions(type,count,forcedWords){
+  try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   const words=allWords();
   const qs=[];
   if(type==="listenArticle"){
@@ -3514,9 +3565,9 @@ function buildQuestions(type,count,forcedWords){
     for(let i=0;i<count&&picks.length;i++){
       const w=picks[i%picks.length];
       const f=fullDe(w);
-      qs.push({kind:"listening",w:w,step:"word",prompt:"🎧 استمع للكلمة (١) — ما الكلمة التي سمعتها؟",opts:randOpts(words,w,x=>fullDe(x)),correctText:f,listen:f,explain:"سمعت: "+f+" = "+w.ar});
+      qs.push({kind:"listening",w:w,step:"word",prompt:t("sc_q_listen1"),opts:randOpts(words,w,x=>fullDe(x)),correctText:f,listen:f,explain:t("sc_q_listen_ex")+f+" = "+wordMeaning(w)});
       if(qs.length>=count)break;
-      if(w.art!=="-"){const sa=shuffledArticleOpts(w.art);qs.push({kind:"article",w:w,step:"article",replay:f,prompt:"🎧 (٢) ما أداة الكلمة التي سمعتها؟",opts:sa.opts,correct:sa.correct,explain:w.art+" "+w.de+" = "+w.ar});}
+      if(w.art!=="-"){const sa=shuffledArticleOpts(w.art);qs.push({kind:"article",w:w,step:"article",replay:f,prompt:t("sc_q_listen2"),opts:sa.opts,correct:sa.correct,explain:w.art+" "+w.de+" = "+wordMeaning(w)});}
       else qs.push(makeQ("de-ar",w,words));
     }
     return qs.slice(0,count);
@@ -3557,7 +3608,7 @@ $("startQuiz").addEventListener("click",()=>{
 function startQuizRun(type,qs){
   quizType=type;quizQs=qs;quizIdx=0;quizScore=0;quizCombo=0;quizXpEarned=0;quizResults=[];
   stopQTimer();
-  if(!qs.length){toast("لا توجد كلمات مناسبة لهذا الاختبار ⚠️","err");return;}
+  if(!qs.length){toast(window.t("sc_no_words_quiz"),"err");return;}
   $("quizSetup").classList.add("hidden");$("quizPlay").classList.remove("hidden");$("quizResult").classList.add("hidden");
   renderQ();markStudyDay();
 }
@@ -3575,7 +3626,7 @@ function renderQ(){
   $("quizWrite").classList.add("hidden");$("quizWriteInput").value="";
   if(q.listen||q.replay){
     const txt=q.listen||q.replay;
-    const b=document.createElement("button");b.className="btn btn-gold sm";b.textContent="🔊 استمع الآن";
+    const b=document.createElement("button");b.className="btn btn-gold sm";b.textContent=window.t("sc_listen_now");
     b.addEventListener("click",()=>speak(txt));
     $("quizListenBtn").appendChild(b);
     try{if(quizSpeakT){clearTimeout(quizSpeakT);quizSpeakT=null;}}catch(e){}
@@ -3599,7 +3650,7 @@ function renderQ(){
         renderAns();
       }));
     }
-    const check=document.createElement("button");check.className="btn btn-primary sm";check.textContent="تحقق ✅";
+    const check=document.createElement("button");check.className="btn btn-primary sm";check.textContent=window.t("sc_check");
     check.addEventListener("click",()=>answerOrder(picked.join(" ")));
     $("quizOrder").appendChild(pool);$("quizOrder").appendChild(ans);$("quizOrder").appendChild(check);
     startQTimer();
@@ -3623,7 +3674,7 @@ function renderQ(){
 function answerWrite(){
   const q=quizQs[quizIdx];
   const raw=$("quizWriteInput").value;
-  if(!normWrite(raw)){toast("اكتب الأداة أولًا ✍️","err");return;}
+  if(!normWrite(raw)){toast(window.t("sc_write_first"),"err");return;}
   const ok=normWrite(raw)===q.writeAnswer;
   $("quizWriteInput").disabled=true;$("quizWriteCheck").disabled=true;
   $("quizWriteInput").style.borderColor=ok?"var(--green)":"var(--red)";
@@ -3635,8 +3686,8 @@ function timeoutAnswer(){
   if(q.kind==="write"){$("quizWriteInput").disabled=true;$("quizWriteCheck").disabled=true;}
   Array.from($("quizOpts").children).forEach(b=>{b.disabled=true;});
   Array.from($("quizOrder").querySelectorAll("button")).forEach(b=>{b.disabled=true;});
-  toast("⏱️ انتهى الوقت!","err");
-  showFeedback(false,q,"(انتهى الوقت)");
+  toast(window.t("sc_time_up"),"err");
+  showFeedback(false,q,window.t("sc_time_up_q"));
 }
 $("quizWriteCheck").addEventListener("click",answerWrite);
 $("quizWriteInput").addEventListener("keydown",e=>{if(e.key==="Enter")answerWrite();});
@@ -3657,7 +3708,7 @@ function answerOrder(joined){
   const norm=s=>s.replace(/[.?!,]/g,"").trim().replace(/\s+/g," ").toLowerCase();
   const ok=norm(joined)===norm(q.correct.replace(/[.?!,]/g,""));
   showFeedback(ok,q);
-  if(ok){toast("ترتيب صحيح! 🎉","ok");}
+  if(ok){toast(window.t("sc_order_ok"),"ok");}
 }
 function showFeedback(ok,q,pickedText){
   stopQTimer();
@@ -3694,7 +3745,7 @@ function showFeedback(ok,q,pickedText){
       else recordMistake(q.w,pickedText||"",q.kind,{q:q.prompt,ok:right,kap:kapId});
     }
   }
-  fb.textContent=(ok?"صحيح ✅ +"+gained+" XP ⭐"+(quizCombo>=2?"  🔥x"+quizCombo:""):"خطأ ❌ ")+q.explain;
+  fb.textContent=(ok?t("sc_fb_ok")+"+"+gained+" XP ⭐"+(quizCombo>=2?"  🔥x"+quizCombo:""):t("sc_fb_no"))+q.explain;
   $("quizNext").disabled=false;
   S.totalAnswered++;save();
   $("quizScoreLive").textContent=quizScore+" ✅";
@@ -3707,7 +3758,7 @@ function bumpSilent(id,ok){
 }
 $("quizNext").addEventListener("click",()=>{stopQTimer();quizIdx++;if(quizIdx>=quizQs.length)finishQuiz();else renderQ();});
 $("quizQuit").addEventListener("click",()=>{stopQTimer();finishQuiz();});
-function quizTypeName(t){const m={mixed:"🎲 شامل",article:"🎯 الأدوات","de-ar":"📖 الكلمة → المعنى","ar-de":"🔄 عربي → ألماني",plural:"👥 الجمع",write:"✍️ كتابة الأداة",listening:"🎧 استماع",listenArticle:"🎧+🎯 استماع وأداة",sentence:"🧩 إكمال الجملة",order:"🔀 ترتيب الجملة",quick:"⚡ اختبار سريع",mistakes:"❌ أخطائي"};return m[t]||t;}
+function quizTypeName(x){try{var m={mixed:"qt_mixed",article:"qt_article","de-ar":"qt_dear","ar-de":"qt_arde",plural:"qt_plural",write:"qt_write",listening:"qt_listen",listenArticle:"qt_listenart",sentence:"qt_sentence",order:"qt_order",quick:"qt_quick",mistakes:"sc_qt_mist"};if(m[x]&&typeof window.t==="function"){var v=window.t(m[x]);if(v&&v!==m[x])return v;}}catch(e){}var f={mixed:"🎲 شامل",article:"🎯 الأدوات","de-ar":"📖 الكلمة → المعنى","ar-de":"🔄 عربي → ألماني",plural:"👥 الجمع",write:"✍️ كتابة الأداة",listening:"🎧 استماع",listenArticle:"🎧+🎯 استماع وأداة",sentence:"🧩 إكمال الجملة",order:"🔀 ترتيب الجملة",quick:"⚡ اختبار سريع",mistakes:"❌ أخطائي"};return f[x]||x;}
 function finishQuiz(){
   stopQTimer();
   $("quizPlay").classList.add("hidden");$("quizSetup").classList.remove("hidden");
@@ -3717,22 +3768,22 @@ function finishQuiz(){
   S.testsTaken=(S.testsTaken||0)+1;
   if(pct>(S.bestPct||0))S.bestPct=pct;
   S.lastQuiz={type:quizTypeName(quizType),score:score,total:total,pct:pct,xp:quizXpEarned,date:todayStr()};
-  S.quizHistory.unshift({type:quizTypeName(quizType),score:score,total:total,pct:pct,xp:quizXpEarned,date:todayStr()+" "+new Date().toLocaleTimeString("ar")});
+  S.quizHistory.unshift({type:quizTypeName(quizType),score:score,total:total,pct:pct,xp:quizXpEarned,date:todayStr()+" "+new Date().toLocaleTimeString(typeof uiLocale==="function"?uiLocale():"ar")});
   S.quizHistory=S.quizHistory.slice(0,20);
   save();
   const r=$("quizResult");r.classList.remove("hidden");
   const mist=quizResults.filter(x=>!x.ok&&x.q.w);
   const mistRows=mist.length?mist.map(x=>{
     const right=x.q.kind==="article"?x.q.opts[x.q.correct]:(x.q.correctText||x.q.writeAnswer||"");
-    return '<div class="mist-err">❌ <b>'+escapeHtml(fullDe(x.q.w))+'</b> — '+escapeHtml(x.q.w.ar)+'<br>إجابتك: <b>'+escapeHtml(x.picked||"—")+'</b> | الصحيحة: <b style="color:var(--green)">'+escapeHtml(right)+'</b></div>';
-  }).join(""):'<div class="muted">ممتاز — بلا أخطاء! 🎉</div>';
-  r.innerHTML='<h3>🎉 اختبار مكتمل — '+escapeHtml(quizTypeName(quizType))+'</h3>'+
+    return '<div class="mist-err">❌ <b>'+escapeHtml(fullDe(x.q.w))+'</b> — '+escapeHtml(wordMeaning(x.q.w))+'<br>'+t("sc_quiz_your")+' <b>'+escapeHtml(x.picked||"—")+'</b> | '+t("sc_quiz_right")+' <b style="color:var(--green)">'+escapeHtml(right)+'</b></div>';
+  }).join(""):'<div class="muted">'+t("sc_quiz_noerr")+'</div>';
+  r.innerHTML='<h3>'+t("sc_quiz_done")+escapeHtml(quizTypeName(quizType))+'</h3>'+
     '<div class="stat-num" style="font-size:44px">'+pct+'%</div>'+
     '<div class="progress" style="margin:10px 0"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
-    '<div class="row-flex" style="justify-content:center">✅ صحيحة: <b>'+score+'</b> &nbsp; ❌ خاطئة: <b>'+wrong+'</b> &nbsp; ⭐ XP: <b>+'+quizXpEarned+'</b> &nbsp; 🔥 أفضل Combo: <b>'+(S.maxCombo||0)+'</b></div>'+
-    '<p>'+(pct>=80?"ممتاز! 🎉":pct>=50?"جيد، واصل! 💪":"تحتاج مراجعة، لا تستسلم! 📚")+'</p>'+
-    '<h3>الكلمات التي أخطأت فيها ('+mist.length+')</h3>'+mistRows+
-    '<div class="row-flex"><button class="btn btn-primary sm" id="retryQuiz">🔄 إعادة الاختبار</button><button class="btn btn-red sm" id="goMistakes">❌ مراجعة الأخطاء</button><button class="btn btn-ghost sm" id="goHome">🏠 الرئيسية</button></div>';
+    '<div class="row-flex" style="justify-content:center">'+window.t("sc_q_correct_n")+' <b>'+score+'</b> &nbsp; '+window.t("sc_q_wrong_n")+' <b>'+wrong+'</b> &nbsp; '+window.t("sc_xp")+' <b>+'+quizXpEarned+'</b> &nbsp; '+window.t("sc_best_combo")+' <b>'+(S.maxCombo||0)+'</b></div>'+
+    '<p>'+(pct>=80?window.t("sc_res_excellent"):pct>=50?window.t("sc_res_good"):window.t("sc_res_review"))+'</p>'+
+    '<h3>'+window.t("sc_res_mistwords")+' ('+mist.length+')</h3>'+mistRows+
+    '<div class="row-flex"><button class="btn btn-primary sm" id="retryQuiz">'+window.t("sc_retry")+'</button><button class="btn btn-red sm" id="goMistakes">'+window.t("sc_go_mistakes")+'</button><button class="btn btn-ghost sm" id="goHome">'+window.t("sx_home")+'</button></div>';
   $("retryQuiz").addEventListener("click",()=>{r.classList.add("hidden");if(quizType==="mistakes")startMistakesQuiz();else $("startQuiz").click();});
   $("goMistakes").addEventListener("click",()=>{r.classList.add("hidden");showPage("mistakes");});
   $("goHome").addEventListener("click",()=>{r.classList.add("hidden");showPage("dashboard");});
@@ -3743,15 +3794,15 @@ function quickArticleQuiz(w){
   showPage("quiz");
   document.querySelectorAll(".quiz-type").forEach(x=>x.classList.toggle("active",x.getAttribute("data-type")==="article"));
   quizType="article";
-  if(w.art==="-"){toast("هذه الكلمة بدون أداة، اخترنا لك اختبارًا شاملًا","ok");quizType="mixed";}
+  if(w.art==="-"){toast(window.t("sc_no_art_mixed"),"ok");quizType="mixed";}
   const qs=buildQuestions(quizType,10);
-  if(w.art!=="-"&&qs.length){const sa=shuffledArticleOpts(w.art);qs[0]={kind:"article",w:w,prompt:"ما الأداة الصحيحة؟  —  "+w.de,opts:sa.opts,correct:sa.correct,explain:w.art+" "+w.de+" = "+w.ar};}
+  if(w.art!=="-"&&qs.length){const sa=shuffledArticleOpts(w.art);qs[0]={kind:"article",w:w,prompt:window.t("sc_q_article")+w.de,opts:sa.opts,correct:sa.correct,explain:w.art+" "+w.de+" = "+wordMeaning(w)};}
   showPage("quiz");
   startQuizRun(quizType,qs);
 }
 function renderQuizHistory(){
   const box=$("quizHistory");box.innerHTML="";
-  if(!S.quizHistory.length){box.innerHTML='<div class="muted">لم تحل أي اختبار بعد. ابدأ الآن! 🚀</div>';return;}
+  if(!S.quizHistory.length){box.innerHTML='<div class="muted">'+window.t("sc_empty_quizhist")+'</div>';return;}
   S.quizHistory.forEach(h=>{
     const d=document.createElement("div");d.className="history-item";
     d.innerHTML='<span>📝 '+escapeHtml(h.type)+' • '+escapeHtml(h.date)+'</span><b>'+h.score+'/'+h.total+' ('+h.pct+'%)'+(h.xp?" ⭐+"+h.xp:"")+'</b>';
@@ -3772,15 +3823,15 @@ function renderMistakes(){
 
   // Build mistake categories
   const categories={
-    all:"الكل",
-    article:"🎯 أدوات التعريف",
-    plural:"👥 الجمع",
-    verb:"⚡ الأفعال",
-    grammar:"📐 القواعد",
-    akkusativ:"📍 المفعول به",
-    wortstellung:"🔤 ترتيب الجملة",
-    listening:"🎧 الاستماع",
-    translation:"🔄 الترجمة"
+    all:window.t("sc_mc_all"),
+    article:window.t("sc_mc_article"),
+    plural:window.t("sc_mc_plural"),
+    verb:window.t("sc_mc_verb"),
+    grammar:window.t("sc_mc_grammar"),
+    akkusativ:window.t("sc_mc_akk"),
+    wortstellung:window.t("sc_mc_wordorder"),
+    listening:window.t("title_listen"),
+    translation:window.t("sc_mc_tr")
   };
 
   if($("mistCategory")&&!$("mistCategory").options.length){
@@ -3807,7 +3858,7 @@ function renderMistakes(){
   try{
     const perKap={};
     Object.keys(S.mistakes).forEach(id=>{const w=wordById(id);const k=w?w.kap||"?":"?";perKap[k]=(perKap[k]||0)+S.mistakes[id].n;});
-    const line=Object.keys(perKap).sort().map(k=>k+": "+perKap[k]+" أخطاء").join(" • ");
+    const line=Object.keys(perKap).sort().map(k=>k+": "+perKap[k]+" "+window.t("sc_wa_errs")).join(" • ");
     if(line)$("mistCount").textContent=ids.length+" ("+line+")";
   }catch(e){}
   $("mistCount").textContent=ids.length;
@@ -3815,11 +3866,11 @@ function renderMistakes(){
 
   const g=$("mistGrid");g.innerHTML="";
   if(!ids.length){
-    const emptyMsg=vf==="all"?'لا توجد أخطاء — استمر! 🎉<br><span class="muted">الكلمات التي تخطئ فيها أثناء الاختبارات ستظهر هنا.</span>':
-      vf==="weak"?'لا توجد أخطاء متكررة (3+ مرات) 🎉':
-      vf==="recent"?'لا توجد أخطاء حديثة (آخر ٧ أيام) 🎉':
-      vf==="fixed"?'لا توجد أخطاء مُصلحة بعد 🎉':
-      'لا توجد أخطاء مُتقنة بعد 🎉';
+    const emptyMsg=vf==="all"?window.t("sc_empty_mist_all")+"<br><span class=\"muted\">"+window.t("sc_empty_mist_all2")+"</span>":
+      vf==="weak"?window.t("sc_empty_mist_weak"):
+      vf==="recent"?window.t("sc_empty_mist_recent"):
+      vf==="fixed"?window.t("sc_empty_mist_fixed"):
+      window.t("sc_empty_mist_mastered");
     g.innerHTML='<div class="panel glass">'+emptyMsg+'</div>';
     return;
   }
@@ -3845,18 +3896,19 @@ function renderMistakes(){
       if(window.DMProgress){
         const sk=DMProgress.skillOfMistake(m,w);
         const info=DMProgress.SKILLS[sk];
-        skillHtml='<div class="muted">🏷️ '+escapeHtml(info.ar)+'</div>'+
-          '<div class="mist-why">💡 '+escapeHtml(info.why)+
-          (info.ex&&info.ex[0]?'<br>🇩🇪 '+escapeHtml(info.ex[0])+(info.ex[1]?" — "+escapeHtml(info.ex[1]):""):"")+'</div>';
+        const sti=(typeof DMProgress.skillText==="function")?DMProgress.skillText(sk):{name:info.ar,why:info.why,ex:info.ex};
+        skillHtml='<div class="muted">🏷️ '+escapeHtml(sti.name)+'</div>'+
+          '<div class="mist-why">💡 '+escapeHtml(sti.why)+
+          (sti.ex&&sti.ex[0]?'<br>🇩🇪 '+escapeHtml(sti.ex[0])+(sti.ex[1]?" — "+escapeHtml(sti.ex[1]):""):"")+'</div>';
       }
     }catch(e){}
     let histHtml="";
     try{
       if(Array.isArray(m.hist)&&m.hist.length){
-        histHtml='<div class="muted">🕘 المحاولات: '+m.hist.map(h=>(h.ok?"✅":"❌")).join(" ")+'</div>';
+        histHtml='<div class="muted">'+window.t("sc_mist_attempts")+' '+m.hist.map(h=>(h.ok?"✅":"❌")).join(" ")+'</div>';
       }
     }catch(e){}
-    const masteryBadge=m.done?'<span class="badge" style="background:var(--green)">🏆 مُتقن</span>':
+    const masteryBadge=m.done?'<span class="badge" style="background:var(--green)">'+window.t("sc_mist_mastered_b")+'</span>':
       m.okn>=2?'<span class="badge" style="background:var(--gold)">⭐ '+m.okn+'/3</span>':
       m.n>=3?'<span class="badge" style="background:var(--red)">🔴 '+m.n+'x</span>':
       '<span class="badge" style="background:var(--orange)">⚠️ '+m.n+'x</span>';
@@ -3864,12 +3916,12 @@ function renderMistakes(){
     const d=document.createElement("div");d.className="mist-card glass";
     d.innerHTML='<div class="de-line" dir="ltr"><b>'+escapeHtml(m.de||(w?fullDe(w):id))+'</b> '+masteryBadge+'</div>'+
       (w&&w.kap?'<div class="muted">📚 '+escapeHtml(w.kap)+'</div>':"")+skillHtml+
-      '<div class="word-ar">'+escapeHtml(m.ar||(w?w.ar:""))+'</div>'+
-      '<div class="mist-err">❌ خطأك: <b>'+escapeHtml(m.last||"—")+'</b> • تكرر <b>'+m.n+'</b> '+(m.n>1?"مرات":"مرة")+'</div>'+histHtml+
-      '<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">🎯 اختبرني</button><button class="mini-btn" data-a="review">🔁 مراجعة</button><button class="mini-btn" data-a="del">🗑️</button></div>';
+      '<div class="word-ar">'+escapeHtml((w&&typeof wordMeaning==="function")?wordMeaning(w):(m.ar||""))+'</div>'+
+      '<div class="mist-err">'+window.t("sc_mist_your")+' <b>'+escapeHtml(m.last||"—")+'</b> • <b>'+m.n+'</b>x '+window.t("sc_mist_rep")+'</div>'+histHtml+
+      '<div class="card-actions"><button class="mini-btn" data-a="speak">🔊</button><button class="mini-btn" data-a="test">'+window.t("sc_test_me")+'</button><button class="mini-btn" data-a="review">'+window.t("sc_card_review")+'</button><button class="mini-btn" data-a="del">🗑️</button></div>';
     d.querySelector('[data-a="speak"]').addEventListener("click",()=>{if(w)speak(fullDe(w));});
-    d.querySelector('[data-a="test"]').addEventListener("click",()=>{if(w)quickArticleQuiz(w);else if(/^m-(ausb|pfl)-/.test(id)){showPage("career");toast("راجع الوحدة وأعد اختبارها 🎯","ok");}else toast("الكلمة غير موجودة","err");});
-    d.querySelector('[data-a="review"]').addEventListener("click",()=>{if(w){setStatus(w.id,"review");markStudyDay();save();renderMistakes();toast("أُضيفت للمراجعة 🔁","ok");}});
+    d.querySelector('[data-a="test"]').addEventListener("click",()=>{if(w)quickArticleQuiz(w);else if(/^m-(ausb|pfl)-/.test(id)){showPage("career");toast(window.t("sc_career_retry"),"ok");}else toast(window.t("sc_word_missing"),"err");});
+    d.querySelector('[data-a="review"]').addEventListener("click",()=>{if(w){setStatus(w.id,"review");markStudyDay();save();renderMistakes();toast(window.t("sc_added_review"),"ok");}});
     d.querySelector('[data-a="del"]').addEventListener("click",()=>{removeMistake(id);renderMistakes();});
     g.appendChild(d);
   });
@@ -3878,12 +3930,12 @@ function startMistakesQuiz(){
   const ids=Object.keys(S.mistakes||{});
   const kf=$("mistKapitel")?$("mistKapitel").value:"";
   const words=ids.map(wordById).filter(w=>w&&(!kf||w.kap===kf));
-  if(!words.length){toast("لا توجد أخطاء للاختبار 🎉","ok");return;}
+  if(!words.length){toast(window.t("sc_no_mist_quiz"),"ok");return;}
   showPage("quiz");
   startQuizRun("mistakes",buildQuestions("mixed",Math.min(15,words.length),words));
 }
 $("startMistakes").addEventListener("click",startMistakesQuiz);
-$("clearMistakes").addEventListener("click",()=>{if(!confirm("مسح كل الأخطاء؟"))return;S.mistakes={};save();renderMistakes();toast("تم المسح 🗑️","ok");});
+$("clearMistakes").addEventListener("click",()=>{if(!confirm(window.t("sc_clear_mist_q")))return;S.mistakes={};save();renderMistakes();toast(window.t("sc_cleared"),"ok");});
 function renderStats(){
   /* Perf 104k bank: cached view (same elements/order). */
   const words=dmWords();
@@ -3891,12 +3943,12 @@ function renderStats(){
   words.forEach(w=>counts[getStatus(w.id)]++);
   const acc=S.totalAnswered?Math.round(S.totalCorrect/S.totalAnswered*100):0;
   const cards=[
-    ["📚",words.length,"إجمالي الكلمات"],["✅",counts.known,"محفوظة"],["🔴",counts.hard,"صعبة"],
-    ["📝",S.testsTaken||0,"اختبارات"],["🎯",acc+"%","نسبة النجاح"],["📅",Object.keys(S.studyDays).length,"أيام المذاكرة"],["🔥",(S.streak.longest||0),"أطول Streak"]
+    ["📚",words.length,window.t("sc_st_tot_words")],["✅",counts.known,window.t("sc_st_known")],["🔴",counts.hard,window.t("sc_st_hard")],
+    ["📝",S.testsTaken||0,window.t("sc_st_tests")],["🎯",acc+"%",window.t("sc_st_acc")],["📅",Object.keys(S.studyDays).length,window.t("sc_st_days")],["🔥",(S.streak.longest||0),window.t("sc_st_best")]
   ];
   $("statsGrid").innerHTML=cards.map(c=>'<div class="stat-card glass"><div class="stat-ico">'+c[0]+'</div><div class="stat-num">'+c[1]+'</div><div class="stat-label">'+c[2]+'</div></div>').join("");
   const colors={new:"#4DA3FF",review:"#D8B56A",hard:"#D3616E",known:"#2FA97C",later:"#77849B"};
-  $("statusBars").innerHTML=Object.keys(counts).map(k=>'<div class="stat-bar-row"><span class="lbl">'+STATUS_AR[k]+'</span><div class="bar"><div class="fill" style="width:'+(words.length?counts[k]/words.length*100:0)+'%;background:'+colors[k]+'"></div></div><b>'+counts[k]+'</b></div>').join("");
+  $("statusBars").innerHTML=Object.keys(counts).map(k=>'<div class="stat-bar-row"><span class="lbl">'+statusLang(k)+'</span><div class="bar"><div class="fill" style="width:'+(words.length?counts[k]/words.length*100:0)+'%;background:'+colors[k]+'"></div></div><b>'+counts[k]+'</b></div>').join("");
   const wrong=Math.max(0,(S.totalAnswered||0)-(S.totalCorrect||0));
   $("donut").style.background="conic-gradient(var(--green) "+acc+"%, rgba(255,255,255,.1) "+acc+"%)";
   $("donutTxt").textContent=acc+"%";
@@ -3907,7 +3959,7 @@ function renderStats(){
     const d=new Date();d.setDate(d.getDate()-i);
     const key=todayStr(d);const on=!!S.studyDays[key];
     const div=document.createElement("div");div.className="week-day";
-    div.innerHTML='<div class="week-bar" style="height:'+(on?100:12)+'px;opacity:'+(on?1:.3)+'"></div><span>'+daysAr[d.getDay()]+'</span>';
+    div.innerHTML='<div class="week-bar" style="height:'+(on?100:12)+'px;opacity:'+(on?1:.3)+'"></div><span>'+daysLang()[d.getDay()]+'</span>';
     wc.appendChild(div);
   }
   /* Weekly learning report (from the real event log; honest empty state). */
@@ -3916,35 +3968,35 @@ function renderStats(){
     if(window.DMProgress){
       const wsum=DMProgress.weeklySummary(S);
       const wp=document.createElement("div");wp.className="panel glass";wp.id="weekPanel";wp.style.marginTop="12px";
-      wp.innerHTML='<h3>📊 التقرير الأسبوعي</h3>'+(wsum.hasData?
-        '<div class="muted">آخر ٧ أيام: '+wsum.cur.ans+' محاولة ('+wsum.cur.pct+'٪) — الأسبوع السابق: '+wsum.prev.ans+' ('+wsum.prev.pct+'٪) — الفرق: '+(wsum.deltaAns>=0?"+":"")+wsum.deltaAns+' محاولة / '+(wsum.deltaPct>=0?"+":"")+wsum.deltaPct+'٪</div>'
+      wp.innerHTML='<h3>'+window.t("sc_week_title")+'</h3>'+(wsum.hasData?
+        '<div class="muted">'+window.t("sc_week_last")+wsum.cur.ans+" "+window.t("sc_week_tries")+" ("+wsum.cur.pct+"٪) — "+window.t("sc_week_prev")+wsum.prev.ans+" ("+wsum.prev.pct+"٪) — "+window.t("sc_week_diff")+(wsum.deltaAns>=0?"+":"")+wsum.deltaAns+" "+window.t("sc_week_try2")+(wsum.deltaPct>=0?"+":"")+wsum.deltaPct+"٪</div>"
         :'<div class="muted">لا بيانات كافية بعد — أجب على بعض الأسئلة وسيظهر تقريرك هنا. (قلة البيانات تُعرض كغياب بيانات وليست صفر نشاط.)</div>')
-        +'<div class="row-flex"><button class="btn btn-ghost sm" id="weekExport">⬇️ تنزيل التقرير (.txt)</button></div>';
+        +'<div class="row-flex"><button class="btn btn-ghost sm" id="weekExport">'+window.t("sc_week_export")+'</button></div>';
       const wrap=$("weekChart").closest(".panel");
       if(wrap&&wrap.parentNode)wrap.parentNode.insertBefore(wp,wrap.nextSibling);
       const xb=$("weekExport");
       if(xb)xb.addEventListener("click",()=>{
         try{
-          const lines=["تقرير Deutsch Master الأسبوعي — "+todayStr(),"",
-            "آخر ٧ أيام: "+wsum.cur.ans+" محاولة، "+wsum.cur.ok+" صحيحة ("+wsum.cur.pct+"٪)",
-            "الأسبوع السابق: "+wsum.prev.ans+" محاولة ("+wsum.prev.pct+"٪)",
-            "Streak: "+(S.streak.count||0)+" يوم (الأطول: "+(S.streak.longest||0)+")",
-            "أيام المذاكرة: "+Object.keys(S.studyDays||{}).length,
-            "كلمات محفوظة: "+dmWords().filter(w=>getStatus(w.id)==="known").length+"/"+dmWords().length];
+          const lines=[window.t("sc_exp_title")+todayStr(),"",
+            window.t("sc_week_last")+wsum.cur.ans+" "+window.t("sc_week_tries")+", "+wsum.cur.ok+" "+window.t("sc_week_ok")+" ("+wsum.cur.pct+"٪)",
+            window.t("sc_week_prev")+wsum.prev.ans+" "+window.t("sc_week_tries")+" ("+wsum.prev.pct+"٪)",
+            window.t("sc_exp_streak")+(S.streak.count||0)+" "+window.t("sc_exp_day_u")+(S.streak.longest||0)+")",
+            window.t("sc_exp_studydays")+Object.keys(S.studyDays||{}).length,
+            window.t("sc_exp_known")+dmWords().filter(w=>getStatus(w.id)==="known").length+"/"+dmWords().length];
           const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/plain;charset=utf-8"});
           const a=document.createElement("a");
           a.href=URL.createObjectURL(blob);a.download="dm-weekly-"+todayStr()+".txt";
           document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
-          toast("تم تنزيل التقرير ⬇️","ok");
-        }catch(e){toast("تعذّر التنزيل","err");}
+          toast(window.t("sc_exported"),"ok");
+        }catch(e){toast(window.t("sc_export_fail"),"err");}
       });
     }
   }catch(e){}
   try{if(typeof dmStampRev==="function")dmStampRev("stats");}catch(e){}
 }
 $("resetStats").addEventListener("click",()=>{
-  if(!confirm("تصفير الإحصائيات؟"))return;
-  S.totalCorrect=0;S.totalAnswered=0;S.testsTaken=0;S.quizHistory=[];S.review={};save();renderAll();toast("تم التصفير 🗑️","ok");
+  if(!confirm(window.t("sc_stats_reset_q")))return;
+  S.totalCorrect=0;S.totalAnswered=0;S.testsTaken=0;S.quizHistory=[];S.review={};save();renderAll();toast(window.t("sc_reset_done"),"ok");
 });
 
 /* ============ PLANNER ============ */
@@ -3953,13 +4005,13 @@ function renderPlanner(){
   const t=todayStr();
   const dw=S.planner.day===t?S.planner.dw:0,ds=S.planner.day===t?S.planner.ds:0,dm=S.planner.day===t?S.planner.dm:0;
   function bar(v,g){const p=Math.min(100,Math.round(v/g*100));return '<div class="progress"><div class="progress-fill" style="width:'+p+'%"></div></div><div class="muted">'+v+' / '+g+' ('+p+'%)</div>';}
-  $("planProgress").innerHTML='<b>📚 كلمات</b>'+bar(dw,S.planner.words)+'<br><b>💬 جمل</b>'+bar(ds,S.planner.sentences)+'<br><b>⏱️ دقائق</b>'+bar(dm,S.planner.minutes);
+  $("planProgress").innerHTML='<b>'+window.t("sc_dash_words")+'</b>'+bar(dw,S.planner.words)+'<br><b>'+window.t("sc_dash_sents")+'</b>'+bar(ds,S.planner.sentences)+'<br><b>'+window.t("sc_dash_mins")+'</b>'+bar(dm,S.planner.minutes);
 }
 $("savePlan").addEventListener("click",()=>{
   S.planner.words=Math.max(1,parseInt($("planWords").value,10)||20);
   S.planner.sentences=Math.max(1,parseInt($("planSentences").value,10)||10);
   S.planner.minutes=Math.max(5,parseInt($("planMinutes").value,10)||30);
-  save();renderAll();toast("تم حفظ الخطة 💾","ok");
+  save();renderAll();toast(window.t("sc_plan_saved"),"ok");
 });
 function planTouch(kind){
   const t=todayStr();
@@ -3978,7 +4030,7 @@ function renderFavs(){
   const list=dmWords().filter(w=>S.favs.includes(w.id));
   $("favCount").textContent=list.length;$("navFavBadge").textContent=list.length;
   const g=$("favGrid");g.innerHTML="";
-  if(!list.length){g.innerHTML='<div class="panel glass">لا توجد مفضلة بعد. اضغط ❤️ على أي كلمة!</div>';return;}
+  if(!list.length){g.innerHTML='<div class="panel glass">'+window.t("sc_empty_fav")+'</div>';return;}
   list.forEach(w=>g.appendChild(wordCard(w)));
 }
 
@@ -4151,10 +4203,10 @@ function runGlobalSearch(){
   box.innerHTML="";
   const bar=document.createElement("div");
   bar.className="search-hit";
-  bar.innerHTML='<span class="muted">المستوى:</span> ';
+  bar.innerHTML='<span class="muted">'+window.t("quiz_level")+'</span> ';
   const sel=document.createElement("select");
   sel.id="gsLevel";
-  [["mixed","🎲 مختلط"],["A1","A1"],["A2","A2"],["B1","B1"],["B2","B2"]].forEach(o=>{
+  [["mixed","🎲 "+window.t("g_mixed")],["A1","A1"],["A2","A2"],["B1","B1"],["B2","B2"]].forEach(o=>{
     const op=document.createElement("option");op.value=o[0];op.textContent=o[1];
     if(level===o[0])op.selected=true;sel.appendChild(op);
   });
@@ -4162,7 +4214,7 @@ function runGlobalSearch(){
   sel.addEventListener("click",ev=>ev.stopPropagation());
   bar.appendChild(sel);
   const cnt=document.createElement("span");
-  cnt.className="muted";cnt.textContent=" • "+hits.length+" نتيجة";
+  cnt.className="muted";cnt.textContent=" • "+hits.length+" "+window.t("sc_search_res");
   bar.appendChild(cnt);
   box.appendChild(bar);
   hits.forEach(h=>{
@@ -4170,11 +4222,11 @@ function runGlobalSearch(){
     const full=(w.art&&w.art!=="-"?w.art+" ":"")+w.de;
     const d=document.createElement("div");d.className="search-hit";
     d.innerHTML='<div><b>📚 '+escapeHtml(full)+'</b> <span class="tag">'+escapeHtml(w.level||"A1")+'</span> <span class="tag kap-tag">'+escapeHtml(w.kap||"")+'</span></div>'
-      +'<div class="word-ar">'+escapeHtml(w.ar||"")+(w.en?' <span class="muted">• '+escapeHtml(w.en)+'</span>':"")+'</div>'
+      +'<div class="word-ar">'+escapeHtml((typeof wordMeaning==="function"?wordMeaning(w):w.ar)||"")+((((typeof uilang==="function"&&uilang()!=="ar"))&&(w.ar&&w.en&&w.ar!==w.en))?' <span class="muted">• '+escapeHtml(w.ar)+'</span>':((w.en&&w.en!==(w.ar||""))?' <span class="muted">• '+escapeHtml(w.en)+'</span>':""))+'</div>'
       +((w.plural||w.pron)?'<div class="muted">👥 '+escapeHtml(w.plural||"—")+' • 🔊 '+escapeHtml(w.pron||"")+'</div>':"")
       +(w.ex?'<div class="muted">💬 '+escapeHtml(w.ex)+'</div>':"")
-      +'<div class="muted">مطابقة: '+escapeHtml(VIA_AR[h.via]||h.via)+'</div>'
-      +'<div class="row-flex"><button class="mini-btn" data-gs="speak">🔊 نطق</button><button class="mini-btn" data-gs="detail">📖 التفاصيل</button></div>';
+      +'<div class="muted">'+window.t("sc_search_match")+escapeHtml(viaLang(h.via))+'</div>'
+      +'<div class="row-flex"><button class="mini-btn" data-gs="speak">'+window.t("sc_gs_say")+'</button><button class="mini-btn" data-gs="detail">'+window.t("sc_gs_detail")+'</button></div>';
     d.querySelector('[data-gs="speak"]').addEventListener("click",ev=>{ev.stopPropagation();try{speak(full);}catch(e){}});
     const open=ev=>{ev.stopPropagation();try{if(typeof openWordDetail==="function")openWordDetail(w.id);else{showPage("vocab");$("vocabSearch").value=w.de;renderVocab();}}catch(e){}gsClose(box);};
     d.querySelector('[data-gs="detail"]').addEventListener("click",open);
@@ -4197,7 +4249,7 @@ function runGlobalSearch(){
       }
       vHits.forEach(function(w){
         const d=document.createElement("div");d.className="search-hit";
-        d.textContent="⚡ "+w.de+" — "+w.ar+" ["+w.kap+"]";
+        d.textContent="⚡ "+w.de+" — "+wordMeaning(w)+" ["+w.kap+"]";
         d.addEventListener("click",()=>{showPage("verbs");$("verbSearch").value=w.de;renderVerbs();gsClose(box);});
         box.appendChild(d);
       });
@@ -4240,12 +4292,12 @@ function runGlobalSearch(){
     });
     gs.slice(0,1).forEach(g=>{
       const d=document.createElement("div");d.className="search-hit";
-      d.textContent="📚 شرح: "+g.title+" ["+g.kap+"]";
+      d.textContent=window.t("sc_gs_explain")+g.title+" ["+g.kap+"]";
       d.addEventListener("click",()=>{openExplain(g.id);gsClose(box);});
       box.appendChild(d);
     });
   }catch(e){}
-  if(box.children.length<=1){box.innerHTML='<div class="search-hit">لا نتائج لـ "'+escapeHtml(raw.trim())+'"</div>';box.appendChild(bar);}
+  if(box.children.length<=1){box.innerHTML='<div class="search-hit">'+window.t("sc_gs_none")+'"'+escapeHtml(raw.trim())+'"</div>';box.appendChild(bar);}
   box.classList.add("show");
 }
 /* Single-wiring guard: this classic script may be re-evaluated in tests/HMR;
@@ -4262,24 +4314,24 @@ $("closeModal").addEventListener("click",()=>$("wordModal").classList.add("hidde
 $("wordModal").addEventListener("click",e=>{if(e.target===$("wordModal"))$("wordModal").classList.add("hidden");});
 $("addWordBtn").addEventListener("click",()=>{
   const de=$("nwDe").value.trim(),ar=$("nwAr").value.trim();
-  if(!de||!ar){toast("أدخل الكلمة الألمانية والترجمة على الأقل ⚠️","err");return;}
+  if(!de||!ar){toast(window.t("sc_add_need"),"err");return;}
   try{
     const dup=allWords().find(w=>dmNorm(w.de)===dmNorm(de));
-    if(dup){toast("الكلمة موجودة بالفعل: "+dup.de+" ⚠️","err");return;}
+    if(dup){toast(window.t("sc_add_dup")+dup.de+" ⚠️","err");return;}
   }catch(e){}
   const w={id:"c"+Date.now(),de:de,art:$("nwArt").value,ar:ar,pron:$("nwPron").value||de,ex:$("nwEx").value||de+".",exAr:$("nwExAr").value||ar,cat:$("nwCat").value||"Food",type:$("nwType").value||"اسم",level:$("nwLevel").value||"A1"};
   w.kap="KX";S.customWords.push(w);save();
   try{if(window.DMDataRev){window.DMDataRev.vocab++;window.DMDataRev.sentences++;}}catch(e){}
   $("wordModal").classList.add("hidden");
   ["nwDe","nwAr","nwPron","nwEx","nwExAr"].forEach(id=>$(id).value="");
-  renderAll();refreshFlashList();markStudyDay();toast("تمت إضافة الكلمة ✅","ok");
+  renderAll();refreshFlashList();markStudyDay();toast(window.t("sc_added"),"ok");
 });
 
 /* ============ SETTINGS DATA ============ */
 $("exportData").addEventListener("click",()=>{
   const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="deutsch-master-backup.json";a.click();
-  toast("تم التصدير 📤","ok");
+  toast(window.t("sc_exported2"),"ok");
 });
 $("importDataBtn").addEventListener("click",()=>$("importFile").click());
 $("importFile").addEventListener("change",e=>{
@@ -4294,13 +4346,13 @@ $("importFile").addEventListener("change",e=>{
     // Preserve array/object shapes to avoid corrupting nested state
     ["customWords","favs","quizHistory"].forEach(k=>{if(!Array.isArray(clean[k]))clean[k]=base[k];});
     ["review","mistakes","daily","srs","gstats"].forEach(k=>{if(!clean[k]||typeof clean[k]!=="object"||Array.isArray(clean[k]))clean[k]=base[k];});
-    S=Object.assign(base,clean);save();applyAll();toast("تم الاستيراد ✅","ok");
-  }catch(err){toast("ملف غير صالح ❌","err");}};
+    S=Object.assign(base,clean);save();applyAll();toast(window.t("sc_imported"),"ok");
+  }catch(err){toast(window.t("sc_bad_file"),"err");}};
   r.readAsText(f);
 });
 $("wipeData").addEventListener("click",()=>{
-  if(!confirm("مسح كل البيانات نهائيًا؟"))return;
-  S=defaultState();save();applyAll();toast("تم المسح 🗑️","ok");
+  if(!confirm(window.t("sc_wipe_all_q")))return;
+  S=defaultState();save();applyAll();toast(window.t("sc_wiped"),"ok");
 });
 
 /* ============ RENDER ALL ============ */
@@ -4310,7 +4362,7 @@ function openWordDetail(id){
   const st=getStatus(w.id);const fav=S.favs.includes(w.id);
   const artCls=w.art==="der"?"der":w.art==="die"?"die":w.art==="das"?"das":"none";
   const head=w.art!=="-"?'<span class="article '+artCls+'">'+w.art+'</span><span>'+escapeHtml(w.de)+'</span>':'<span>'+escapeHtml(w.de)+'</span>';
-  const pl=(w.type==="اسم"&&w.plural)?'<div class="detail-pl"><span class="article '+artCls+' sm">'+w.art+'</span> '+escapeHtml(w.plural)+' <button class="icon-btn" id="dtSpeakPl" title="نطق الجمع">🔊</button></div>':'';
+  const pl=(w.type==="اسم"&&w.plural)?'<div class="detail-pl"><span class="article '+artCls+' sm">'+w.art+'</span> '+escapeHtml(w.plural)+' <button class="icon-btn" id="dtSpeakPl" title="'+t("sc_say_pl")+'">🔊</button></div>':'';
 
   // Find related content
   const relatedSentences=SENTENCES.filter(s=>s.de.includes(w.de)).slice(0,3);
@@ -4320,14 +4372,14 @@ function openWordDetail(id){
 
   const connectionsHtml=`
     <div class="detail-connections glass" style="margin-top:12px;padding:12px;border-radius:12px">
-      <h4 style="margin-bottom:8px">🔗 محتوى متصل</h4>
+      <h4 style="margin-bottom:8px">🔗 ${window.t("flash_conn_title")}</h4>
       <div class="row-flex" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
-        ${relatedSentences.length?'<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' جملة</button>':''}
-        ${relatedGrammar.length?'<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' قاعدة</button>':''}
-        ${w.type==="اسم"?'<button class="btn btn-ghost sm" data-goto="flashcards" data-filter-type="'+(w.art||'')+'">🃏 فلاش كارد</button>':''}
-        ${isMistake?'<button class="btn btn-red sm" data-goto="mistakes">❌ في أخطائي ('+isMistake.n+'x)</button>':''}
-        ${isDue?'<button class="btn btn-green sm" data-goto="review">🧠 مستحقة للمراجعة</button>':''}
-        <button class="btn btn-ghost sm" data-goto="practice">🎯 تدريب ذكي</button>
+        ${relatedSentences.length?'<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' '+window.t("sc_u_sent")+'</button>':''}
+        ${relatedGrammar.length?'<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' '+window.t("sc_u_rule")+'</button>':''}
+        ${w.type==="اسم"?'<button class="btn btn-ghost sm" data-goto="flashcards" data-filter-type="'+(w.art||'')+'">'+window.t("sc_conn_flash")+'</button>':''}
+        ${isMistake?'<button class="btn btn-red sm" data-goto="mistakes">'+window.t("sc_conn_mist")+' ('+isMistake.n+'x)</button>':''}
+        ${isDue?'<button class="btn btn-green sm" data-goto="review">'+window.t("sc_conn_due")+'</button>':''}
+        <button class="btn btn-ghost sm" data-goto="practice">🎯 ${window.t("practice")}</button>
       </div>
     </div>
   `;
@@ -4335,17 +4387,17 @@ function openWordDetail(id){
   $("detailBody").innerHTML=
     '<div class="detail-de">'+head+' <button class="icon-btn" id="dtSpeak">🔊</button></div>'+pl+
     (w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(w.de)+'" loading="lazy">':'')+
-    '<div class="detail-ar">'+escapeHtml(w.ar)+'</div>'+
-    '<div class="word-pron">النطق: '+escapeHtml(w.pron)+'</div>'+
-    '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(w.exAr)+'</div></div>'+
-    '<div class="word-meta"><span class="tag kap-tag">'+kapName(w.kap||"KX")+'</span><span class="tag">'+escapeHtml(w.cat)+'</span><span class="tag">'+escapeHtml(w.type)+'</span><span class="tag">مستوى '+(w.level||"A1")+'</span><span class="status-tag '+st+'">'+STATUS_AR[st]+'</span></div>'+
+    '<div class="detail-ar">'+escapeHtml(wordMeaning(w))+'</div>'+
+    '<div class="word-pron">'+t("sc_pron")+escapeHtml(w.pron)+'</div>'+
+    '<div class="word-ex"><div class="ex-de">'+escapeHtml(w.ex)+'</div><div>'+escapeHtml(wordExMeaning(w))+'</div></div>'+
+    '<div class="word-meta"><span class="tag kap-tag">'+kapName(w.kap||"KX")+'</span><span class="tag">'+escapeHtml((typeof uilang==="function"&&uilang()!=="ar")?catLang(w.cat):w.cat)+'</span><span class="tag">'+escapeHtml(wordTypeLang(w.type))+'</span><span class="tag">'+window.t("sc_level_tag")+' '+(w.level||"A1")+'</span><span class="status-tag '+st+'">'+statusLang(st)+'</span></div>'+
     connectionsHtml+
-    '<div class="row-flex"><button class="btn btn-green sm" id="dtKnown">✅ أعرفها</button><button class="btn btn-gold sm" id="dtReview">🔁 تحتاج مراجعة</button><button class="btn btn-ghost sm" id="dtFav">'+(fav?"💔 إزالة من المفضلة":"❤️ مفضلة")+'</button><button class="btn btn-primary sm" id="dtQuiz">❓ اختبرني</button></div>';
+    '<div class="row-flex"><button class="btn btn-green sm" id="dtKnown">'+window.t("sc_card_known")+'</button><button class="btn btn-gold sm" id="dtReview">'+window.t("sc_dt_review")+'</button><button class="btn btn-ghost sm" id="dtFav">'+(fav?window.t("sc_dt_unfav"):"❤️ "+window.t("sc_fav"))+'</button><button class="btn btn-primary sm" id="dtQuiz">'+window.t("sc_card_quiz")+'</button></div>';
   $("detailModal").classList.remove("hidden");
   $("dtSpeak").addEventListener("click",()=>speak(fullDe(w)));
   if($("dtSpeakPl"))$("dtSpeakPl").addEventListener("click",()=>speak(pluralFull(w)));
-  $("dtKnown").addEventListener("click",()=>{setStatus(w.id,"known");markStudyDay();renderAll();openWordDetail(id);toast("أحسنت! ✅","ok");});
-  $("dtReview").addEventListener("click",()=>{setStatus(w.id,"review");markStudyDay();renderAll();openWordDetail(id);toast("ستُراجع لاحقًا 🔁","ok");});
+  $("dtKnown").addEventListener("click",()=>{setStatus(w.id,"known");markStudyDay();renderAll();openWordDetail(id);toast(window.t("sc_dt_great"),"ok");});
+  $("dtReview").addEventListener("click",()=>{setStatus(w.id,"review");markStudyDay();renderAll();openWordDetail(id);toast(window.t("sc_dt_later"),"ok");});
   $("dtFav").addEventListener("click",()=>{toggleFav(w.id);openWordDetail(id);});
   $("dtQuiz").addEventListener("click",()=>{$("detailModal").classList.add("hidden");quickArticleQuiz(w);});
 
@@ -4395,8 +4447,12 @@ try{renderThemes();}catch(e){}
 $("speedSelect").value=String(S.settings.speed||1);
 $("speedSelect2").value=String(S.settings.speed||1);
 try{populateGermanVoiceSelect();}catch(e){}
-renderAll();
-buildFlash();
+/* Deferred to DOMContentLoaded (not setTimeout: timers can fire mid-parse,
+   before later scripts like study.js define t/uilang/wordMeaning). Same
+   idempotent renders in the same order, zero behavior change. */
+function dmBootRenders(){try{renderAll();}catch(e){console.error(e);}try{buildFlash();}catch(e){console.error(e);}}
+if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){dmBootRenders();},{once:true});}
+else{dmBootRenders();}
 typingLoop();
 observeReveals();
 console.log("Deutsch Master ready ✅");
