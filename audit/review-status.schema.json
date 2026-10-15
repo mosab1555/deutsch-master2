@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Deutsch Master content review status (sidecar)",
+  "description": "Non-destructive review layer over positional dm-* banks. The runtime banks cannot carry a status field (positional compact arrays merged by dm-lazy.js); this sidecar maps record IDs to review states without touching data or boot code. Nothing reads this file at runtime yet (by design: wiring it into the UI is a separate, reviewed change).",
+  "type": "object",
+  "required": ["version", "default", "stats", "overrides"],
+  "properties": {
+    "version": { "type": "integer" },
+    "default": { "enum": ["unreviewed"] },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "unreviewed": { "type": "integer" },
+        "under_review": { "type": "integer" },
+        "approved": { "type": "integer" },
+        "rejected": { "type": "integer" }
+      }
+    },
+    "overrides": {
+      "type": "object",
+      "description": "record ID -> review entry; IDs absent here inherit default",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["status", "reviewer", "at"],
+        "properties": {
+          "status": { "enum": ["under_review", "approved", "rejected"] },
+          "reviewer": { "type": "string", "description": "named, qualified reviewer (never 'auto'/'script' for approved)" },
+          "at": { "type": "string" },
+          "note": { "type": "string" },
+          "rules": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  },
+  "rules": [
+    "approved requires a named human reviewer with German-teaching qualification; scripts, gates and audits can never set approved.",
+    "rejected rows stay in the bank (counts/IDs stable) and must be filtered at query time once a consumer honors this file.",
+    "stats must equal the bank totals; overrides change stats, never the banks."
+  ]
+}

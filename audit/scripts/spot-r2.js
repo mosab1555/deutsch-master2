@@ -1,0 +1,10 @@
+"use strict";
+const fs = require("fs");
+const SDIR = "C:\\Users\\mosab\\Desktop\\deutsch-master2\\client\\content\\src";
+const patches = JSON.parse(fs.readFileSync("C:\\Users\\mosab\\Desktop\\deutsch-master2\\audit\\remediation-patches.json", "utf8"));
+const r2 = patches.patches.filter(p => p.rule === "R2-modal-tail").slice(0, 6);
+const files = {};
+for (const f of fs.readdirSync(SDIR).filter(f => f.startsWith("sent-"))) files[f] = JSON.parse(fs.readFileSync(SDIR + "\\" + f, "utf8")).rows;
+const all = [].concat(...Object.values(files));
+const byId = new Map(all.map(r => [r.id, r]));
+r2.forEach(p => console.log(p.id + "\n  OLD: " + p.oldV + "\n  NEW: " + byId.get(p.id).de));

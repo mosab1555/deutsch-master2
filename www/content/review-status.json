@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "generated": "2026-10-15",
+  "contract": "audit/review-status.schema.json",
+  "default": "unreviewed",
+  "note": "Script-remediated rows are still UNREVIEWED: automated fixes are not linguistic approval. No teacher has reviewed any bank. Do not present content as approved until a qualified reviewer sets status=approved per the schema.",
+  "stats": { "unreviewed": 150000, "under_review": 0, "approved": 0, "rejected": 0 },
+  "overrides": {}
+}

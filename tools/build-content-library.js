@@ -73,7 +73,8 @@ function badHead(h, maxLen) {
   return false;
 }
 /* exact-output denylist: grammatical but nonsensical qualifier combos (audited) */
-const DENY_DE = new Set(["kleinvater", "kleinmutter", "neuvater", "neumutter", "altvater", "altmutter", "großkind", "neukind", "altkind", "wollschuh", "kleinplatz", "großplatz", "neuplatz", "altplatz", "passreise"]);
+/* remediation phase 1 */
+const DENY_DE = new Set(["kleinvater", "kleinmutter", "neuvater", "neumutter", "altvater", "altmutter", "großkind", "neukind", "altkind", "wollschuh", "kleinplatz", "großplatz", "neuplatz", "altplatz", "passreise", "lkwstraßenbahn", "lkwstrassenbahn", "schmerzstent", "geburtsvater", "jugendschutzgelb", "biomango", "unterfriedhof", "gemüsebirne", "teeknoblauch", "tagessekunde", "wochensekunde", "spätsekunde", "sicherheitsschnupfen", "wanderstorch", "familienschwiegervater", "grillhefe"]);
 /* verb conjugation */
 const SEPPREF = ["zurück", "zusammen", "vorbei", "weiter", "herunter", "wieder", "voll", "fern", "statt", "teil", "heim", "raus", "rein", "runter", "rauf", "los", "fest", "ab", "an", "auf", "aus", "bei", "ein", "mit", "nach", "vor", "zu", "weg"];
 function splitSep(inf) {
@@ -254,6 +255,7 @@ stats.afterCompounds = vocab.length;
       if (qg() < 0.45) continue;
       if (h.de.toLowerCase().startsWith(mod.toLowerCase())) continue;
       if (badHead(h)) { skipped++; continue; }
+      if (DENY_DE.has(normDE(mod + h.de.replace(/^[A-ZÄÖÜ]/, function (c) { return c.toLowerCase(); })))) { rej(mod + "+" + h.de, "compound: denied output (qmod)"); skipped++; continue; }
       const har = String(h.ar).split("/")[0].trim().replace(/^ال/, "");
       const before = vocab.length;
       addCompound(h.de, mod + ":" + har + " " + modAr.replace(/^ال/, "") + ":" + modEn + " " + String(h.en || h.de).toLowerCase());

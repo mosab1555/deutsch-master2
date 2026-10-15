@@ -185,7 +185,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 691068
+   "bytes": 689889
   },
   {
    "src": "content/src/sent-02.json",
@@ -193,7 +193,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 699321
+   "bytes": 698166
   },
   {
    "src": "content/src/sent-03.json",
@@ -201,7 +201,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 700074
+   "bytes": 698686
   },
   {
    "src": "content/src/sent-04.json",
@@ -209,7 +209,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 876227
+   "bytes": 874315
   },
   {
    "src": "content/src/sent-05.json",
@@ -217,7 +217,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 877345
+   "bytes": 875344
   },
   {
    "src": "content/src/sent-06.json",
@@ -225,7 +225,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 880420
+   "bytes": 878597
   },
   {
    "src": "content/src/sent-07.json",
@@ -233,7 +233,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 881389
+   "bytes": 879779
   },
   {
    "src": "content/src/sent-08.json",
@@ -241,7 +241,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 883508
+   "bytes": 881863
   },
   {
    "src": "content/src/sent-09.json",
@@ -249,7 +249,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 884174
+   "bytes": 882323
   },
   {
    "src": "content/src/sent-10.json",
@@ -257,7 +257,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 884124
+   "bytes": 882352
   },
   {
    "src": "content/src/sent-11.json",
@@ -265,7 +265,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 884145
+   "bytes": 882370
   },
   {
    "src": "content/src/sent-12.json",
@@ -273,7 +273,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 885031
+   "bytes": 883076
   },
   {
    "src": "content/src/sent-13.json",
@@ -281,7 +281,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 886381
+   "bytes": 884785
   },
   {
    "src": "content/src/sent-14.json",
@@ -289,7 +289,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 885730
+   "bytes": 884026
   },
   {
    "src": "content/src/sent-15.json",
@@ -297,7 +297,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 887350
+   "bytes": 885420
   },
   {
    "src": "content/src/sent-16.json",
@@ -305,7 +305,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 885869
+   "bytes": 884284
   },
   {
    "src": "content/src/sent-17.json",
@@ -313,7 +313,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 888430
+   "bytes": 886744
   },
   {
    "src": "content/src/sent-18.json",
@@ -321,7 +321,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 887423
+   "bytes": 885410
   },
   {
    "src": "content/src/sent-19.json",
@@ -329,7 +329,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 889283
+   "bytes": 887554
   },
   {
    "src": "content/src/sent-20.json",
@@ -337,7 +337,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 891492
+   "bytes": 889736
   },
   {
    "src": "content/src/sent-21.json",
@@ -345,7 +345,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 891232
+   "bytes": 889289
   },
   {
    "src": "content/src/sent-22.json",
@@ -353,7 +353,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 892880
+   "bytes": 891170
   },
   {
    "src": "content/src/sent-23.json",
@@ -361,7 +361,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 891133
+   "bytes": 889556
   },
   {
    "src": "content/src/sent-24.json",
@@ -369,7 +369,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 895171
+   "bytes": 893301
   },
   {
    "src": "content/src/sent-25.json",
@@ -377,7 +377,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 893959
+   "bytes": 892145
   },
   {
    "src": "content/src/sent-26.json",
@@ -385,7 +385,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 892416
+   "bytes": 890584
   },
   {
    "src": "content/src/sent-27.json",
@@ -393,7 +393,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 894681
+   "bytes": 892905
   },
   {
    "src": "content/src/sent-28.json",
@@ -401,7 +401,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 893678
+   "bytes": 891720
   },
   {
    "src": "content/src/sent-29.json",
@@ -409,7 +409,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 894305
+   "bytes": 892599
   },
   {
    "src": "content/src/sent-30.json",
@@ -417,7 +417,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 894589
+   "bytes": 892648
   },
   {
    "src": "content/src/sent-31.json",
@@ -425,7 +425,7 @@
    "kind": "sent",
    "count": 3000,
    "load": "lazy",
-   "bytes": 536754
+   "bytes": 535761
   },
   {
    "src": "content/src/gram-01.json",
