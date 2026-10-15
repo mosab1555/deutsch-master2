@@ -806,6 +806,7 @@ function sentA1InjectUI() {
    inventory audit). Pull remaining sent packs in the background with honest
    progress, re-render only while the sentences page stays visible. */
 var _sentFullLoadStarted = false;
+var _sentProgT = 0;
 function ensureFullSentences() {
   try {
     if (_sentFullLoadStarted) return;
@@ -816,9 +817,13 @@ function ensureFullSentences() {
     M.loadKindProgress("sent", function (done, total) {
       try {
         /* Keep the sentCount pill machine-readable ("N جملة"); pack
-           progress lives in a sibling span, removed on completion. */
+           progress lives in a sibling span, removed on completion.
+           Throttled: pack loads fire in bursts and every call rebuilds the
+           grid (scroll churn); the pill stays live, the grid re-renders at
+           most once per 1.5s plus once on completion. */
         if (!document.querySelector("#page-sentences.active")) return;
-        try { sentA1Render(); } catch (e) {}
+        var now = 0; try { now = Date.now(); } catch (e) {}
+        if (!_sentProgT || now - _sentProgT > 1500) { _sentProgT = now; try { sentA1Render(); } catch (e) {} }
         var pill = document.getElementById("sentCount");
         if (pill && !document.getElementById("sentLoadProg") && pill.parentNode) {
           var sp = document.createElement("span");

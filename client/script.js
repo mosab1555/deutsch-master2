@@ -964,6 +964,9 @@ function kapName(k){
 /* الصيغ الكاملة: der Tisch / die Tische */
 function fullDe(w){return (w.art!=="-"?w.art+" ":"")+w.de;}
 function pluralFull(w){if(!w.plural)return "";var p=String(w.plural);if(/^(der|die|das)\s/.test(p))return p;return ((w.art&&w.art!=="-"?w.art+" ":"")+p);}
+/* Type normalization: source records use English types ("noun"); older views
+   compared against Arabic ("اسم"). Accept both so noun plurals display. */
+function isNounType(t){return t==="noun"||t==="اسم";}
 function wordById(id){
   /* Indexed lookup: the old version concatenated the whole bank
      (VOCAB.concat(customWords)) on EVERY call — O(W) alloc + O(W) scan per
@@ -2264,7 +2267,7 @@ function wordCard(w){
   try{d.setAttribute("data-wid",w.id);}catch(e){}
   const hasArt=w.art!=="-";
   const deLine=hasArt?'<span class="article '+artCls+'">'+artTxt+'</span><span class="word-de">'+escapeHtml(w.de)+'</span>':'<span class="word-de">'+escapeHtml(w.de)+'</span>';
-  const plLine=(w.type==="اسم"&&w.plural)?'<div class="de-plural"><span class="article '+artCls+' sm">'+artTxt+'</span><span>'+escapeHtml(w.plural)+'</span><button class="mini-btn" data-act="speakPl" title="'+t("sc_say_pl")+'">🔊</button></div>':'';
+  const plLine=(isNounType(w.type)&&w.plural)?'<div class="de-plural"><span class="article '+artCls+' sm">'+artTxt+'</span><span>'+escapeHtml(w.plural)+'</span><button class="mini-btn" data-act="speakPl" title="'+t("sc_say_pl")+'">🔊</button></div>':'';
   const imgLine=w.img?'<img class="word-img" src="'+escapeHtml(w.img)+'" alt="'+escapeHtml(full)+'" loading="lazy">':'';
   d.innerHTML=
     '<div class="de-line" data-act="detail" title="'+t("sc_detail_title")+'">'+deLine+
@@ -2386,6 +2389,21 @@ function filteredVocab(){
    keystroke stay fast; "show more" appends the rest on demand. Count pill
    always reflects the FULL filtered total. */
 let vocabLimit=60;const VOCAB_PAGE=60;let vocabT=null;
+/* Refresh-vs-query guard (search/scroll-reset fix): renderVocab() is called
+   both for new queries (debounced input) and for unrelated refreshes
+   (renderAll after status taps, cloud-sync merges, background pack loads).
+   Resetting the page limit on every call collapsed "show more" progress and
+   shrank the grid, which yanked scroll position. The limit now resets ONLY
+   when the actual query/filter signature changed; refresh renders with an
+   identical signature keep the user's page and scroll position. */
+let _vocabSig=null;
+function vocabFilterSig(){
+  try{
+    return dmNorm($("vocabSearch").value||"")+"|"+$("filterCategory").value+"|"+$("filterType").value+"|"+
+      $("filterStatus").value+"|"+$("filterArticle").value+"|"+
+      ($("filterKapitel")?$("filterKapitel").value:"")+"|"+($("filterLevel")?$("filterLevel").value:"");
+  }catch(e){return "";}
+}
 /* ---------- on-demand full-vocab loading (ADDITIVE, Phase 2 fix) ----------
    Boot carries only sync packs; the idle prefetch is budget-capped, so the
    pill used to freeze at a partial total. On first vocab render, pull the
@@ -2394,6 +2412,7 @@ let vocabLimit=60;const VOCAB_PAGE=60;let vocabT=null;
    (same guard as the merge path — never renders hidden pages). Search stays
    incremental (dmWordHits appends on growth), rendering stays paginated. */
 let _vocabFullLoadStarted=false;
+let _vocabProgT=0;
 function ensureFullVocab(){
   try{
     if(_vocabFullLoadStarted)return;
@@ -2405,9 +2424,15 @@ function ensureFullVocab(){
       try{
         /* Honest progress WITHOUT corrupting the numeric pill (tests and
            users read vocabCount as a number): refresh the pill with the
-           loaded count and show pack progress in a sibling span. */
+           loaded count and show pack progress in a sibling span.
+           Throttled: pack loads fire in bursts and every call rebuilds the
+           grid (scroll churn); the pill stays live, the grid re-renders at
+           most once per 1.5s plus once on completion. Limit is preserved
+           by the renderVocab signature guard. */
         if(!document.querySelector("#page-vocab.active"))return;
-        try{renderVocab(true);}catch(e){}
+        var now=0;try{now=Date.now();}catch(e){}
+        if(!_vocabProgT||now-_vocabProgT>1500){_vocabProgT=now;try{renderVocab(true);}catch(e){}}
+        else{try{var _pc=filteredVocab().length;var _pill0=document.getElementById("vocabCount");if(_pill0)_pill0.textContent=_pc;}catch(e){}}
         var pill=document.getElementById("vocabCount");
         if(pill&&!document.getElementById("vocabLoadProg")&&pill.parentNode){
           var sp=document.createElement("span");
@@ -2433,7 +2458,12 @@ function ensureFullVocab(){
 function renderVocab(more){
   try{ensureFullVocab();}catch(e){}
   try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
-  if(!more)vocabLimit=VOCAB_PAGE;
+  /* Reset the page ONLY for a genuinely new query/filter set (see
+     _vocabSig guard above); explicit show-more (more=true) and unrelated
+     refresh renders keep the current page. */
+  var _sig="";try{_sig=vocabFilterSig();}catch(e){}
+  if(!more&&_sig!==_vocabSig)vocabLimit=VOCAB_PAGE;
+  _vocabSig=_sig;
   const list=filteredVocab();
   $("vocabCount").textContent=list.length;
   const g=$("vocabGrid");g.innerHTML="";
@@ -3085,8 +3115,13 @@ document.querySelectorAll("[data-flash-rate]").forEach(b=>b.addEventListener("cl
    paginated version). Renders max SENT_PAGE cards so a 45k-sentence bank can
    never flood the DOM and freeze/crash mobile. */
 let sentPageLimit=80;const SENT_PAGE=80;
+/* Same refresh-vs-query guard as renderVocab (search/scroll-reset fix):
+   fallback sentence renderer keeps its page across unrelated refreshes. */
+let _sentSig=null;
 function renderSentences(more){
-  if(!more)sentPageLimit=SENT_PAGE;
+  var _ss="";try{_ss=dmNorm($("sentenceSearch").value||"")+"|"+($("sentenceKapitel")?$("sentenceKapitel").value:"");}catch(e){}
+  if(!more&&_ss!==_sentSig)sentPageLimit=SENT_PAGE;
+  _sentSig=_ss;
   const raw=($("sentenceSearch").value||"");
   const q=typeof dmNorm==="function"?dmNorm(raw):raw.toLowerCase();
   const k=$("sentenceKapitel")?$("sentenceKapitel").value:"";
@@ -3148,8 +3183,12 @@ try{
 /* Paginated (60/page + show-more): conjugation tables are expensive DOM, and
    the bank (~900 verbs) must never render unbounded per keystroke. */
 let verbPageLimit=60;const VERB_PAGE=60;
+/* Same refresh-vs-query guard as renderVocab (search/scroll-reset fix). */
+let _verbSig=null;
 function renderVerbs(more){
-  if(!more)verbPageLimit=VERB_PAGE;
+  var _vs="";try{_vs=dmNorm($("verbSearch").value||"")+"|"+($("verbKapitel")?$("verbKapitel").value:"");}catch(e){}
+  if(!more&&_vs!==_verbSig)verbPageLimit=VERB_PAGE;
+  _verbSig=_vs;
   const raw=($("verbSearch").value||"");
   const q=typeof dmNorm==="function"?dmNorm(raw):raw.toLowerCase();
   const k=$("verbKapitel")?$("verbKapitel").value:"";
@@ -3210,8 +3249,12 @@ try{
    with examples + quiz + ~5 listeners) rendered unbounded — 22k DOM nodes
    and a ~1.4s main-thread freeze on first visit. Identical cards, one reflow. */
 let gramPageLimit=60;const GRAM_PAGE=60;
+/* Same refresh-vs-query guard as renderVocab (search/scroll-reset fix). */
+let _gramSig=null;
 function renderGrammar(more){
-  if(!more)gramPageLimit=GRAM_PAGE;
+  var _gs="";try{_gs=($("grammarKapitel")?$("grammarKapitel").value:"");}catch(e){}
+  if(!more&&_gs!==_gramSig)gramPageLimit=GRAM_PAGE;
+  _gramSig=_gs;
   const box=$("grammarList");box.innerHTML="";
   const k=$("grammarKapitel")?$("grammarKapitel").value:"";
   const list=GRAMMAR.filter(g=>!k||g.kap===k);
@@ -4392,7 +4435,7 @@ function openWordDetail(id){
   const st=getStatus(w.id);const fav=S.favs.includes(w.id);
   const artCls=w.art==="der"?"der":w.art==="die"?"die":w.art==="das"?"das":"none";
   const head=w.art!=="-"?'<span class="article '+artCls+'">'+w.art+'</span><span>'+escapeHtml(w.de)+'</span>':'<span>'+escapeHtml(w.de)+'</span>';
-  const pl=(w.type==="اسم"&&w.plural)?'<div class="detail-pl"><span class="article '+artCls+' sm">'+w.art+'</span> '+escapeHtml(w.plural)+' <button class="icon-btn" id="dtSpeakPl" title="'+t("sc_say_pl")+'">🔊</button></div>':'';
+  const pl=(isNounType(w.type)&&w.plural)?'<div class="detail-pl"><span class="article '+artCls+' sm">'+w.art+'</span> '+escapeHtml(w.plural)+' <button class="icon-btn" id="dtSpeakPl" title="'+t("sc_say_pl")+'">🔊</button></div>':'';
 
   // Find related content
   const relatedSentences=SENTENCES.filter(s=>s.de.includes(w.de)).slice(0,3);

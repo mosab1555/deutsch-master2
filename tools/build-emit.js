@@ -191,12 +191,34 @@ const lazyJs = `"use strict";
     } catch (e) {}
   }
   window.DM_LIB_MORE.merge = mergeAll;
+  /* Per-deploy asset version (?v=SHA, stamped into *.html by
+     inject-version.js at deploy time): lazy packs ride the same version so
+     the Service Worker can cache-first them as immutable, and new deploys
+     invalidate automatically. Dev (no ?v=) stays unversioned. */
+  window.DM_LIB_MORE.assetVer = function () {
+    try {
+      if (window.DM_LIB_MORE._aver !== undefined) return window.DM_LIB_MORE._aver;
+      var v = "";
+      try {
+        var scripts = document.getElementsByTagName("script");
+        for (var i = 0; i < scripts.length; i++) {
+          var s = (scripts[i] && scripts[i].src) || "";
+          var m = /[?&]v=([0-9a-f]{4,40})/i.exec(s);
+          if (m) { v = m[1]; break; }
+        }
+      } catch (e) {}
+      window.DM_LIB_MORE._aver = v;
+      return v;
+    } catch (e) { return ""; }
+  };
   window.DM_LIB_MORE.loadPack = function (file) {
     return new Promise(function (resolve) {
       try {
         if (window.DM_LIB_MORE.loadedPacks.indexOf(file) >= 0) return resolve(true);
         var sc = document.createElement("script");
-        sc.src = file;
+        var src = file;
+        try { var vv = window.DM_LIB_MORE.assetVer(); if (vv) src = file + (file.indexOf("?") >= 0 ? "&" : "?") + "v=" + vv; } catch (e) {}
+        sc.src = src;
         sc.onload = function () {
           try { window.DM_LIB_MORE.loadedPacks.push(file); } catch (e) {}
           try { mergeAll(); } catch (e) {}

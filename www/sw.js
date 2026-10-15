@@ -1,5 +1,5 @@
 /* Deutsch Master Academy - offline support (PWA) */
-var DM_CACHE = "german-academy-v56";
+var DM_CACHE = "german-academy-v57";
 var DM_FILES = [
   "./", "./index.html", "./academy.html",
   "./style.css", "./reference.css", "./home.css", "./premium.css", "./radical.css", "./lux.css", "./sovereign.css", "./obsidian.css", "./dm-ultimate.css", "./lux.js", "./sovereign.js", "./dm-ultimate.js", "./back-handler.js", "./script.js", "./explain.js", "./learn.js", "./play.js", "./sentex.js", "./world.js", "./study.js",
@@ -41,6 +41,21 @@ self.addEventListener("activate", function (e) {
    location API is unavailable the guard is skipped = previous behavior). */
 var dmOrigin = null;
 try { dmOrigin = new URL(self.location.href).origin; } catch (err) {}
+/* Immutable versioned content packs (content/dm-*.js?v=SHA, stamped per
+   deploy by inject-version.js for sync packs and by DM_LIB_MORE.assetVer for
+   lazy packs): byte-identical for a given URL, so cache-first is safe. Warm
+   starts and offline reuse skip re-downloading ~30MB of packs; a new deploy
+   changes ?v= (automatic invalidation) and the versioned cache name above
+   drops the previous release's entries on activate. Unversioned URLs (local
+   dev) intentionally stay on the network-first path below. */
+function dmImmutablePack(url) {
+  try {
+    var u = new URL(url, self.location.href);
+    if (dmOrigin && u.origin !== dmOrigin) return false;
+    if (u.pathname.indexOf("/content/dm-") < 0) return false;
+    return /[?&]v=[0-9a-f]{4,40}/i.test(u.search);
+  } catch (err) { return false; }
+}
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
   /* Never intercept cross-origin traffic (Supabase auth/rest, CDN libraries):
@@ -49,6 +64,23 @@ self.addEventListener("fetch", function (e) {
     try {
       if (new URL(e.request.url).origin !== dmOrigin) return;
     } catch (err) { /* unparseable URL: fall through to same-origin handling */ }
+  }
+  if (dmImmutablePack(e.request.url)) {
+    e.respondWith(caches.match(e.request).then(function (hit) {
+      if (hit) return hit;
+      return fetch(e.request).then(function (res) {
+        try {
+          var copy = res.clone();
+          caches.open(DM_CACHE).then(function (c) { try { c.put(e.request, copy); } catch (err) {} });
+        } catch (err) {}
+        return res;
+      }).catch(function () {
+        /* Offline with a newer ?v= than cached: fall back to the older cached
+           pack (query-stripped match) rather than failing the section. */
+        return swMatchStrip(e.request);
+      });
+    }));
+    return;
   }
   /* Freshness rule: HTML pages, JS and CSS are network-first so a normal
      reload always picks up the latest release (no hard refresh needed);

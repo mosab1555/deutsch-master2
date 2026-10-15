@@ -9,7 +9,7 @@
    "kind": "vocab",
    "count": 2500,
    "load": "sync",
-   "bytes": 559181
+   "bytes": 529467
   },
   {
    "src": "content/src/vocab-02.json",
@@ -17,7 +17,7 @@
    "kind": "vocab",
    "count": 2500,
    "load": "sync",
-   "bytes": 497808
+   "bytes": 511449
   },
   {
    "src": "content/src/vocab-03.json",
@@ -25,7 +25,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 662859
+   "bytes": 1036537
   },
   {
    "src": "content/src/vocab-04.json",
@@ -33,7 +33,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 633024
+   "bytes": 1071729
   },
   {
    "src": "content/src/vocab-05.json",
@@ -41,7 +41,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 1195950
+   "bytes": 1152979
   },
   {
    "src": "content/src/vocab-06.json",
@@ -49,7 +49,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 930941
+   "bytes": 1157149
   },
   {
    "src": "content/src/vocab-07.json",
@@ -57,7 +57,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 801834
+   "bytes": 1378901
   },
   {
    "src": "content/src/vocab-08.json",
@@ -65,7 +65,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 600800
+   "bytes": 1048878
   },
   {
    "src": "content/src/vocab-09.json",
@@ -73,7 +73,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 659353
+   "bytes": 1123244
   },
   {
    "src": "content/src/vocab-10.json",
@@ -81,7 +81,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 614577
+   "bytes": 1048134
   },
   {
    "src": "content/src/vocab-11.json",
@@ -89,7 +89,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 728368
+   "bytes": 1243729
   },
   {
    "src": "content/src/vocab-12.json",
@@ -97,7 +97,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 626355
+   "bytes": 1085889
   },
   {
    "src": "content/src/vocab-13.json",
@@ -105,7 +105,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 662663
+   "bytes": 1126393
   },
   {
    "src": "content/src/vocab-14.json",
@@ -113,7 +113,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 765409
+   "bytes": 1304438
   },
   {
    "src": "content/src/vocab-15.json",
@@ -121,7 +121,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 763332
+   "bytes": 1302855
   },
   {
    "src": "content/src/vocab-16.json",
@@ -129,7 +129,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 685439
+   "bytes": 1180618
   },
   {
    "src": "content/src/vocab-17.json",
@@ -137,7 +137,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 668815
+   "bytes": 1143256
   },
   {
    "src": "content/src/vocab-18.json",
@@ -145,7 +145,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 765236
+   "bytes": 1311780
   },
   {
    "src": "content/src/vocab-19.json",
@@ -153,7 +153,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 816803
+   "bytes": 1394895
   },
   {
    "src": "content/src/vocab-20.json",
@@ -161,7 +161,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 680454
+   "bytes": 1162294
   },
   {
    "src": "content/src/vocab-21.json",
@@ -169,7 +169,7 @@
    "kind": "vocab",
    "count": 5000,
    "load": "lazy",
-   "bytes": 707388
+   "bytes": 1221793
   },
   {
    "src": "content/src/vocab-22.json",
@@ -177,7 +177,7 @@
    "kind": "vocab",
    "count": 4640,
    "load": "lazy",
-   "bytes": 704691
+   "bytes": 1203688
   },
   {
    "src": "content/src/sent-01.json",
@@ -185,7 +185,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 691084
+   "bytes": 691068
   },
   {
    "src": "content/src/sent-02.json",
@@ -193,7 +193,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 699360
+   "bytes": 699321
   },
   {
    "src": "content/src/sent-03.json",
@@ -201,7 +201,7 @@
    "kind": "sent",
    "count": 4000,
    "load": "sync",
-   "bytes": 700082
+   "bytes": 700074
   },
   {
    "src": "content/src/sent-04.json",
@@ -209,7 +209,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 876243
+   "bytes": 876227
   },
   {
    "src": "content/src/sent-05.json",
@@ -217,7 +217,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 877368
+   "bytes": 877345
   },
   {
    "src": "content/src/sent-06.json",
@@ -225,7 +225,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 880436
+   "bytes": 880420
   },
   {
    "src": "content/src/sent-07.json",
@@ -233,7 +233,7 @@
    "kind": "sent",
    "count": 5000,
    "load": "lazy",
-   "bytes": 881404
+   "bytes": 881389
   },
   {
    "src": "content/src/sent-08.json",
@@ -1227,145 +1227,145 @@
    "file": "content/dm-vocab-03.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 662859
+   "bytes": 1036537
   },
   {
    "file": "content/dm-vocab-04.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 633024
+   "bytes": 1071729
   },
   {
    "file": "content/dm-vocab-05.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 1195950
+   "bytes": 1152979
   },
   {
    "file": "content/dm-vocab-06.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 930941
+   "bytes": 1157149
   },
   {
    "file": "content/dm-vocab-07.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 801834
+   "bytes": 1378901
   },
   {
    "file": "content/dm-vocab-08.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 600800
+   "bytes": 1048878
   },
   {
    "file": "content/dm-vocab-09.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 659353
+   "bytes": 1123244
   },
   {
    "file": "content/dm-vocab-10.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 614577
+   "bytes": 1048134
   },
   {
    "file": "content/dm-vocab-11.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 728368
+   "bytes": 1243729
   },
   {
    "file": "content/dm-vocab-12.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 626355
+   "bytes": 1085889
   },
   {
    "file": "content/dm-vocab-13.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 662663
+   "bytes": 1126393
   },
   {
    "file": "content/dm-vocab-14.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 765409
+   "bytes": 1304438
   },
   {
    "file": "content/dm-vocab-15.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 763332
+   "bytes": 1302855
   },
   {
    "file": "content/dm-vocab-16.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 685439
+   "bytes": 1180618
   },
   {
    "file": "content/dm-vocab-17.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 668815
+   "bytes": 1143256
   },
   {
    "file": "content/dm-vocab-18.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 765236
+   "bytes": 1311780
   },
   {
    "file": "content/dm-vocab-19.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 816803
+   "bytes": 1394895
   },
   {
    "file": "content/dm-vocab-20.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 680454
+   "bytes": 1162294
   },
   {
    "file": "content/dm-vocab-21.js",
    "kind": "vocab",
    "count": 5000,
-   "bytes": 707388
+   "bytes": 1221793
   },
   {
    "file": "content/dm-vocab-22.js",
    "kind": "vocab",
    "count": 4640,
-   "bytes": 704691
+   "bytes": 1203688
   },
   {
    "file": "content/dm-sent-04.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 876243
+   "bytes": 876227
   },
   {
    "file": "content/dm-sent-05.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 877368
+   "bytes": 877345
   },
   {
    "file": "content/dm-sent-06.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 880436
+   "bytes": 880420
   },
   {
    "file": "content/dm-sent-07.js",
    "kind": "sent",
    "count": 5000,
-   "bytes": 881404
+   "bytes": 881389
   },
   {
    "file": "content/dm-sent-08.js",

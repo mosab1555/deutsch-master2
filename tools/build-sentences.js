@@ -422,6 +422,39 @@ function kapFor(level, i) {
   return "KX";
 }
 function pickN(rr, arr) { return arr[Math.floor(rr() * arr.length)]; }
+/* Evidence filter for vocab refs (integrity fix): candidate object nouns are
+   picked before the template is filled, and several branches push ids for
+   slots the final German never uses (e.g. fillGeneric always pushed O+O1,
+   um-zu/genitiv branches pushed an unused object). Only refs whose headword
+   (or plural/phrase form) actually occurs in the final sentence are kept, so
+   generated sentences link only to vocabulary they genuinely use. Empty is
+   allowed — an unrelated link is worse than none. */
+function refEvidence(de, w) {
+  if (!w || !w.de) return false;
+  const norm = (s) => String(s || "").toLowerCase()
+    .replace(/\u00e4/g, "a").replace(/\u00f6/g, "o").replace(/\u00fc/g, "u").replace(/\u00df/g, "ss")
+    .replace(/[^a-z0-9\s-]/g, " ").replace(/\s+/g, " ").trim();
+  const toks = new Set(norm(de).split(" ").filter((t) => t.length >= 2));
+  const forms = new Set();
+  const add = (s) => { const n = norm(s); if (n && n.length >= 3) forms.add(n); };
+  const raw = String(w.de).trim();
+  if ((w.type || "") === "phrase" || /\s/.test(raw)) {
+    add(raw);
+    norm(raw).split(" ").forEach((t) => { if (t.length >= 4) forms.add(t); });
+    for (const f of forms) {
+      if (f.indexOf(" ") >= 0) { if (norm(de).indexOf(f) >= 0) return true; }
+      else if (toks.has(f)) return true;
+    }
+    return false;
+  }
+  const head = raw.split(/\s+/).pop();
+  add(raw); add(head);
+  if (w.plural && w.plural !== "-") add(String(w.plural).replace(/^(der|die|das)\s+/, ""));
+  for (const f of forms) if (toks.has(f)) return true;
+  const h = norm(head);
+  if (h.length >= 5) for (const t of toks) if (t.length >= h.length + 2 && t.indexOf(h) >= 0) return true;
+  return false;
+}
 function akkPhrase(rr, pool, pluralOk) {
   const w = pickN(rr, pool.length ? pool : THING_NOUNS);
   const pl = pluralOk && rr() < 0.25 && w.plural !== "-";
@@ -1253,7 +1286,8 @@ function buildOne(rr, pat, idx) {
   ar = ar.replace(/\s+/g, " ").trim();
   if (!/[.?!…]$/.test(de)) de += ".";
   seqS++;
-  return { id: "ls" + String(seqS).padStart(5, "0"), de, ar, level: lvl, topic, gram: [gram], vocab: [...new Set(vocabRefs)].slice(0, 4) };
+  const keptRefs = [...new Set(vocabRefs)].filter((id) => refEvidence(de, byId.get(id)));
+  return { id: "ls" + String(seqS).padStart(5, "0"), de, ar, level: lvl, topic, gram: [gram], vocab: keptRefs.slice(0, 4) };
 }
 
 /* ---------- generate: ~80 per pattern ---------- */
