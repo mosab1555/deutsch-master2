@@ -173,6 +173,12 @@ const docListeners = {};
 const root = parseHTML(fs.readFileSync(path.join(CLIENT, "index.html"), "utf8"));
 const document = {
   nodeType: 9, documentElement: root, body: root.body, title: "",
+  // Browser-faithful: scripts parse while the document is still loading, so
+  // script.js defers its boot renders to DOMContentLoaded (fired below after
+  // ALL scripts, incl. study.js which defines t/wordMeaning). Without this,
+  // boot would run mid-parse before t exists — a harness artifact, not an
+  // app bug (see client/script.js dmBootRenders comment).
+  readyState: "loading",
   getElementById(id) {
     const hit = idReg.get(id);
     if (hit && hit.isConnected) return hit;

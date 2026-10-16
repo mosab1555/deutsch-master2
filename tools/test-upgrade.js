@@ -29,6 +29,11 @@ const WORDS = [
 const sb = {
   S: { review: {}, mistakes: {}, srs: {}, status: {}, grammar: {} },
   allWords: () => WORDS,
+  // dmWords() is the runtime cached allWords() view (client/script.js);
+  // the stub bank is tiny so the cache is identity here.
+  dmWords: () => WORDS,
+  // srsWhy() renders via window.t (client/study.js in production); identity stub.
+  t: (k) => k,
   getStatus: (id) => (sb.S.status[id] || "new"),
   wordById: (id) => WORDS.find((w) => w.id === id),
   todayStr: () => "2026-10-02",
