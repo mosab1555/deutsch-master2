@@ -20,7 +20,7 @@ var DM_FILES = [
   "./content/dm-lazy.js",
   "./content/dm-ex-01.js", "./content/dm-ex-02.js", "./content/dm-ex-03.js", "./content/dm-ex-04.js",
   "./progress.js", "./career.js", "./home.js", "./page-state.js", "./ankidroid.js",
-  "./auth.js", "./cloud-sync.js", "./profile.js", "./academy-core.js", "./app-init.js", "./academy-portal.js",
+  "./auth.js", "./cloud-sync.js", "./profile.js", "./academy-core.js", "./academy-auth.js", "./app-init.js", "./academy-portal.js",
   "./supabase-config.js",
   "./push.js",
   "./launch.css", "./launch.js",

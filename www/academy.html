@@ -400,14 +400,16 @@
 
       <!-- ACADEMY PORTAL (Phase 1): functional admin + teacher experience.
            Learner pages below are untouched. Every control here is wired to
-           AcademyCore (real Supabase); without the migration a setup status
-           is shown instead of fake success. -->
+           AcademyCore via the dedicated Staging session (AcademyAuth); without
+           Staging configuration a disabled status is shown instead of fake
+           success. -->
       <section class="page" id="page-academy-overview">
         <div class="page-head"><h2 data-i18n="acad_sec_overview">🏫 نظرة الأكاديمية</h2>
           <button class="btn btn-ghost sm" id="acadRefresh" data-i18n="acad_refresh">🔄 تحديث</button>
         </div>
         <div id="acadSetupBanner"><div class="muted">…</div></div>
         <div class="panel glass"><div id="acadMyUid"><span class="muted">…</span></div></div>
+        <div class="panel glass"><div id="acadAuthBox"><span class="muted">…</span></div></div>
         <div class="panel glass"><div id="acadSelector"><span class="muted">…</span></div></div>
         <div class="panel glass"><h3 data-i18n="acad_summary">الملخص</h3><div id="acadOverviewBody"><div class="muted">…</div></div></div>
         <div class="panel glass"><details><summary data-i18n="acad_scope1_t">نطاق المرحلة 1 (بصدق)</summary>
@@ -989,6 +991,7 @@
     <script src="auth.js"></script>
     <script src="cloud-sync.js"></script>
     <script src="profile.js"></script>
+    <script src="academy-auth.js"></script>
     <script src="academy-core.js"></script>
     <script src="app-init.js"></script>
     <script src="academy-portal.js"></script>

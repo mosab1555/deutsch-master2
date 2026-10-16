@@ -3,7 +3,9 @@
  * Renders the functional academy administration + teacher experience inside
  * client/academy.html WITHOUT touching the learner application: learner
  * pages, script.js, progress, sync, and guest isolation are never modified
- * here. Every control is wired to AcademyCore (fail-closed target gate);
+ * here. Every control is wired to AcademyCore (fail-closed target gate) with
+ * identity from the dedicated Staging session (AcademyAuth) — never the
+ * Production learner auth;
  * when the migration is not applied, the portal shows an honest setup status
  * and disables writes instead of pretending success. No invented grades,
  * attendance, or engagement metrics: reports derive only from
@@ -53,7 +55,17 @@ try {
       setupMissing: "🟡 قاعدة بيانات الأكاديمية غير مُهيأة بعد: لم يُطبَّق ملف الترحيل على Supabase. القراءة والكتابة معطلة هنا — راجع تقرير المرحلة.",
       targetDisabled: "🚫 بوابة الأكاديمية معطلة على هذا النشر: هذا النشر يستخدم مشروع الإنتاج لتطبيق المتعلم، وجداول الأكاديمية لا تُستخدم عبر الإنتاج أبدًا. يلزم اتصال Staging منفصل — وهو غير مُكوَّن هنا. تطبيق المتعلم يعمل بشكل طبيعي.",
       noSupabase: "⚠️ Supabase غير مُهيأ في هذا المتصفح: التطبيق يعمل دون اتصال، وبوابة الأكاديمية للعرض فقط.",
-      signin: "سجّل الدخول من تطبيق المتعلم (index.html) لاستخدام البوابة. وضع الضيف لا يملك صلاحيات إدارية.",
+      signin: "سجّل الدخول بحساب الأكاديمية أعلاه لاستخدام البوابة. وضع الضيف لا يملك صلاحيات إدارية.",
+      acadAuthTitle: "تسجيل دخول الأكاديمية",
+      acadEmailPh: "البريد الإلكتروني للأكاديمية",
+      acadPassPh: "كلمة المرور",
+      acadSignIn: "تسجيل الدخول",
+      acadSignOut: "تسجيل الخروج من الأكاديمية",
+      acadSignedInAs: "مسجّل الدخول بصفة:",
+      acadSigninRequired: "سجّل الدخول بحساب أكاديمية مُعدّ من المشغّل لاستخدام البوابة. الحسابات تُنشأ من المشغّل فقط — لا يوجد تسجيل ذاتي.",
+      acadInconsistent: "اتصال الأكاديمية غير متسق: هدف العميل لا يطابق الهدف المُكوَّن. لا تُنفَّذ أي استعلامات.",
+      acadInvalidCredentials: "بيانات دخول الأكاديمية غير صحيحة: تحقق من البريد الإلكتروني وكلمة المرور.",
+      acadDenied: "مرفوض: ليس لديك صلاحية لهذا الإجراء في الأكاديمية.",
       noMember: "لا توجد عضوية أكاديمية لحسابك بعد. اطلب من مالك المنصة أو مدير الأكاديمية إضافتك عبر User ID.",
       myId: "معرّف المستخدم الخاص بك (انسخه وأرسله للمدير):",
       overview: "نظرة عامة", settings: "الملف والإعدادات", teachers: "المعلمون والأعضاء",
@@ -64,7 +76,17 @@ try {
       setupMissing: "🟡 Academy database is not configured yet: the migration was not applied. Reads/writes are disabled here — see the phase report.",
       targetDisabled: "Academy portal is disabled on this deployment: this deployment uses the Production project for the learner app, and Academy tables are never queried via Production. A separate Staging connection is required — it is not configured here. The learner app works normally.",
       noSupabase: "⚠️ Supabase is not configured in this browser: the app works offline; the academy portal is view-only.",
-      signin: "Sign in from the learner app (index.html) to use the portal. Guest mode has no admin rights.",
+      signin: "Sign in with your Academy account above to use the portal. Guest mode has no admin rights.",
+      acadAuthTitle: "Academy sign-in",
+      acadEmailPh: "Academy email",
+      acadPassPh: "Password",
+      acadSignIn: "Sign in",
+      acadSignOut: "Sign out of Academy",
+      acadSignedInAs: "Signed in as:",
+      acadSigninRequired: "Sign in with an operator-provisioned Academy account to use the portal. Accounts are operator-created only — no self-signup.",
+      acadInconsistent: "Academy connection is inconsistent: the client target does not match the configured target. No queries are issued.",
+      acadInvalidCredentials: "Invalid Academy credentials: check the email and password.",
+      acadDenied: "Permission denied: you lack Academy permission for this action.",
       noMember: "Your account has no academy membership yet. Ask a platform owner or academy manager to add you via User ID.",
       myId: "Your User ID (copy and send it to the manager):",
       overview: "Overview", settings: "Profile & settings", teachers: "Teachers & members",
@@ -75,7 +97,17 @@ try {
       setupMissing: "🟡 Akademie-Datenbank ist noch nicht konfiguriert: Die Migration wurde nicht angewendet.",
       targetDisabled: "Akademie-Portal ist auf diesem Deployment deaktiviert: Dieses Deployment nutzt das Produktionsprojekt für die Lern-App, und Akademie-Tabellen werden niemals über Produktion abgefragt. Eine separate Staging-Verbindung ist erforderlich — sie ist hier nicht konfiguriert. Die Lern-App funktioniert normal.",
       noSupabase: "⚠️ Supabase ist in diesem Browser nicht konfiguriert: Die App arbeitet offline; das Portal ist nur Ansicht.",
-      signin: "Melde dich in der Lern-App (index.html) an, um das Portal zu nutzen. Gastmodus hat keine Admin-Rechte.",
+      signin: "Melde dich oben mit deinem Akademie-Konto an, um das Portal zu nutzen. Gastmodus hat keine Admin-Rechte.",
+      acadAuthTitle: "Akademie-Anmeldung",
+      acadEmailPh: "Akademie-E-Mail",
+      acadPassPh: "Passwort",
+      acadSignIn: "Anmelden",
+      acadSignOut: "Von Akademie abmelden",
+      acadSignedInAs: "Angemeldet als:",
+      acadSigninRequired: "Melde dich mit einem vom Betreiber erstellten Akademie-Konto an. Konten werden nur vom Betreiber erstellt — keine Selbstregistrierung.",
+      acadInconsistent: "Akademie-Verbindung ist inkonsistent: Das Client-Ziel stimmt nicht mit dem konfigurierten Ziel überein. Es werden keine Abfragen ausgeführt.",
+      acadInvalidCredentials: "Ungültige Akademie-Anmeldedaten: E-Mail und Passwort prüfen.",
+      acadDenied: "Zugriff verweigert: Keine Akademie-Berechtigung für diese Aktion.",
       noMember: "Dein Konto hat noch keine Akademie-Mitgliedschaft. Bitte einen Plattform-Owner oder Manager um Hinzufügen per User-ID.",
       myId: "Deine User-ID (kopieren und an den Manager senden):",
       overview: "Überblick", settings: "Profil & Einstellungen", teachers: "Lehrer & Mitglieder",
@@ -104,6 +136,10 @@ try {
       // tables. Never claim a Staging connection exists when it does not.
       b.innerHTML = '<div class="panel glass" style="border-color:#a33">🚫 ' + esc(tr("targetDisabled")) +
         '<div class="muted">Academy target gate: explicit Staging ref required; Production is default-deny.</div></div>';
+    } else if (!s.configured && (s.reason === "inconsistent_target" || (s.code === "INCONSISTENT_TARGET"))) {
+      b.innerHTML = '<div class="panel glass" style="border-color:#a33">🚫 ' + esc(tr("acadInconsistent")) + "</div>";
+    } else if (!s.configured && (s.reason === "signin_required" || (s.code === "SIGNIN_REQUIRED"))) {
+      b.innerHTML = '<div class="panel glass" style="border-color:#a80">🔑 ' + esc(tr("acadSigninRequired")) + "</div>";
     } else if (!s.configured) {
       b.innerHTML = '<div class="panel glass" style="border-color:#a80">🟡 ' + esc(tr("setupMissing")) +
         '<div class="muted">supabase/migrations/20261015000000_academy_core.sql — staging only, never production.</div></div>';
@@ -129,19 +165,129 @@ try {
       teacher: "teacher 🧑‍🏫", student: "student 🎓" }[r] || r;
   }
 
+  // Dedicated Academy identity: the Staging session owned by AcademyAuth.
+  function academyUser() {
+    try {
+      if (window.AcademyAuth && typeof window.AcademyAuth.getUser === "function") {
+        return window.AcademyAuth.getUser() || null;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // Single stale-state reset: clears cached identity, selection, role, and
+  // all cached teacher/class/enrollment/progress view state, plus every
+  // rendered container so old UIDs, academy IDs, class lists, and progress
+  // are no longer visible. Never shows a prior UID as authenticated when
+  // the Academy session is unavailable.
+  function resetPortalState(reason) {
+    try { S.user = null; } catch (e) {}
+    try { S.memberships = []; } catch (e2) {}
+    try { S.currentAcademy = null; } catch (e3) {}
+    try { S.role = null; } catch (e4) {}
+    try { S.overview = { page: 1 }; } catch (e5) {}
+    try { S.teachers = { page: 1, search: "" }; } catch (e6) {}
+    try { S.classes = { page: 1, search: "" }; } catch (e7) {}
+    try { S.enroll = { classId: null, page: 1 }; } catch (e8) {}
+    try { S.teacherDash = { classId: null, page: 1, detail: null }; } catch (e9) {}
+    var bodies = ["acadSelector", "acadOverviewBody", "acadSettingsBody",
+      "acadTeachersBody", "acadClassesBody", "acadEnrollBody", "acadTeacherBody"];
+    for (var i = 0; i < bodies.length; i++) {
+      try {
+        var n = el(bodies[i]);
+        if (n) n.innerHTML = '<div class="muted">…</div>';
+      } catch (e10) {}
+    }
+    try {
+      var my = el("acadMyUid");
+      if (my) my.innerHTML = '<span class="muted">' + esc(tr("signin")) + "</span>";
+    } catch (e11) {}
+    try {
+      if (typeof window !== "undefined" && window) {
+        window.__academyPortalResetReason = reason || "reset";
+      }
+    } catch (e12) {}
+  }
+
   async function refreshAll() {
     var C = window.AcademyCore;
     if (!C) return;
-    try { S.user = (window.AuthModule && window.AuthModule.getUser && window.AuthModule.getUser()) || null; }
+    var initStatus = null;
+    try {
+      if (window.AcademyAuth && typeof window.AcademyAuth.initialize === "function") {
+        initStatus = await window.AcademyAuth.initialize();
+      }
+    } catch (e) { initStatus = null; }
+    if (!initStatus || !initStatus.configured) {
+      // Initialization failed or target disabled/inconsistent: clear stale
+      // selection, role, UID, and rendered data; show safe status only.
+      resetPortalState(!initStatus ? "init_failed" : initStatus.reason);
+      try { S.setup = await C.checkSetup(); } catch (e) { S.setup = { configured: false, reason: "target_disabled" }; }
+      renderSelector();
+      statusBanner();
+      renderAuthBox();
+      await Promise.all([renderOverview(), renderSettings(), renderTeachers(), renderClasses(), renderEnroll(), renderTeacherDash()]);
+      return;
+    }
+    // Fresh session check (never trust a stale cached user alone).
+    var freshUser = null;
+    try {
+      if (window.AcademyAuth && typeof window.AcademyAuth.validateSession === "function") {
+        var sess = await window.AcademyAuth.validateSession();
+        freshUser = (sess && sess.user) || null;
+      } else {
+        freshUser = academyUser();
+      }
+    } catch (e) { freshUser = null; }
+    if (!freshUser) {
+      resetPortalState("no_session");
+      try { S.setup = await C.checkSetup(); } catch (e2) { S.setup = { configured: false, reason: "signin_required" }; }
+      renderSelector();
+      statusBanner();
+      renderAuthBox();
+      await Promise.all([renderOverview(), renderSettings(), renderTeachers(), renderClasses(), renderEnroll(), renderTeacherDash()]);
+      return;
+    }
+    try { S.user = freshUser; }
     catch (e) { S.user = null; }
-    S.setup = await C.checkSetup();
-    if (S.setup.configured && S.user) {
+    try { S.setup = await C.checkSetup(); } catch (e3) { S.setup = null; }
+    if (S.setup && !S.setup.configured &&
+      (S.setup.code === "TARGET_DISABLED" || S.setup.code === "INCONSISTENT_TARGET" ||
+       S.setup.reason === "target_disabled" || S.setup.reason === "inconsistent_target")) {
+      var keepSetup = S.setup;
+      resetPortalState("target_invalid");
+      S.setup = keepSetup;
+      renderSelector();
+      statusBanner();
+      renderAuthBox();
+      await Promise.all([renderOverview(), renderSettings(), renderTeachers(), renderClasses(), renderEnroll(), renderTeacherDash()]);
+      return;
+    }
+    if (S.setup && S.setup.configured && S.user) {
       var m = await C.myMemberships();
+      if (m && (m.code === "TARGET_DISABLED" || m.code === "INCONSISTENT_TARGET" || m.code === "SIGNIN_REQUIRED")) {
+        var keepSetup2 = S.setup;
+        resetPortalState("target_invalid");
+        S.setup = keepSetup2;
+        renderSelector();
+        statusBanner();
+        renderAuthBox();
+        await Promise.all([renderOverview(), renderSettings(), renderTeachers(), renderClasses(), renderEnroll(), renderTeacherDash()]);
+        return;
+      }
       S.memberships = (m && m.data) || [];
     } else {
       S.memberships = [];
     }
     if (!S.currentAcademy && S.memberships.length) S.currentAcademy = S.memberships[0].academy_id;
+    // Drop a stale selection that no longer has a membership.
+    var stillMember = false;
+    if (S.currentAcademy) {
+      for (var k = 0; k < S.memberships.length; k++) {
+        if (S.memberships[k].academy_id === S.currentAcademy) { stillMember = true; break; }
+      }
+      if (!stillMember) S.currentAcademy = S.memberships.length ? S.memberships[0].academy_id : null;
+    }
     S.role = null;
     if (S.currentAcademy) {
       for (var i = 0; i < S.memberships.length; i++) {
@@ -150,7 +296,70 @@ try {
     }
     renderSelector();
     statusBanner();
+    renderAuthBox();
     await Promise.all([renderOverview(), renderSettings(), renderTeachers(), renderClasses(), renderEnroll(), renderTeacherDash()]);
+  }
+
+  // Dedicated Academy sign-in/status box (Staging-only, operator accounts).
+  // Rendered dynamically so static HTML needs no new translation keys.
+  function renderAuthBox() {
+    var box = el("acadAuthBox");
+    if (!box) return;
+    var A = null;
+    try { A = window.AcademyAuth || null; } catch (e) {}
+    var st = null;
+    try { st = A && typeof A.getStatus === "function" ? A.getStatus() : null; } catch (e) {}
+    if (!A || !st || !st.configured) {
+      box.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>";
+      return;
+    }
+    var u = null;
+    try { u = academyUser(); } catch (e) {}
+    if (!u) {
+      box.innerHTML =
+        '<h4>🔑 ' + esc(tr("acadAuthTitle")) + '</h4>' +
+        '<div class="form-group"><input id="acadAuthEmail" class="full-input" dir="ltr" autocomplete="username" placeholder="' + esc(tr("acadEmailPh")) + '"></div>' +
+        '<div class="form-group"><input id="acadAuthPass" type="password" class="full-input" dir="ltr" autocomplete="current-password" placeholder="' + esc(tr("acadPassPh")) + '"></div>' +
+        '<div class="row-flex"><button class="btn btn-primary sm" id="acadAuthGo">' + esc(tr("acadSignIn")) + '</button></div>' +
+        '<div class="muted" id="acadAuthMsg"></div>';
+      var go = el("acadAuthGo");
+      if (go) go.addEventListener("click", async function () {
+        var msg = el("acadAuthMsg");
+        var em = "", pw = "";
+        try { em = el("acadAuthEmail").value; pw = el("acadAuthPass").value; } catch (e) {}
+        if (msg) msg.textContent = "…";
+        var r = await A.signInWithPassword(em, pw);
+        if (r && r.error) {
+          // Failed sign-in must not keep showing the previous user's
+          // identity or data: clear cached UI and force safe revalidation.
+          resetPortalState("signin_failed");
+          statusBanner();
+          renderAuthBox();
+          var msg2 = el("acadAuthMsg");
+          if (msg2) msg2.textContent = "⛔ " + tr("acadInvalidCredentials") + " " + String(r.error).slice(0, 200);
+          refreshAll();
+        } else {
+          if (msg) msg.textContent = "";
+          refreshAll();
+        }
+      });
+      return;
+    }
+    var label = "";
+    try { label = u.email || u.id || ""; } catch (e) {}
+    box.innerHTML =
+      '<div class="muted">' + esc(tr("acadSignedInAs")) + ' <code dir="ltr">' + esc(String(label).slice(0, 80)) + '</code></div>' +
+      '<div class="row-flex"><button class="btn btn-ghost sm" id="acadAuthOut">' + esc(tr("acadSignOut")) + '</button></div>' +
+      '<div class="muted" id="acadAuthMsg"></div>';
+    var out = el("acadAuthOut");
+    if (out) out.addEventListener("click", async function () {
+      // Clear visible identity immediately even if remote sign-out later fails.
+      resetPortalState("signout");
+      statusBanner();
+      renderAuthBox();
+      try { await A.signOut(); } catch (e) {}
+      refreshAll();
+    });
   }
 
   function renderSelector() {
@@ -178,13 +387,28 @@ try {
   function denied(e) {
     if (!e) return "denied";
     if (e.code === "TARGET_DISABLED") return tr("targetDisabled");
+    if (e.code === "INCONSISTENT_TARGET") return tr("acadInconsistent");
+    if (e.code === "SIGNIN_REQUIRED") return tr("acadSigninRequired");
     if (e.code === "SETUP_REQUIRED") return tr("setupMissing");
     if (e.code === "NOT_AUTH") return tr("signin");
+    if (e.code === "DENIED") return tr("acadDenied");
+    if (e.code === "VALIDATION") return (e.error || "denied");
+    try {
+      var m = String(e.error || "");
+      if (/invalid.*credential|invalid login|wrong.*password|user.*not.*found|email.*not.*confirmed/i.test(m)) {
+        return tr("acadInvalidCredentials");
+      }
+      if (/permission|not.*author|denied|forbidden|rls|policy/i.test(m)) {
+        return tr("acadDenied");
+      }
+    } catch (x) {}
     return e.error || "denied";
   }
 
-  function isTargetDisabledResult(r) {
-    try { return !!r && (r.code === "TARGET_DISABLED" || (r.academyTarget && r.academyTarget.allowed === false && r.academyTarget.reason === "target_disabled")); }
+  function isAcademyBlocked(r) {
+    try {
+      return !!r && (r.code === "TARGET_DISABLED" || r.code === "INCONSISTENT_TARGET" || r.code === "SIGNIN_REQUIRED");
+    }
     catch (e) { return false; }
   }
 
@@ -196,8 +420,8 @@ try {
     box.innerHTML = '<div class="muted">…</div>';
     var cls = await C.listClasses(S.currentAcademy, { page: 1, size: 5 });
     var mem = await C.listMembers(S.currentAcademy, { page: 1, size: 5 });
-    if (isTargetDisabledResult(cls) || isTargetDisabledResult(mem)) {
-      box.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return;
+    if (isAcademyBlocked(cls) || isAcademyBlocked(mem)) {
+      box.innerHTML = '<div class="muted">🚫 ' + esc(denied(cls.code ? cls : mem)) + "</div>"; return;
     }
     if ((cls.code === "SETUP_REQUIRED") || (mem.code === "SETUP_REQUIRED")) {
       box.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return;
@@ -274,7 +498,7 @@ try {
     async function load() {
       var list = el("acadTList");
       var r = await C.listMembers(S.currentAcademy, { page: st.page, size: C.PAGE_SIZE });
-      if (isTargetDisabledResult(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
+      if (isAcademyBlocked(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(denied(r)) + "</div>"; return; }
       if (r.code === "SETUP_REQUIRED") { list.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
       if (r.error) { list.innerHTML = '<div class="muted">⛔ ' + esc(denied(r)) + "</div>"; return; }
       var rows = (r.data || []).filter(function (m) {
@@ -351,7 +575,7 @@ try {
     async function load() {
       var list = el("acadCList");
       var r = await C.listClasses(S.currentAcademy, { page: st.page, size: C.PAGE_SIZE, search: st.search });
-      if (isTargetDisabledResult(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
+      if (isAcademyBlocked(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(denied(r)) + "</div>"; return; }
       if (r.code === "SETUP_REQUIRED") { list.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
       if (r.error) { list.innerHTML = '<div class="muted">⛔ ' + esc(denied(r)) + "</div>"; return; }
       var rows = r.data || [];
@@ -502,7 +726,7 @@ try {
       var list = el("acadEList");
       if (!S.enroll.classId) { list.innerHTML = '<div class="muted">لا يوجد فصل نشط.</div>'; return; }
       var r = await C.listEnrollments(S.enroll.classId, { page: S.enroll.page, size: C.PAGE_SIZE });
-      if (isTargetDisabledResult(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
+      if (isAcademyBlocked(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(denied(r)) + "</div>"; return; }
       if (r.code === "SETUP_REQUIRED") { list.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
       if (r.error) { list.innerHTML = '<div class="muted">⛔ ' + esc(denied(r)) + "</div>"; return; }
       var rows = r.data || [];
@@ -537,7 +761,7 @@ try {
     var C = window.AcademyCore;
     if (!S.user) { box.innerHTML = '<div class="muted">' + esc(tr("signin")) + "</div>"; return; }
     var mine = await C.myTeachingClasses({ page: 1, size: C.MAX_PAGE_SIZE });
-    if (isTargetDisabledResult(mine)) { box.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
+    if (isAcademyBlocked(mine)) { box.innerHTML = '<div class="muted">🚫 ' + esc(denied(mine)) + "</div>"; return; }
     if (mine.code === "SETUP_REQUIRED") { box.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
     if (mine.error) { box.innerHTML = '<div class="muted">⛔ ' + esc(denied(mine)) + "</div>"; return; }
     var classes = mine.data || [];
@@ -635,8 +859,19 @@ try {
       });
     } catch (e) {}
     try {
-      if (window.AuthModule && typeof window.AuthModule.onAuthStateChange === "function") {
-        window.AuthModule.onAuthStateChange(function () { setTimeout(refreshAll, 300); });
+      // Academy session changes only: dedicated Academy session drives the
+      // portal (independence by design).
+      if (window.AcademyAuth && typeof window.AcademyAuth.onAuthStateChange === "function") {
+        window.AcademyAuth.onAuthStateChange(function (event, session) {
+          try {
+            if (!session || event === "SIGNED_OUT") {
+              resetPortalState("auth_no_session");
+              try { statusBanner(); } catch (e2) {}
+              try { renderAuthBox(); } catch (e3) {}
+            }
+          } catch (e) {}
+          setTimeout(refreshAll, 300);
+        });
       }
     } catch (e) {}
   }
@@ -654,6 +889,21 @@ try {
       // Manual refresh button (honest, always available)
       var rb = el("acadRefresh");
       if (rb) rb.addEventListener("click", refreshAll);
-    } catch (e) { console.warn("[AcademyPortal] init failed:", e); }
+    } catch (e) {
+      try { resetPortalState("init_failed"); } catch (e2) {}
+      console.warn("[AcademyPortal] init failed:", e);
+    }
   });
+
+  try {
+    if (typeof window !== "undefined" && window) {
+      window.__AcademyPortalTest = {
+        getState: function () { return S; },
+        reset: resetPortalState,
+        tr: tr,
+        denied: denied,
+        refreshAll: refreshAll
+      };
+    }
+  } catch (e) {}
 })();

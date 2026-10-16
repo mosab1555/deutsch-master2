@@ -238,17 +238,20 @@ ok("teacher not manager", C.isManagerRole("teacher") === false);
   const acadHtml = fs.readFileSync(path.join(ROOT, "client", "academy.html"), "utf8");
   ["page-academy-overview", "page-academy-settings", "page-academy-teachers",
    "page-academy-classes", "page-academy-enroll", "page-teacher",
-   "acadSetupBanner", "acadMyUid", "acadSelector", "acadOverviewBody",
+   "acadSetupBanner", "acadMyUid", "acadAuthBox", "acadSelector", "acadOverviewBody",
    "acadSettingsBody", "acadTeachersBody", "acadClassesBody", "acadEnrollBody",
-   "acadTeacherBody", "academy-core.js", "academy-portal.js"
+   "acadTeacherBody", "academy-auth.js", "academy-core.js", "academy-portal.js"
   ].forEach(function (id) { ok("academy.html contains " + id, acadHtml.indexOf(id) >= 0); });
+  ok("academy-auth.js loads before academy-core.js",
+    acadHtml.indexOf("academy-auth.js") >= 0 && acadHtml.indexOf("academy-auth.js") < acadHtml.indexOf("academy-core.js"));
   const idxHtml = fs.readFileSync(path.join(ROOT, "client", "index.html"), "utf8");
   ok("learner index.html does NOT load academy-portal (preserved)",
-    idxHtml.indexOf("academy-portal.js") < 0 && idxHtml.indexOf("academy-core.js") < 0);
+    idxHtml.indexOf("academy-portal.js") < 0 && idxHtml.indexOf("academy-core.js") < 0 && idxHtml.indexOf("academy-auth.js") < 0);
   const sw = fs.readFileSync(path.join(ROOT, "client", "sw.js"), "utf8");
   ok("sw precaches academy-core", sw.indexOf("academy-core.js") >= 0);
+  ok("sw precaches academy-auth", sw.indexOf("academy-auth.js") >= 0);
   ok("sw precaches academy-portal", sw.indexOf("academy-portal.js") >= 0);
-  ["client/academy-core.js", "client/academy-portal.js"].forEach(function (f) {
+  ["client/academy-auth.js", "client/academy-core.js", "client/academy-portal.js"].forEach(function (f) {
     const src = fs.readFileSync(path.join(ROOT, f), "utf8");
     ok(f + " no service_role", !/service_role|sb_secret/i.test(src));
     ok(f + " no hardcoded uuid owner", !/00000000-0000-4000-8000-0000000000/i.test(src));

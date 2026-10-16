@@ -6,13 +6,16 @@
  * never reads/writes S, DMProgress internals, localStorage keys, or cloud
  * sync queues. Academy database access is fail-closed by separate Academy
  * deployment target (`window.ACADEMY_SUPABASE_CONFIG` +
- * `window.academySupabaseClient`, ACADEMY_STAGING_REF allowlist): missing,
- * disallowed, or inconsistent Academy targets return TARGET_DISABLED /
- * target_disabled WITHOUT any `.from(...)` request. The learner
- * `SUPABASE_CONFIG` / `supabaseClient` / `AuthModule.getClient()` are NEVER
- * used for Academy queries by design. Learner auth / progress / cloud-sync
- * paths are untouched. RLS remains the enforcement point when a Staging
- * Academy target is explicitly configured.
+ * `window.academySupabaseClient`, ACADEMY_STAGING_REF allowlist) PLUS an
+ * authenticated Staging session owned by AcademyAuth: missing, disallowed,
+ * or inconsistent Academy targets return TARGET_DISABLED /
+ * INCONSISTENT_TARGET, and a missing Academy session returns
+ * SIGNIN_REQUIRED, all WITHOUT any `.from(...)` request. The learner
+ * `SUPABASE_CONFIG` / `supabaseClient` / `AuthModule` (client AND session)
+ * are NEVER used for Academy queries or identity by design. Learner auth /
+ * progress / cloud-sync paths are untouched. RLS remains the enforcement
+ * point when a Staging Academy target is explicitly configured; client-side
+ * checks are only a fail-closed gate, never a substitute for RLS.
  *
  * Roles (per-academy in academy_members, plus global platform owner):
  *   platform_owner | academy_owner | academy_admin | teacher | student
@@ -59,7 +62,19 @@ var AcademyCore = (function () {
   var ACADEMY_ALLOWED_REFS = [ACADEMY_STAGING_REF];
 
   function extractProjectRef(url) {
+    // Canonical Academy ref extraction, shared with AcademyAuth at runtime
+    // when the dedicated auth module is present (single source of truth).
     try {
+      try {
+        var A0 = null;
+        if (typeof window !== "undefined" && window && window.AcademyAuth &&
+          typeof window.AcademyAuth.extractRef === "function") A0 = window.AcademyAuth;
+        else if (typeof globalThis !== "undefined" && globalThis && globalThis.AcademyAuth &&
+          typeof globalThis.AcademyAuth.extractRef === "function") A0 = globalThis.AcademyAuth;
+        if (A0) {
+          try { return A0.extractRef(url); } catch (e0) {}
+        }
+      } catch (e) {}
       var s = String(url == null ? "" : url).trim();
       if (!s) return null;
       var m = s.match(/^https?:\/\/([a-z0-9-]+)\.supabase\.co(?:[\/?#]|$)/i);
@@ -114,27 +129,36 @@ var AcademyCore = (function () {
   }
 
   function getAcademyClientUrl(client) {
+    // Canonical client URL extraction, shared with AcademyAuth.clientUrlOf.
+    // Strict: only the official client URL fields are honored. Permissive
+    // generic shapes are rejected so unknown URL shapes fail closed
+    // consistently in both modules.
     try {
-      if (!client || typeof client !== "object") return null;
-      var candidates = [];
       try {
-        candidates.push(client.supabaseUrl);
-        candidates.push(client.supabase_url);
-        candidates.push(client.url);
-        candidates.push(client.restUrl);
-        candidates.push(client.rest_url);
-        if (client.rest && client.rest.url) candidates.push(client.rest.url);
-        if (client.rest && client.rest.supabaseUrl) candidates.push(client.rest.supabaseUrl);
-        if (client.__academyTargetUrl) candidates.push(client.__academyTargetUrl);
+        var A1 = null;
+        if (typeof window !== "undefined" && window && window.AcademyAuth &&
+          typeof window.AcademyAuth.clientUrlOf === "function") A1 = window.AcademyAuth;
+        else if (typeof globalThis !== "undefined" && globalThis && globalThis.AcademyAuth &&
+          typeof globalThis.AcademyAuth.clientUrlOf === "function") A1 = globalThis.AcademyAuth;
+        if (A1) {
+          try { return A1.clientUrlOf(client); } catch (e0) {}
+        }
       } catch (e) {}
-      for (var i = 0; i < candidates.length; i++) {
-        var v = candidates[i];
-        if (!v) continue;
+      if (!client || typeof client !== "object") return null;
+      var u = null;
+      try { u = client.supabaseUrl; } catch (e2) {}
+      if (typeof u === "string") {
         try {
-          var s = String(v);
-          if (extractProjectRef(s)) return s;
-        } catch (e2) {}
+          var s = String(u).trim();
+          if (s && extractProjectRef(s)) return s;
+        } catch (e3) {}
       }
+      try {
+        if (client.rest && typeof client.rest.url === "string") {
+          var s2 = String(client.rest.url).trim();
+          if (s2 && extractProjectRef(s2)) return s2;
+        }
+      } catch (e4) {}
       return null;
     } catch (e) { return null; }
   }
@@ -165,6 +189,27 @@ var AcademyCore = (function () {
     return { ref: cfgRef, configRef: cfgRef, clientRef: cliRef, allowed: true, reason: "staging_allowed", client: client };
   }
 
+  function getAcademyAuth() {
+    try {
+      if (typeof window !== "undefined" && window && window.AcademyAuth) return window.AcademyAuth;
+    } catch (e) {}
+    try {
+      if (typeof globalThis !== "undefined" && globalThis && globalThis.AcademyAuth) return globalThis.AcademyAuth;
+    } catch (e2) {}
+    return null;
+  }
+
+  function getTrustedAcademyClient() {
+    try {
+      var A = getAcademyAuth();
+      if (!A) return null;
+      if (A && typeof A.trustedClient === "function") {
+        try { return A.trustedClient() || null; } catch (e) { return null; }
+      }
+      return null;
+    } catch (e) { return null; }
+  }
+
   function getAcademyTargetStatus(overrideConfigUrl, overrideClient) {
     var hasOverride = (overrideConfigUrl !== undefined) || (overrideClient !== undefined);
     var cfgUrl = (overrideConfigUrl !== undefined) ? overrideConfigUrl : configuredAcademyUrl();
@@ -178,6 +223,22 @@ var AcademyCore = (function () {
       // Delegate to the deployment resolver so missing/inconsistent client
       // still denies.
       return resolveAcademyDeployment(cfgUrl, cli);
+    }
+    if (!hasOverride) {
+      // Live path: when the dedicated auth module holds a trusted instance,
+      // the global client must be exactly that instance. A replaced object
+      // is rejected even when its URL appears to be Staging.
+      try {
+        var trusted = getTrustedAcademyClient();
+        if (trusted) {
+          if (cli !== trusted) {
+            var cfgR = null;
+            try { cfgR = extractProjectRef(cfgUrl); } catch (e) {}
+            return { ref: cfgR, configRef: cfgR, clientRef: null, allowed: false,
+              reason: "inconsistent_target", client: null };
+          }
+        }
+      } catch (e) {}
     }
     return resolveAcademyDeployment(cfgUrl, cli);
   }
@@ -395,9 +456,135 @@ var AcademyCore = (function () {
       return null;
     } catch (e) { return null; }
   }
-  function authed() {
-    try { return (window.AuthModule && window.AuthModule.getUser && window.AuthModule.getUser()) || null; }
-    catch (e) { return null; }
+  // Academy identity ONLY: the dedicated Staging session owned by
+  // AcademyAuth. Production AuthModule state is NEVER consulted here, so a
+  // learner sign-in can neither grant nor leak Academy access.
+  function academySessionUser() {
+    try {
+      if (typeof window !== "undefined" && window.AcademyAuth &&
+        typeof window.AcademyAuth.getUser === "function") {
+        return window.AcademyAuth.getUser() || null;
+      }
+    } catch (e) {}
+    try {
+      if (typeof globalThis !== "undefined" && globalThis.AcademyAuth &&
+        typeof globalThis.AcademyAuth.getUser === "function") {
+        return globalThis.AcademyAuth.getUser() || null;
+      }
+    } catch (e2) {}
+    return null;
+  }
+  function authed() { return academySessionUser(); }
+  function academySigninRequiredMessage() {
+    return "Academy sign-in required: sign in with an operator-provisioned Academy account on the Staging connection.";
+  }
+  function academyInconsistentMessage() {
+    return "Academy connection is inconsistent: the Academy client target does not match the configured Staging target. Academy tables are not queried.";
+  }
+  // Maps a failed deployment-target status to its public denial code.
+  function gateDenial(t) {
+    try {
+      if (t && t.reason === "inconsistent_target") {
+        return { code: "INCONSISTENT_TARGET", reason: "inconsistent_target" };
+      }
+    } catch (e) {}
+    return { code: "TARGET_DISABLED", reason: (t && t.reason) || "target_disabled" };
+  }
+  // Centralized async preflight for EVERY Academy table request. Validates
+  // in order: (1) distinct Academy config + allowed Staging target,
+  // (2) trusted Academy-client identity + matching URL/ref, (3) a current
+  // authenticated session obtained through the dedicated Academy client.
+  // Returns { ok:true, client, user, session, target } or
+  // { ok:false, code, reason, target, error }. Callers must return the
+  // documented status WITHOUT any `.from()` call when ok===false.
+  // Client-side checks are only a fail-closed gate; RLS remains the
+  // required server-side authorization boundary for every allowed query.
+  async function academyPreflight(overrideConfigUrl, overrideClient) {
+    var hasOverride = (overrideConfigUrl !== undefined) || (overrideClient !== undefined);
+    var target = null;
+    try {
+      target = hasOverride
+        ? getAcademyTargetStatus(overrideConfigUrl, overrideClient)
+        : getAcademyTargetStatus();
+    } catch (e) {
+      target = { allowed: false, reason: "target_disabled", ref: null, client: null };
+    }
+    if (!target || !target.allowed || !target.client) {
+      var d0 = gateDenial(target);
+      var m0 = d0.code === "INCONSISTENT_TARGET" ? academyInconsistentMessage() : academyTargetDisabledMessage();
+      return { ok: false, code: d0.code, reason: (target && target.reason) || "target_disabled",
+        target: target, client: null, user: null, session: null, error: m0 };
+    }
+    var A = getAcademyAuth();
+    var session = null, user = null;
+    try {
+      if (A && typeof A.validateSession === "function") {
+        try { session = await A.validateSession(); } catch (e) { session = null; }
+        try { user = (session && session.user) ? session.user : null; } catch (e2) { user = null; }
+        if (!session || !user) {
+          return { ok: false, code: "SIGNIN_REQUIRED", reason: "signin_required",
+            target: target, client: null, user: null, session: null, error: academySigninRequiredMessage() };
+        }
+      } else if (A && typeof A.getSession === "function") {
+        var s = null;
+        try {
+          s = A.getSession();
+          if (s && typeof s.then === "function") s = await s;
+        } catch (e) { s = null; }
+        var u = null;
+        try {
+          if (s && s.user) u = s.user;
+          else if (A && typeof A.getUser === "function") {
+            var gu = A.getUser();
+            if (gu && typeof gu.then === "function") gu = await gu;
+            // A cached user alone never proves validity: require a live
+            // session object as well, otherwise treat as stale.
+            if (s && gu) u = gu;
+            else { u = null; s = null; }
+          }
+        } catch (e2) { u = null; s = null; }
+        if (!s || !u) {
+          return { ok: false, code: "SIGNIN_REQUIRED", reason: "signin_required",
+            target: target, client: null, user: null, session: null, error: academySigninRequiredMessage() };
+        }
+        session = s; user = u;
+      } else {
+        var cli = target.client;
+        try {
+          if (cli && cli.auth && typeof cli.auth.getSession === "function") {
+            var r = await cli.auth.getSession();
+            var sess = r && r.data ? r.data.session : null;
+            if (!sess || !sess.user) {
+              return { ok: false, code: "SIGNIN_REQUIRED", reason: "signin_required",
+                target: target, client: null, user: null, session: null, error: academySigninRequiredMessage() };
+            }
+            session = sess; user = sess.user;
+          } else {
+            return { ok: false, code: "SIGNIN_REQUIRED", reason: "signin_required",
+              target: target, client: null, user: null, session: null, error: academySigninRequiredMessage() };
+          }
+        } catch (e) {
+          return { ok: false, code: "SIGNIN_REQUIRED", reason: "signin_required",
+            target: target, client: null, user: null, session: null, error: academySigninRequiredMessage() };
+        }
+      }
+    } catch (e) {
+      return { ok: false, code: "SIGNIN_REQUIRED", reason: "signin_required",
+        target: target, client: null, user: null, session: null, error: academySigninRequiredMessage() };
+    }
+    return { ok: true, code: "ok", reason: "ok", target: target,
+      client: target.client, user: user, session: session, error: null };
+  }
+  function preflightDenial(p, emptyData) {
+    try {
+      if (p.code === "SIGNIN_REQUIRED") {
+        return { data: emptyData, error: academySigninRequiredMessage(), code: "SIGNIN_REQUIRED", academyTarget: p.target };
+      }
+      if (p.code === "INCONSISTENT_TARGET") {
+        return { data: emptyData, error: academyInconsistentMessage(), code: "INCONSISTENT_TARGET", academyTarget: p.target };
+      }
+    } catch (e) {}
+    return { data: emptyData, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: p.target };
   }
   function errOf(e, fallback) {
     var msg = "";
@@ -414,24 +601,25 @@ var AcademyCore = (function () {
   async function checkSetup(overrideConfigUrl, overrideClient) {
     // Hardened fail-closed gate: Academy tables are probed ONLY via the
     // distinct Academy client whose config + client targets both resolve to
-    // the explicit Staging ref. All other states return target_disabled
-    // WITHOUT any `.from(...)` call. Learner config/client are ignored.
+    // the explicit Staging ref AND a fresh authenticated Staging session
+    // obtained through the dedicated Academy client exists.
+    // All other states return an explicit status WITHOUT any `.from(...)`
+    // call. RLS remains the enforcement point when configured.
     var hasOverride = (overrideConfigUrl !== undefined) || (overrideClient !== undefined);
-    var target = hasOverride
-      ? getAcademyTargetStatus(overrideConfigUrl, overrideClient)
-      : getAcademyTargetStatus();
-    if (!target.allowed || !target.client) {
-      var gateUser = null;
-      try { gateUser = authed(); } catch (e) {}
-      if ((target.reason === "missing_config" || target.reason === "unrecognized_target" || target.reason === "missing_client") && !hasOverride) {
-        // Preserve the legacy offline posture only when no Academy client
-        // exists at all (no table probe happens on any path here).
-        return { configured: false, reason: "supabase_not_configured", user: null, academyTarget: target };
+    var pre = await academyPreflight(overrideConfigUrl, overrideClient);
+    if (!pre.ok) {
+      if (!hasOverride && (pre.reason === "missing_config" || pre.reason === "unrecognized_target" || pre.reason === "missing_client")) {
+        // Offline posture when no Academy connection exists at all (no table
+        // probe happens on any path here).
+        return { configured: false, reason: "supabase_not_configured", user: null, academyTarget: pre.target };
       }
-      return { configured: false, reason: "target_disabled", ref: target.ref, academyTarget: target,
-        user: gateUser, detail: academyTargetDisabledMessage(), error: academyTargetDisabledMessage(), code: "TARGET_DISABLED" };
+      var msg0 = pre.code === "INCONSISTENT_TARGET" ? academyInconsistentMessage() : (pre.code === "SIGNIN_REQUIRED" ? academySigninRequiredMessage() : academyTargetDisabledMessage());
+      var rs0 = pre.code === "SIGNIN_REQUIRED" ? "signin_required" : pre.reason;
+      return { configured: false, reason: rs0, ref: pre.target ? pre.target.ref : null, academyTarget: pre.target,
+        user: null, detail: msg0, error: msg0, code: pre.code };
     }
-    var user = authed(), client = target.client;
+    var user = pre.user;
+    var client = pre.client;
     if (!client) return { configured: false, reason: "supabase_not_configured", user: null };
     // Probe academy tables with zero-row reads; missing-table errors mean the
     // Phase 1 migration has not been applied (honest setup status, no fake data).
@@ -456,10 +644,9 @@ var AcademyCore = (function () {
 
   async function listAcademies(opts) {
     opts = opts || {};
-    var _t0 = getAcademyTargetStatus();
-    if (!_t0.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t0 };
-    var client = db();
-    if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
+    var _p0 = await academyPreflight();
+    if (!_p0.ok) return preflightDenial(_p0, []);
+    var client = _p0.client;
     var pg = pageRange(opts.page, opts.size);
     try {
       var q = client.from("academies").select("id,name,slug,description,logo_url,primary_color,archived_at,created_at", { count: "exact" })
@@ -479,10 +666,9 @@ var AcademyCore = (function () {
   }
 
   async function myMemberships() {
-    var _t1 = getAcademyTargetStatus();
-    if (!_t1.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t1 };
-    var client = db(), user = authed();
-    if (!client || !user) return { data: [], error: !user ? "Not signed in" : "Sync not initialized", code: !user ? "NOT_AUTH" : "SETUP_REQUIRED" };
+    var _p1 = await academyPreflight();
+    if (!_p1.ok) return preflightDenial(_p1, []);
+    var client = _p1.client, user = _p1.user;
     try {
       var r = await client.from("academy_members").select("academy_id,role,status,created_at").eq("user_id", user.id).eq("status", "active");
       if (r.error) {
@@ -496,12 +682,11 @@ var AcademyCore = (function () {
   }
 
   async function createAcademy(input) {
-    var _t2 = getAcademyTargetStatus();
-    if (!_t2.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t2 };
+    var _p2 = await academyPreflight();
+    if (!_p2.ok) { var _e2 = preflightDenial(_p2, null); _e2.data = null; return _e2; }
     var v = validateAcademyInput(input);
     if (v.errors.length) return { data: null, error: v.errors.join("; "), code: "VALIDATION" };
-    var client = db(), user = authed();
-    if (!client || !user) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
+    var client = _p2.client, user = _p2.user;
     try {
       var r = await client.from("academies").insert({
         name: v.value.name, slug: v.value.slug,
@@ -520,11 +705,10 @@ var AcademyCore = (function () {
   }
 
   async function updateAcademy(academyId, patch) {
-    var _t3 = getAcademyTargetStatus();
-    if (!_t3.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t3 };
+    var _p3 = await academyPreflight();
+    if (!_p3.ok) { var _e3 = preflightDenial(_p3, null); _e3.data = null; return _e3; }
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
-    var client = db();
-    if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
+    var client = _p3.client;
     var next = {};
     if (patch.name !== undefined) {
       var nm = String(patch.name).trim();
@@ -553,11 +737,10 @@ var AcademyCore = (function () {
 
   async function listMembers(academyId, opts) {
     opts = opts || {};
-    var _t4 = getAcademyTargetStatus();
-    if (!_t4.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t4 };
-    var client = db();
+    var _p4 = await academyPreflight();
+    if (!_p4.ok) return preflightDenial(_p4, []);
+    var client = _p4.client;
     if (!isUuid(academyId)) return { data: [], error: "Invalid academy id", code: "VALIDATION" };
-    if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
     var pg = pageRange(opts.page, opts.size);
     try {
       var q = client.from("academy_members").select("academy_id,user_id,role,status,created_at", { count: "exact" })
@@ -575,18 +758,17 @@ var AcademyCore = (function () {
   }
 
   async function addMember(academyId, targetUserId, role) {
-    var _t5 = getAcademyTargetStatus();
-    if (!_t5.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t5 };
+    var _p5 = await academyPreflight();
+    if (!_p5.ok) { var _e5 = preflightDenial(_p5, null); _e5.data = null; return _e5; }
     role = normRole(role);
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
     if (!isUuid(targetUserId)) return { data: null, error: "Enter the member's User ID (UUID of an existing signed-up user).", code: "VALIDATION" };
     if (!role || role === "platform_owner") return { data: null, error: "Invalid role for academy membership.", code: "VALIDATION" };
-    var me = authed();
+    var me = _p5.user;
     if (me && me.id === targetUserId && isPrivileged(role)) {
       return { data: null, error: "You cannot grant yourself a privileged role.", code: "DENIED" };
     }
-    var client = db();
-    if (!client || !me) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
+    var client = _p5.client;
     try {
       var r = await client.from("academy_members").insert({
         academy_id: academyId, user_id: targetUserId, role: role, status: "active", invited_by: me.id
@@ -600,13 +782,12 @@ var AcademyCore = (function () {
   }
 
   async function updateMemberRole(academyId, targetUserId, role, status) {
-    var _t6 = getAcademyTargetStatus();
-    if (!_t6.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t6 };
+    var _p6 = await academyPreflight();
+    if (!_p6.ok) { var _e6 = preflightDenial(_p6, null); _e6.data = null; return _e6; }
     if (!isUuid(academyId) || !isUuid(targetUserId)) return { data: null, error: "Invalid ids", code: "VALIDATION" };
-    var me = authed();
+    var me = _p6.user;
     if (me && me.id === targetUserId) return { data: null, error: "Members cannot change their own role.", code: "DENIED" };
-    var client = db();
-    if (!client || !me) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
+    var client = _p6.client;
     var patch = {};
     if (role !== undefined) {
       role = normRole(role);
@@ -636,11 +817,10 @@ var AcademyCore = (function () {
 
   async function listClasses(academyId, opts) {
     opts = opts || {};
-    var _t7 = getAcademyTargetStatus();
-    if (!_t7.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t7 };
-    var client = db();
+    var _p7 = await academyPreflight();
+    if (!_p7.ok) return preflightDenial(_p7, []);
+    var client = _p7.client;
     if (!isUuid(academyId)) return { data: [], error: "Invalid academy id", code: "VALIDATION" };
-    if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
     var pg = pageRange(opts.page, opts.size);
     try {
       var q = client.from("classes").select("id,academy_id,name,level,description,archived_at,created_at", { count: "exact" })
@@ -658,13 +838,12 @@ var AcademyCore = (function () {
   }
 
   async function createClass(academyId, input) {
-    var _t8 = getAcademyTargetStatus();
-    if (!_t8.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t8 };
+    var _p8 = await academyPreflight();
+    if (!_p8.ok) { var _e8 = preflightDenial(_p8, null); _e8.data = null; return _e8; }
     var v = validateClassInput(input);
     if (v.errors.length) return { data: null, error: v.errors.join("; "), code: "VALIDATION" };
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
-    var client = db(), user = authed();
-    if (!client || !user) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
+    var client = _p8.client, user = _p8.user;
     try {
       var r = await client.from("classes").insert({
         academy_id: academyId, name: v.value.name, level: v.value.level,
@@ -680,11 +859,10 @@ var AcademyCore = (function () {
   }
 
   async function updateClass(classId, patch) {
-    var _t9 = getAcademyTargetStatus();
-    if (!_t9.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t9 };
+    var _p9 = await academyPreflight();
+    if (!_p9.ok) { var _e9 = preflightDenial(_p9, null); _e9.data = null; return _e9; }
     if (!isUuid(classId)) return { data: null, error: "Invalid class id", code: "VALIDATION" };
-    var client = db();
-    if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
+    var client = _p9.client;
     var next = {};
     if (patch.name !== undefined) {
       var nm = String(patch.name).trim();
@@ -709,11 +887,10 @@ var AcademyCore = (function () {
   }
 
   async function listClassTeachers(classId) {
-    var _t10 = getAcademyTargetStatus();
-    if (!_t10.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t10 };
-    var client = db();
+    var _p10 = await academyPreflight();
+    if (!_p10.ok) return preflightDenial(_p10, []);
+    var client = _p10.client;
     if (!isUuid(classId)) return { data: [], error: "Invalid class id", code: "VALIDATION" };
-    if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
     try {
       var r = await client.from("class_teachers").select("class_id,teacher_id,assigned_at").eq("class_id", classId).order("assigned_at", { ascending: true });
       if (r.error) {
@@ -725,12 +902,11 @@ var AcademyCore = (function () {
   }
 
   async function assignTeacher(classId, teacherUserId) {
-    var _t11 = getAcademyTargetStatus();
-    if (!_t11.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t11 };
+    var _p11 = await academyPreflight();
+    if (!_p11.ok) { var _e11 = preflightDenial(_p11, null); _e11.data = null; return _e11; }
     if (!isUuid(classId)) return { data: null, error: "Invalid class id", code: "VALIDATION" };
     if (!isUuid(teacherUserId)) return { data: null, error: "Enter the teacher's User ID (UUID).", code: "VALIDATION" };
-    var client = db(), me = authed();
-    if (!client || !me) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
+    var client = _p11.client, me = _p11.user;
     if (me.id === teacherUserId) {
       // Self-assignment as teacher is a privileged grant: blocked here so the
       // server guard stays the second line of defense, not the only one.
@@ -748,11 +924,10 @@ var AcademyCore = (function () {
   }
 
   async function unassignTeacher(classId, teacherUserId) {
-    var _t12 = getAcademyTargetStatus();
-    if (!_t12.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t12 };
+    var _p12 = await academyPreflight();
+    if (!_p12.ok) { var _e12 = preflightDenial(_p12, null); _e12.data = null; return _e12; }
     if (!isUuid(classId) || !isUuid(teacherUserId)) return { data: null, error: "Invalid ids", code: "VALIDATION" };
-    var client = db();
-    if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
+    var client = _p12.client;
     try {
       var r = await client.from("class_teachers").delete().eq("class_id", classId).eq("teacher_id", teacherUserId);
       if (r.error) {
@@ -765,10 +940,9 @@ var AcademyCore = (function () {
 
   async function myTeachingClasses(opts) {
     opts = opts || {};
-    var _t13 = getAcademyTargetStatus();
-    if (!_t13.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t13 };
-    var client = db(), user = authed();
-    if (!client || !user) return { data: [], error: !user ? "Not signed in" : "Sync not initialized", code: !user ? "NOT_AUTH" : "SETUP_REQUIRED" };
+    var _p13 = await academyPreflight();
+    if (!_p13.ok) return preflightDenial(_p13, []);
+    var client = _p13.client, user = _p13.user;
     var pg = pageRange(opts.page, opts.size);
     try {
       var r = await client.from("class_teachers").select("class_id,assigned_at", { count: "exact" })
@@ -787,11 +961,10 @@ var AcademyCore = (function () {
 
   async function listEnrollments(classId, opts) {
     opts = opts || {};
-    var _t14 = getAcademyTargetStatus();
-    if (!_t14.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t14 };
-    var client = db();
+    var _p14 = await academyPreflight();
+    if (!_p14.ok) return preflightDenial(_p14, []);
+    var client = _p14.client;
     if (!isUuid(classId)) return { data: [], error: "Invalid class id", code: "VALIDATION" };
-    if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
     var pg = pageRange(opts.page, opts.size);
     try {
       var q = client.from("class_enrollments").select("class_id,student_id,enrolled_at", { count: "exact" })
@@ -807,14 +980,13 @@ var AcademyCore = (function () {
   }
 
   async function enrollStudent(classId, studentUserId) {
-    var _t15 = getAcademyTargetStatus();
-    if (!_t15.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t15 };
+    var _p15 = await academyPreflight();
+    if (!_p15.ok) { var _e15 = preflightDenial(_p15, null); _e15.data = null; return _e15; }
     if (!isUuid(classId)) return { data: null, error: "Invalid class id", code: "VALIDATION" };
     if (!isUuid(studentUserId)) return { data: null, error: "Enter the student's User ID (UUID of an existing signed-up user).", code: "VALIDATION" };
-    var me = authed();
+    var me = _p15.user;
     if (me && me.id === studentUserId) return { data: null, error: "Self-enrollment is disabled; ask a manager or teacher.", code: "DENIED" };
-    var client = db();
-    if (!client || !me) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
+    var client = _p15.client;
     try {
       var r = await client.from("class_enrollments").insert({ class_id: classId, student_id: studentUserId, enrolled_by: me.id })
         .select("class_id,student_id").single();
@@ -828,11 +1000,10 @@ var AcademyCore = (function () {
 
   async function removeEnrollment(classId, studentUserId) {
     // Revokes class access only; the student's account + learning history stay intact.
-    var _t16 = getAcademyTargetStatus();
-    if (!_t16.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t16 };
+    var _p16 = await academyPreflight();
+    if (!_p16.ok) { var _e16 = preflightDenial(_p16, null); _e16.data = null; return _e16; }
     if (!isUuid(classId) || !isUuid(studentUserId)) return { data: null, error: "Invalid ids", code: "VALIDATION" };
-    var client = db();
-    if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
+    var client = _p16.client;
     try {
       var r = await client.from("class_enrollments").delete().eq("class_id", classId).eq("student_id", studentUserId);
       if (r.error) {
@@ -846,11 +1017,11 @@ var AcademyCore = (function () {
   async function getStudentProgress(studentUserId) {
     // RLS decides: own rows always; teachers/managers only when authorized.
     // Fail-closed first: Academy progress reads never go through Production.
-    var _t17 = getAcademyTargetStatus();
-    if (!_t17.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t17 };
+    // Client gate is never a substitute for RLS; RLS stays the boundary.
+    var _p17 = await academyPreflight();
+    if (!_p17.ok) { var _e17 = preflightDenial(_p17, null); _e17.data = null; return _e17; }
     if (!isUuid(studentUserId)) return { data: null, error: "Invalid student id", code: "VALIDATION" };
-    var client = db();
-    if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
+    var client = _p17.client;
     try {
       var r = await client.from("user_progress").select("user_id,state,version,updated_at").eq("user_id", studentUserId).single();
       if (r.error) {
@@ -862,11 +1033,10 @@ var AcademyCore = (function () {
   }
 
   async function getProfiles(userIds) {
-    var _t18 = getAcademyTargetStatus();
-    if (!_t18.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t18 };
-    var client = db();
+    var _p18 = await academyPreflight();
+    if (!_p18.ok) return preflightDenial(_p18, []);
+    var client = _p18.client;
     var ids = (userIds || []).filter(isUuid).slice(0, MAX_PAGE_SIZE);
-    if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
     if (!ids.length) return { data: [], error: null };
     try {
       var r = await client.from("profiles").select("id,display_name,avatar_url,created_at").in("id", ids);
@@ -876,11 +1046,10 @@ var AcademyCore = (function () {
   }
 
   async function logAudit(academyId, action, entityType, entityId, metadata) {
-    var _t19 = getAcademyTargetStatus();
-    if (!_t19.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t19 };
+    var _p19 = await academyPreflight();
+    if (!_p19.ok) { var _e19 = preflightDenial(_p19, null); _e19.data = null; return _e19; }
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
-    var client = db(), me = authed();
-    if (!client || !me) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
+    var client = _p19.client, me = _p19.user;
     try {
       var r = await client.from("academy_audit_events").insert({
         academy_id: academyId, actor_id: me.id, action: String(action).slice(0, 80),
@@ -903,7 +1072,9 @@ var AcademyCore = (function () {
     configuredAcademyUrl: configuredAcademyUrl, getAcademyClient: getAcademyClient,
     getAcademyClientUrl: getAcademyClientUrl,
     getAcademyTargetStatus: getAcademyTargetStatus, isAcademyTargetAllowed: isAcademyTargetAllowed,
-    requireAcademyTarget: requireAcademyTarget,
+    requireAcademyTarget: requireAcademyTarget, academySessionUser: academySessionUser,
+    gateDenial: gateDenial, academyPreflight: academyPreflight,
+    getAcademyAuth: getAcademyAuth, getTrustedAcademyClient: getTrustedAcademyClient,
     normRole: normRole, isPrivileged: isPrivileged, isManagerRole: isManagerRole,
     slugify: slugify, isUuid: isUuid,
     validateAcademyInput: validateAcademyInput, validateClassInput: validateClassInput,

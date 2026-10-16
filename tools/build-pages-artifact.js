@@ -3,7 +3,7 @@
  * Copies the public learner app from client/ into dist/pages/ while
  * excluding the Academy portal entry-point files until Academy is safely
  * configured for Staging:
- *   EXCLUDED = academy.html, academy-core.js, academy-portal.js
+ *   EXCLUDED = academy.html, academy-core.js, academy-auth.js, academy-portal.js
  *
  * The generated artifact's Service Worker precache list (DM_FILES) is
  * patched to drop the same excluded resources so installation never fails
@@ -21,7 +21,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const EXCLUDED = ["academy.html", "academy-core.js", "academy-portal.js"];
+const EXCLUDED = ["academy.html", "academy-core.js", "academy-auth.js", "academy-portal.js"];
 
 function parseArgs(argv) {
   var src = path.join(ROOT, "client");
