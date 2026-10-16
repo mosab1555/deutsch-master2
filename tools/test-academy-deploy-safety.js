@@ -936,6 +936,99 @@ async function runLifecycleRegressionChecks() {
     clean();
   })();
 
+  // D8b: missing progress row is empty/no-progress, never DENIED; real RLS denial still DENIED.
+  await (async function () {
+    var FAKE_USER = "11111111-1111-4111-8111-111111111111";
+    function passingAuthFor(trusted) {
+      return {
+        validateSession: function () { return Promise.resolve({ user: { id: FAKE_USER } }); },
+        getSession: function () { return { user: { id: FAKE_USER } }; },
+        getUser: function () { return { id: FAKE_USER }; },
+        trustedClient: function () { return trusted; },
+        getStatus: function () { return { configured: true, reason: "ok" }; }
+      };
+    }
+    function wireStaging(auth, trusted) {
+      clean();
+      global.window = {
+        SUPABASE_CONFIG: { url: PROD_URL },
+        ACADEMY_SUPABASE_CONFIG: { url: STAGING_URL, publishableKey: "test-publishable-key" },
+        academySupabaseClient: trusted,
+        AcademyAuth: auth
+      };
+      try { globalThis.ACADEMY_SUPABASE_CONFIG = global.window.ACADEMY_SUPABASE_CONFIG; } catch (e) {}
+      try { globalThis.academySupabaseClient = trusted; } catch (e) {}
+      try { globalThis.AcademyAuth = auth; } catch (e) {}
+    }
+    // Case 1: legacy .single() path returning PGRST116 (no maybeSingle on builder).
+    var singleCalls = [];
+    var singleClient = {
+      supabaseUrl: STAGING_URL,
+      from: function (t) {
+        singleCalls.push(t);
+        return {
+          select: function () {
+            return {
+              eq: function () {
+                return { single: function () { return Promise.resolve({ data: null, error: { code: "PGRST116", message: "No rows" } }); } };
+              }
+            };
+          }
+        };
+      }
+    };
+    wireStaging(passingAuthFor(singleClient), singleClient);
+    var C1 = freshCore();
+    var r1 = await C1.getStudentProgress(FAKE_USER);
+    ok("D8b PGRST116 missing row is empty, not DENIED",
+      r1 && r1.error === null && r1.data === null && r1.summary && r1.summary.hasData === false,
+      "code=" + (r1 && r1.code));
+    // Case 2: .maybeSingle() path returning null row.
+    var maybeCalls = [];
+    var maybeClient = {
+      supabaseUrl: STAGING_URL,
+      from: function (t) {
+        maybeCalls.push(t);
+        return {
+          select: function () {
+            return {
+              eq: function () {
+                return { maybeSingle: function () { return Promise.resolve({ data: null, error: null }); } };
+              }
+            };
+          }
+        };
+      }
+    };
+    wireStaging(passingAuthFor(maybeClient), maybeClient);
+    var C2 = freshCore();
+    var r2 = await C2.getStudentProgress(FAKE_USER);
+    ok("D8b maybeSingle null row is empty, not DENIED",
+      r2 && r2.error === null && r2.data === null && r2.summary && r2.summary.hasData === false,
+      "code=" + (r2 && r2.code));
+    // Case 3: real RLS denial (42501) still surfaces as DENIED, never empty.
+    var deniedClient = {
+      supabaseUrl: STAGING_URL,
+      from: function () {
+        return {
+          select: function () {
+            return {
+              eq: function () {
+                return { maybeSingle: function () { return Promise.resolve({ data: null, error: { code: "42501", message: "permission denied" } }); } };
+              }
+            };
+          }
+        };
+      }
+    };
+    wireStaging(passingAuthFor(deniedClient), deniedClient);
+    var C3b = freshCore();
+    var r3 = await C3b.getStudentProgress(FAKE_USER);
+    ok("D8b RLS 42501 still DENIED (not masked as empty)",
+      r3 && r3.code === "DENIED" && !!r3.error);
+    clean();
+  })();
+
   // D9: portal stale-state reset (static + behavioral with isolated temp dir).
   await (async function () {
     var portalSrc = fs.readFileSync(path.join(ROOT, "client", "academy-portal.js"), "utf8");

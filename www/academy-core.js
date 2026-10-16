@@ -1023,13 +1023,37 @@ var AcademyCore = (function () {
     if (!isUuid(studentUserId)) return { data: null, error: "Invalid student id", code: "VALIDATION" };
     var client = _p17.client;
     try {
-      var r = await client.from("user_progress").select("user_id,state,version,updated_at").eq("user_id", studentUserId).single();
+      var q17 = client.from("user_progress").select("user_id,state,version,updated_at").eq("user_id", studentUserId);
+      var r;
+      // Zero-or-one-row read: a student with no progress row yet is an empty
+      // state, not an authorization failure. Prefer maybeSingle() (v2 query
+      // builder); fall back to single() + PGRST116, the same no-row signal
+      // used for user_progress reads in cloud-sync.js. Only the precise
+      // no-row signal maps to empty; every other error (incl. RLS 42501)
+      // keeps the existing DENIED path so real denials are never masked.
+      if (q17 && typeof q17.maybeSingle === "function") {
+        r = await q17.maybeSingle();
+        if (!r.error && !r.data) {
+          return { data: null, summary: aggregateProgress(null), error: null };
+        }
+        if (r.error && r.error.code === "PGRST116" && !r.data) {
+          return { data: null, summary: aggregateProgress(null), error: null };
+        }
+      } else {
+        r = await q17.single();
+        if (r.error && r.error.code === "PGRST116") {
+          return { data: null, summary: aggregateProgress(null), error: null };
+        }
+      }
       if (r.error) {
         if (isMissingTable(r.error)) return { data: null, error: "Academy database is not configured yet.", code: "SETUP_REQUIRED" };
         return { data: null, error: errOf(r.error, "Not authorized to view this student's progress.").error, code: "DENIED" };
       }
       return { data: r.data, summary: aggregateProgress(r.data && r.data.state), error: null };
-    } catch (e) { return { data: null, error: errOf(e).error, code: "DENIED" }; }
+    } catch (e) {
+      if (e && e.code === "PGRST116") return { data: null, summary: aggregateProgress(null), error: null };
+      return { data: null, error: errOf(e).error, code: "DENIED" };
+    }
   }
 
   async function getProfiles(userIds) {
