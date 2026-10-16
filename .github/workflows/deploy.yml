@@ -33,6 +33,15 @@ jobs:
       - name: Build learner-only Pages artifact (excludes Academy portal)
         run: node tools/build-pages-artifact.js
 
+      - name: Build optional Staging Academy preview (isolated, fail-closed)
+        # Runs after the learner-only root so the public root stays learner-only.
+        # Until the owner configures both Actions variables, this step skips
+        # successfully and deployment continues with the learner-only root.
+        env:
+          ACADEMY_STAGING_URL: ${{ vars.ACADEMY_STAGING_URL }}
+          ACADEMY_STAGING_PUBLISHABLE_KEY: ${{ vars.ACADEMY_STAGING_PUBLISHABLE_KEY }}
+        run: node tools/build-academy-preview.js
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 

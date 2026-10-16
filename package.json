@@ -5,7 +5,7 @@
   "description": "Deutsch Master - Arabic-friendly German-learning platform (A1-B2): static PWA in client/, generated mobile shell in www/ via Capacitor, Windows shell via Electron",
   "main": "electron/main.js",
   "scripts": {
-    "test": "node tools/run-phase0-tests.js && node tools/test-academy-core.js && node tools/test-academy-rls-static.js && node tools/test-academy-deploy-safety.js",
+    "test": "node tools/run-phase0-tests.js && node tools/test-academy-core.js && node tools/test-academy-rls-static.js && node tools/test-academy-deploy-safety.js && node tools/test-academy-preview.js",
     "test:phase0": "node tools/run-phase0-tests.js",
     "test:academy": "node tools/test-academy-core.js",
     "test:parity": "node tools/check-www-parity.js",
