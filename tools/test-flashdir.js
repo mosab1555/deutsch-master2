@@ -50,11 +50,27 @@ check("flashDir listener wired", /\$\("flashDir"\)\.addEventListener/.test(scrip
 check("deck builders untouched by direction", !/flashDir/.test((script.match(/function buildFlash\(\)\{[\s\S]*?\n\}/) || [""])[0]) && !/flashDir/.test((script.match(/function refreshFlashList\(\)\{[\s\S]*?\n\} catch/) || [""])[0]));
 check("rating path untouched", /data-flash-rate/.test(script) && /bumpReview\(w\.id/.test(script));
 
-/* ---------- D. behavioral test with stub DOM ---------- */
+/* ---------- D0. production-faithful language stubs (study.js not loaded here) ---------- */
+// t()/wordMeaning()/wordExMeaning() live in client/study.js in production.
+// The harness reads the REAL ar dictionary so labels/behavior match the app.
+const __arDict = (() => {
+  try {
+    const line = RD("client/study.js").split("\n").find(l => l.startsWith("ar:{"));
+    const o = {}; const re = /([A-Za-z0-9_]+):"((?:[^"\\]|\\.)*)"/g;
+    let m; while ((m = re.exec(line))) o[m[1]] = m[2];
+    return o;
+  } catch (e) { return {}; }
+})();
+const __stubLangEval =
+  'globalThis.t = function(k){ try { var d = globalThis.__T_DICT || {}; return (d[k] !== undefined ? d[k] : k); } catch (e) { return k; } };' +
+  'globalThis.wordMeaning = function(w){ try { return (w && (w.ar || w.en)) || ""; } catch (e) { return ""; } };' +
+  'globalThis.wordExMeaning = function(w){ try { return (w && (w.exAr || w.exEn)) || ""; } catch (e) { return ""; } };';
 function mkNode(tag, attrs) {
   const n = {
     tag, attrs: attrs || {}, children: [], _listeners: {},
     textContent: "", _html: "", value: "", className: "",
+    // DOM-faithful: <select> elements expose .options in browsers.
+    options: [], selectedIndex: 0,
     style: {}, dataset: {}, hidden: false, disabled: false,
     _cls: {},
     classList: { add(c) { this._s = this._s || {}; this._s[c] = 1; }, remove(c) { if (this._s) delete this._s[c]; }, toggle(c) { this._s = this._s || {}; if (this._s[c]) delete this._s[c]; else this._s[c] = 1; return !!this._s[c]; }, contains(c) { return !!(this._s && this._s[c]); } },
@@ -78,6 +94,7 @@ const ids = {};
 function $(id) { if (!ids[id]) ids[id] = mkNode("div", { id }); return ids[id]; }
 const store = {};
 const timers = [];
+const docListeners = {};
 const sb = {
   console,
   setTimeout: (f) => { timers.push(f); return timers.length; },
@@ -85,6 +102,9 @@ const sb = {
   localStorage: { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
   navigator: {}, location: {},
   document: {
+    // Browser-faithful: scripts parse while loading; script.js defers boot
+    // renders to DOMContentLoaded (fired below after stubs are injected).
+    readyState: "loading",
     getElementById: (id) => $(id),
     querySelector: (s) => {
       if (s === "[data-speak-flash]") return $("__spkF");
@@ -93,7 +113,7 @@ const sb = {
     },
     querySelectorAll: () => [],
     createElement: (t) => mkNode(t, {}),
-    addEventListener: () => {},
+    addEventListener: (t, f) => { (docListeners[t] = docListeners[t] || []).push(f); },
     documentElement: mkNode("html", {}),
     body: mkNode("body", {}),
     title: ""
@@ -107,6 +127,13 @@ function act(js) { timers.length = 0; const r = vm.runInContext(js, ctx); flush(
 try {
   vm.runInContext(RD("client/script.js"), ctx, { filename: "script.js" });
   check("script.js loads under stubs", true);
+  // study.js (t/wordMeaning/wordExMeaning) is not loaded in this harness;
+  // inject faithful defaults (real ar-dict values, Arabic-UI semantics)
+  // BEFORE firing DOMContentLoaded, exactly as a real browser has them.
+  // The dictionary object is shared by reference (no string serialization).
+  ctx.__T_DICT = __arDict;
+  vm.runInContext(__stubLangEval, ctx);
+  for (const f of (docListeners.DOMContentLoaded || [])) { try { f({}); } catch (e) { console.error("domready: " + (e && e.message)); } }
 } catch (e) { check("script.js loads under stubs", false, e.message); }
 try {
   act(`
@@ -191,10 +218,13 @@ try {
     check("i18n." + L + " has flash_say_word", body.indexOf("flash_say_word") >= 0);
     check("i18n." + L + " has flash_say_sent", body.indexOf("flash_say_sent") >= 0);
   }
-  // behavioral with REAL TTS path: capture utterances incl. voice language
+  // behavioral with REAL TTS path: capture utterances incl. voice language.
+  // The stub voice list mirrors a real browser with a German voice installed:
+  // production speakWithWeb() requires a German voice (commit 74c39a1) and
+  // an empty list would fail German speech even in a correct app.
   act(`globalThis.__utt=[];
     function SpeechSynthesisUtterance(t){ this.text=t; this.lang=""; this.rate=1; this.voice=null; }
-    window.speechSynthesis={ cancel:function(){}, getVoices:function(){return [];}, speak:function(u){ globalThis.__utt.push({text:u.text,lang:u.lang}); } };`);
+    window.speechSynthesis={ cancel:function(){}, getVoices:function(){return [{name:"Deutsch-Test",lang:"de-DE",voiceURI:"test-de-stub",localService:true}];}, speak:function(u){ globalThis.__utt.push({text:u.text,lang:u.lang}); } };`);
   act(`VOCAB.push({id:"w3",de:"wohnen",art:"-",ar:"يسكن",pron:"فونِن",type:"فعل",cat:"Common Verbs",ex:"Sie wohnt in Tanta.",exAr:"هي تسكن في طنطا.",kap:"K1",level:"A1",plural:"",img:""});`);
   act(`VOCAB.push({id:"w4",de:"Licht",art:"das",ar:"ضوء",pron:"لِشت",type:"اسم",cat:"Home",ex:"Das Licht ist an.",exAr:"",kap:"K4",level:"A1",plural:"die Lichter",img:""});`);
   act(`flashList=[VOCAB[2]]; flashIdx=0; renderFlash();`);

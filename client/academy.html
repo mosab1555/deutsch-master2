@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Deutsch Master | أتقن الألمانية</title>
-<meta name="description" content="Deutsch Master - تطبيق تعليمي متكامل لتعلم الألمانية مستوى A1">
+<title>Deutsch Master | بوابة الأكاديمية (معاينة)</title>
+<meta name="description" content="Deutsch Master — academy portal preview: learner-app preview. Academy administration (teachers, classes, payments, reports) is not implemented yet.">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="reference.css">
 <link rel="stylesheet" href="launch.css">
@@ -60,6 +60,13 @@
       <button class="nav-item" data-page="howto"><span class="nav-ico">🧭</span> <span data-i18n="howto">طريقة مذاكرة الألماني</span></button>
       <button class="nav-item" data-page="career"><span class="nav-ico">🎓</span> المسار المهني</button>
       <button class="nav-item" data-page="ankidroid"><span class="nav-ico">🧠</span> AnkiDroid</button>
+      <div class="nav-group" data-i18n="acad_nav_grp">🏫 بوابة الأكاديمية</div>
+      <button class="nav-item" data-page="academy-overview"><span class="nav-ico">🏫</span> <span data-i18n="acad_nav_overview">نظرة الأكاديمية</span></button>
+      <button class="nav-item" data-page="academy-settings"><span class="nav-ico">⚙️</span> <span data-i18n="acad_nav_settings">الملف والإعدادات</span></button>
+      <button class="nav-item" data-page="academy-teachers"><span class="nav-ico">🧑‍🏫</span> <span data-i18n="acad_nav_teachers">المعلمون والأعضاء</span></button>
+      <button class="nav-item" data-page="academy-classes"><span class="nav-ico">🏷️</span> <span data-i18n="acad_nav_classes">الفصول</span></button>
+      <button class="nav-item" data-page="academy-enroll"><span class="nav-ico">🎓</span> <span data-i18n="acad_nav_enroll">التسجيل</span></button>
+      <button class="nav-item" data-page="teacher"><span class="nav-ico">📊</span> <span data-i18n="acad_nav_teacher">لوحة المعلم</span></button>
       <div class="nav-group" data-i18n="nav_grp_live">الحياة والممارسة</div>
       <button class="nav-item" data-page="life"><span class="nav-ico">🎙️</span> Deutsch Life</button>
       <button class="nav-item" data-page="simulator"><span class="nav-ico">🏙️</span> محاكاة الحياة في ألمانيا</button>
@@ -150,6 +157,21 @@
     <main class="content">
                         <!-- DASHBOARD -->
       <section class="page active" id="page-dashboard">
+      <!-- Academy-status notice (Phase 0 honesty): this entry point is a
+           learner-app preview, not an admin console. Static links only. -->
+      <div class="panel glass" id="acadNotice">
+        <div class="row-flex"><span class="cmd-pill" data-i18n="acad_badge">بوابة الأكاديمية — المرحلة 1</span></div>
+        <h3 data-i18n="acad_title">بوابة الأكاديمية (المرحلة 1)</h3>
+        <p class="muted" data-i18n="acad_lead">أقسام الأكاديمية والمعلم تعمل ببيانات حقيقية عبر Supabase عند تهيئة قاعدة البيانات. بدون الترحيل تُعرض حالة الإعداد فقط — لا تُخترع نتائج. الدفع والشهادات والنطاقات المخصصة خارج النطاق.</p>
+        <details id="acadScope">
+          <summary data-i18n="acad_scope_t">نطاق التجربة المصاحبة</summary>
+          <p class="muted" data-i18n="acad_scope_d">التجربة المصاحبة تقتصر على شرائح A1 (K1–K5) بعد مراجعة معلم مؤهل. محتوى B2 تمهيدي فقط، والمحتوى غير معتمد بعد، والامتحانات داخلية وليست شهادات رسمية.</p>
+        </details>
+        <div class="row-flex">
+          <a class="btn btn-primary sm" href="index.html" data-i18n="acad_open_learner">فتح تطبيق المتعلم ←</a>
+          <a class="btn btn-ghost sm" href="privacy.html" data-i18n="acad_priv_terms">الخصوصية والشروط</a>
+        </div>
+      </div>
       <div class="cmd-scope">
         <div class="cmd-ambient" aria-hidden="true"><i></i><i></i><i></i></div>
 
@@ -159,7 +181,7 @@
               <div class="cmd-logo">DE</div>
               <div><b>Deutsch Master</b><small data-i18n="cmd_brand_tag">نظام تعلم الألمانية</small></div>
             </div>
-            <span class="hm-eyebrow" data-i18n="home_eyebrow">🇩🇪 من A1 إلى B2 • طريقك للألمانية</span>
+            <span class="hm-eyebrow" data-i18n="acad_eyebrow">معاينة الأكاديمية • المحتوى غير معتمد بعد</span>
             <h1><span data-i18n="cmd_h1a">أتقن الألمانية بـ</span> <span class="grad-text" data-i18n="cmd_h1b">نظامٍ متكامل، لا دروس عشوائية.</span></h1>
             <p class="cmd-sub" data-i18n="cmd_sub">المفردات والقواعد والجمل والنطق والاستماع والتحدث والمراجعة الذكية — كلها تعمل معًا في نظام واحد مبني حول مستواك.</p>
             <p class="typing-line"><span id="typingText"></span><span class="caret">|</span></p>
@@ -374,6 +396,50 @@
         </div>
 
       </div>
+      </section>
+
+      <!-- ACADEMY PORTAL (Phase 1): functional admin + teacher experience.
+           Learner pages below are untouched. Every control here is wired to
+           AcademyCore (real Supabase); without the migration a setup status
+           is shown instead of fake success. -->
+      <section class="page" id="page-academy-overview">
+        <div class="page-head"><h2 data-i18n="acad_sec_overview">🏫 نظرة الأكاديمية</h2>
+          <button class="btn btn-ghost sm" id="acadRefresh" data-i18n="acad_refresh">🔄 تحديث</button>
+        </div>
+        <div id="acadSetupBanner"><div class="muted">…</div></div>
+        <div class="panel glass"><div id="acadMyUid"><span class="muted">…</span></div></div>
+        <div class="panel glass"><div id="acadSelector"><span class="muted">…</span></div></div>
+        <div class="panel glass"><h3 data-i18n="acad_summary">الملخص</h3><div id="acadOverviewBody"><div class="muted">…</div></div></div>
+        <div class="panel glass"><details><summary data-i18n="acad_scope1_t">نطاق المرحلة 1 (بصدق)</summary>
+          <p class="muted" data-i18n="acad_scope1_d">إدارة الأكاديمية والفصول والتسجيل ولوحة المعلم تعمل ببيانات حقيقية عند تهيئة قاعدة البيانات (staging فقط). الدفع والشهادات والنطاقات المخصصة خارج النطاق. المحتوى غير معتمد بعد، والامتحانات داخلية.</p>
+          <div class="row-flex"><a class="btn btn-ghost sm" href="index.html" data-i18n="acad_open_learner">فتح تطبيق المتعلم ←</a>
+          <a class="btn btn-ghost sm" href="privacy.html" data-i18n="acad_priv_terms">الخصوصية والشروط</a></div>
+        </details></div>
+      </section>
+
+      <section class="page" id="page-academy-settings">
+        <div class="page-head"><h2 data-i18n="acad_sec_settings">⚙️ الملف والإعدادات</h2></div>
+        <div class="panel glass"><div id="acadSettingsBody"><div class="muted">…</div></div></div>
+      </section>
+
+      <section class="page" id="page-academy-teachers">
+        <div class="page-head"><h2 data-i18n="acad_sec_teachers">🧑‍🏫 المعلمون والأعضاء</h2></div>
+        <div class="panel glass"><div id="acadTeachersBody"><div class="muted">…</div></div></div>
+      </section>
+
+      <section class="page" id="page-academy-classes">
+        <div class="page-head"><h2 data-i18n="acad_sec_classes">🏷️ الفصول</h2></div>
+        <div class="panel glass"><div id="acadClassesBody"><div class="muted">…</div></div></div>
+      </section>
+
+      <section class="page" id="page-academy-enroll">
+        <div class="page-head"><h2 data-i18n="acad_sec_enroll">🎓 التسجيل</h2></div>
+        <div class="panel glass"><div id="acadEnrollBody"><div class="muted">…</div></div></div>
+      </section>
+
+      <section class="page" id="page-teacher">
+        <div class="page-head"><h2 data-i18n="acad_sec_teacher">📊 لوحة المعلم</h2></div>
+        <div class="panel glass"><div id="acadTeacherBody"><div class="muted">…</div></div></div>
       </section>
 
       <!-- VOCAB -->
@@ -815,6 +881,7 @@
           <div class="panel glass"><h3 data-i18n="set_data">البيانات</h3>
             <div class="row-flex"><button class="btn btn-ghost sm" id="exportData" data-i18n="set_export">📤 تصدير نسخة</button><button class="btn btn-ghost sm" id="importDataBtn" data-i18n="set_import">📥 استيراد</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
             <button class="btn btn-red sm" id="wipeData" data-i18n="set_wipe">🗑️ مسح كل البيانات</button>
+            <div class="row-flex"><a class="btn btn-ghost sm" href="privacy.html" data-i18n="acad_priv_terms">الخصوصية والشروط</a></div>
             <p class="muted" data-i18n="set_note">كل البيانات محفوظة في LocalStorage ولا تضيع عند Refresh.</p>
           </div>
         </div>
@@ -922,7 +989,9 @@
     <script src="auth.js"></script>
     <script src="cloud-sync.js"></script>
     <script src="profile.js"></script>
+    <script src="academy-core.js"></script>
     <script src="app-init.js"></script>
+    <script src="academy-portal.js"></script>
     <script src="ankidroid.js"></script>
     <script src="page-state.js"></script>
     <script src="back-handler.js"></script>

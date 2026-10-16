@@ -1,0 +1,50 @@
+# Phase 0 regression (read-only, deterministic, stdlib-only)
+#
+# Runs the critical regression suites by explicit list via
+# tools/run-phase0-tests.js — never globs tools/*.js (inject-version.js and
+# make-www.js have side effects and are NOT part of this job).
+#
+# Coverage: curriculum audit + smoke, progress/upgrade/robustness, links,
+# career, SW update, test-plan catalog, howto, auth-identity (node part),
+# content remediation, content-quality gate (DEFAULT mode: errors fail,
+# the 1,913 documented warnings are preserved, never --strict), assess,
+# content merge, manifest, lazy packs, full load, sentence-ref validation
+# (500-sample, report redirected to RUNNER_TEMP), www parity, qa-audit,
+# smart (one documented flaky tail: rerun-once rule), search, quiz shuffle,
+# adv, push, labsx, flashdir, languages, translations, reference, ref-dups,
+# e2e.
+#
+# Chrome-gated suites are NOT run here (no browser on this runner):
+# test-auth-identity.js --cdp, test-auth-dom.js, runtime-qa.js,
+# test-pack-cache.js, test-labsx-dom.js, check-ref-dom.js and other
+# headless-Chrome harnesses. They remain documented manual gates in
+# tests/regression-suite.md and docs/academy/PHASE0_IMPLEMENTATION_REPORT.md.
+name: Phase 0 regression
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  phase0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Node version (recorded, not asserted)
+        run: node --version
+
+      - name: Run Phase 0 regression (npm test)
+        run: npm test

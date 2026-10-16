@@ -1,5 +1,6 @@
 -- Deutsch Master Supabase Database Migration
 -- Version: 1
+-- ONE-TIME FRESH-PROJECT BASELINE — run once per fresh project; not idempotent by design.
 -- Run this in Supabase SQL Editor
 
 -- Enable UUID extension
@@ -163,10 +164,11 @@ CREATE POLICY "auth_events_insert_own" ON auth_events
 -- ============================================================
 
 -- Auto-create profile on user signup
+-- ACL HARDENING: fixed search_path (public, pg_temp last) prevents schema hijack.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, pg_temp
 AS $$
 BEGIN
     INSERT INTO public.profiles (id, display_name, avatar_url, provider)
@@ -189,8 +191,11 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Update updated_at timestamp
+-- ACL HARDENING: fixed search_path (public, pg_temp last).
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = public, pg_temp
+AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
@@ -210,9 +215,16 @@ CREATE TRIGGER update_user_progress_updated_at
 -- ============================================================
 
 -- Get or create user progress (upsert helper)
+-- ACL HARDENING (IDOR closure): p_user_id must equal auth.uid() (ERRCODE 42501
+-- otherwise). SECURITY DEFINER runs as owner (bypasses RLS), so without this
+-- guard any authenticated caller could read/create another user's row via RPC.
 CREATE OR REPLACE FUNCTION public.get_or_create_user_progress(p_user_id UUID, p_initial_state JSONB DEFAULT '{}')
-RETURNS TABLE (id BIGINT, user_id UUID, state JSONB, version BIGINT, updated_at TIMESTAMPTZ) AS $$
+RETURNS TABLE (id BIGINT, user_id UUID, state JSONB, version BIGINT, updated_at TIMESTAMPTZ)
+SET search_path = public, pg_temp AS $$
 BEGIN
+    IF p_user_id IS DISTINCT FROM auth.uid() THEN
+        RAISE EXCEPTION 'not authorized: p_user_id must equal auth.uid()' USING ERRCODE = '42501';
+    END IF;
     INSERT INTO public.user_progress (user_id, state, version)
     VALUES (p_user_id, p_initial_state, 1)
     ON CONFLICT (user_id) DO NOTHING;
@@ -225,17 +237,22 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Atomic progress update with version checking (optimistic locking)
+-- ACL HARDENING (IDOR closure): same caller-identity guard as above.
 CREATE OR REPLACE FUNCTION public.update_user_progress(
     p_user_id UUID,
     p_state JSONB,
     p_expected_version BIGINT,
     p_device_id TEXT
 )
-RETURNS TABLE (success BOOLEAN, new_version BIGINT, current_state JSONB, current_version BIGINT) AS $$
+RETURNS TABLE (success BOOLEAN, new_version BIGINT, current_state JSONB, current_version BIGINT)
+SET search_path = public, pg_temp AS $$
 DECLARE
     v_current_version BIGINT;
     v_current_state JSONB;
 BEGIN
+    IF p_user_id IS DISTINCT FROM auth.uid() THEN
+        RAISE EXCEPTION 'not authorized: p_user_id must equal auth.uid()' USING ERRCODE = '42501';
+    END IF;
     -- Get current version and state
     SELECT version, state INTO v_current_version, v_current_state
     FROM public.user_progress
@@ -274,17 +291,81 @@ CREATE INDEX IF NOT EXISTS idx_user_progress_updated ON user_progress(updated_at
 CREATE INDEX IF NOT EXISTS idx_devices_user ON devices(user_id);
 
 -- ============================================================
--- 10. GRANT PERMISSIONS (authenticated + anon roles via RLS)
+-- 10. GRANTS (least-privilege; RLS remains the boundary)
 -- ============================================================
--- NOTE: Supabase issues authenticated requests under the `authenticated`
--- role (not `anon`), so tables MUST be granted to BOTH roles; RLS policies
--- above remain the actual security boundary (users only touch own rows).
-GRANT SELECT, INSERT, UPDATE, DELETE ON profiles TO anon, authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON user_progress TO anon, authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON sync_queue TO anon, authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON devices TO anon, authenticated;
-GRANT SELECT, INSERT ON auth_events TO anon, authenticated;
+-- ACL HARDENING (2026-10-15): staging pg_default_acl gave newly created
+-- tables broad defaults (TRUNCATE, REFERENCES, TRIGGER for anon/authenticated).
+-- A bare GRANT cannot remove those — REVOKE first, then grant only the exact
+-- operations verified against client usage (auth.js, cloud-sync.js, profile.js)
+-- and the RLS policies in §6 (no policy weakened to compensate):
+--   profiles/user_progress/sync_queue/devices: SELECT,INSERT,UPDATE,DELETE
+--     to authenticated only (own-row RLS; anon NONE — auth.uid() NULL can never
+--     satisfy own-row policies, so anon grants would be dead yet risky).
+--   auth_events: SELECT,INSERT to authenticated (own reads + logging);
+--     INSERT-only to anon (pre-login failures with user_id NULL per
+--     auth_events_insert_own); never UPDATE/DELETE.
+--   Sequences: USAGE-only (suffices for BIGSERIAL nextval); anon only
+--     auth_events_id_seq (pre-login INSERT needs nextval); no SELECT/UPDATE
+--     (would allow currval/setval abuse).
+--   Functions: progress RPCs EXECUTE to authenticated (+service_role for
+--     trusted tooling); trigger helper handle_new_user/update_updated_at_column
+--     revoked from clients (trigger firing runs as owner, unaffected).
+--   Future defaults: fail-closed for objects created BY postgres in public
+--     (migrations run as postgres); supabase_admin untouched (platform-managed).
+--
+-- 10a. Strip inherited/default excessive privileges first (ALL covers
+-- SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER; SEQUENCE ALL covers
+-- USAGE,SELECT,UPDATE).
+REVOKE ALL ON TABLE public.profiles, public.user_progress, public.sync_queue,
+  public.devices, public.auth_events FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON SEQUENCE public.user_progress_id_seq, public.sync_queue_id_seq,
+  public.auth_events_id_seq FROM PUBLIC, anon, authenticated;
 
-GRANT USAGE ON SEQUENCE user_progress_id_seq TO anon, authenticated;
-GRANT USAGE ON SEQUENCE sync_queue_id_seq TO anon, authenticated;
-GRANT USAGE ON SEQUENCE auth_events_id_seq TO anon, authenticated;
+-- 10b. Exact required operations (authenticated least-privilege; anon minimal).
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_progress TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.sync_queue TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.devices TO authenticated;
+GRANT SELECT, INSERT ON public.auth_events TO authenticated;
+GRANT INSERT ON public.auth_events TO anon;
+
+GRANT USAGE ON SEQUENCE public.user_progress_id_seq TO authenticated;
+GRANT USAGE ON SEQUENCE public.sync_queue_id_seq TO authenticated;
+GRANT USAGE ON SEQUENCE public.auth_events_id_seq TO authenticated;
+GRANT USAGE ON SEQUENCE public.auth_events_id_seq TO anon;
+
+-- 10c. RPC EXECUTE (least-privilege; triggers fire as owner regardless).
+REVOKE ALL ON FUNCTION public.get_or_create_user_progress(UUID, JSONB) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_or_create_user_progress(UUID, JSONB) TO authenticated, service_role;
+REVOKE ALL ON FUNCTION public.update_user_progress(UUID, JSONB, BIGINT, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.update_user_progress(UUID, JSONB, BIGINT, TEXT) TO authenticated, service_role;
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO service_role;
+REVOKE ALL ON FUNCTION public.update_updated_at_column() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.update_updated_at_column() TO service_role;
+
+-- 10d. Future defaults for objects created by postgres in public (fail-closed).
+-- Same PostgreSQL semantics as academy §11d: only future objects created BY
+-- postgres in public are affected (migrations run as postgres). Explicit
+-- per-table GRANTs above remain the only access path. supabase_admin
+-- defaults are platform-managed and intentionally untouched.
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE ALL ON TABLES FROM PUBLIC, anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated;
+--
+-- 10e. Future functions: fail-closed EXECUTE by default.
+-- PostgreSQL grants EXECUTE ON FUNCTIONS TO PUBLIC by default (global default),
+-- and IN SCHEMA public default-privilege entries ADD TO rather than replace the
+-- global default — so a schema-scoped revoke alone would still leave future
+-- postgres-created functions executable by everyone via PUBLIC (hence anon and
+-- authenticated). Revoke the global default for objects created BY postgres
+-- only (supabase_admin/platform objects untouched; existing functions untouched
+-- — defaults govern future objects, and the §10c grants above stay in force),
+-- then belt-and-braces revoke the schema-scoped default too. Every future
+-- function needs an explicit GRANT EXECUTE (extensions installed as postgres
+-- later need their grants checked too, e.g. pgtap on a fresh project).
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres
+  REVOKE ALL ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE ALL ON FUNCTIONS FROM PUBLIC, anon, authenticated;
