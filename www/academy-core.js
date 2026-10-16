@@ -4,8 +4,15 @@
  * academy portal UI (client/academy-portal.js) and the Node test harness
  * (tools/test-academy-core.js). No learner state is touched: this module
  * never reads/writes S, DMProgress internals, localStorage keys, or cloud
- * sync queues. It talks to Supabase only through the single AuthModule-owned
- * client and honors RLS (policy violations surface as DENIED errors).
+ * sync queues. Academy database access is fail-closed by separate Academy
+ * deployment target (`window.ACADEMY_SUPABASE_CONFIG` +
+ * `window.academySupabaseClient`, ACADEMY_STAGING_REF allowlist): missing,
+ * disallowed, or inconsistent Academy targets return TARGET_DISABLED /
+ * target_disabled WITHOUT any `.from(...)` request. The learner
+ * `SUPABASE_CONFIG` / `supabaseClient` / `AuthModule.getClient()` are NEVER
+ * used for Academy queries by design. Learner auth / progress / cloud-sync
+ * paths are untouched. RLS remains the enforcement point when a Staging
+ * Academy target is explicitly configured.
  *
  * Roles (per-academy in academy_members, plus global platform owner):
  *   platform_owner | academy_owner | academy_admin | teacher | student
@@ -25,6 +32,168 @@ var AcademyCore = (function () {
   var LEVELS = ["A1", "A2", "B1", "B2"];
   var PAGE_SIZE = 20;
   var MAX_PAGE_SIZE = 50;
+
+  /* ---------- Fail-closed Academy deployment target gate (hardened) ----------
+   * Academy NEVER derives authorization from the learner app's shared
+   * `window.SUPABASE_CONFIG.url`, `window.supabaseClient`, or
+   * `AuthModule.getClient()`. Those learner paths stay on Production and are
+   * NEVER fallback clients for Academy requests.
+   *
+   * Academy database operations use ONLY the distinct
+   * `window.academySupabaseClient`, associated with an explicit
+   * `window.ACADEMY_SUPABASE_CONFIG` (own URL + publishable key). That
+   * separate client is NOT created here because no intentionally configured
+   * Staging URL/key pair has been supplied: missing Academy config/client
+   * is default-deny.
+   *
+   * The gate passes ONLY when ALL hold:
+   *   (a) Academy config URL resolves to the explicit Staging allowlist ref,
+   *   (b) an Academy client object exists,
+   *   (c) the client's own associated URL resolves to the SAME Staging ref
+   *       (consistency check; unverifiable client target => deny).
+   * Changing only the learner URL to Staging therefore NEVER enables
+   * Academy. Every other state returns TARGET_DISABLED / target_disabled
+   * WITHOUT any `.from(...)` table request.
+   */
+  var ACADEMY_STAGING_REF = "uafwvkgaijmcofistjum";
+  var ACADEMY_ALLOWED_REFS = [ACADEMY_STAGING_REF];
+
+  function extractProjectRef(url) {
+    try {
+      var s = String(url == null ? "" : url).trim();
+      if (!s) return null;
+      var m = s.match(/^https?:\/\/([a-z0-9-]+)\.supabase\.co(?:[\/?#]|$)/i);
+      if (m && m[1]) return String(m[1]).toLowerCase();
+      return null;
+    } catch (e) { return null; }
+  }
+
+  function resolveAcademyTarget(configUrl) {
+    var ref = extractProjectRef(configUrl);
+    if (!ref) {
+      var hasUrl = false;
+      try { hasUrl = !!String(configUrl == null ? "" : configUrl).trim(); } catch (e) {}
+      return { ref: ref, allowed: false, reason: hasUrl ? "unrecognized_target" : "missing_config" };
+    }
+    if (ACADEMY_ALLOWED_REFS.indexOf(ref) >= 0) {
+      return { ref: ref, allowed: true, reason: "staging_allowed" };
+    }
+    return { ref: ref, allowed: false, reason: "target_disabled" };
+  }
+
+  function configuredAcademyUrl() {
+    // Intentionally reads ONLY the separate Academy config. The learner
+    // `SUPABASE_CONFIG.url` is NEVER consulted here by design.
+    try {
+      if (typeof window !== "undefined" && window && window.ACADEMY_SUPABASE_CONFIG && window.ACADEMY_SUPABASE_CONFIG.url) {
+        return window.ACADEMY_SUPABASE_CONFIG.url;
+      }
+    } catch (e) {}
+    try {
+      if (typeof globalThis !== "undefined" && globalThis && globalThis.ACADEMY_SUPABASE_CONFIG && globalThis.ACADEMY_SUPABASE_CONFIG.url) {
+        return globalThis.ACADEMY_SUPABASE_CONFIG.url;
+      }
+    } catch (e2) {}
+    return null;
+  }
+
+  function getAcademyClient() {
+    // Distinct Academy client ONLY. Learner `window.supabaseClient` and
+    // `AuthModule.getClient()` are NEVER fallbacks (fail-closed).
+    try {
+      if (typeof window !== "undefined" && window && window.academySupabaseClient) {
+        return window.academySupabaseClient;
+      }
+    } catch (e) {}
+    try {
+      if (typeof globalThis !== "undefined" && globalThis && globalThis.academySupabaseClient) {
+        return globalThis.academySupabaseClient;
+      }
+    } catch (e2) {}
+    return null;
+  }
+
+  function getAcademyClientUrl(client) {
+    try {
+      if (!client || typeof client !== "object") return null;
+      var candidates = [];
+      try {
+        candidates.push(client.supabaseUrl);
+        candidates.push(client.supabase_url);
+        candidates.push(client.url);
+        candidates.push(client.restUrl);
+        candidates.push(client.rest_url);
+        if (client.rest && client.rest.url) candidates.push(client.rest.url);
+        if (client.rest && client.rest.supabaseUrl) candidates.push(client.rest.supabaseUrl);
+        if (client.__academyTargetUrl) candidates.push(client.__academyTargetUrl);
+      } catch (e) {}
+      for (var i = 0; i < candidates.length; i++) {
+        var v = candidates[i];
+        if (!v) continue;
+        try {
+          var s = String(v);
+          if (extractProjectRef(s)) return s;
+        } catch (e2) {}
+      }
+      return null;
+    } catch (e) { return null; }
+  }
+
+  function resolveAcademyDeployment(configUrl, clientOrUrl) {
+    var cfgRef = extractProjectRef(configUrl);
+    if (!cfgRef) {
+      var hasUrl = false;
+      try { hasUrl = !!String(configUrl == null ? "" : configUrl).trim(); } catch (e) {}
+      return { ref: cfgRef, configRef: cfgRef, clientRef: null, allowed: false,
+        reason: hasUrl ? "unrecognized_target" : "missing_config", client: null };
+    }
+    var client = (clientOrUrl && typeof clientOrUrl === "object") ? clientOrUrl : null;
+    var clientUrlStr = (clientOrUrl && typeof clientOrUrl === "object") ? getAcademyClientUrl(clientOrUrl) : clientOrUrl;
+    if (!client) {
+      return { ref: cfgRef, configRef: cfgRef, clientRef: null, allowed: false, reason: "missing_client", client: null };
+    }
+    var cliRef = extractProjectRef(clientUrlStr);
+    if (!cliRef) {
+      return { ref: cfgRef, configRef: cfgRef, clientRef: null, allowed: false, reason: "inconsistent_target", client: null };
+    }
+    if (cliRef !== cfgRef) {
+      return { ref: cfgRef, configRef: cfgRef, clientRef: cliRef, allowed: false, reason: "inconsistent_target", client: null };
+    }
+    if (ACADEMY_ALLOWED_REFS.indexOf(cfgRef) < 0) {
+      return { ref: cfgRef, configRef: cfgRef, clientRef: cliRef, allowed: false, reason: "target_disabled", client: null };
+    }
+    return { ref: cfgRef, configRef: cfgRef, clientRef: cliRef, allowed: true, reason: "staging_allowed", client: client };
+  }
+
+  function getAcademyTargetStatus(overrideConfigUrl, overrideClient) {
+    var hasOverride = (overrideConfigUrl !== undefined) || (overrideClient !== undefined);
+    var cfgUrl = (overrideConfigUrl !== undefined) ? overrideConfigUrl : configuredAcademyUrl();
+    var cli = (overrideClient !== undefined) ? overrideClient : getAcademyClient();
+    // Backward-compatible single-string override: treat it as the Academy
+    // config URL with the live Academy client (used by older harnesses).
+    if (overrideConfigUrl !== undefined && overrideClient === undefined && typeof overrideConfigUrl === "string" && hasOverride) {
+      // If only one string was supplied positionally, keep legacy behavior of
+      // resolving that URL alone ONLY when no live Academy client exists?
+      // Hardened rule: a URL alone NEVER enables queries without a client.
+      // Delegate to the deployment resolver so missing/inconsistent client
+      // still denies.
+      return resolveAcademyDeployment(cfgUrl, cli);
+    }
+    return resolveAcademyDeployment(cfgUrl, cli);
+  }
+
+  function isAcademyTargetAllowed(overrideConfigUrl, overrideClient) {
+    try { return getAcademyTargetStatus(overrideConfigUrl, overrideClient).allowed === true; }
+    catch (e) { return false; }
+  }
+
+  function academyTargetDisabledMessage() {
+    return "Academy portal is disabled on this deployment. Academy tables are never queried via the learner Production client; a separate Staging Academy connection is required.";
+  }
+
+  function requireAcademyTarget(overrideConfigUrl, overrideClient) {
+    return getAcademyTargetStatus(overrideConfigUrl, overrideClient);
+  }
 
   function normRole(r) { return ROLES.indexOf(r) >= 0 ? r : null; }
   function isPrivileged(role) { return PRIVILEGED.indexOf(role) >= 0; }
@@ -215,10 +384,16 @@ var AcademyCore = (function () {
       mistakesOpen: mistakesOpen, dueReview: dueReview, lastActivity: lastActivity, weekly: weekly };
   }
 
-  /* ---------- Supabase data layer (bounded, RLS-honoring) ---------- */
+  /* ---------- Supabase data layer (bounded, RLS-honoring, Academy-only) ---------- */
   function db() {
-    try { return window.supabaseClient || (window.AuthModule && window.AuthModule.getClient && window.AuthModule.getClient()) || null; }
-    catch (e) { return null; }
+    // Hardened: Academy client ONLY. NEVER falls back to the learner
+    // `window.supabaseClient` / `AuthModule.getClient()`. Returns the client
+    // only when the Academy deployment gate passes; otherwise null.
+    try {
+      var st = getAcademyTargetStatus();
+      if (st && st.allowed && st.client) return st.client;
+      return null;
+    } catch (e) { return null; }
   }
   function authed() {
     try { return (window.AuthModule && window.AuthModule.getUser && window.AuthModule.getUser()) || null; }
@@ -236,8 +411,27 @@ var AcademyCore = (function () {
     return /42P01|PGRST205|Could not find the table|relation .* does not exist|schema cache/i.test(s);
   }
 
-  async function checkSetup() {
-    var user = authed(), client = db();
+  async function checkSetup(overrideConfigUrl, overrideClient) {
+    // Hardened fail-closed gate: Academy tables are probed ONLY via the
+    // distinct Academy client whose config + client targets both resolve to
+    // the explicit Staging ref. All other states return target_disabled
+    // WITHOUT any `.from(...)` call. Learner config/client are ignored.
+    var hasOverride = (overrideConfigUrl !== undefined) || (overrideClient !== undefined);
+    var target = hasOverride
+      ? getAcademyTargetStatus(overrideConfigUrl, overrideClient)
+      : getAcademyTargetStatus();
+    if (!target.allowed || !target.client) {
+      var gateUser = null;
+      try { gateUser = authed(); } catch (e) {}
+      if ((target.reason === "missing_config" || target.reason === "unrecognized_target" || target.reason === "missing_client") && !hasOverride) {
+        // Preserve the legacy offline posture only when no Academy client
+        // exists at all (no table probe happens on any path here).
+        return { configured: false, reason: "supabase_not_configured", user: null, academyTarget: target };
+      }
+      return { configured: false, reason: "target_disabled", ref: target.ref, academyTarget: target,
+        user: gateUser, detail: academyTargetDisabledMessage(), error: academyTargetDisabledMessage(), code: "TARGET_DISABLED" };
+    }
+    var user = authed(), client = target.client;
     if (!client) return { configured: false, reason: "supabase_not_configured", user: null };
     // Probe academy tables with zero-row reads; missing-table errors mean the
     // Phase 1 migration has not been applied (honest setup status, no fake data).
@@ -262,6 +456,8 @@ var AcademyCore = (function () {
 
   async function listAcademies(opts) {
     opts = opts || {};
+    var _t0 = getAcademyTargetStatus();
+    if (!_t0.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t0 };
     var client = db();
     if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
     var pg = pageRange(opts.page, opts.size);
@@ -283,6 +479,8 @@ var AcademyCore = (function () {
   }
 
   async function myMemberships() {
+    var _t1 = getAcademyTargetStatus();
+    if (!_t1.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t1 };
     var client = db(), user = authed();
     if (!client || !user) return { data: [], error: !user ? "Not signed in" : "Sync not initialized", code: !user ? "NOT_AUTH" : "SETUP_REQUIRED" };
     try {
@@ -298,6 +496,8 @@ var AcademyCore = (function () {
   }
 
   async function createAcademy(input) {
+    var _t2 = getAcademyTargetStatus();
+    if (!_t2.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t2 };
     var v = validateAcademyInput(input);
     if (v.errors.length) return { data: null, error: v.errors.join("; "), code: "VALIDATION" };
     var client = db(), user = authed();
@@ -320,6 +520,8 @@ var AcademyCore = (function () {
   }
 
   async function updateAcademy(academyId, patch) {
+    var _t3 = getAcademyTargetStatus();
+    if (!_t3.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t3 };
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
     var client = db();
     if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -351,6 +553,8 @@ var AcademyCore = (function () {
 
   async function listMembers(academyId, opts) {
     opts = opts || {};
+    var _t4 = getAcademyTargetStatus();
+    if (!_t4.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t4 };
     var client = db();
     if (!isUuid(academyId)) return { data: [], error: "Invalid academy id", code: "VALIDATION" };
     if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -371,6 +575,8 @@ var AcademyCore = (function () {
   }
 
   async function addMember(academyId, targetUserId, role) {
+    var _t5 = getAcademyTargetStatus();
+    if (!_t5.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t5 };
     role = normRole(role);
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
     if (!isUuid(targetUserId)) return { data: null, error: "Enter the member's User ID (UUID of an existing signed-up user).", code: "VALIDATION" };
@@ -394,6 +600,8 @@ var AcademyCore = (function () {
   }
 
   async function updateMemberRole(academyId, targetUserId, role, status) {
+    var _t6 = getAcademyTargetStatus();
+    if (!_t6.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t6 };
     if (!isUuid(academyId) || !isUuid(targetUserId)) return { data: null, error: "Invalid ids", code: "VALIDATION" };
     var me = authed();
     if (me && me.id === targetUserId) return { data: null, error: "Members cannot change their own role.", code: "DENIED" };
@@ -428,6 +636,8 @@ var AcademyCore = (function () {
 
   async function listClasses(academyId, opts) {
     opts = opts || {};
+    var _t7 = getAcademyTargetStatus();
+    if (!_t7.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t7 };
     var client = db();
     if (!isUuid(academyId)) return { data: [], error: "Invalid academy id", code: "VALIDATION" };
     if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -448,6 +658,8 @@ var AcademyCore = (function () {
   }
 
   async function createClass(academyId, input) {
+    var _t8 = getAcademyTargetStatus();
+    if (!_t8.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t8 };
     var v = validateClassInput(input);
     if (v.errors.length) return { data: null, error: v.errors.join("; "), code: "VALIDATION" };
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
@@ -468,6 +680,8 @@ var AcademyCore = (function () {
   }
 
   async function updateClass(classId, patch) {
+    var _t9 = getAcademyTargetStatus();
+    if (!_t9.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t9 };
     if (!isUuid(classId)) return { data: null, error: "Invalid class id", code: "VALIDATION" };
     var client = db();
     if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -495,6 +709,8 @@ var AcademyCore = (function () {
   }
 
   async function listClassTeachers(classId) {
+    var _t10 = getAcademyTargetStatus();
+    if (!_t10.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t10 };
     var client = db();
     if (!isUuid(classId)) return { data: [], error: "Invalid class id", code: "VALIDATION" };
     if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -509,6 +725,8 @@ var AcademyCore = (function () {
   }
 
   async function assignTeacher(classId, teacherUserId) {
+    var _t11 = getAcademyTargetStatus();
+    if (!_t11.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t11 };
     if (!isUuid(classId)) return { data: null, error: "Invalid class id", code: "VALIDATION" };
     if (!isUuid(teacherUserId)) return { data: null, error: "Enter the teacher's User ID (UUID).", code: "VALIDATION" };
     var client = db(), me = authed();
@@ -530,6 +748,8 @@ var AcademyCore = (function () {
   }
 
   async function unassignTeacher(classId, teacherUserId) {
+    var _t12 = getAcademyTargetStatus();
+    if (!_t12.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t12 };
     if (!isUuid(classId) || !isUuid(teacherUserId)) return { data: null, error: "Invalid ids", code: "VALIDATION" };
     var client = db();
     if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -545,6 +765,8 @@ var AcademyCore = (function () {
 
   async function myTeachingClasses(opts) {
     opts = opts || {};
+    var _t13 = getAcademyTargetStatus();
+    if (!_t13.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t13 };
     var client = db(), user = authed();
     if (!client || !user) return { data: [], error: !user ? "Not signed in" : "Sync not initialized", code: !user ? "NOT_AUTH" : "SETUP_REQUIRED" };
     var pg = pageRange(opts.page, opts.size);
@@ -565,6 +787,8 @@ var AcademyCore = (function () {
 
   async function listEnrollments(classId, opts) {
     opts = opts || {};
+    var _t14 = getAcademyTargetStatus();
+    if (!_t14.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t14 };
     var client = db();
     if (!isUuid(classId)) return { data: [], error: "Invalid class id", code: "VALIDATION" };
     if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -583,6 +807,8 @@ var AcademyCore = (function () {
   }
 
   async function enrollStudent(classId, studentUserId) {
+    var _t15 = getAcademyTargetStatus();
+    if (!_t15.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t15 };
     if (!isUuid(classId)) return { data: null, error: "Invalid class id", code: "VALIDATION" };
     if (!isUuid(studentUserId)) return { data: null, error: "Enter the student's User ID (UUID of an existing signed-up user).", code: "VALIDATION" };
     var me = authed();
@@ -602,6 +828,8 @@ var AcademyCore = (function () {
 
   async function removeEnrollment(classId, studentUserId) {
     // Revokes class access only; the student's account + learning history stay intact.
+    var _t16 = getAcademyTargetStatus();
+    if (!_t16.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t16 };
     if (!isUuid(classId) || !isUuid(studentUserId)) return { data: null, error: "Invalid ids", code: "VALIDATION" };
     var client = db();
     if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -617,6 +845,9 @@ var AcademyCore = (function () {
 
   async function getStudentProgress(studentUserId) {
     // RLS decides: own rows always; teachers/managers only when authorized.
+    // Fail-closed first: Academy progress reads never go through Production.
+    var _t17 = getAcademyTargetStatus();
+    if (!_t17.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t17 };
     if (!isUuid(studentUserId)) return { data: null, error: "Invalid student id", code: "VALIDATION" };
     var client = db();
     if (!client) return { data: null, error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -631,6 +862,8 @@ var AcademyCore = (function () {
   }
 
   async function getProfiles(userIds) {
+    var _t18 = getAcademyTargetStatus();
+    if (!_t18.allowed) return { data: [], error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t18 };
     var client = db();
     var ids = (userIds || []).filter(isUuid).slice(0, MAX_PAGE_SIZE);
     if (!client) return { data: [], error: "Sync not initialized", code: "SETUP_REQUIRED" };
@@ -643,6 +876,8 @@ var AcademyCore = (function () {
   }
 
   async function logAudit(academyId, action, entityType, entityId, metadata) {
+    var _t19 = getAcademyTargetStatus();
+    if (!_t19.allowed) return { data: null, error: academyTargetDisabledMessage(), code: "TARGET_DISABLED", academyTarget: _t19 };
     if (!isUuid(academyId)) return { data: null, error: "Invalid academy id", code: "VALIDATION" };
     var client = db(), me = authed();
     if (!client || !me) return { data: null, error: "Sign in required", code: "NOT_AUTH" };
@@ -662,6 +897,13 @@ var AcademyCore = (function () {
 
   return {
     ROLES: ROLES, LEVELS: LEVELS, PAGE_SIZE: PAGE_SIZE, MAX_PAGE_SIZE: MAX_PAGE_SIZE,
+    ACADEMY_STAGING_REF: ACADEMY_STAGING_REF, ACADEMY_ALLOWED_REFS: ACADEMY_ALLOWED_REFS,
+    extractProjectRef: extractProjectRef, resolveAcademyTarget: resolveAcademyTarget,
+    resolveAcademyDeployment: resolveAcademyDeployment,
+    configuredAcademyUrl: configuredAcademyUrl, getAcademyClient: getAcademyClient,
+    getAcademyClientUrl: getAcademyClientUrl,
+    getAcademyTargetStatus: getAcademyTargetStatus, isAcademyTargetAllowed: isAcademyTargetAllowed,
+    requireAcademyTarget: requireAcademyTarget,
     normRole: normRole, isPrivileged: isPrivileged, isManagerRole: isManagerRole,
     slugify: slugify, isUuid: isUuid,
     validateAcademyInput: validateAcademyInput, validateClassInput: validateClassInput,

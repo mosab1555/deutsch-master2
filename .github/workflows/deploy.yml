@@ -30,13 +30,16 @@ jobs:
       - name: Version static assets (cache busting)
         run: node tools/inject-version.js "${{ github.sha }}"
 
+      - name: Build learner-only Pages artifact (excludes Academy portal)
+        run: node tools/build-pages-artifact.js
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload client folder
+      - name: Upload learner-only artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: './client'
+          path: './dist/pages'
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -1,9 +1,9 @@
-/* Deutsch Master — Academy Portal UI (Phase 1, additive).
+/* Deutsch Master — Academy Portal UI (Phase 1, additive, fail-closed).
  *
  * Renders the functional academy administration + teacher experience inside
  * client/academy.html WITHOUT touching the learner application: learner
  * pages, script.js, progress, sync, and guest isolation are never modified
- * here. Every control is wired to AcademyCore (real Supabase operations);
+ * here. Every control is wired to AcademyCore (fail-closed target gate);
  * when the migration is not applied, the portal shows an honest setup status
  * and disables writes instead of pretending success. No invented grades,
  * attendance, or engagement metrics: reports derive only from
@@ -51,6 +51,7 @@ try {
     ar: {
       setupOk: "🟢 قاعدة بيانات الأكاديمية جاهزة ومتصلة.",
       setupMissing: "🟡 قاعدة بيانات الأكاديمية غير مُهيأة بعد: لم يُطبَّق ملف الترحيل على Supabase. القراءة والكتابة معطلة هنا — راجع تقرير المرحلة.",
+      targetDisabled: "🚫 بوابة الأكاديمية معطلة على هذا النشر: هذا النشر يستخدم مشروع الإنتاج لتطبيق المتعلم، وجداول الأكاديمية لا تُستخدم عبر الإنتاج أبدًا. يلزم اتصال Staging منفصل — وهو غير مُكوَّن هنا. تطبيق المتعلم يعمل بشكل طبيعي.",
       noSupabase: "⚠️ Supabase غير مُهيأ في هذا المتصفح: التطبيق يعمل دون اتصال، وبوابة الأكاديمية للعرض فقط.",
       signin: "سجّل الدخول من تطبيق المتعلم (index.html) لاستخدام البوابة. وضع الضيف لا يملك صلاحيات إدارية.",
       noMember: "لا توجد عضوية أكاديمية لحسابك بعد. اطلب من مالك المنصة أو مدير الأكاديمية إضافتك عبر User ID.",
@@ -61,6 +62,7 @@ try {
     en: {
       setupOk: "🟢 Academy database is ready and connected.",
       setupMissing: "🟡 Academy database is not configured yet: the migration was not applied. Reads/writes are disabled here — see the phase report.",
+      targetDisabled: "Academy portal is disabled on this deployment: this deployment uses the Production project for the learner app, and Academy tables are never queried via Production. A separate Staging connection is required — it is not configured here. The learner app works normally.",
       noSupabase: "⚠️ Supabase is not configured in this browser: the app works offline; the academy portal is view-only.",
       signin: "Sign in from the learner app (index.html) to use the portal. Guest mode has no admin rights.",
       noMember: "Your account has no academy membership yet. Ask a platform owner or academy manager to add you via User ID.",
@@ -71,6 +73,7 @@ try {
     de: {
       setupOk: "🟢 Akademie-Datenbank ist bereit und verbunden.",
       setupMissing: "🟡 Akademie-Datenbank ist noch nicht konfiguriert: Die Migration wurde nicht angewendet.",
+      targetDisabled: "Akademie-Portal ist auf diesem Deployment deaktiviert: Dieses Deployment nutzt das Produktionsprojekt für die Lern-App, und Akademie-Tabellen werden niemals über Produktion abgefragt. Eine separate Staging-Verbindung ist erforderlich — sie ist hier nicht konfiguriert. Die Lern-App funktioniert normal.",
       noSupabase: "⚠️ Supabase ist in diesem Browser nicht konfiguriert: Die App arbeitet offline; das Portal ist nur Ansicht.",
       signin: "Melde dich in der Lern-App (index.html) an, um das Portal zu nutzen. Gastmodus hat keine Admin-Rechte.",
       noMember: "Dein Konto hat noch keine Akademie-Mitgliedschaft. Bitte einen Plattform-Owner oder Manager um Hinzufügen per User-ID.",
@@ -96,6 +99,11 @@ try {
     if (!s) { b.innerHTML = '<div class="muted">…</div>'; return; }
     if (!s.configured && s.reason === "supabase_not_configured") {
       b.innerHTML = '<div class="panel glass" style="border-color:#a80">⚠️ ' + esc(tr("noSupabase")) + "</div>";
+    } else if (!s.configured && (s.reason === "target_disabled" || (s.code === "TARGET_DISABLED"))) {
+      // Fail-closed deployment state: Production target never queries Academy
+      // tables. Never claim a Staging connection exists when it does not.
+      b.innerHTML = '<div class="panel glass" style="border-color:#a33">🚫 ' + esc(tr("targetDisabled")) +
+        '<div class="muted">Academy target gate: explicit Staging ref required; Production is default-deny.</div></div>';
     } else if (!s.configured) {
       b.innerHTML = '<div class="panel glass" style="border-color:#a80">🟡 ' + esc(tr("setupMissing")) +
         '<div class="muted">supabase/migrations/20261015000000_academy_core.sql — staging only, never production.</div></div>';
@@ -169,9 +177,15 @@ try {
 
   function denied(e) {
     if (!e) return "denied";
+    if (e.code === "TARGET_DISABLED") return tr("targetDisabled");
     if (e.code === "SETUP_REQUIRED") return tr("setupMissing");
     if (e.code === "NOT_AUTH") return tr("signin");
     return e.error || "denied";
+  }
+
+  function isTargetDisabledResult(r) {
+    try { return !!r && (r.code === "TARGET_DISABLED" || (r.academyTarget && r.academyTarget.allowed === false && r.academyTarget.reason === "target_disabled")); }
+    catch (e) { return false; }
   }
 
   async function renderOverview() {
@@ -182,6 +196,9 @@ try {
     box.innerHTML = '<div class="muted">…</div>';
     var cls = await C.listClasses(S.currentAcademy, { page: 1, size: 5 });
     var mem = await C.listMembers(S.currentAcademy, { page: 1, size: 5 });
+    if (isTargetDisabledResult(cls) || isTargetDisabledResult(mem)) {
+      box.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return;
+    }
     if ((cls.code === "SETUP_REQUIRED") || (mem.code === "SETUP_REQUIRED")) {
       box.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return;
     }
@@ -257,6 +274,7 @@ try {
     async function load() {
       var list = el("acadTList");
       var r = await C.listMembers(S.currentAcademy, { page: st.page, size: C.PAGE_SIZE });
+      if (isTargetDisabledResult(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
       if (r.code === "SETUP_REQUIRED") { list.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
       if (r.error) { list.innerHTML = '<div class="muted">⛔ ' + esc(denied(r)) + "</div>"; return; }
       var rows = (r.data || []).filter(function (m) {
@@ -333,6 +351,7 @@ try {
     async function load() {
       var list = el("acadCList");
       var r = await C.listClasses(S.currentAcademy, { page: st.page, size: C.PAGE_SIZE, search: st.search });
+      if (isTargetDisabledResult(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
       if (r.code === "SETUP_REQUIRED") { list.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
       if (r.error) { list.innerHTML = '<div class="muted">⛔ ' + esc(denied(r)) + "</div>"; return; }
       var rows = r.data || [];
@@ -483,6 +502,7 @@ try {
       var list = el("acadEList");
       if (!S.enroll.classId) { list.innerHTML = '<div class="muted">لا يوجد فصل نشط.</div>'; return; }
       var r = await C.listEnrollments(S.enroll.classId, { page: S.enroll.page, size: C.PAGE_SIZE });
+      if (isTargetDisabledResult(r)) { list.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
       if (r.code === "SETUP_REQUIRED") { list.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
       if (r.error) { list.innerHTML = '<div class="muted">⛔ ' + esc(denied(r)) + "</div>"; return; }
       var rows = r.data || [];
@@ -517,6 +537,7 @@ try {
     var C = window.AcademyCore;
     if (!S.user) { box.innerHTML = '<div class="muted">' + esc(tr("signin")) + "</div>"; return; }
     var mine = await C.myTeachingClasses({ page: 1, size: C.MAX_PAGE_SIZE });
+    if (isTargetDisabledResult(mine)) { box.innerHTML = '<div class="muted">🚫 ' + esc(tr("targetDisabled")) + "</div>"; return; }
     if (mine.code === "SETUP_REQUIRED") { box.innerHTML = '<div class="muted">' + esc(tr("setupMissing")) + "</div>"; return; }
     if (mine.error) { box.innerHTML = '<div class="muted">⛔ ' + esc(denied(mine)) + "</div>"; return; }
     var classes = mine.data || [];
