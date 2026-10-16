@@ -44,6 +44,9 @@ const STAGING_ORIGIN = "https://" + STAGING_REF + ".supabase.co";
 const PROD_REF = "bhdgpscedjowchldsjnd";
 const PREVIEW_SUBDIR = "academy-preview";
 const AUTH_SCRIPT_TAG = '<script src="academy-auth.js"></script>';
+const AUTH_SCRIPT_RE = /<script\s+src="academy-auth\.js(?:\?v=[^"]*)?"><\/script>/;
+const LEARNER_HREF_RE = /href="index\.html(?:\?v=[^"]*)?"/g;
+const LEARNER_HREF_TEST = /href="index\.html(?:\?v=[^"]*)?"/;
 const PREVIEW_INDEX_REDIRECT = '<!DOCTYPE html>\n' +
   '<html lang="en">\n' +
   '<head>\n' +
@@ -202,52 +205,54 @@ function main() {
   try {
     var required = ["academy.html", "academy-auth.js", "academy-core.js", "academy-portal.js", "supabase-config.js", "sw.js", "index.html"];
     required.forEach(function (f) {
-      if (!fs.existsSync(path.join(previewDir, f))) throw new Error("missing required preview file");
+      if (!fs.existsSync(path.join(previewDir, f))) { var e0 = new Error("missing required preview file"); e0.code = "E_REQUIRED_MISSING"; throw e0; }
     });
 
     var srcCfgPath = path.join(args.src, "supabase-config.js");
     var prevCfgPath = path.join(previewDir, "supabase-config.js");
     var srcCfg = fs.readFileSync(srcCfgPath, "utf8");
-    if (srcCfg.indexOf(PROD_REF) < 0) throw new Error("unexpected source config baseline");
+    if (srcCfg.indexOf(PROD_REF) < 0) { var e1 = new Error("unexpected source config baseline"); e1.code = "E_CONFIG_BASELINE"; throw e1; }
     var prevCfg = srcCfg;
     var prodUrlLit = "https://" + PROD_REF + ".supabase.co";
-    if (prevCfg.indexOf(prodUrlLit) < 0) throw new Error("source config URL shape changed");
+    if (prevCfg.indexOf(prodUrlLit) < 0) { var e2 = new Error("source config URL shape changed"); e2.code = "E_CONFIG_URL_SHAPE"; throw e2; }
     prevCfg = prevCfg.split(prodUrlLit).join(url);
     var anonRe = /anonKey:\s*"[^"]*"/;
-    if (!anonRe.test(prevCfg)) throw new Error("source config key shape changed");
+    if (!anonRe.test(prevCfg)) { var e3 = new Error("source config key shape changed"); e3.code = "E_CONFIG_KEY_SHAPE"; throw e3; }
     prevCfg = prevCfg.replace(anonRe, "anonKey: " + JSON.stringify(key));
     fs.writeFileSync(prevCfgPath, prevCfg);
     var checkCfg = fs.readFileSync(prevCfgPath, "utf8");
-    if (checkCfg.indexOf(PROD_REF) >= 0) throw new Error("preview config still references Production");
-    if (checkCfg.indexOf(url) < 0) throw new Error("preview config missing Staging target");
+    if (checkCfg.indexOf(PROD_REF) >= 0) { var e4 = new Error("preview config still references Production"); e4.code = "E_CONFIG_STILL_PROD"; throw e4; }
+    if (checkCfg.indexOf(url) < 0) { var e5 = new Error("preview config missing Staging target"); e5.code = "E_CONFIG_MISSING_STAGING"; throw e5; }
 
     var srcHtmlPath = path.join(args.src, "academy.html");
     var prevHtmlPath = path.join(previewDir, "academy.html");
     var srcHtml = fs.readFileSync(srcHtmlPath, "utf8");
-    if (srcHtml.indexOf(AUTH_SCRIPT_TAG) < 0) throw new Error("academy-auth script tag not found");
+    var authTagMatch = srcHtml.match(AUTH_SCRIPT_RE);
+    if (!authTagMatch) { var e6 = new Error("academy-auth script tag not found"); e6.code = "E_AUTH_TAG"; throw e6; }
+    var authTag = authTagMatch[0];
     var inject = "<script>window.ACADEMY_SUPABASE_CONFIG=" +
       JSON.stringify({ url: url, publishableKey: key }) + ";</script>";
-    var prevHtml = srcHtml.replace(AUTH_SCRIPT_TAG, inject + AUTH_SCRIPT_TAG);
-    if (prevHtml === srcHtml) throw new Error("preview injection produced no change");
-    if (prevHtml.indexOf("window.ACADEMY_SUPABASE_CONFIG") < 0) throw new Error("preview injection missing");
+    var prevHtml = srcHtml.replace(AUTH_SCRIPT_RE, inject + authTag);
+    if (prevHtml === srcHtml) { var e7 = new Error("preview injection produced no change"); e7.code = "E_INJECTION_NO_CHANGE"; throw e7; }
+    if (prevHtml.indexOf("window.ACADEMY_SUPABASE_CONFIG") < 0) { var e8 = new Error("preview injection missing"); e8.code = "E_INJECTION_MISSING"; throw e8; }
     var iCfg = prevHtml.indexOf("window.ACADEMY_SUPABASE_CONFIG");
-    var iAuth = prevHtml.indexOf(AUTH_SCRIPT_TAG);
-    if (!(iCfg >= 0 && iAuth >= 0 && iCfg < iAuth)) throw new Error("preview injection order invalid");
-    var srcLearnerLinks = srcHtml.split('href="index.html"').length - 1;
+    var iAuth = prevHtml.indexOf("academy-auth.js");
+    if (!(iCfg >= 0 && iAuth >= 0 && iCfg < iAuth)) { var e9 = new Error("preview injection order invalid"); e9.code = "E_INJECTION_ORDER"; throw e9; }
+    var srcLearnerLinks = (srcHtml.match(LEARNER_HREF_RE) || []).length;
     if (srcLearnerLinks > 0) {
-      prevHtml = prevHtml.split('href="index.html"').join('href="../index.html"');
-      if (prevHtml.indexOf('href="index.html"') >= 0) throw new Error("preview learner links not isolated");
-      if (prevHtml.indexOf('href="../index.html"') < 0) throw new Error("preview learner links missing");
+      prevHtml = prevHtml.replace(LEARNER_HREF_RE, 'href="../index.html"');
+      if (LEARNER_HREF_TEST.test(prevHtml)) { var e10 = new Error("preview learner links not isolated"); e10.code = "E_LINKS_NOT_ISOLATED"; throw e10; }
+      if (prevHtml.indexOf('href="../index.html"') < 0) { var e11 = new Error("preview learner links missing"); e11.code = "E_LINKS_MISSING"; throw e11; }
     }
     fs.writeFileSync(prevHtmlPath, prevHtml);
 
     var prevIndexPath = path.join(previewDir, "index.html");
     fs.writeFileSync(prevIndexPath, PREVIEW_INDEX_REDIRECT);
     var checkIndex = fs.readFileSync(prevIndexPath, "utf8");
-    if (checkIndex.indexOf("../index.html") < 0) throw new Error("preview index redirect missing");
-    if (checkIndex.indexOf("supabase-config") >= 0) throw new Error("preview index loads learner client");
-    if (checkIndex.indexOf("SUPABASE_CONFIG") >= 0) throw new Error("preview index exposes Supabase config");
-    if (checkIndex.indexOf(PROD_REF) >= 0 || checkIndex.indexOf(STAGING_REF) >= 0) throw new Error("preview index leaks project ref");
+    if (checkIndex.indexOf("../index.html") < 0) { var e12 = new Error("preview index redirect missing"); e12.code = "E_INDEX_REDIRECT_MISSING"; throw e12; }
+    if (checkIndex.indexOf("supabase-config") >= 0) { var e13 = new Error("preview index loads learner client"); e13.code = "E_INDEX_LOADS_CLIENT"; throw e13; }
+    if (checkIndex.indexOf("SUPABASE_CONFIG") >= 0) { var e14 = new Error("preview index exposes Supabase config"); e14.code = "E_INDEX_EXPOSES_CONFIG"; throw e14; }
+    if (checkIndex.indexOf(PROD_REF) >= 0 || checkIndex.indexOf(STAGING_REF) >= 0) { var e15 = new Error("preview index leaks project ref"); e15.code = "E_INDEX_LEAKS_REF"; throw e15; }
 
     var allPrev = listFilesRecursive(previewDir);
     for (var i = 0; i < allPrev.length; i++) {
@@ -258,13 +263,13 @@ function main() {
       if (buf.length > 5 * 1024 * 1024) continue;
       var txt = buf.toString("utf8");
       if (txt.indexOf("\uFFFD") >= 0 && allPrev[i].slice(-3) !== ".js") continue;
-      if (txt.indexOf(PROD_REF) >= 0) throw new Error("preview contains unexpected Production reference");
+      if (txt.indexOf(PROD_REF) >= 0) { var e16 = new Error("preview contains unexpected Production reference"); e16.code = "E_PROD_REF_FOUND"; throw e16; }
     }
     var secretRe = /sb_secret_[A-Za-z0-9_\-]{10,}|SUPABASE_SERVICE_ROLE_KEY/i;
     var cfgText = fs.readFileSync(prevCfgPath, "utf8");
     var htmlText = fs.readFileSync(prevHtmlPath, "utf8");
-    if (secretRe.test(cfgText) && /sb_secret_[A-Za-z0-9_\-]{10,}/.test(cfgText)) throw new Error("preview introduces privileged credential");
-    if (/eyJ[A-Za-z0-9_\-]{20,}/.test(cfgText)) throw new Error("preview introduces legacy key material");
+    if (secretRe.test(cfgText) && /sb_secret_[A-Za-z0-9_\-]{10,}/.test(cfgText)) { var e17 = new Error("preview introduces privileged credential"); e17.code = "E_PRIVILEGED"; throw e17; }
+    if (/eyJ[A-Za-z0-9_\-]{20,}/.test(cfgText)) { var e18 = new Error("preview introduces legacy key material"); e18.code = "E_LEGACY_KEY"; throw e18; }
 
     var h = crypto.createHash("sha256");
     allPrev.forEach(function (rel) {
@@ -275,7 +280,9 @@ function main() {
     console.log("academy-preview: built isolated Staging preview files=" + copied.length);
     console.log("RESULT: PASS");
   } catch (e) {
-    fail("safe injection failed; no preview emitted.", previewDir);
+    var code = "E_UNKNOWN";
+    try { if (e && typeof e.code === "string" && /^E_[A-Z_]+$/.test(e.code)) code = e.code; } catch (e2) {}
+    fail("safe injection failed [" + code + "]; no preview emitted.", previewDir);
   }
 }
 

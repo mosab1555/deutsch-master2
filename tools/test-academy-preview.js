@@ -41,7 +41,7 @@ function rmrf(dir) {
   } catch (e) {}
 }
 
-function runPreview(outDir, envExtra) {
+function runPreview(outDir, envExtra, srcDir) {
   var env = Object.assign({}, process.env, envExtra || {});
   delete env.ACADEMY_STAGING_URL;
   delete env.ACADEMY_STAGING_PUBLISHABLE_KEY;
@@ -51,8 +51,33 @@ function runPreview(outDir, envExtra) {
       else env[k] = envExtra[k];
     });
   }
-  return spawnSync(process.execPath, [BUILDER, "--out", outDir],
+  var args = [BUILDER, "--out", outDir];
+  if (srcDir) args.push("--src", srcDir);
+  return spawnSync(process.execPath, args,
     { cwd: ROOT, encoding: "utf8", timeout: 120000, env: env });
+}
+
+function copyTreeForTest(srcDir, outDir) {
+  function walk(rel) {
+    var s = rel ? path.join(srcDir, rel) : srcDir;
+    var entries = fs.readdirSync(s);
+    entries.forEach(function (name) {
+      var relPath = rel ? rel + "/" + name : name;
+      var sp = path.join(srcDir, relPath);
+      var dp = path.join(outDir, relPath);
+      var st = fs.statSync(sp);
+      if (st.isDirectory()) { fs.mkdirSync(dp, { recursive: true }); walk(relPath); }
+      else if (st.isFile()) { fs.mkdirSync(path.dirname(dp), { recursive: true }); fs.copyFileSync(sp, dp); }
+    });
+  }
+  fs.mkdirSync(outDir, { recursive: true });
+  walk("");
+}
+
+function versionHtmlForTest(html, ver) {
+  var s = html.replace(/((?:src|href)=")([^"]+?)\?v=[^"]*(")/g, "$1$2$3");
+  s = s.replace(/((?:src|href)=")((?!(?:https?:|data:|#))[A-Za-z0-9_.\-\/]+\.(?:js|css))(")/g, "$1$2?v=" + ver + "$3");
+  return s;
 }
 
 function runPages(outDir) {
@@ -262,6 +287,55 @@ function listRel(dir) {
     var r3 = runPreview(out, {});
     ok("good: removal leaves no stale preview", r3.status === 0 && !fs.existsSync(path.join(out, "academy-preview")));
     ok("good: root still intact after removal", fs.existsSync(path.join(out, "index.html")));
+    rmrf(tmp);
+  })();
+
+  // Versioned source (post inject-version.js): ?v= asset refs must not break injection.
+  (function () {
+    var tmp = fs.mkdtempSync(path.join(os.tmpdir(), "dm-prev-ver-"));
+    var src = path.join(tmp, "src");
+    var out = path.join(tmp, "pages");
+    copyTreeForTest(path.join(ROOT, "client"), src);
+    var htmlPath = path.join(src, "academy.html");
+    var html0 = fs.readFileSync(htmlPath, "utf8");
+    var htmlVer = versionHtmlForTest(html0, "deadbee");
+    ok("versioned: fixture gains versioned auth ref",
+      htmlVer.indexOf("academy-auth.js?v=deadbee") >= 0);
+    fs.writeFileSync(htmlPath, htmlVer);
+    var r = runPreview(out, { ACADEMY_STAGING_URL: STAGING_URL, ACADEMY_STAGING_PUBLISHABLE_KEY: FAKE_KEY }, src);
+    var combined = (r.stdout || "") + (r.stderr || "");
+    ok("versioned: preview builds from versioned source", r.status === 0 && fs.existsSync(path.join(out, "academy-preview", "academy.html")));
+    ok("versioned: builder hides key material", combined.indexOf(FAKE_KEY) < 0);
+    var prevHtml = "";
+    try { prevHtml = fs.readFileSync(path.join(out, "academy-preview", "academy.html"), "utf8"); } catch (e) {}
+    ok("versioned: Academy config injected before versioned auth ref",
+      prevHtml.indexOf("window.ACADEMY_SUPABASE_CONFIG") >= 0 &&
+      prevHtml.indexOf("window.ACADEMY_SUPABASE_CONFIG") < prevHtml.indexOf("academy-auth.js"));
+    ok("versioned: learner links still isolated",
+      prevHtml.indexOf('href="../index.html"') >= 0 && !/href="index\.html(?:\?v=[^"]*)?"/.test(prevHtml));
+    var prevIndex = "";
+    try { prevIndex = fs.readFileSync(path.join(out, "academy-preview", "index.html"), "utf8"); } catch (e) {}
+    ok("versioned: preview index still redirect-only",
+      prevIndex.indexOf("../index.html") >= 0 && prevIndex.indexOf("supabase-config") < 0 &&
+      prevIndex.indexOf("SUPABASE_CONFIG") < 0);
+    rmrf(tmp);
+  })();
+
+  // Stage-specific safe diagnostics: reason code without values.
+  (function () {
+    var tmp = fs.mkdtempSync(path.join(os.tmpdir(), "dm-prev-code-"));
+    var src = path.join(tmp, "src");
+    var out = path.join(tmp, "pages");
+    copyTreeForTest(path.join(ROOT, "client"), src);
+    var htmlPath = path.join(src, "academy.html");
+    var html0 = fs.readFileSync(htmlPath, "utf8");
+    fs.writeFileSync(htmlPath, html0.split("academy-auth.js").join("academy-auth-missing.js"));
+    var r = runPreview(out, { ACADEMY_STAGING_URL: STAGING_URL, ACADEMY_STAGING_PUBLISHABLE_KEY: FAKE_KEY }, src);
+    var combined = (r.stdout || "") + (r.stderr || "");
+    ok("diag: missing auth tag fails closed", r.status !== 0 && !fs.existsSync(path.join(out, "academy-preview")));
+    ok("diag: reports fixed reason code", combined.indexOf("[E_AUTH_TAG]") >= 0);
+    ok("diag: hides key material", combined.indexOf(FAKE_KEY) < 0);
+    ok("diag: hides URL value", combined.indexOf(STAGING_URL) < 0);
     rmrf(tmp);
   })();
 
