@@ -166,7 +166,10 @@ async function partA() {
   let authedUserId = null;
   const fakeAuth = makeFakeAuth();
   const fakeSupabaseLib = {
-    createClient: () => ({ auth: fakeAuth }),
+    createClient: () => ({
+      auth: fakeAuth,
+      from: (t) => makeQueryBuilder(db, t, { authUserId: () => authedUserId }),
+    }),
   };
   global.window.supabase = fakeSupabaseLib;
 
@@ -474,6 +477,7 @@ async function partB() {
       try{
         window.DMIdentity.ensureBackup();
         window.S.xp=50; window.save();
+        window.DMIdentity.snapshot();
         var guestBefore=localStorage.getItem("deutsch_master_v2");
         window.DMIdentity.activate("test-uid-A");
         var aLive=window.S.xp;
@@ -559,6 +563,7 @@ async function partB() {
         window.DMIdentity.activate("test-uid-A");
         var aXp=window.S.xp;
         window.S.xp=100; window.save();
+        window.DMIdentity.snapshot();
         var guestRaw=localStorage.getItem("deutsch_master_v2");
         var guestXp=null; try{guestXp=JSON.parse(guestRaw).xp;}catch(e){}
         var aRaw=localStorage.getItem("deutsch_master_v2:uid:test-uid-A");

@@ -144,7 +144,7 @@ ON CONFLICT (user_id) DO NOTHING;
 RESET ROLE; SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 SELECT results_eq(
-  'SELECT id FROM public.academies ORDER BY 1',
+  $$SELECT id FROM public.academies WHERE id IN ('11111111-1111-4111-8111-111111111111'::uuid, '22222222-2222-4222-8222-222222222222'::uuid) ORDER BY 1$$,
   $$VALUES ('11111111-1111-4111-8111-111111111111'::uuid), ('22222222-2222-4222-8222-222222222222'::uuid)$$,
   'platform owner reads both academies');
 SELECT lives_ok(

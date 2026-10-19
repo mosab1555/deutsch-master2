@@ -278,6 +278,36 @@ ok("teacher not manager", C.isManagerRole("teacher") === false);
   });
 })();
 
+// ---------- 13. academy-progress edge function tenant tripwire (STATIC) ----------
+// Static source assertion only: reads the real executable handler with comments
+// stripped (comments alone must never satisfy it), never executes Deno, and
+// never touches a database. It exists so a future edit cannot silently remove
+// the class->academy tenant check or move it after the production-link lookup
+// or the bridge request.
+(function () {
+  const fnPath = path.join(ROOT, "supabase", "functions", "academy-progress", "index.ts");
+  ok("fn-tenant: academy-progress function exists", fs.existsSync(fnPath));
+  const raw = fs.existsSync(fnPath) ? fs.readFileSync(fnPath, "utf8") : "";
+  const fn = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  const clsIdx = fn.indexOf('from("classes")');
+  const nextIdx = fn.indexOf("academy_members", clsIdx + 1);
+  const scope = clsIdx >= 0 ? fn.slice(clsIdx, nextIdx > clsIdx ? nextIdx : clsIdx + 400) : "";
+  ok("fn-tenant: handler queries classes", clsIdx >= 0);
+  ok("fn-tenant: class lookup uses requested classId", /\.eq\(\s*"id",\s*classId\s*\)/.test(scope));
+  ok("fn-tenant: class lookup enforces supplied academyId", /\.eq\(\s*"academy_id",\s*academyId\s*\)/.test(scope));
+  const denyIdx = scope.search(/return\s+deny\(\)/);
+  ok("fn-tenant: fails closed via deny()", denyIdx >= 0);
+  ok("fn-tenant: guard inspects error/result before denial",
+    denyIdx >= 0 && /(err|Error|isArray|length)/.test(scope.slice(0, denyIdx)));
+  ok("fn-tenant: no platform-owner bypass inside tenant window", scope.indexOf("platform_owners") < 0);
+  ok("fn-tenant: check runs before production-link lookup",
+    clsIdx >= 0 && fn.indexOf('from("academy_prod_links")') > clsIdx);
+  ok("fn-tenant: check runs before bridge request",
+    clsIdx >= 0 && fn.indexOf("fetch(bridgeUrl") > clsIdx);
+  ok("fn-tenant: denial body stays generic",
+    /function\s+deny\(\)[\s\S]{0,120}"denied"[\s\S]{0,120}403/.test(fn));
+})();
+
 console.log("====");
 console.log("TOTAL pass=" + pass + " fail=" + fail + " RESULT: " + (fail ? "FAIL" : "PASS"));
 process.exit(fail ? 1 : 0);

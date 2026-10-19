@@ -70,6 +70,7 @@ const SUITES = [
   { id: "check-translations", args: ["tools/check-translations.js"] },
   { id: "check-reference", args: ["tools/check-reference.js"] },
   { id: "check-ref-dups", args: ["tools/check-ref-dups.js"] },
+  { id: "test-ref-identity", args: ["tools/test-ref-identity.js"] },
   // Statistical assertion (chi-square over shuffle positions) flakes
   // occasionally; same rerun-once-and-log rule as test-smart.
   { id: "e2e", args: ["tools/e2e.js"], rerunOnce: true },

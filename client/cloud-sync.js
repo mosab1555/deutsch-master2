@@ -38,6 +38,7 @@ const CloudSync = (function () {
         return !!userId && userId === activeUserId &&
             (generation === undefined || generation === syncGeneration);
     }
+    function supersededError() { return new Error("Superseded: account changed"); }
 
     // Sync status constants
     const SYNC_STATUS = {
@@ -430,6 +431,7 @@ const CloudSync = (function () {
         if (!checkActive(userId)) {
             return { success: false, error: "Superseded: account changed" };
         }
+        const generation = syncGeneration;
 
         try {
             const { data, error } = await supabaseClient
@@ -437,6 +439,13 @@ const CloudSync = (function () {
                 .select("state, version")
                 .eq("user_id", userId)
                 .single();
+
+            // The read was stamped with the identity/generation that started
+            // it: if either changed while it was in flight, this result is a
+            // stale account's snapshot and must never be applied locally.
+            if (!checkActive(userId, generation)) {
+                return { success: false, error: "Superseded: account changed" };
+            }
 
             if (error && error.code !== "PGRST116") throw error;
 
@@ -909,11 +918,19 @@ const CloudSync = (function () {
                 console.log("[Sync] Processed queued operation:", op.type);
             } catch (e) {
                 console.warn("[Sync] Queue operation failed:", op.type, e);
-                op.retries = (op.retries || 0) + 1;
-                if (op.retries < 5) {
-                    remaining.push(op); // Re-queue with backoff
+                // A superseded op is not a failure of the work itself: its
+                // owner changed while it was in flight. Hold it for its
+                // rightful owner without burning a retry, so it can upload
+                // later under the correct account.
+                if (e && typeof e.message === "string" && e.message.indexOf("Superseded") === 0) {
+                    remaining.push(op);
                 } else {
-                    console.error("[Sync] Operation failed permanently:", op);
+                    op.retries = (op.retries || 0) + 1;
+                    if (op.retries < 5) {
+                        remaining.push(op); // Re-queue with backoff
+                    } else {
+                        console.error("[Sync] Operation failed permanently:", op);
+                    }
                 }
             }
         }
@@ -934,8 +951,9 @@ const CloudSync = (function () {
         if (!user) throw new Error("No user");
         const owner = op.userId || "guest";
         if (owner !== user.id || !checkActive(user.id)) {
-            throw new Error("Superseded: account changed");
+            throw supersededError();
         }
+        const generation = syncGeneration;
 
         switch (op.type) {
             case "upsert_progress": {
@@ -955,6 +973,11 @@ const CloudSync = (function () {
                 } catch (e) {
                     console.warn("[Sync] Queue version pre-check failed, uploading queued state:", e);
                 }
+                // Identity changed while the version pre-check was in flight:
+                // abort before writing so nothing lands for a dead identity.
+                if (!checkActive(user.id, generation)) {
+                    throw supersededError();
+                }
                 const { error } = await supabaseClient
                     .from("user_progress")
                     .upsert({
@@ -965,6 +988,11 @@ const CloudSync = (function () {
                         updated_at: new Date().toISOString()
                     }, { onConflict: "user_id" });
                 if (error) throw error;
+                // The write was already in flight; still never apply its result
+                // (local state / version) to whatever identity is live now.
+                if (!checkActive(user.id, generation)) {
+                    throw supersededError();
+                }
                 if (stateToUpload !== op.payload.state) applyMergedState(stateToUpload);
                 setLocalVersion(version);
                 currentVersion = version;
@@ -1007,6 +1035,10 @@ const CloudSync = (function () {
 
     // Handle version conflict (called when versions don't match)
     async function resolveConflict(userId, localState, cloudState, localVersion, cloudVersion) {
+        if (!checkActive(userId)) {
+            return { success: false, error: "Superseded: account changed" };
+        }
+        const generation = syncGeneration;
         console.log("[Sync] Conflict detected - local v" + localVersion + " vs cloud v" + cloudVersion);
 
         // Use deterministic merge
@@ -1026,6 +1058,9 @@ const CloudSync = (function () {
 
         if (error) throw error;
 
+        if (!checkActive(userId, generation)) {
+            return { success: false, error: "Superseded: account changed" };
+        }
         applyMergedState(merged.state);
         setLocalVersion(newVersion);
         currentVersion = newVersion;
@@ -1039,12 +1074,25 @@ const CloudSync = (function () {
     async function migrateLocalToCloud(userId, localState) {
         console.log("[Sync] First login migration for user:", userId);
 
+        // Entry guard: never start (or continue) a migration for an identity
+        // that is not the live active one. Same read/write re-checks as the
+        // other sync paths: the select below and the upsert below are both
+        // stamped with the generation that started this migration.
+        if (!checkActive(userId)) {
+            return { success: false, error: "Superseded: account changed" };
+        }
+        const generation = syncGeneration;
+
         // Check if cloud already has data
         const { data: existing } = await supabaseClient
             .from("user_progress")
             .select("state, version")
             .eq("user_id", userId)
             .single();
+
+        if (!checkActive(userId, generation)) {
+            return { success: false, error: "Superseded: account changed" };
+        }
 
         if (existing && Object.keys(existing.state || {}).length > 0) {
             // Cloud has data - merge
@@ -1067,6 +1115,9 @@ const CloudSync = (function () {
 
         if (error) throw error;
 
+        if (!checkActive(userId, generation)) {
+            return { success: false, error: "Superseded: account changed" };
+        }
         setLocalVersion(version);
         currentVersion = version;
 

@@ -836,6 +836,13 @@
     async function initializeApp() {
         console.log("[App] Initializing Deutsch Master with Auth & Sync...");
 
+        // Session generation: increments on every auth transition (sign-in,
+        // sign-out, A -> B, same-user re-login). Declared BEFORE the test seam
+        // and every listener registration so async session work always has a
+        // valid counter, even on the config-less offline path that returns
+        // early below.
+        var sessionGen = 0;
+
         // Test seam (same precedent as updateAuthUI): exposes the REAL login /
         // logout transition handlers so headless regression tests can drive
         // account isolation without a network session. Never used by prod code.
@@ -1000,8 +1007,19 @@
         //    restore exactly that (never mixed with local state). No cloud
         //    data -> clean default state (never Guest state). Live Guest
         //    state stays in the Guest snapshot, untouched either way.
-        async function switchToAccount(uid) {
+        async function switchToAccount(uid, generation) {
             var CS = window.CloudSync;
+            // A completion is stale when its session generation was superseded
+            // (sign-out, A -> B, or re-login as anyone incl. the same user) or
+            // the live auth user no longer matches the account being switched
+            // to. Checked after EVERY await and before every identity
+            // activation / sync launch, so a late continuation can never
+            // re-activate an abandoned account, start a stale migration, or
+            // overwrite a newer session's identity.
+            function stale() {
+                return (generation !== undefined && generation !== sessionGen) ||
+                    currentLiveUid() !== uid;
+            }
             try { window.DMIdentity?.snapshot?.(); } catch (e) {}
             try { CS?.setActiveUser?.(uid); } catch (e) {}
             try { CS?.stopAutoSync?.(); } catch (e) {}
@@ -1014,12 +1032,14 @@
                         ? window.AuthModule.getClient() : null;
                     if (client) {
                         var res = await client.from("user_progress").select("state, version").eq("user_id", uid).single();
+                        if (stale()) return;
                         if (!res.error && res.data && res.data.state && Object.keys(res.data.state).length) {
                             cloudHasData = true;
                         }
                     }
                 } catch (e) {}
                 if (cloudHasData) {
+                    if (stale()) return;
                     // Existing account: restore ONLY its cloud progress.
                     // Activate FIRST so live state is this account's own
                     // (clean defaults when first seen on this device):
@@ -1036,6 +1056,9 @@
                     } catch (e) {
                         console.warn("[App] Account restore failed:", e);
                     }
+                    // The download was stamped with this switch's generation;
+                    // discard it entirely once the session moved on.
+                    if (stale()) return;
                     if (!restored) {
                         // Cloud unreachable right now: start clean rather than
                         // exposing Guest state under this account. Later syncs
@@ -1043,6 +1066,7 @@
                         try { window.DMIdentity?.activate?.(uid); } catch (e2) {}
                     }
                 } else {
+                    if (stale()) return;
                     // Brand-new account: clean default state, never Guest data.
                     // activate() with no snapshot loads defaults, saves them
                     // under this account's key, and re-renders.
@@ -1058,9 +1082,11 @@
                     } catch (e) {
                         console.warn("[App] New-account cloud init failed:", e);
                     }
+                    if (stale()) return;
                 }
                 try { window.DMIdentity?.snapshot?.(); } catch (e) {}
             } else {
+                if (stale()) return;
                 // Returning account: load its own snapshot, then deterministic
                 // same-owner sync (snapshot and cloud both belong to uid).
                 try { window.DMIdentity?.activate?.(uid); } catch (e) {}
@@ -1069,6 +1095,7 @@
                 } catch (e) {
                     console.warn("[App] Account sync failed:", e);
                 }
+                if (stale()) return;
             }
             try { CS?.refreshPendingCount?.(); } catch (e) {}
         }
@@ -1101,7 +1128,6 @@
         // completion, so a late callback from a previous account (sign in A
         // -> immediately sign out, or A -> B) can never repaint UI or start
         // sync for an identity that is no longer active.
-        var sessionGen = 0;
         function handleSession(session, event) {
             var gen = ++sessionGen;
             if (event === "SIGNED_OUT") recoveryMode = false;
@@ -1129,7 +1155,7 @@
                 lastUid = uid;
                 try { window.ProfileModule?.clearCache?.(); } catch (e) {}
                 refreshProfileIfVisible();
-                switchToAccount(uid).then(function () {
+                switchToAccount(uid, gen).then(function () {
                     if (gen !== sessionGen) return;
                     postSignIn(uid);
                 }).catch(function (e) {

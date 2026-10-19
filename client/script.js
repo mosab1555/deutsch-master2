@@ -1505,7 +1505,7 @@ try{
     // Persist live S under the CURRENT active key (call BEFORE switching).
     // Synchronous on purpose: snapshot guards identity transitions, so it
     // must not go through the coalesced save() (see loadIdentitySnapshot).
-    snapshot: function(){ try{ saveNow(); }catch(e){ try{ save(); }catch(e2){} } },
+    snapshot: function(){ try{ return saveFlushed(); }catch(e){ try{return saveNow();}catch(e2){return false;} } },
     // One-time safety backup of pre-identity local progress (never overwrites).
     ensureBackup: function(){
       try{
@@ -1521,6 +1521,8 @@ try{
     setActiveOnly: function(uid){ setActiveIdentityOnly(uid); },
     // Full switch: point at uid AND replace live S with its snapshot/defaults.
     activate: function(uid){
+      // Flush pending writes under the outgoing identity before switching.
+      try{ saveFlushed(); }catch(e){ try{ saveNow(); }catch(e2){} }
       setActiveIdentityOnly(uid);
       loadIdentitySnapshot(uid);
       try{ applyAll(); }catch(e){}

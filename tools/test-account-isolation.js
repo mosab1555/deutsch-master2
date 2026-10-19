@@ -13,6 +13,11 @@
  * restores the guest byte-identically, and queues stay owner-bound across
  * Guest -> A -> Logout -> Guest -> A and Guest -> A -> Logout -> B.
  *
+ * R23-R29b additionally gate (deterministically defer) matching backend
+ * queries with makeGate(), so stale async completions from a superseded
+ * session/identity can never re-activate an account, apply a stale snapshot
+ * or version, write after sign-out, or burn queue retries. No timing sleeps.
+ *
  * Usage: node tools/test-account-isolation.js  (exit 0 = PASS, 1 = FAIL)
  */
 const fs = require("fs"), path = require("path"), vm = require("vm");
@@ -56,7 +61,54 @@ function dbError(db) {
   if (db.mode === "fail500") return { message: "Internal Server Error", status: 500 };
   return { message: "boom" };
 }
-function makeClient(db) {
+/* Deterministic async gate: queries matching an armed predicate resolve only
+   when the test releases them. Selects capture their result at request start,
+   upserts execute at completion (release) - mirroring real in-flight
+   semantics without timing sleeps. arm() predicates are one-shot. */
+function makeGate() {
+  const armed = [], held = [];
+  return {
+    arm(pred) { armed.push(pred); return this; },
+    matches(info) {
+      for (let i = 0; i < armed.length; i++) {
+        if (armed[i](info)) { armed.splice(i, 1); return true; }
+      }
+      return false;
+    },
+    hold(finish) {
+      let release;
+      const p = new Promise(r => { release = () => r(finish()); });
+      held.push(release);
+      return p;
+    },
+    heldCount() { return held.length; },
+    release() { const r = held.shift(); if (r) r(); return held.length; },
+    releaseAll() { while (held.length) held.shift()(); },
+  };
+}
+function makeClient(db, gate) {
+  function runSelect(table, eqVal) {
+    db.calls.push(["select", table, eqVal]);
+    if (db.mode !== "ok") {
+      const e = dbError(db);
+      return (db.mode === "network" ? Promise.reject(new TypeError("Failed to fetch"))
+        : Promise.resolve({ data: null, error: e }));
+    }
+    const row = db.rows.get(table + ":" + eqVal);
+    return Promise.resolve(row
+      ? { data: JSON.parse(JSON.stringify(row)), error: null }
+      : { data: null, error: { message: "none", code: "PGRST116" } });
+  }
+  function runUpsert(table, payload) {
+    db.calls.push(["upsert", table, payload.user_id]);
+    if (db.mode !== "ok") {
+      const e = dbError(db);
+      return (db.mode === "network" ? Promise.reject(new TypeError("Failed to fetch"))
+        : Promise.resolve({ data: null, error: e }));
+    }
+    db.rows.set(table + ":" + payload.user_id, JSON.parse(JSON.stringify(payload)));
+    return Promise.resolve({ data: null, error: null });
+  }
   function builder(table) {
     return {
       _eq: null, _up: null,
@@ -65,33 +117,24 @@ function makeClient(db) {
       single() { return this; },
       upsert(o) { this._up = o; return this; },
       then(res, rej) {
-        if (this._up) {
-          db.calls.push(["upsert", table, this._up.user_id]);
-          if (db.mode !== "ok") {
-            const e = dbError(db);
-            return (db.mode === "network" ? Promise.reject(new TypeError("Failed to fetch"))
-              : Promise.resolve({ data: null, error: e })).then(res, rej);
+        const isUp = !!this._up;
+        const userId = isUp ? this._up.user_id : (this._eq && this._eq.val);
+        if (gate && gate.matches({ table, op: isUp ? "upsert" : "select", userId })) {
+          if (!isUp) {
+            const captured = runSelect(table, userId);
+            return gate.hold(() => captured).then(res, rej);
           }
-          db.rows.set(table + ":" + this._up.user_id, JSON.parse(JSON.stringify(this._up)));
-          return Promise.resolve({ data: null, error: null }).then(res, rej);
+          const payload = this._up;
+          return gate.hold(() => runUpsert(table, payload)).then(res, rej);
         }
-        db.calls.push(["select", table, this._eq && this._eq.val]);
-        if (db.mode !== "ok") {
-          const e = dbError(db);
-          return (db.mode === "network" ? Promise.reject(new TypeError("Failed to fetch"))
-            : Promise.resolve({ data: null, error: e })).then(res, rej);
-        }
-        const row = db.rows.get(table + ":" + (this._eq && this._eq.val));
-        return Promise.resolve(row
-          ? { data: JSON.parse(JSON.stringify(row)), error: null }
-          : { data: null, error: { message: "none", code: "PGRST116" } }).then(res, rej);
+        return (isUp ? runUpsert(table, this._up) : runSelect(table, userId)).then(res, rej);
       },
     };
   }
   return { from: t => builder(t) };
 }
 
-function bootContext(sharedMap, db) {
+function bootContext(sharedMap, db, opts) {
   const ls = makeLS(sharedMap);
   const winListeners = {};
   const sb = {
@@ -129,7 +172,7 @@ function bootContext(sharedMap, db) {
   const hooks = js("window.__dmTestHooks || {}");
   // Auth oracle stub (session/account modules themselves are tested elsewhere)
   let currentUser = null;
-  const client = makeClient(db);
+  const client = (opts && opts.client) || makeClient(db);
   sb.window.AuthModule = {
     getClient: () => client,
     getUser: () => currentUser,
@@ -154,6 +197,16 @@ function guestProgress(ctx) {
 }
 function aProgress(ctx) {
   ctx.js("S.xp=100; S.totalAnswered=120; S.quizHistory=[{id:'aq1'}]; S.customWords=[{id:'aw1',de:'Konto'}]; S.status={w9:'known'}; S.mistakes={}; S.streak={count:3,last:'2026-10-02',longest:3}; save();");
+}
+
+/* Fresh gated race context: unique storage + gated fake backend over the
+   real VM harness. Guest fixture is written with saveNow() (synchronous,
+   never coalesced) so byte-comparisons are deterministic. */
+function raceSetup(db) {
+  const gate = makeGate();
+  const ctx = bootContext(new Map(), db, { client: makeClient(db, gate) });
+  ctx.js("S.xp=50; S.totalAnswered=60; S.quizHistory=[{id:'gq1'}]; S.customWords=[{id:'gw1',de:'Gast'}]; S.streak={count:7,last:'2026-10-01',longest:7}; saveNow();");
+  return { gate: gate, ctx: ctx };
 }
 
 async function main() {
@@ -325,6 +378,263 @@ async function main() {
   const calls1 = db.calls.filter(c => c[0] === "upsert" && c[2] === "uid-A").length;
   ok("T22-no-dup-processing", calls1 - calls0 <= 2, "upserts=" + (calls1 - calls0));
   scrub.stop();
+
+  /* ================= deterministic stale-identity races =================
+     Each test gates one matching query, changes identity/session while the
+     query is in flight, then releases it. Production code must treat the
+     completion as superseded: no re-activation, no stale apply/version, no
+     writes after sign-out, no retry burn, no queue loss. */
+
+  /* ---- 23. Stale switchToAccount activation after sign-out (restore path) ---- */
+  {
+    const db23 = makeDb();
+    db23.rows.set("user_progress:uid-A", { user_id: "uid-A", state: { xp: 9000, quizHistory: [{ id: "cq1" }] }, version: 3 });
+    const r23 = raceSetup(db23);
+    const guestBytes23 = key(r23.ctx, "deutsch_master_v2");
+    r23.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    r23.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r23.ctx.js("window.__dmTestHooks.handleSession({user:{id:'uid-A'}},'SIGNED_IN')");
+    await r23.ctx.tick(2);
+    const held23 = r23.gate.heldCount();
+    r23.ctx.setUser(null);
+    r23.ctx.js("window.__dmTestHooks.handleSession(null,'SIGNED_OUT')");
+    await r23.ctx.tick(2);
+    r23.gate.release();
+    await r23.ctx.tick();
+    ok("R23-stale-signout-activation", held23 === 1 &&
+      live(r23.ctx, "window.DMIdentity.activeUid()") === null &&
+      live(r23.ctx, "S.xp") === 50 &&
+      key(r23.ctx, "deutsch_master_v2") === guestBytes23 &&
+      key(r23.ctx, "deutsch_master_v2:uid:uid-A") === null,
+      "held=" + held23 + " uid=" + live(r23.ctx, "window.DMIdentity.activeUid()") +
+      " xp=" + live(r23.ctx, "S.xp") + " aKey=" + (key(r23.ctx, "deutsch_master_v2:uid:uid-A") ? "yes" : "no"));
+    r23.ctx.stop();
+  }
+
+  /* ---- 24. Stale first-time migration after sign-out (cloud empty path) ---- */
+  {
+    const db24 = makeDb();
+    const r24 = raceSetup(db24);
+    const guestBytes24 = key(r24.ctx, "deutsch_master_v2");
+    r24.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    r24.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r24.ctx.js("window.__dmTestHooks.handleSession({user:{id:'uid-A'}},'SIGNED_IN')");
+    await r24.ctx.tick(2);
+    const held24 = r24.gate.heldCount();
+    r24.ctx.setUser(null);
+    r24.ctx.js("window.__dmTestHooks.handleSession(null,'SIGNED_OUT')");
+    await r24.ctx.tick(2);
+    r24.gate.release();
+    await r24.ctx.tick();
+    const ups24 = db24.calls.filter(c => c[0] === "upsert" && c[2] === "uid-A").length;
+    ok("R24-stale-signout-migration", held24 === 1 && ups24 === 0 &&
+      live(r24.ctx, "window.DMIdentity.activeUid()") === null &&
+      key(r24.ctx, "deutsch_master_v2") === guestBytes24 &&
+      key(r24.ctx, "deutsch_master_v2:uid:uid-A") === null,
+      "held=" + held24 + " upserts=" + ups24 + " uid=" + live(r24.ctx, "window.DMIdentity.activeUid()"));
+    r24.ctx.stop();
+  }
+
+  /* ---- 25. A-to-B: delayed A completion must not override B ---- */
+  {
+    const db25 = makeDb();
+    db25.rows.set("user_progress:uid-A", { user_id: "uid-A", state: { xp: 9000, quizHistory: [] }, version: 3 });
+    const r25 = raceSetup(db25);
+    const guestBytes25 = key(r25.ctx, "deutsch_master_v2");
+    r25.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    r25.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r25.ctx.js("window.__dmTestHooks.handleSession({user:{id:'uid-A'}},'SIGNED_IN')");
+    await r25.ctx.tick(2);
+    const held25 = r25.gate.heldCount();
+    r25.ctx.setUser({ id: "uid-B", email: "b@gmail.com" });
+    r25.ctx.js("window.__dmTestHooks.handleSession({user:{id:'uid-B'}},'SIGNED_IN')");
+    await r25.ctx.tick();
+    r25.gate.release();
+    await r25.ctx.tick();
+    ok("R25-stale-a-to-b", held25 === 1 &&
+      live(r25.ctx, "window.DMIdentity.activeUid()") === "uid-B" &&
+      live(r25.ctx, "S.xp") === 0 &&
+      key(r25.ctx, "deutsch_master_v2") === guestBytes25 &&
+      key(r25.ctx, "deutsch_master_v2:uid:uid-A") === null,
+      "held=" + held25 + " uid=" + live(r25.ctx, "window.DMIdentity.activeUid()") +
+      " xp=" + live(r25.ctx, "S.xp") + " aKey=" + (key(r25.ctx, "deutsch_master_v2:uid:uid-A") ? "yes" : "no"));
+    r25.ctx.stop();
+  }
+
+  /* ---- 26. downloadState must not apply a stale snapshot after sign-out ---- */
+  {
+    const db26 = makeDb();
+    db26.rows.set("user_progress:uid-A", { user_id: "uid-A", state: { xp: 4242, quizHistory: [] }, version: 5 });
+    const r26 = raceSetup(db26);
+    const guestBytes26 = key(r26.ctx, "deutsch_master_v2");
+    r26.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r26.ctx.js("window.CloudSync.setActiveUser('uid-A')");
+    r26.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    const p26 = r26.ctx.js("window.CloudSync.downloadState('uid-A')");
+    await r26.ctx.tick(2);
+    const held26 = r26.gate.heldCount();
+    r26.ctx.setUser(null);
+    r26.ctx.js("window.CloudSync.setActiveUser(null)");
+    r26.gate.release();
+    const res26 = await p26;
+    await r26.ctx.tick();
+    ok("R26-downloadState-stale", held26 === 1 &&
+      res26 && res26.success === false && /Superseded/.test(res26.error || "") &&
+      live(r26.ctx, "S.xp") === 50 &&
+      key(r26.ctx, "deutsch_master_v2") === guestBytes26,
+      "held=" + held26 + " res=" + JSON.stringify(res26) + " xp=" + live(r26.ctx, "S.xp"));
+    r26.ctx.stop();
+  }
+
+  /* ---- 27a. Queued op superseded after its version pre-check must not write ---- */
+  {
+    const db27 = makeDb();
+    db27.rows.set("user_progress:uid-A", { user_id: "uid-A", state: { xp: 9000, quizHistory: [] }, version: 999 });
+    const r27 = raceSetup(db27);
+    const guestBytes27 = key(r27.ctx, "deutsch_master_v2");
+    r27.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r27.ctx.js("window.CloudSync.setActiveUser('uid-A')");
+    r27.ctx.js("window.CloudSync.queueOperation('upsert_progress', { state: { xp: 777, quizHistory: [] } }, 'uid-A')");
+    r27.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    const pq27 = r27.ctx.js("window.CloudSync.processQueue()");
+    await r27.ctx.tick(2);
+    const held27 = r27.gate.heldCount();
+    r27.ctx.setUser(null);
+    r27.ctx.js("window.CloudSync.setActiveUser(null)");
+    r27.gate.release();
+    await pq27;
+    await r27.ctx.tick();
+    const ups27 = db27.calls.filter(c => c[0] === "upsert" && c[2] === "uid-A").length;
+    const q27 = JSON.parse(key(r27.ctx, "dm_sync_queue") || "[]");
+    ok("R27a-executeOperation-stale-select", held27 === 1 && ups27 === 0 &&
+      live(r27.ctx, "S.xp") === 50 &&
+      key(r27.ctx, "deutsch_master_v2") === guestBytes27 &&
+      q27.length === 1 && q27[0].userId === "uid-A" && (q27[0].retries || 0) === 0,
+      "held=" + held27 + " ups=" + ups27 + " xp=" + live(r27.ctx, "S.xp") +
+      " q=" + q27.length + " retries=" + (q27[0] && q27[0].retries));
+    r27.ctx.stop();
+  }
+
+  /* ---- 27b. Queued op superseded during its in-flight write: no local apply,
+       no version stamp, op held for its rightful owner, no retry burn ---- */
+  {
+    const db27b = makeDb();
+    const r27b = raceSetup(db27b);
+    const guestBytes27b = key(r27b.ctx, "deutsch_master_v2");
+    r27b.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r27b.ctx.js("window.CloudSync.setActiveUser('uid-A')");
+    r27b.ctx.js("window.CloudSync.queueOperation('upsert_progress', { state: { xp: 888, quizHistory: [] } }, 'uid-A')");
+    r27b.gate.arm(i => i.table === "user_progress" && i.op === "upsert" && i.userId === "uid-A");
+    const pq27b = r27b.ctx.js("window.CloudSync.processQueue()");
+    await r27b.ctx.tick(2);
+    const held27b = r27b.gate.heldCount();
+    r27b.ctx.setUser(null);
+    r27b.ctx.js("window.CloudSync.setActiveUser(null)");
+    r27b.gate.release();
+    await pq27b;
+    await r27b.ctx.tick();
+    const q27b = JSON.parse(key(r27b.ctx, "dm_sync_queue") || "[]");
+    ok("R27b-executeOperation-stale-write", held27b === 1 &&
+      live(r27b.ctx, "S.xp") === 50 &&
+      key(r27b.ctx, "deutsch_master_v2") === guestBytes27b &&
+      q27b.length === 1 && q27b[0].userId === "uid-A" && (q27b[0].retries || 0) === 0,
+      "held=" + held27b + " xp=" + live(r27b.ctx, "S.xp") +
+      " q=" + q27b.length + " retries=" + (q27b[0] && q27b[0].retries));
+    r27b.ctx.stop();
+  }
+
+  /* ---- 28/28b. Direct migration: stale write refused; entry guard after sign-out ---- */
+  {
+    const db28 = makeDb();
+    const r28 = raceSetup(db28);
+    const guestBytes28 = key(r28.ctx, "deutsch_master_v2");
+    r28.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r28.ctx.js("window.CloudSync.setActiveUser('uid-A')");
+    r28.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    const p28 = r28.ctx.js("window.CloudSync.migrateLocalToCloud('uid-A', window.S)");
+    await r28.ctx.tick(2);
+    const held28 = r28.gate.heldCount();
+    r28.ctx.setUser(null);
+    r28.ctx.js("window.CloudSync.setActiveUser(null)");
+    r28.gate.release();
+    const res28 = await p28;
+    await r28.ctx.tick();
+    const ups28 = db28.calls.filter(c => c[0] === "upsert" && c[2] === "uid-A").length;
+    ok("R28-migrate-stale", held28 === 1 &&
+      res28 && res28.success === false && /Superseded/.test(res28.error || "") &&
+      ups28 === 0 &&
+      key(r28.ctx, "deutsch_master_v2") === guestBytes28,
+      "held=" + held28 + " res=" + JSON.stringify(res28) + " ups=" + ups28);
+    const calls28b = db28.calls.length;
+    const res28b = await r28.ctx.js("window.CloudSync.migrateLocalToCloud('uid-A', window.S)");
+    await r28.ctx.tick();
+    ok("R28b-migrate-entry-guard",
+      res28b && res28b.success === false && /Superseded/.test(res28b.error || "") &&
+      db28.calls.length === calls28b,
+      "res=" + JSON.stringify(res28b) + " extraCalls=" + (db28.calls.length - calls28b));
+    r28.ctx.stop();
+  }
+
+  /* ---- 29. Same user, new generation: stale read must still be rejected ---- */
+  {
+    const db29 = makeDb();
+    db29.rows.set("user_progress:uid-A", { user_id: "uid-A", state: { xp: 9000, quizHistory: [] }, version: 5 });
+    const r29 = raceSetup(db29);
+    const guestBytes29 = key(r29.ctx, "deutsch_master_v2");
+    r29.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r29.ctx.js("window.CloudSync.setActiveUser('uid-A')");
+    r29.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    const p29 = r29.ctx.js("window.CloudSync.downloadState('uid-A')");
+    await r29.ctx.tick(2);
+    const held29 = r29.gate.heldCount();
+    r29.ctx.js("window.CloudSync.setActiveUser(null)");
+    r29.ctx.js("window.CloudSync.setActiveUser('uid-A')"); // same uid, NEW generation
+    r29.gate.release();
+    const res29 = await p29;
+    await r29.ctx.tick();
+    ok("R29-same-uid-generation", held29 === 1 &&
+      res29 && res29.success === false && /Superseded/.test(res29.error || "") &&
+      live(r29.ctx, "S.xp") === 50 &&
+      key(r29.ctx, "deutsch_master_v2") === guestBytes29,
+      "held=" + held29 + " res=" + JSON.stringify(res29) + " xp=" + live(r29.ctx, "S.xp"));
+    r29.ctx.stop();
+  }
+
+  /* ---- 29b. Same uid across sessions: stale PREVIOUS-generation switch must
+       do no extra work even though the uid is active again ---- */
+  {
+    const db29b = makeDb();
+    const r29b = raceSetup(db29b);
+    r29b.gate.arm(i => i.table === "user_progress" && i.op === "select" && i.userId === "uid-A");
+    r29b.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r29b.ctx.js("window.__dmTestHooks.handleSession({user:{id:'uid-A'}},'SIGNED_IN')");
+    await r29b.ctx.tick(2);
+    const held29b = r29b.gate.heldCount();
+    r29b.ctx.setUser(null);
+    r29b.ctx.js("window.__dmTestHooks.handleSession(null,'SIGNED_OUT')");
+    await r29b.ctx.tick(2);
+    // Sign back in as the SAME user: fresh session generation completes fully.
+    r29b.ctx.setUser({ id: "uid-A", email: "a@gmail.com" });
+    r29b.ctx.js("window.__dmTestHooks.handleSession({user:{id:'uid-A'}},'SIGNED_IN')");
+    await r29b.ctx.tick();
+    // Cloud advanced meanwhile (another device).
+    db29b.rows.set("user_progress:uid-A", { user_id: "uid-A", state: { xp: 9500, quizHistory: [] }, version: 6 });
+    const sel0 = db29b.calls.filter(c => c[0] === "select" && c[2] === "uid-A").length;
+    const ups0 = db29b.calls.filter(c => c[0] === "upsert" && c[2] === "uid-A").length;
+    const aKeyBefore = key(r29b.ctx, "deutsch_master_v2:uid:uid-A");
+    r29b.gate.release(); // delivers the PREVIOUS session's captured (empty) result
+    await r29b.ctx.tick();
+    const sel1 = db29b.calls.filter(c => c[0] === "select" && c[2] === "uid-A").length;
+    const ups1 = db29b.calls.filter(c => c[0] === "upsert" && c[2] === "uid-A").length;
+    const aKeyAfter = key(r29b.ctx, "deutsch_master_v2:uid:uid-A");
+    ok("R29b-same-uid-session-generation", held29b === 1 &&
+      live(r29b.ctx, "window.DMIdentity.activeUid()") === "uid-A" &&
+      sel1 === sel0 && ups1 === ups0 &&
+      !!aKeyAfter && aKeyAfter === aKeyBefore,
+      "held=" + held29b + " sels=" + sel0 + "->" + sel1 + " ups=" + ups0 + "->" + ups1 +
+      " aKeyStable=" + (aKeyAfter === aKeyBefore));
+    r29b.ctx.stop();
+  }
 
   ctx.stop(); ctx2.stop();
   console.log("----");
