@@ -183,12 +183,22 @@
     } catch (e) {}
     return out.slice(0, 2);
   }
+  /* A query is a dictionary lookup only when it is a single token. Any
+   * multi-word input (even two words or a phrase without final punctuation)
+   * is a phrase/sentence: it must be translated as a whole, never replaced by
+   * a dictionary entry for one of its tokens. Punctuation is stripped before
+   * counting so "Haus." stays a single-word lookup while "Wir möchten." does
+   * not. */
+  var WORD_PUNCT_RE = /[.?!\u2026\u00a1\u00bf\u060c\u061f\u061b;:,()"\u00ab\u00bb\u201e\u201c\u201d''\[\]{}]/g;
+  function isMultiwordQuery(q) {
+    /* Hyphens/slashes stay inside a token ("E-Mail", "und/oder"), while
+     * sentence punctuation becomes a word boundary. Thus "Haus." remains a
+     * single-word dictionary lookup, but "Wir möchten." is multi-word. */
+    var t = sstr(q).replace(WORD_PUNCT_RE, " ").replace(/\s+/g, " ").trim();
+    return !!t && /\s/.test(t);
+  }
   function isSentenceQuery(q) {
-    var t = normQ(q);
-    if (!t) return false;
-    if (/[.?!…]/.test(t)) return true;
-    if (/\s/.test(t) && t.split(" ").length >= 3) return true;
-    return t.length > 42;
+    return isMultiwordQuery(q);
   }
   function hostOf(url) {
     try { return new URL(url).hostname.toLowerCase(); } catch (e) { return ""; }
@@ -443,10 +453,15 @@
   }
   function wiktionarySearch(query, outerSignal) {
     var q = normQ(query);
-    if (!q || /\s{2,}/.test(q) === false && q.split(" ").length > 6) {
-      /* long phrases: still try, MediaWiki handles them; no special-casing */
-    }
     if (!q) return Promise.resolve({ status: "empty", provider: "wiktionary" });
+    /* Wiktionary is a dictionary, not a sentence translator. MediaWiki's
+     * full-text search will happily return "möchten" for a whole input such
+     * as "Wir möchten etwas essen"; presenting that entry as the result would
+     * be a token answer to a different question. Multi-word inputs are
+     * handled by the sentence translation path instead. */
+    if (isMultiwordQuery(q)) {
+      return Promise.resolve({ status: "empty", provider: "wiktionary", reason: "multiword-not-dictionary" });
+    }
     return cachedFetch("wiktionary", q, function (sig) {
       var s = sig || outerSignal;
       var u1 = WIK + "?action=query&list=search&srsearch=" + encodeURIComponent(q) +
@@ -1079,7 +1094,8 @@
           if (opts.only) {
             needDictFallback = opts.only.indexOf("wiktionary-en") >= 0;
           } else {
-            needDictFallback = deEmpty && !hasUsableDe && !state.remote["wiktionary-en"];
+            needDictFallback = deEmpty && !hasUsableDe && !state.isSentence &&
+              !state.remote["wiktionary-en"];
           }
         } catch (e) {}
         var dictP = Promise.resolve(state);
@@ -1098,26 +1114,17 @@
           }
         }
         return dictP.then(function () {
-          /* MT fallback (Fix 1): sentence-like query with no human Arabic.
-           * Respects opts.only so retry runs MT ONLY when explicitly in the
-           * failed list (previously mymemory was never dispatched because it
-           * is not in REMOTE_ORDER and wantMT required !state.remote.mymemory
-           * which was always set on retry -> stuck loading). */
-          var hasAra = false;
-          try {
-            (state.local.sentences || []).forEach(function (s) { if (sstr(s.ar).trim()) hasAra = true; });
-            Object.keys(state.remote).forEach(function (k) {
-              ((((state.remote[k] || {}).items) || [])).forEach(function (it) {
-                if (it && it.ara && it.ara.length) hasAra = true;
-              });
-            });
-          } catch (e) {}
+          /* Full-input translation (Fix 1): every multi-word phrase/sentence
+           * is sent to MyMemory as a whole, even when Tatoeba happened to
+           * return an example with Arabic. A sentence translation must not
+           * depend on a keyword-matched example or on a dictionary token.
+           * Respects opts.only so explicit retry runs MT exactly once. */
           var mtInOnly = !!(opts.only && opts.only.indexOf("mymemory") >= 0);
           var wantMT;
           if (opts.only) {
             wantMT = mtInOnly;
           } else {
-            wantMT = opts.needMT !== false && state.isSentence && !hasAra && !state.remote.mymemory;
+            wantMT = opts.needMT !== false && state.isSentence && !state.remote.mymemory;
           }
           if (wantMT && !isOffline()) {
             var mmPrevOk = state.remote.mymemory && state.remote.mymemory.status === "ok";
@@ -1166,6 +1173,9 @@
       dm_ext_dict_fallback: "تعريف من الطبعة الإنجليزية", dm_ext_no_dict: "لا يوجد تعريف usable — جرّب القواميس الخارجية.",
       dm_ext_audio_unavail: "التسجيل غير متاح لإعادة الاستخدام — استخدم النطق الآلي.",
       dm_ext_audio_attr: "التسجيل:", dm_ext_mt_fail: "تعذّرت الترجمة الآلية.",
+      dm_ext_original: "النص الأصلي", dm_ext_full_translation: "ترجمة الجملة كاملة",
+      dm_ext_dictionary: "تعريف من قاموس", dm_ext_dict_examples: "أمثلة من القاموس",
+      dm_ext_mt_no_result: "لم تُرجع خدمة الترجمة أي ترجمة لهذا النص. أعد المحاولة.",
       dm_vocab_ext_title: "نتيجة بحث خارجية", dm_vocab_external_badge: "خارجي — غير محفوظ",
       dm_vocab_your_query: "بحثك:", dm_vocab_not_saved: "هذه النتيجة من مصدر خارجي ولم تُضف إلى مفرداتك.",
       dm_vocab_translation: "الترجمة الآلية", dm_vocab_links: "ابحث في مصادر خارجية",
@@ -1190,6 +1200,9 @@
       dm_ext_dict_fallback: "Definition from English edition", dm_ext_no_dict: "No usable definition — try external dictionaries.",
       dm_ext_audio_unavail: "Recording unavailable for reuse — use synthetic voice.",
       dm_ext_audio_attr: "Recording:", dm_ext_mt_fail: "Machine translation failed.",
+      dm_ext_original: "Original text", dm_ext_full_translation: "Full sentence translation",
+      dm_ext_dictionary: "Dictionary definition", dm_ext_dict_examples: "Dictionary examples",
+      dm_ext_mt_no_result: "The translation service returned no translation for this text. Try again.",
       dm_vocab_ext_title: "External search result", dm_vocab_external_badge: "External — not saved",
       dm_vocab_your_query: "Your search:", dm_vocab_not_saved: "This result comes from an external source and was not added to your vocabulary.",
       dm_vocab_translation: "Machine translation", dm_vocab_links: "Search external sources",
@@ -1214,6 +1227,9 @@
       dm_ext_dict_fallback: "Definition aus englischer Ausgabe", dm_ext_no_dict: "Keine brauchbare Definition — externe Wörterbücher versuchen.",
       dm_ext_audio_unavail: "Aufnahme nicht zur Wiederverwendung verfügbar — synthetische Stimme nutzen.",
       dm_ext_audio_attr: "Aufnahme:", dm_ext_mt_fail: "Maschinelle Übersetzung fehlgeschlagen.",
+      dm_ext_original: "Originaltext", dm_ext_full_translation: "Vollständige Satzübersetzung",
+      dm_ext_dictionary: "Wörterbuchdefinition", dm_ext_dict_examples: "Wörterbuchbeispiele",
+      dm_ext_mt_no_result: "Der Übersetzungsdienst hat für diesen Text keine Übersetzung geliefert. Erneut versuchen.",
       dm_vocab_ext_title: "Externes Suchergebnis", dm_vocab_external_badge: "Extern — nicht gespeichert",
       dm_vocab_your_query: "Deine Suche:", dm_vocab_not_saved: "Dieses Ergebnis stammt aus einer externen Quelle und wurde nicht zu deinem Wortschatz hinzugefügt.",
       dm_vocab_translation: "Maschinelle Übersetzung", dm_vocab_links: "Externe Quellen durchsuchen",
@@ -1386,8 +1402,15 @@
         }
       }
     } catch (e) {}
-    var ORDER = ["title", "offline", "loading", "dict-de", "dict-en", "dict-none",
-      "examples", "syn", "pron", "mt", "none", "foot", "errs"];
+    /* For a phrase/sentence the full translation is the primary answer, so
+     * it appears before examples; for a single word the dictionary stays
+     * first. New queries reset the section list, so this order is stable
+     * for progressive updates of the same query. */
+    var ORDER = state.isSentence
+      ? ["title", "offline", "loading", "mt", "dict-de", "dict-en", "dict-none",
+        "examples", "syn", "pron", "none", "foot", "errs"]
+      : ["title", "offline", "loading", "dict-de", "dict-en", "dict-none",
+        "examples", "syn", "pron", "mt", "none", "foot", "errs"];
     (function ensureTitle() {
       var t = findSec(wrap, "title");
       var txt = "🌐 " + T("dm_ext_title");
@@ -1450,7 +1473,7 @@
       var sec = el("div", "dm-ext-sec");
       try { sec.setAttribute("data-dm-sec", secKey); sec.setAttribute("data-dm-sig", sig); } catch (e) {}
       var h = el("div", "dm-ext-h");
-      h.appendChild(el("span", "", "📖 " + T("dm_ext_meaning") + " · "));
+      h.appendChild(el("span", "", "📖 " + T("dm_ext_dictionary") + " · "));
       h.appendChild(srcBadge(badgeName));
       h.appendChild(matchBadge(wik.match || "similar"));
       if (pid === "wiktionary-en") {
@@ -1470,7 +1493,7 @@
         sec.appendChild(el("div", "dm-ext-sense", "[" + sn.n + "] " + sn.text));
       });
       (wik.examples || []).slice(0, 3).forEach(function (ex) {
-        sec.appendChild(el("div", "dm-ext-wex", "💬 " + ex));
+        sec.appendChild(el("div", "dm-ext-wex", "💬 " + T("dm_ext_dict_examples") + ": " + ex));
       });
       var fl = el("div", "dm-ext-foot");
       fl.appendChild(link(wik.url, T("dm_ext_open") + " · CC BY-SA"));
@@ -1751,11 +1774,12 @@
         }
       } catch (e) {}
     })();
-    /* --- MT fallback (MyMemory, honest incl. rate-limit/error) --- */
+    /* --- full-input MT (MyMemory, honest incl. rate-limit/error) --- */
     (function renderMT() {
       var mm = state.remote.mymemory;
       var prev = findSec(wrap, "mt");
-      if (!(mm && (mm.status === "ok" || mm.status === "loading" || mm.status === "error"))) {
+      if (!(mm && (mm.status === "ok" || mm.status === "loading" ||
+          mm.status === "error" || mm.status === "empty"))) {
         try { if (prev && prev.parentNode) prev.parentNode.removeChild(prev); } catch (e) {}
         return;
       }
@@ -1763,7 +1787,9 @@
         try { if (prev && prev.parentNode) prev.parentNode.removeChild(prev); } catch (e) {}
         return;
       }
-      var sig = mm.status + "|" + (mm.status === "ok" ? (mm.text || "").slice(0, 80) : (mm.error || ""));
+      var sentenceMode = !!state.isSentence;
+      var sig = mm.status + "|" + (mm.status === "ok" ? (mm.text || "").slice(0, 80) : (mm.error || "")) +
+        "|" + (sentenceMode ? q : "");
       if (prev) {
         try { if (prev.getAttribute("data-dm-sig") === sig) return; } catch (e) {}
         try { if (prev.parentNode) prev.parentNode.removeChild(prev); } catch (e) {}
@@ -1774,17 +1800,47 @@
       h5.appendChild(el("span", "", "🌍 " + T("dm_ext_trans") + " · "));
       h5.appendChild(srcBadge("MyMemory"));
       s5.appendChild(h5);
+      /* The original full query is always shown next to the translation, so
+       * a user can verify that no single token was substituted for it. */
+      if (sentenceMode) {
+        var of = el("div", "dm-ext-field");
+        of.appendChild(el("div", "dm-ext-label", T("dm_ext_original")));
+        var ov = el("div", "dm-ext-query", q);
+        try { ov.setAttribute("dir", "auto"); ov.setAttribute("lang", "de"); } catch (e) {}
+        of.appendChild(ov);
+        s5.appendChild(of);
+      }
       if (mm.status === "ok") {
         var mb = el("span", "dm-badge dm-mt", "🤖 " + T("dm_ext_machine"));
         s5.appendChild(mb);
-        s5.appendChild(el("div", "dm-ext-ar", "🇸🇦 " + mm.text));
+        var tf = el("div", "dm-ext-field");
+        tf.appendChild(el("div", "dm-ext-label",
+          sentenceMode ? T("dm_ext_full_translation") : T("dm_ext_trans")));
+        var tv = el("div", "dm-ext-translation", mm.text);
+        try {
+          tv.setAttribute("dir", mm.to === "de" ? "ltr" : "rtl");
+          tv.setAttribute("lang", mm.to === "de" ? "de" : "ar");
+        } catch (e) {}
+        tf.appendChild(tv);
+        s5.appendChild(tf);
       } else if (mm.status === "loading") {
         s5.appendChild(el("div", "dm-ext-note dm-loading", "⏳ " + T("dm_ext_loading")));
       } else {
-        /* Rate-limited or failed: report actual failure, never fake success. */
-        var msg = "⚠️ MyMemory: " + (mm.error || "error") + " · " + T("dm_ext_mt_fail");
-        if (mm.error === "rate-limited") msg = "⚠️ MyMemory: rate-limited · " + T("dm_ext_mt_fail");
-        s5.appendChild(el("div", "dm-ext-note", msg));
+        /* Rate-limited, malformed, empty or failed: report the honest state,
+         * never fake success and never fall back to a dictionary token. */
+        var why = mm.error || "";
+        var msg = T("dm_vocab_unavailable");
+        if (mm.status === "empty") msg = T("dm_ext_mt_no_result");
+        else if (why === "offline") msg = T("dm_ext_offline");
+        else if (why === "rate-limited") msg = T("dm_vocab_rate_limited");
+        else if (why === "timeout") msg = T("dm_vocab_timeout");
+        else if (why === "too-long") msg = T("dm_vocab_too_long");
+        s5.appendChild(el("div", "dm-ext-note", "⚠️ " + msg));
+        var rb = el("button", "mini-btn dm-mt-retry", "↻ " + T("dm_ext_retry"));
+        rb.addEventListener("click", function (ev) {
+          try { ev.stopPropagation(); retryFailed(); } catch (e) {}
+        });
+        s5.appendChild(rb);
       }
       orderedInsert(wrap, s5, ORDER, "mt");
     })();
@@ -1793,8 +1849,11 @@
       var showRetry = fails.length > 0;
       /* Genuine zero-results (all settled, all successful, none found) is
        * distinct from failure: the "none" note shows only with zero errors;
-       * failures surface through the errs line + retry instead. */
-      var showNone = (!anyOk && !anyLoading && !state.offline && fails.length === 0);
+       * failures and honest MT-empty states surface through their own
+       * sections + retry instead. */
+      var mtBad = !!(state.isSentence && state.remote.mymemory &&
+        (state.remote.mymemory.status === "empty" || state.remote.mymemory.status === "error"));
+      var showNone = (!anyOk && !anyLoading && !state.offline && fails.length === 0 && !mtBad);
       setNote(wrap, ORDER, "none", showNone ? "ℹ️ " + T("dm_ext_none") : "", "dm-ext-note");
       if (!anyOk && !anyLoading) showRetry = true;
       var prev = findSec(wrap, "foot");
@@ -2151,21 +2210,10 @@
       if (k === "mymemory" || k === "wiktionary-en") return false;
       return (r.status === "error" || r.status === "empty");
     });
-    /* MT retry: if sentence still lacks Arabic, include mymemory explicitly.
-     * This is the Fix 1 path: the dispatcher now accepts "mymemory" in
-     * only[] and re-executes ADAPTERS.mymemory (previously stuck loading). */
-    var hasAra = false;
-    try {
-      Object.keys(lastState.remote).forEach(function (k) {
-        (((lastState.remote[k] || {}).items) || []).forEach(function (it) {
-          if (it && it.ara && it.ara.length) hasAra = true;
-        });
-      });
-      (lastState.local && lastState.local.sentences || []).forEach(function (s) {
-        if (sstr(s.ar).trim()) hasAra = true;
-      });
-    } catch (e) {}
-    if (lastState.isSentence && !hasAra &&
+    /* MT retry: a multi-word input always needs its own full translation,
+     * independent of any Arabic example Tatoeba may also have returned.
+     * The dispatcher accepts "mymemory" in only[] and re-executes it once. */
+    if (lastState.isSentence &&
         (!lastState.remote.mymemory || lastState.remote.mymemory.status !== "ok")) {
       if (failed.indexOf("mymemory") < 0) failed.push("mymemory");
     }
@@ -2288,6 +2336,7 @@
     search: searchAll,
     adapters: ADAPTERS,
     utils: { normQ: normQ, foldDe: foldDe, normSent: normSent, isSentenceQuery: isSentenceQuery,
+      isMultiwordQuery: isMultiwordQuery,
       allowedUrl: allowedUrl, parseWik: wikParsePlain, parseWikEn: wikEnParseGerman,
       isCommonsCandidate: commonsCandidate, tatoebaAudioPolicy: tatoebaAudioPolicy,
       dictFallbackLinks: dictFallbackLinks, tatPhrase: normTatPhrase, tatFallback: tatFallbackPhrases },

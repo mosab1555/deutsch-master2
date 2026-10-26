@@ -1499,6 +1499,14 @@ html[data-theme="light"] #ankiRoot select{background:#fff;color:#0f172a}
 .dm-ext-sent-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .dm-ext-ar{font-weight:800}
 .dm-ext-en{opacity:.85}
+.dm-ext-field{display:flex;flex-direction:column;gap:4px}
+.dm-ext-label{font-size:12px;font-weight:800;color:var(--muted,#6b6257)}
+.dm-ext-query{font-size:16px;font-weight:800;line-height:1.6;padding:8px 10px;
+  border:1px dashed var(--border,#e2d9c8);border-radius:10px;background:rgba(216,181,106,.08);
+  overflow-wrap:anywhere;word-break:break-word}
+.dm-ext-translation{font-size:18px;font-weight:800;line-height:1.7;padding:8px 10px;
+  border-radius:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);
+  overflow-wrap:anywhere;word-break:break-word}
 .dm-ext-meta{font-size:12px;opacity:.8;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .dm-ext-link{color:#0b6bcb;font-weight:700;text-decoration:underline}
 .dm-ext-audio{width:100%;max-width:420px;min-height:36px}

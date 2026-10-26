@@ -486,6 +486,110 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       "{DMSearch.__setFetch(function(u,op){return window.__realFetch(u,op);});DMSearch.__cacheClear();}" +
       "return 'restored';}catch(e){return 'restore-err';}})()");
 
+    /* U15 deterministic regression: a complete sentence containing
+     * "möchten" must render its full translation, never the Wiktionary entry
+     * for the token. The fixture deliberately returns that entry for every
+     * dictionary request, so this would fail with the old behaviour. */
+    const SENT_MOE_UI = "Wir m\u00f6chten etwas essen";
+    const AR_FULL_UI = "\u0646\u0631\u064a\u062f \u0623\u0646 \u0646\u0623\u0643\u0644 \u0634\u064a\u0626\u064b\u0627";
+    const U15_WIK_SEARCH = JSON.stringify({ query: { search: [{ title: "m\u00f6chten" }] } });
+    const U15_WIK_EXTRACT = JSON.stringify({ query: { pages: { 4242: { pageid: 4242, title: "m\u00f6chten",
+      extract: "m\u00f6chten (Deutsch)\nVerb\nAussprache:\nIPA: [\u02c8m\u0153\u00e7tn\u0329]\nBedeutungen:\n[1] den Wunsch nach etwas hegen\nBeispiele:\n[1] Dies zeugt sowohl von ihrem Wissen.\n" } } } });
+    const U15_TAT = JSON.stringify({ data: [{ id: 9001, text: SENT_MOE_UI + ".", owner: "u",
+      license: "CC BY 2.0 FR", audios: [], translations: [{ id: 9002, text: AR_FULL_UI, lang: "ara", owner: "ua" }] }] });
+    const u15arm = await E("(()=>{try{" +
+      "window.__realFetch=window.fetch.bind(window);window.__u15={mm:[],wik:0,err:false};" +
+      "var SENT=" + JSON.stringify(SENT_MOE_UI) + ",AR=" + JSON.stringify(AR_FULL_UI) + ";" +
+      "var WS=" + U15_WIK_SEARCH + ",WE=" + U15_WIK_EXTRACT + ",TAT=" + U15_TAT + ";" +
+      "window.__u15fetch=function(url,opts){var u=String(url);" +
+      "function res(s,b){return Promise.resolve({status:s,json:function(){return Promise.resolve(b);}});}" +
+      "if(u.indexOf('de.wiktionary.org')>=0){window.__u15.wik++;" +
+      "return u.indexOf('list=search')>=0?res(200,WS):res(200,WE);}" +
+      "if(u.indexOf('api.tatoeba.org')>=0)return res(200,TAT);" +
+      "if(u.indexOf('commons.wikimedia.org')>=0)return res(200,{query:{allimages:[]}});" +
+      "if(u.indexOf('openthesaurus.de')>=0)return res(200,{synsets:[]});" +
+      "if(u.indexOf('mymemory')>=0){var m=u.match(/[?&]q=([^&]*)/);" +
+      "window.__u15.mm.push(m?decodeURIComponent(m[1]):'');" +
+      "if(window.__u15.err)return res(500,{});" +
+      "return res(200,{responseData:{translatedText:AR,match:'0.9'},responseStatus:200});}" +
+      "return res(200,{});};" +
+      "DMSearch.__setFetch(window.__u15fetch);DMSearch.__cacheClear();return 'armed';" +
+      "}catch(e){return 'arm-err:'+e.message}})()");
+    ok("U15 fixture armed", u15arm === '"armed"', u15arm);
+    const s15 = await journey("U15 sentence möchten", SENT_MOE_UI);
+    const u15 = await E("(()=>{var o={dict:false,dictEn:false,mt:false,orig:'',tr:'',machine:false," +
+      "retry:false,leak:false,mm:[],wik:0};try{var x=document.getElementById('dmExt');" +
+      "o.dict=!!x.querySelector('[data-dm-sec=dict-de]');o.dictEn=!!x.querySelector('[data-dm-sec=dict-en]');" +
+      "var mt=x.querySelector('[data-dm-sec=mt]');o.mt=!!mt;" +
+      "if(mt){var q=mt.querySelector('.dm-ext-query'),t=mt.querySelector('.dm-ext-translation');" +
+      "o.orig=q?q.textContent:'';o.tr=t?t.textContent:'';" +
+      "o.machine=!!mt.querySelector('.dm-mt');o.retry=!!mt.querySelector('.dm-mt-retry');}" +
+      "o.leak=x.textContent.indexOf('den Wunsch nach etwas hegen')>=0||" +
+      "x.textContent.indexOf('Dies zeugt sowohl')>=0;" +
+      "o.mm=window.__u15.mm.slice();o.wik=window.__u15.wik;" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U15 sentence " + u15 + " secs=" + s15.secs);
+    try {
+      const o = JSON.parse(JSON.parse(u15));
+      ok("U15 no token dictionary section", o.dict === false && o.dictEn === false && o.leak === false, u15);
+      ok("U15 full query sent to MyMemory", o.mm.length === 1 && o.mm[0] === SENT_MOE_UI, JSON.stringify(o.mm));
+      ok("U15 original input shown", o.mt === true && o.orig === SENT_MOE_UI, o.orig);
+      ok("U15 complete translation shown", o.tr === AR_FULL_UI && o.machine === true, o.tr);
+      ok("U15 no tangential Wiktionary call", o.wik === 0, "wikCalls=" + o.wik);
+    } catch (e) { ok("U15 no token dictionary section", false, u15 + " parse-err"); }
+
+    /* U15b honest failure UI: original stays visible, no fabricated
+     * translation, and a retry control is offered. */
+    await E("(()=>{try{window.__u15.err=true;DMSearch.__cacheClear();return 'armed';}catch(e){return 'err';}})()");
+    const s15b = await journey("U15b MT failure", SENT_MOE_UI + " bitte");
+    const u15b = await E("(()=>{var o={dict:false,mt:false,orig:'',tr:false,retry:false,note:''};try{" +
+      "var x=document.getElementById('dmExt');o.dict=!!x.querySelector('[data-dm-sec=dict-de]');" +
+      "var mt=x.querySelector('[data-dm-sec=mt]');o.mt=!!mt;" +
+      "if(mt){var q=mt.querySelector('.dm-ext-query');o.orig=q?q.textContent:'';" +
+      "o.tr=!!mt.querySelector('.dm-ext-translation');o.retry=!!mt.querySelector('.dm-mt-retry');" +
+      "var n=mt.querySelector('.dm-ext-note');o.note=n?n.textContent:'';}" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U15b failure " + u15b + " secs=" + s15b.secs);
+    try {
+      const o = JSON.parse(JSON.parse(u15b));
+      ok("U15b failure keeps original", o.mt === true && o.orig === SENT_MOE_UI + " bitte", o.orig);
+      ok("U15b no fabricated translation", o.tr === false, "translationNode=" + o.tr);
+      ok("U15b retry offered honestly", o.retry === true && o.note.length > 0, o.note);
+      ok("U15b failure has no dictionary token", o.dict === false, "dict=" + o.dict);
+    } catch (e) { ok("U15b failure keeps original", false, u15b + " parse-err"); }
+
+    /* U16 live evidence on the exact affected interface: real HTTP to
+     * MyMemory/Tatoeba, no stubs, full German sentence containing möchten. */
+    await E("(()=>{try{if(window.DMSearch&&window.__realFetch)" +
+      "{DMSearch.__setFetch(function(u,op){return window.__realFetch(u,op);});DMSearch.__cacheClear();}" +
+      "return 'restored';}catch(e){return 'restore-err';}})()");
+    await journey("U16 reset", "Haus");
+    await E("(()=>{try{performance.clearResourceTimings();}catch(e){}return 'cleared';})()");
+    const s16 = await journey("U16 live sentence möchten", SENT_MOE_UI);
+    const u16 = await E("(()=>{var o={dict:false,dictEn:false,mt:false,orig:'',tr:'',retry:false," +
+      "mmReqs:0,tatReqs:0,wikReqs:0,urls:[]};try{" +
+      "var x=document.getElementById('dmExt');o.dict=!!x.querySelector('[data-dm-sec=dict-de]');" +
+      "o.dictEn=!!x.querySelector('[data-dm-sec=dict-en]');" +
+      "var mt=x.querySelector('[data-dm-sec=mt]');o.mt=!!mt;" +
+      "if(mt){var q=mt.querySelector('.dm-ext-query'),t=mt.querySelector('.dm-ext-translation');" +
+      "o.orig=q?q.textContent:'';o.tr=t?t.textContent:'';o.retry=!!mt.querySelector('.dm-mt-retry');}" +
+      "var rs=performance.getEntriesByType('resource');" +
+      "for(var i=0;i<rs.length;i++){var u=rs[i].name||'';" +
+      "if(u.indexOf('api.mymemory.translated.net')>=0){o.mmReqs++;o.urls.push(u.slice(0,180));}" +
+      "if(u.indexOf('api.tatoeba.org/v1/sentences')>=0)o.tatReqs++;" +
+      "if(u.indexOf('de.wiktionary.org')>=0)o.wikReqs++;}" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U16 live " + u16 + " secs=" + s16.secs);
+    try {
+      const o = JSON.parse(JSON.parse(u16));
+      ok("U16 live full-input MT requested", o.mmReqs >= 1, "mm=" + o.mmReqs + " tat=" + o.tatReqs + " wik=" + o.wikReqs);
+      ok("U16 live no token dictionary", o.dict === false && o.dictEn === false && o.wikReqs === 0,
+        "dict=" + o.dict + " wik=" + o.wikReqs);
+      ok("U16 live original preserved", o.mt === true && o.orig === SENT_MOE_UI, o.orig);
+      ok("U16 live translation visible", (o.tr.length > 0) || o.retry === true,
+        o.tr ? o.tr.slice(0, 80) : ("retry=" + o.retry));
+    } catch (e) { ok("U16 live full-input MT requested", false, u16 + " parse-err"); }
+
     console.log("----");
     console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
     cdp.close(); chrome.kill(); srv.close();

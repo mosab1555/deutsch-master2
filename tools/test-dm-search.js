@@ -766,6 +766,153 @@ DM.__setFetch(stubFetch);
       /noopener noreferrer/.test(srcV) && !/dmVocabExt[\s\S]{0,500}\.innerHTML\s*=/.test(srcV);
   })());
 
+  /* ==== Regression: dictionary word vs complete sentence translation ====
+   * The reported bug: a sentence containing "möchten" rendered Wiktionary's
+   * entry for the token "möchten" as if it answered the whole query. The
+   * fixtures deliberately return that entry for ANY Wiktionary search, so
+   * only a correct multi-word guard can keep it out of the result. */
+  const SENT_MOE = "Wir m\u00f6chten etwas essen";
+  const SENT_MOE_DOT = SENT_MOE + ".";
+  const AR_FULL = "\u0646\u0631\u064a\u062f \u0623\u0646 \u0646\u0623\u0643\u0644 \u0634\u064a\u0626\u064b\u0627";
+  const WIK_MOE_SEARCH = { query: { search: [{ title: "m\u00f6chten" }] } };
+  const WIK_MOE_EXTRACT = { query: { pages: { 4242: { pageid: 4242, title: "m\u00f6chten",
+    extract: "m\u00f6chten (Deutsch)\nVerb\nAussprache:\nIPA: [\u02c8m\u0153\u00e7tn\u0329]\nBedeutungen:\n[1] den Wunsch nach etwas hegen\nBeispiele:\n[1] Dies zeugt sowohl von ihrem Wissen.\n" } } } };
+  const TAT_MOE = { data: [{ id: 9001, text: SENT_MOE_DOT, owner: "u", license: "CC BY 2.0 FR",
+    audios: [], translations: [{ id: 9002, text: AR_FULL, lang: "ara", owner: "ua" }] }] };
+  let mmSeen = [], wikSeen = 0;
+  function moeFetch(kind) {
+    return function (url) {
+      const u = String(url);
+      if (u.indexOf("de.wiktionary.org") >= 0) {
+        wikSeen++;
+        if (u.indexOf("list=search") >= 0) return Promise.resolve(mkRes(200, () => Promise.resolve(WIK_MOE_SEARCH)));
+        return Promise.resolve(mkRes(200, () => Promise.resolve(WIK_MOE_EXTRACT)));
+      }
+      if (u.indexOf("api.tatoeba.org") >= 0) return Promise.resolve(mkRes(200, () => Promise.resolve(TAT_MOE)));
+      if (u.indexOf("commons.wikimedia.org") >= 0) return Promise.resolve(mkRes(200, () => Promise.resolve({ query: { allimages: [] } })));
+      if (u.indexOf("openthesaurus.de") >= 0) return Promise.resolve(mkRes(200, () => Promise.resolve({ synsets: [] })));
+      if (u.indexOf("api.mymemory.translated.net") >= 0) {
+        const qm = u.match(/[?&]q=([^&]*)/);
+        mmSeen.push(qm ? decodeURIComponent(qm[1]) : "");
+        if (kind === "http500") return Promise.resolve(mkRes(500, () => Promise.resolve({})));
+        if (kind === "empty") return Promise.resolve(mkRes(200, () => Promise.resolve({ responseData: { translatedText: "" }, responseStatus: 200 })));
+        if (kind === "malformed") return Promise.resolve(mkRes(200, () => Promise.resolve({ responseData: null, responseStatus: 200 })));
+        if (kind === "badjson") return Promise.resolve(mkRes(200, () => Promise.reject(new Error("bad-json-fixture"))));
+        return Promise.resolve(mkRes(200, () => Promise.resolve({
+          responseData: { translatedText: AR_FULL, match: "0.93" }, responseStatus: 200
+        })));
+      }
+      return Promise.resolve(mkRes(200, () => Promise.resolve({})));
+    };
+  }
+  ok("R0a multiword classifier", DM.utils.isMultiwordQuery(SENT_MOE) === true &&
+    DM.utils.isMultiwordQuery("Wir m\u00f6chten.") === true &&
+    DM.utils.isSentenceQuery(SENT_MOE) === true, "classifier wired");
+  ok("R0b single token stays a word", DM.utils.isMultiwordQuery("m\u00f6chten") === false &&
+    DM.utils.isMultiwordQuery("Haus.") === false &&
+    DM.utils.isMultiwordQuery("E-Mail") === false);
+
+  /* A valid single word still gets its dictionary entry. */
+  DM.__cacheClear(); mmSeen = []; wikSeen = 0;
+  DM.__setFetch(moeFetch("ok"));
+  r = await DM.search("m\u00f6chten");
+  const dw = r.remote.wiktionary || {};
+  ok("R1a single word dictionary result", dw.status === "ok" && dw.title === "m\u00f6chten" &&
+    dw.match === "exact" && dw.grammar && dw.grammar.pos === "Verb" &&
+    dw.senses.some(s => s.text.indexOf("Wunsch") >= 0), JSON.stringify(dw.grammar || {}));
+  ok("R1b single word keeps IPA + examples", dw.grammar && dw.grammar.ipa &&
+    (dw.examples || []).some(ex => ex.indexOf("Dies zeugt") >= 0));
+  ok("R1c no sentence MT for a word", !r.remote.mymemory || r.remote.mymemory.status !== "ok",
+    (r.remote.mymemory && r.remote.mymemory.status) || "none");
+
+  /* A complete sentence containing the same token must be translated whole. */
+  DM.__cacheClear(); mmSeen = []; wikSeen = 0;
+  DM.__setFetch(moeFetch("ok"));
+  r = await DM.search(SENT_MOE);
+  ok("R2a sentence classified as sentence", r.isSentence === true && mmSeen.length === 1 &&
+    mmSeen[0] === SENT_MOE, JSON.stringify(mmSeen));
+  ok("R2b token dictionary suppressed", r.remote.wiktionary && r.remote.wiktionary.status === "empty" &&
+    wikSeen === 0, "wikCalls=" + wikSeen);
+  ok("R2c full sentence MT succeeds", r.remote.mymemory && r.remote.mymemory.status === "ok" &&
+    r.remote.mymemory.machine === true && r.remote.mymemory.text === AR_FULL,
+    (r.remote.mymemory && r.remote.mymemory.text) || "no-mt");
+  ok("R2d Tatoeba stays separate context", r.remote.tatoeba && r.remote.tatoeba.status === "ok" &&
+    r.remote.tatoeba.items[0].ara.length === 1 && r.remote.tatoeba.items[0].ara[0].text === AR_FULL);
+  ok("R2e no definition/example leaks into MT", !r.remote.mymemory.senses &&
+    !r.remote.mymemory.examples && r.remote.mymemory.text.indexOf("Wunsch") < 0);
+
+  /* A phrase with no exact local match is translated in full as well. */
+  DM.__cacheClear(); mmSeen = []; wikSeen = 0;
+  DM.__setFetch(moeFetch("ok"));
+  r = await DM.search("Ohne lokalen Treffer");
+  ok("R3a phrase has no local match", r.local && r.local.status === "empty");
+  ok("R3b phrase still translated whole", r.remote.mymemory && r.remote.mymemory.status === "ok" &&
+    mmSeen.length === 1 && mmSeen[0] === "Ohne lokalen Treffer", JSON.stringify(mmSeen));
+  ok("R3c no token dictionary for phrase", r.remote.wiktionary && r.remote.wiktionary.status === "empty");
+
+  /* Even a fuzzy Wiktionary hit for one token must never be fetched for a
+   * multi-word query, including at the adapter boundary. */
+  let guardCalls = 0;
+  DM.__setFetch(() => { guardCalls++; return Promise.reject(new Error("must-not-fetch")); });
+  const guard = await DM.adapters.wiktionary(SENT_MOE);
+  ok("R4a multiword Wiktionary guarded", guard && guard.status === "empty" && guardCalls === 0,
+    "calls=" + guardCalls);
+  DM.__cacheClear(); wikSeen = 0;
+  DM.__setFetch(moeFetch("ok"));
+  const dotWord = await DM.adapters.wiktionary("Haus.");
+  ok("R4b punctuation does not turn a word into a sentence", dotWord.status === "ok" &&
+    wikSeen === 2, "wikCalls=" + wikSeen);
+
+  /* Translation API failure: honest error, no substitute, retry sends the
+   * complete input again (never the token). */
+  DM.__cacheClear(); mmSeen = [];
+  DM.__setFetch(moeFetch("http500"));
+  r = await DM.search(SENT_MOE);
+  ok("R5a translation failure honest", r.remote.mymemory && r.remote.mymemory.status === "error" &&
+    r.remote.mymemory.error === "http-500" && !r.remote.mymemory.text);
+  ok("R5b failure never shows dictionary token", r.remote.wiktionary && r.remote.wiktionary.status === "empty" &&
+    !(r.remote.wiktionary.senses || []).length);
+  DM.__cacheClear(); mmSeen = [];
+  DM.__setFetch(moeFetch("ok"));
+  const retried = await DM.search(SENT_MOE, { only: ["mymemory"], prior: r });
+  ok("R5c retry translates full input", retried.remote.mymemory && retried.remote.mymemory.status === "ok" &&
+    mmSeen.length === 1 && mmSeen[0] === SENT_MOE, JSON.stringify(mmSeen));
+
+  /* Empty, malformed-shape and malformed-JSON responses stay empty/errors. */
+  DM.__cacheClear(); DM.__setFetch(moeFetch("empty"));
+  r = await DM.search(SENT_MOE);
+  ok("R6a empty translation not fabricated", r.remote.mymemory && r.remote.mymemory.status === "empty" &&
+    !r.remote.mymemory.text);
+  DM.__cacheClear(); DM.__setFetch(moeFetch("malformed"));
+  r = await DM.search(SENT_MOE);
+  ok("R6b malformed shape not fabricated", r.remote.mymemory && r.remote.mymemory.status === "empty" &&
+    !r.remote.mymemory.text);
+  DM.__cacheClear(); DM.__setFetch(moeFetch("badjson"));
+  r = await DM.search(SENT_MOE);
+  ok("R6c malformed JSON contained", r.remote.mymemory && r.remote.mymemory.status === "error" &&
+    r.remote.mymemory.error === "bad-json", (r.remote.mymemory && r.remote.mymemory.error) || "none");
+
+  /* Timeout on the translation request terminates as an honest error and
+   * still never substitutes the fuzzy dictionary token. */
+  DM.__cacheClear(); mmSeen = []; wikSeen = 0;
+  const moeOk = moeFetch("ok");
+  DM.__setFetch(function (url) {
+    const u = String(url);
+    if (u.indexOf("api.mymemory.translated.net") >= 0) {
+      mmSeen.push(SENT_MOE);
+      return new Promise(function () {});
+    }
+    return moeOk(url);
+  });
+  const to0 = Date.now();
+  r = await DM.search(SENT_MOE);
+  const toDt = Date.now() - to0;
+  ok("R7a sentence translation timeout honest", r.remote.mymemory &&
+    r.remote.mymemory.status === "error" && r.remote.mymemory.error === "timeout" &&
+    !r.remote.mymemory.text && toDt < 12000, (r.remote.mymemory && r.remote.mymemory.error) + " " + toDt + "ms");
+  ok("R7b timeout no dictionary substitute", r.remote.wiktionary &&
+    r.remote.wiktionary.status === "empty" && wikSeen === 0, "wikCalls=" + wikSeen);
+
   /* restore the shared fixture for the remaining timeout test */
   DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
 
