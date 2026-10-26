@@ -12,8 +12,14 @@
  *   refHistory = stack of previous states; UI back buttons jump deterministically
  *   (topic->path->home) while Android back pops one step. Scroll of every view
  *   is cached and restored (Reference home restores its position on return).
- * Progress + bookmarks live in guarded localStorage (deutsch_master_ref_v1)
- * and never compete with DMProgress (quiz attempts are also logged there).
+ * Progress + bookmarks live in identity-scoped guarded localStorage (guest:
+ * deutsch_master_ref_v1:guest, accounts: deutsch_master_ref_v1:uid:<id>) and
+ * never compete with DMProgress (quiz attempts are also logged there). The
+ * pre-C4 global key deutsch_master_ref_v1 is legacy-only: on first access
+ * (signed in or not) it is copied verbatim into the guest namespace only,
+ * removed after read-back verification, and never assigned to an account.
+ * If that copy fails (quota/read-only storage) the legacy bytes are left in
+ * place and keep serving the guest until a later access completes migration.
  */
 "use strict";
 
@@ -116,19 +122,63 @@ function refStateChip(st){
   return '<span class="ref-st fresh">'+refEsc(refT("ref_fresh"))+'</span>';
 }
 
-/* ---------- progress + bookmarks (guarded localStorage, own namespace) ---------- */
+/* ---------- progress + bookmarks (identity-scoped localStorage) ---------- */
+/* Guest/offline progress lives in REF_PROG_KEY+":guest"; every signed-in
+   account gets its own key at REF_PROG_KEY+":uid:"+<Supabase user id> (same
+   convention as dmStateKey in script.js). The pre-C4 global key REF_PROG_KEY
+   itself is legacy-only: on EVERY refProg() access (signed in or not) it is
+   copied verbatim into the guest key - only when the guest key does not
+   exist yet - and removed after read-back verification. It is NEVER assigned
+   to an authenticated account, and if the copy fails it is left untouched as
+   the guest's fallback source. The cache is stamped with the active uid, so
+   any identity switch reloads it on next access. */
 var REF_PROG_KEY="deutsch_master_ref_v1";
-var refProgCache=null;
+var REF_GUEST_KEY=REF_PROG_KEY+":guest";
+function refProgKeyFor(uid){return uid?(REF_PROG_KEY+":uid:"+uid):REF_GUEST_KEY;}
+function refActiveUid(){
+  try{
+    const D=(typeof window!=="undefined")?window.DMIdentity:null;
+    const u=(D&&typeof D.activeUid==="function")?D.activeUid():null;
+    return u?String(u):null;
+  }catch(e){return null;}
+}
+function refMigrateLegacy(){
+  try{
+    if(typeof localStorage==="undefined")return;
+    const legacy=localStorage.getItem(REF_PROG_KEY);
+    if(legacy===null)return;
+    let guest=localStorage.getItem(REF_GUEST_KEY);
+    if(guest===null){
+      localStorage.setItem(REF_GUEST_KEY,legacy);
+      guest=localStorage.getItem(REF_GUEST_KEY);
+    }
+    if(guest!==null&&guest===legacy)localStorage.removeItem(REF_PROG_KEY);
+  }catch(e){}
+}
+var refProgCache=null,refProgCacheUid=null;
 function refProg(){
-  if(refProgCache)return refProgCache;
+  const uid=refActiveUid();
+  /* Identity-independent, guest-only migration: runs on every access (cheap
+     no-op once done) even while an account is signed in. The active account
+     is never read from, written to, or inferred from by the migration. */
+  refMigrateLegacy();
+  if(refProgCache&&refProgCacheUid===uid)return refProgCache;
   const dflt={v:1,opened:{},best:{},saved:[],recent:[]};
   try{
-    const raw=(typeof localStorage!=="undefined")?localStorage.getItem(REF_PROG_KEY):null;
+    let raw=(typeof localStorage!=="undefined")?localStorage.getItem(refProgKeyFor(uid)):null;
+    /* Failure safety: when the guest copy never landed (quota/read-only
+       storage made migration fail) keep serving the recoverable legacy bytes
+       to the GUEST without deleting them. Same owner namespace, nothing lost,
+       nothing leaked to any account. */
+    if(raw===null&&!uid)raw=localStorage.getItem(REF_PROG_KEY);
     if(raw){const o=JSON.parse(raw);if(o&&typeof o==="object"){dflt.opened=(o.opened&&typeof o.opened==="object")?o.opened:{};dflt.best=(o.best&&typeof o.best==="object")?o.best:{};dflt.saved=Array.isArray(o.saved)?o.saved.filter(x=>typeof x==="string").slice(0,200):[];dflt.recent=Array.isArray(o.recent)?o.recent.filter(x=>typeof x==="string").slice(0,12):[];}}
   }catch(e){/* corrupted state: recover with defaults, never crash */}
-  refProgCache=dflt;return dflt;
+  refProgCache=dflt;refProgCacheUid=uid;return dflt;
 }
-function refProgSave(){try{if(typeof localStorage!=="undefined")localStorage.setItem(REF_PROG_KEY,JSON.stringify(refProgCache));}catch(e){}}
+function refProgSave(){
+  if(!refProgCache)return;
+  try{if(typeof localStorage!=="undefined")localStorage.setItem(refProgKeyFor(refProgCacheUid),JSON.stringify(refProgCache));}catch(e){}
+}
 function refRecordOpen(tid){
   try{
     const P=refProg();P.opened[tid]=Date.now();
