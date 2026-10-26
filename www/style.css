@@ -1515,3 +1515,21 @@ html[data-theme="light"] #ankiRoot select{background:#fff;color:#0f172a}
   .dm-ext-sec{padding:10px}
   .dm-ext-audio{max-width:100%}
 }
+
+/* Vocabulary-page external fallback: sibling of #vocabGrid, never a card.
+   Clearly separated from saved vocabulary and safe for long phrases/Arabic. */
+.dm-vocab-fallback{margin-top:18px;padding:14px 16px;border:1px solid var(--border,#e2d9c8);
+  border-top:2px solid var(--gold,#d8b56a);border-radius:16px;background:var(--card);
+  box-shadow:var(--shadow,none)}
+.dm-vocab-query{font-size:22px;font-weight:900;line-height:1.5;padding:8px 12px;
+  border:1px dashed var(--border,#e2d9c8);border-radius:12px;background:rgba(216,181,106,.08);
+  overflow-wrap:anywhere;word-break:break-word}
+.dm-vocab-translation{font-size:20px;line-height:1.7;padding:8px 12px;border-radius:12px;
+  background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);
+  overflow-wrap:anywhere;word-break:break-word}
+html[data-theme="light"] .dm-vocab-query{background:rgba(216,181,106,.14)}
+@media (max-width:640px){
+  .dm-vocab-fallback{padding:10px}
+  .dm-vocab-query{font-size:18px}
+  .dm-vocab-translation{font-size:17px}
+}

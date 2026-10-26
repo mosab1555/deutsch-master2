@@ -74,6 +74,29 @@
   /* ================= tiny utils (no DOM at load) ================= */
   function sstr(x) { return String(x == null ? "" : x); }
   function normQ(q) { return sstr(q).replace(/\s+/g, " ").trim().slice(0, 200); }
+  /* Arabic-script detection for the reverse vocabulary lookup. Covers the
+   * Arabic block, supplement, extended-A and the presentation forms so a
+   * query typed with either normal or shaped Arabic is still detected. */
+  var ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+  function isArabicText(s) { return ARABIC_RE.test(sstr(s)); }
+  function vocabDirection(q) {
+    return isArabicText(q)
+      ? { from: "ar", to: "de" }
+      : { from: "de", to: "ar" };
+  }
+  /* MyMemory's q parameter is documented as max 500 BYTES (not chars).
+   * Count UTF-8 bytes without relying on TextEncoder (older WebViews). */
+  function utf8Bytes(s) {
+    var str = sstr(s), n = 0;
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charCodeAt(i);
+      if (c < 0x80) n += 1;
+      else if (c < 0x800) n += 2;
+      else if (c >= 0xD800 && c <= 0xDBFF && i + 1 < str.length) { n += 4; i++; }
+      else n += 3;
+    }
+    return n;
+  }
   function foldDe(s) {
     try {
       if (typeof root.dmNorm === "function") return root.dmNorm(s);
@@ -577,6 +600,31 @@
       { name: "LEO", url: "https://dict.leo.org/german-english/" + e }
     ];
   }
+  /* Contextual links for the vocabulary-page fallback. Every term goes
+   * through encodeURIComponent, so spaces, umlauts, ß, Arabic and complete
+   * phrases stay intact. No API key is needed for any of these sites and
+   * nothing is scraped: they are ordinary search links opened in a new tab. */
+  function vocabExternalLinks(q, dir) {
+    var raw = sstr(q).trim();
+    var e = encodeURIComponent(raw);
+    var fromAr = !!(dir && dir.from === "ar");
+    var ponsPair = fromAr ? "arabisch-deutsch" : "deutsch-arabisch";
+    var revPair = fromAr ? "arabic-german" : "german-arabic";
+    var forvoLang = fromAr ? "ar" : "de";
+    var wiktHost = fromAr ? "ar.wiktionary.org" : "de.wiktionary.org";
+    return [
+      { id: "forvo", name: "Forvo", labelKey: "dm_vocab_forvo",
+        url: "https://forvo.com/search/" + e + "/" + forvoLang + "/" },
+      { id: "duden", name: "Duden", labelKey: "dm_vocab_duden",
+        url: "https://www.duden.de/suchen/dudenonline/" + e },
+      { id: "pons", name: "PONS", labelKey: "dm_vocab_pons",
+        url: "https://de.pons.com/%C3%BCbersetzung/" + ponsPair + "/" + e },
+      { id: "reverso", name: "Reverso Context", labelKey: "dm_vocab_reverso",
+        url: "https://context.reverso.net/translation/" + revPair + "/" + e },
+      { id: "wiktionary", name: "Wiktionary", labelKey: "dm_vocab_wiktionary",
+        url: "https://" + wiktHost + "/wiki/" + e }
+    ];
+  }
 
   /* ================= provider: Tatoeba =================
    * Audio policy (per official spec https://api.tatoeba.org/openapi.json +
@@ -819,31 +867,62 @@
     }, outerSignal);
   }
 
-  /* ================= provider: MyMemory (MT fallback) ================= */
+  /* ================= provider: MyMemory (MT fallback) =================
+   * Public, keyless endpoint (CORS: Access-Control-Allow-Origin: *).
+   * Anonymous free quota: 5000 chars/day; no paid plan or key is used here.
+   * The q parameter is limited to 500 BYTES, so long queries are reported
+   * as "too-long" instead of being silently truncated or fabricated. */
   var MM_BAD = /MYMEMORY WARNING|INVALID (EMAIL|TARGET LANGUAGE)|QUERY LENGTH LIMIT|NO QUERY SPECIFIED/i;
-  function mymemorySearch(deText, outerSignal) {
-    var q = normQ(deText);
-    if (!q || q.length > 500) return Promise.resolve({ status: "empty", provider: "mymemory" });
-    return cachedFetch("mymemory", q, function (sig) {
+  var MM_LIMIT = /MYMEMORY WARNING.*(?:FREE|LIMIT|QUOTA|TODAY)|QUOTA|USED ALL AVAILABLE|DAILY LIMIT/i;
+  function mymemoryTranslate(text, from, to, outerSignal, force) {
+    var q = normQ(text);
+    from = from === "ar" ? "ar" : "de";
+    to = to === "de" ? "de" : "ar";
+    if (from === to) return Promise.resolve({ status: "empty", provider: "mymemory", reason: "same-language" });
+    if (!q) return Promise.resolve({ status: "empty", provider: "mymemory" });
+    if (utf8Bytes(q) > 500) {
+      return Promise.resolve({ status: "error", provider: "mymemory", error: "too-long" });
+    }
+    function worker(sig) {
       var s = sig || outerSignal;
-      var u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(q) + "&langpair=de|ar";
+      var u = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(q) +
+        "&langpair=" + from + "|" + to;
       return fetchJson(u, undefined, s).then(function (r) {
         if (!r.ok) {
           if (r.error === "aborted") return { status: "aborted", provider: "mymemory" };
           return { status: "error", provider: "mymemory", error: r.error };
         }
-        var txt = "";
+        var txt = "", details = "", quota = false;
         try { txt = sstr(r.data.responseData && r.data.responseData.translatedText); } catch (e) {}
+        try { details = sstr(r.data.responseDetails); } catch (e) {}
+        try { quota = !!r.data.quotaFinished; } catch (e) {}
         var st = null;
         try { st = r.data.responseStatus; } catch (e) {}
+        /* Rate-limit warnings are failures, never a fake translation. */
+        if (quota || MM_LIMIT.test(details) || MM_LIMIT.test(txt)) {
+          return { status: "error", provider: "mymemory", error: "rate-limited" };
+        }
         if (!txt || MM_BAD.test(txt) || (st !== 200 && st !== "200")) {
           return { status: "empty", provider: "mymemory" };
         }
+        /* A 200 response that echoes the source is not a translation. */
+        if (foldDe(txt) === foldDe(q)) {
+          return { status: "empty", provider: "mymemory", reason: "same-as-source" };
+        }
         var match = 0;
         try { match = parseFloat(r.data.responseData && r.data.responseData.match) || 0; } catch (e) {}
-        return { status: "ok", provider: "mymemory", text: txt.slice(0, 500), match: match, machine: true };
+        return { status: "ok", provider: "mymemory", text: txt.slice(0, 500), match: match,
+          machine: true, from: from, to: to };
       });
-    }, outerSignal);
+    }
+    /* An explicit retry bypasses the cache: empty answers are cached, and a
+     * user-initiated retry must actually ask the service again. */
+    if (force) return Promise.resolve().then(function () { return worker(outerSignal); });
+    /* Pair is part of the cache key: de|ar and ar|de must never collide. */
+    return cachedFetch("mymemory:" + from + "|" + to, q, worker, outerSignal);
+  }
+  function mymemorySearch(deText, outerSignal) {
+    return mymemoryTranslate(deText, "de", "ar", outerSignal);
   }
 
   /* ================= provider: Forvo (optional, disabled without key) ================= */
@@ -1086,7 +1165,19 @@
       dm_ext_human: "تسجيل بشري", dm_ext_verified: "محتوى مُدقق من المصدر", dm_ext_open: "فتح المصدر",
       dm_ext_dict_fallback: "تعريف من الطبعة الإنجليزية", dm_ext_no_dict: "لا يوجد تعريف usable — جرّب القواميس الخارجية.",
       dm_ext_audio_unavail: "التسجيل غير متاح لإعادة الاستخدام — استخدم النطق الآلي.",
-      dm_ext_audio_attr: "التسجيل:", dm_ext_mt_fail: "تعذّرت الترجمة الآلية." },
+      dm_ext_audio_attr: "التسجيل:", dm_ext_mt_fail: "تعذّرت الترجمة الآلية.",
+      dm_vocab_ext_title: "نتيجة بحث خارجية", dm_vocab_external_badge: "خارجي — غير محفوظ",
+      dm_vocab_your_query: "بحثك:", dm_vocab_not_saved: "هذه النتيجة من مصدر خارجي ولم تُضف إلى مفرداتك.",
+      dm_vocab_translation: "الترجمة الآلية", dm_vocab_links: "ابحث في مصادر خارجية",
+      dm_vocab_forvo: "النطق", dm_vocab_duden: "قاموس ألماني", dm_vocab_pons: "قاموس وترجمة",
+      dm_vocab_reverso: "أمثلة مترجمة", dm_vocab_wiktionary: "تعريفات",
+      dm_vocab_dir_de_ar: "ألماني ← عربي", dm_vocab_dir_ar_de: "عربي ← ألماني",
+      dm_vocab_match: "درجة المطابقة: ",
+      dm_vocab_no_translation: "لم نتمكن من جلب ترجمة آلية لهذا البحث. جرّب الروابط الخارجية أدناه.",
+      dm_vocab_rate_limited: "خدمة الترجمة وصلت إلى حد الاستخدام المجاني مؤقتًا. جرّب لاحقًا أو استخدم الروابط الخارجية.",
+      dm_vocab_timeout: "انتهت مهلة الاتصال بخدمة الترجمة. تحقق من الإنترنت أو استخدم الروابط الخارجية.",
+      dm_vocab_unavailable: "خدمة الترجمة غير متاحة الآن. جرّب لاحقًا أو استخدم الروابط الخارجية.",
+      dm_vocab_too_long: "النص أطول من الحد المسموح للترجمة الآلية. استخدم الروابط الخارجية." },
     en: { dm_ext_title: "Extended results from German sources", dm_ext_loading: "Fetching extra results…",
       dm_ext_meaning: "Meaning & grammar", dm_ext_examples: "Real examples", dm_ext_syn: "Synonyms & related",
       dm_ext_pron: "Pronunciation", dm_ext_trans: "Arabic translation", dm_ext_machine: "Machine translation — unverified",
@@ -1098,7 +1189,19 @@
       dm_ext_human: "Human recording", dm_ext_verified: "Verified source content", dm_ext_open: "Open source",
       dm_ext_dict_fallback: "Definition from English edition", dm_ext_no_dict: "No usable definition — try external dictionaries.",
       dm_ext_audio_unavail: "Recording unavailable for reuse — use synthetic voice.",
-      dm_ext_audio_attr: "Recording:", dm_ext_mt_fail: "Machine translation failed." },
+      dm_ext_audio_attr: "Recording:", dm_ext_mt_fail: "Machine translation failed.",
+      dm_vocab_ext_title: "External search result", dm_vocab_external_badge: "External — not saved",
+      dm_vocab_your_query: "Your search:", dm_vocab_not_saved: "This result comes from an external source and was not added to your vocabulary.",
+      dm_vocab_translation: "Machine translation", dm_vocab_links: "Search external sources",
+      dm_vocab_forvo: "Pronunciation", dm_vocab_duden: "German dictionary", dm_vocab_pons: "Dictionary & translation",
+      dm_vocab_reverso: "Translated examples", dm_vocab_wiktionary: "Definitions",
+      dm_vocab_dir_de_ar: "German → Arabic", dm_vocab_dir_ar_de: "Arabic → German",
+      dm_vocab_match: "Match score: ",
+      dm_vocab_no_translation: "Could not fetch a machine translation for this search. Try the external links below.",
+      dm_vocab_rate_limited: "The translation service has temporarily reached its free usage limit. Try later or use the external links.",
+      dm_vocab_timeout: "The translation service timed out. Check your connection or use the external links.",
+      dm_vocab_unavailable: "The translation service is unavailable right now. Try later or use the external links.",
+      dm_vocab_too_long: "The text is longer than the machine-translation limit. Use the external links." },
     de: { dm_ext_title: "Erweiterte Ergebnisse aus deutschen Quellen", dm_ext_loading: "Zusätzliche Ergebnisse werden geladen…",
       dm_ext_meaning: "Bedeutung & Grammatik", dm_ext_examples: "Echte Beispiele", dm_ext_syn: "Synonyme & Verwandtes",
       dm_ext_pron: "Aussprache", dm_ext_trans: "Arabische Übersetzung", dm_ext_machine: "Maschinelle Übersetzung — ungeprüft",
@@ -1110,7 +1213,19 @@
       dm_ext_human: "Menschliche Aufnahme", dm_ext_verified: "Geprüfter Quelleninhalt", dm_ext_open: "Quelle öffnen",
       dm_ext_dict_fallback: "Definition aus englischer Ausgabe", dm_ext_no_dict: "Keine brauchbare Definition — externe Wörterbücher versuchen.",
       dm_ext_audio_unavail: "Aufnahme nicht zur Wiederverwendung verfügbar — synthetische Stimme nutzen.",
-      dm_ext_audio_attr: "Aufnahme:", dm_ext_mt_fail: "Maschinelle Übersetzung fehlgeschlagen." }
+      dm_ext_audio_attr: "Aufnahme:", dm_ext_mt_fail: "Maschinelle Übersetzung fehlgeschlagen.",
+      dm_vocab_ext_title: "Externes Suchergebnis", dm_vocab_external_badge: "Extern — nicht gespeichert",
+      dm_vocab_your_query: "Deine Suche:", dm_vocab_not_saved: "Dieses Ergebnis stammt aus einer externen Quelle und wurde nicht zu deinem Wortschatz hinzugefügt.",
+      dm_vocab_translation: "Maschinelle Übersetzung", dm_vocab_links: "Externe Quellen durchsuchen",
+      dm_vocab_forvo: "Aussprache", dm_vocab_duden: "Deutsches Wörterbuch", dm_vocab_pons: "Wörterbuch & Übersetzung",
+      dm_vocab_reverso: "Übersetzte Beispiele", dm_vocab_wiktionary: "Definitionen",
+      dm_vocab_dir_de_ar: "Deutsch → Arabisch", dm_vocab_dir_ar_de: "Arabisch → Deutsch",
+      dm_vocab_match: "Übereinstimmung: ",
+      dm_vocab_no_translation: "Für diese Suche konnte keine maschinelle Übersetzung abgerufen werden. Probiere die externen Links unten.",
+      dm_vocab_rate_limited: "Der Übersetzungsdienst hat vorübergehend sein kostenloses Nutzungslimit erreicht. Versuche es später oder nutze die externen Links.",
+      dm_vocab_timeout: "Zeitüberschreitung beim Übersetzungsdienst. Prüfe deine Verbindung oder nutze die externen Links.",
+      dm_vocab_unavailable: "Der Übersetzungsdienst ist derzeit nicht verfügbar. Versuche es später oder nutze die externen Links.",
+      dm_vocab_too_long: "Der Text ist länger als das Limit für maschinelle Übersetzung. Nutze die externen Links." }
   };
   try {
     if (root.I18N && root.I18N.ar) {
@@ -1755,6 +1870,180 @@
     })();
   }
 
+  /* ================= UI: vocabulary-page external fallback =================
+   * Deliberately separate from #globalSearch. It renders ONLY when the local
+   * vocabulary bank has zero hits for the current #vocabSearch query. The
+   * panel is a sibling of #vocabGrid, not a vocabulary card, so it can never
+   * be mistaken for a saved entry and local re-renders/pagination do not
+   * destroy it. All external text is rendered with textContent only. */
+  var vocabGen = 0, vocabTimer = 0, vocabCtrl = null;
+
+  function vocabAlive(wrap, q, myGen) {
+    if (myGen !== vocabGen) return false;
+    try { if (normQ($("vocabSearch").value) !== q) return false; } catch (e) { return false; }
+    try {
+      if (!wrap) return false;
+      if (wrap.isConnected === false) return false;
+      if (root.document && root.document.contains && !root.document.contains(wrap)) return false;
+    } catch (e) { return false; }
+    return true;
+  }
+  function vocabClearTimer() {
+    try { if (vocabTimer) clearTimeout(vocabTimer); } catch (e) {}
+    vocabTimer = 0;
+  }
+  function cancelVocabFallback() {
+    vocabClearTimer();
+    try { if (vocabCtrl) vocabCtrl.abort(); } catch (e) {}
+    vocabCtrl = null;
+    vocabGen++;
+    return vocabGen;
+  }
+  function hideVocabFallback() {
+    cancelVocabFallback();
+    try {
+      var n = $("dmVocabExt");
+      if (n && n.parentNode) n.parentNode.removeChild(n);
+    } catch (e) {}
+  }
+  function vocabErrorText(err) {
+    if (err === "offline") return T("dm_ext_offline");
+    if (err === "rate-limited") return T("dm_vocab_rate_limited");
+    if (err === "timeout") return T("dm_vocab_timeout");
+    if (err === "too-long") return T("dm_vocab_too_long");
+    return T("dm_vocab_unavailable");
+  }
+  function renderVocabTranslation(wrap, res, dir, raw, q, myGen) {
+    if (!vocabAlive(wrap, q, myGen)) return;
+    var sec = null;
+    try { sec = wrap.querySelector("[data-dm-vocab-tr]"); } catch (e) {}
+    if (!sec) return;
+    try { sec.textContent = ""; } catch (e) {}
+    var h = el("div", "dm-ext-h");
+    h.appendChild(el("span", "", "🌍 " + T("dm_vocab_translation")));
+    h.appendChild(srcBadge("MyMemory"));
+    h.appendChild(el("span", "dm-badge dm-sim", T("dm_vocab_external_badge")));
+    sec.appendChild(h);
+    sec.appendChild(el("div", "dm-ext-meta",
+      dir.from === "ar" ? T("dm_vocab_dir_ar_de") : T("dm_vocab_dir_de_ar")));
+    if (res && res.status === "ok") {
+      sec.appendChild(el("span", "dm-badge dm-mt", "🤖 " + T("dm_ext_machine")));
+      var out = el("div", "dm-ext-ar dm-vocab-translation", res.text);
+      try { out.setAttribute("dir", res.to === "de" ? "ltr" : "rtl"); } catch (e) {}
+      try { out.setAttribute("lang", res.to === "de" ? "de" : "ar"); } catch (e) {}
+      sec.appendChild(out);
+      if (res.match) {
+        try {
+          sec.appendChild(el("div", "dm-ext-meta",
+            T("dm_vocab_match") + Math.round(res.match * 100) + "%"));
+        } catch (e) {}
+      }
+      return;
+    }
+    if (res && res.status === "loading") {
+      sec.appendChild(el("div", "dm-ext-note dm-loading", "⏳ " + T("dm_ext_loading")));
+      return;
+    }
+    if (res && res.status === "aborted") return;
+    var msg = (res && res.status === "empty")
+      ? T("dm_vocab_no_translation")
+      : vocabErrorText(res && res.error);
+    sec.appendChild(el("div", "dm-ext-note", "⚠️ " + msg));
+    var retry = el("button", "mini-btn", "↻ " + T("dm_ext_retry"));
+    retry.addEventListener("click", function (ev) {
+      try { ev.stopPropagation(); } catch (e) {}
+      if (!vocabAlive(wrap, q, myGen)) return;
+      loadVocabTranslation(wrap, raw, q, dir, myGen, true);
+    });
+    sec.appendChild(retry);
+  }
+  function loadVocabTranslation(wrap, raw, q, dir, myGen, retry) {
+    if (!vocabAlive(wrap, q, myGen)) return;
+    vocabClearTimer();
+    if (isOffline()) {
+      renderVocabTranslation(wrap, { status: "error", error: "offline" }, dir, raw, q, myGen);
+      return;
+    }
+    try { if (vocabCtrl) vocabCtrl.abort(); } catch (e) {}
+    vocabCtrl = newSearchController();
+    var sig = vocabCtrl ? vocabCtrl.signal : null;
+    renderVocabTranslation(wrap, { status: "loading" }, dir, raw, q, myGen);
+    mymemoryTranslate(q, dir.from, dir.to, sig, !!retry).then(function (r) {
+      if (!vocabAlive(wrap, q, myGen)) return;
+      renderVocabTranslation(wrap, r || { status: "error", error: "unavailable" }, dir, raw, q, myGen);
+    }, function () {
+      if (!vocabAlive(wrap, q, myGen)) return;
+      renderVocabTranslation(wrap, { status: "error", error: "network" }, dir, raw, q, myGen);
+    });
+  }
+  function renderVocabFallback(grid, query) {
+    try {
+      if (!grid || !root.document) return null;
+      var raw = sstr(query).trim();
+      var q = normQ(raw);
+      if (!q) { hideVocabFallback(); return null; }
+      var host = grid.parentNode;
+      if (!host) return null;
+      var existing = $("dmVocabExt");
+      if (existing) {
+        var eq = "";
+        try { eq = existing.getAttribute("data-dm-q") || ""; } catch (e) {}
+        if (eq === q && existing.parentNode === host) return existing;
+        try { if (existing.parentNode) existing.parentNode.removeChild(existing); } catch (e) {}
+      }
+      cancelVocabFallback();
+      var myGen = vocabGen;
+      var dir = vocabDirection(q);
+      var wrap = el("div", "dm-ext dm-vocab-fallback");
+      wrap.id = "dmVocabExt";
+      try { wrap.setAttribute("data-dm-q", q); } catch (e) {}
+      var title = el("div", "dm-ext-title");
+      title.appendChild(el("span", "", "🌐 " + T("dm_vocab_ext_title") + " · "));
+      title.appendChild(el("span", "dm-badge dm-sim", T("dm_vocab_external_badge")));
+      wrap.appendChild(title);
+      /* Exact user query: textContent only (never innerHTML). */
+      var qsec = el("div", "dm-ext-sec dm-vocab-query-sec");
+      qsec.appendChild(el("div", "dm-ext-h", "🔎 " + T("dm_vocab_your_query")));
+      var qv = el("div", "dm-vocab-query", raw);
+      try { qv.setAttribute("dir", "auto"); } catch (e) {}
+      qsec.appendChild(qv);
+      qsec.appendChild(el("div", "dm-ext-note", T("dm_vocab_not_saved")));
+      wrap.appendChild(qsec);
+      /* Translation section (honest loading state first). */
+      var tr = el("div", "dm-ext-sec");
+      try {
+        tr.setAttribute("data-dm-vocab-tr", "1");
+        tr.setAttribute("aria-live", "polite");
+      } catch (e) {}
+      wrap.appendChild(tr);
+      /* Contextual links stay available even if MT fails. */
+      var lsec = el("div", "dm-ext-sec");
+      lsec.appendChild(el("div", "dm-ext-h", "🔗 " + T("dm_vocab_links")));
+      var row = el("div", "dm-ext-foot");
+      vocabExternalLinks(raw, dir).forEach(function (l, ix, arr) {
+        var a = link(l.url, l.name);
+        try {
+          a.title = T(l.labelKey);
+          a.setAttribute("aria-label", l.name + " — " + T(l.labelKey));
+        } catch (e) {}
+        row.appendChild(a);
+        if (ix < arr.length - 1) row.appendChild(el("span", "muted", " · "));
+      });
+      lsec.appendChild(row);
+      wrap.appendChild(lsec);
+      host.appendChild(wrap);
+      renderVocabTranslation(wrap, { status: "loading" }, dir, raw, q, myGen);
+      /* The local input is already debounced; this short extra delay avoids
+       * a request for every intermediate keystroke and is cancelled when a
+       * newer query replaces the panel. */
+      vocabTimer = setTimeout(function () {
+        if (myGen !== vocabGen) return;
+        loadVocabTranslation(wrap, raw, q, dir, myGen, false);
+      }, 300);
+      return wrap;
+    } catch (e) { return null; }
+  }
+
   var lastState = null, lastQuery = "";
   function currentQuery() {
     try {
@@ -2005,6 +2294,13 @@
     ui: { enhance: enhance, retry: retryFailed, install: installEnhance, speak: speakDe,
       leave: leaveSearch, cancel: cancelSearch },
     cancel: cancelSearch,
+    /* Vocabulary-page external fallback (used by script.js). */
+    vocabDirection: vocabDirection,
+    vocabExternalLinks: vocabExternalLinks,
+    mymemoryTranslate: mymemoryTranslate,
+    renderVocabFallback: renderVocabFallback,
+    hideVocabFallback: hideVocabFallback,
+    cancelVocabFallback: cancelVocabFallback,
     debug: { coldStats: coldStats, ORDER: ["title", "offline", "loading", "dict-de", "dict-en", "dict-none", "examples", "syn", "pron", "mt", "none", "foot", "errs"] },
     __renderForTest: (typeof renderState !== "undefined" ? renderState : null),
     __setFetch: __setFetch,

@@ -2378,13 +2378,18 @@ function filteredVocab(){
     return true;
   };
   /* Empty query: natural bank order (unchanged behavior; cached view). */
-  if(!qn)return dmWords().filter(passAttr);
+  if(!qn){filteredVocab._last={raw:raw,qn:"",hadLocal:false};return dmWords().filter(passAttr);}
   /* Live instant search with strict prefix-first ranking (same engine as the
      header global search): exact > prefix > word-boundary > substring >
      translation > fuzzy. So "hau" ranks "das Haus" first instead of returning
      bank order where any example sentence containing "hau" could win. */
   const out=[];
-  dmWordHits(qn,"mixed").forEach(function(h){if(passAttr(h.w))out.push(h.w);});
+  const hits=dmWordHits(qn,"mixed");
+  hits.forEach(function(h){if(passAttr(h.w))out.push(h.w);});
+  /* Metadata for the external fallback: only a query with ZERO local hits
+     (direct or fuzzy) may show it. Filter-excluded hits still count as local
+     matches, so the normal empty state is used instead. */
+  filteredVocab._last={raw:raw,qn:qn,hadLocal:hits.length>0};
   return out;
 }
 /* Paginated: renders first page only (~60 cards) so startup and every
@@ -2467,9 +2472,24 @@ function renderVocab(more){
   if(!more&&_sig!==_vocabSig)vocabLimit=VOCAB_PAGE;
   _vocabSig=_sig;
   const list=filteredVocab();
+  const _vm=filteredVocab._last||{};
   $("vocabCount").textContent=list.length;
   const g=$("vocabGrid");g.innerHTML="";
-  if(!list.length){g.innerHTML='<div class="panel glass">'+window.t("sc_empty_vocab")+'</div>';try{if(typeof dmStampRev==="function")dmStampRev("vocab");}catch(e){}return;}
+  if(!list.length){
+    g.innerHTML='<div class="panel glass">'+window.t("sc_empty_vocab")+'</div>';
+    /* Local miss: show the clearly-labelled external fallback (exact query,
+       machine translation, contextual links). Never for an empty query or
+       when local/fuzzy hits exist but were excluded by filters. */
+    try{
+      if(_vm.qn&&!_vm.hadLocal&&window.DMSearch&&typeof window.DMSearch.renderVocabFallback==="function"){
+        window.DMSearch.renderVocabFallback(g,_vm.raw);
+      }else if(window.DMSearch&&typeof window.DMSearch.hideVocabFallback==="function"){
+        window.DMSearch.hideVocabFallback();
+      }
+    }catch(e){}
+    try{if(typeof dmStampRev==="function")dmStampRev("vocab");}catch(e){}return;
+  }
+  try{if(window.DMSearch&&typeof window.DMSearch.hideVocabFallback==="function")window.DMSearch.hideVocabFallback();}catch(e){}
   /* Single batched insert (DocumentFragment): identical DOM, one reflow. */
   const frag=document.createDocumentFragment();
   list.slice(0,vocabLimit).forEach(w=>frag.appendChild(wordCard(w)));

@@ -605,7 +605,171 @@ DM.__setFetch(stubFetch);
   ok("S10 empty distinct from error", r.remote.tatoeba.status === "empty" && !r.remote.tatoeba.error, r.remote.tatoeba.status);
   DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
 
-  /* 7. timeout does not block (slow, last) */
+  /* ==== Vocabulary external fallback: direction, links, MyMemory ==== */
+  ok("V1a German query direction", (() => {
+    const d = DM.vocabDirection("Haus");
+    return d.from === "de" && d.to === "ar";
+  })());
+  ok("V1b Arabic query direction", (() => {
+    const d = DM.vocabDirection("بيت");
+    return d.from === "ar" && d.to === "de";
+  })());
+  ok("V1c mixed query uses Arabic direction", (() => {
+    const d = DM.vocabDirection("Haus بيت");
+    return d.from === "ar" && d.to === "de";
+  })());
+  const linksDe = DM.vocabExternalLinks("Grüße schön", DM.vocabDirection("Grüße schön"));
+  const encDe = encodeURIComponent("Grüße schön");
+  ok("V2a five required links", linksDe.length === 5 &&
+    ["forvo", "duden", "pons", "reverso", "wiktionary"].every(id => linksDe.some(l => l.id === id)),
+    linksDe.map(l => l.id).join(","));
+  ok("V2b German links encoded", linksDe.every(l => l.url.indexOf(encDe) >= 0) &&
+    linksDe.some(l => l.url.indexOf("deutsch-arabisch") >= 0) &&
+    linksDe.some(l => l.url.indexOf("german-arabic") >= 0) &&
+    linksDe.some(l => l.url.indexOf("de.wiktionary.org/wiki/") >= 0) &&
+    linksDe.some(l => l.url.indexOf("/de/") >= 0), linksDe[0].url);
+  const linksAr = DM.vocabExternalLinks("بيت", DM.vocabDirection("بيت"));
+  const encAr = encodeURIComponent("بيت");
+  ok("V2c Arabic links encoded + reverse pairs", linksAr.every(l => l.url.indexOf(encAr) >= 0) &&
+    linksAr.some(l => l.url.indexOf("arabisch-deutsch") >= 0) &&
+    linksAr.some(l => l.url.indexOf("arabic-german") >= 0) &&
+    linksAr.some(l => l.url.indexOf("ar.wiktionary.org/wiki/") >= 0) &&
+    linksAr.some(l => l.url.indexOf("/ar/") >= 0), linksAr[0].url);
+  ok("V2d links are https", linksDe.concat(linksAr).every(l => /^https:\/\//.test(l.url)));
+
+  /* de -> ar request shape + honest machine label */
+  DM.__cacheClear();
+  let mmUrls = [];
+  DM.__setFetch((url) => {
+    const u = String(url);
+    if (u.includes("api.mymemory.translated.net")) {
+      mmUrls.push(u);
+      return Promise.resolve(mkRes(200, () => Promise.resolve({ responseData: { translatedText: "بيت", match: "0.9" }, responseStatus: 200 })));
+    }
+    return Promise.reject(new Error("unexpected-url " + u));
+  });
+  let vtr = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("V3a de->ar success", vtr.status === "ok" && vtr.text === "بيت" && vtr.machine === true &&
+    vtr.from === "de" && vtr.to === "ar", JSON.stringify(vtr));
+  ok("V3b de->ar URL encoded", mmUrls.length === 1 && mmUrls[0].indexOf("q=Haus") >= 0 &&
+    mmUrls[0].indexOf("langpair=de|ar") >= 0, mmUrls[0]);
+
+  /* ar -> de request shape (reverse pair, Arabic q encoded) */
+  DM.__cacheClear(); mmUrls = [];
+  DM.__setFetch((url) => {
+    const u = String(url);
+    if (u.includes("api.mymemory.translated.net")) {
+      mmUrls.push(u);
+      return Promise.resolve(mkRes(200, () => Promise.resolve({ responseData: { translatedText: "Haus", match: "0.8" }, responseStatus: 200 })));
+    }
+    return Promise.reject(new Error("unexpected-url " + u));
+  });
+  vtr = await DM.mymemoryTranslate("بيت", "ar", "de");
+  ok("V4a ar->de success", vtr.status === "ok" && vtr.text === "Haus" && vtr.from === "ar" && vtr.to === "de");
+  ok("V4b ar->de URL encoded", mmUrls.length === 1 && mmUrls[0].indexOf("q=" + encodeURIComponent("بيت")) >= 0 &&
+    mmUrls[0].indexOf("langpair=ar|de") >= 0, mmUrls[0]);
+
+  /* empty / same-as-source never fabricated as a translation */
+  DM.__cacheClear();
+  DM.__setFetch(() => Promise.resolve(mkRes(200, () => Promise.resolve({ responseData: { translatedText: "Haus" }, responseStatus: 200 }))));
+  vtr = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("V5a echoed source is empty", vtr.status === "empty" && vtr.reason === "same-as-source");
+  DM.__cacheClear();
+  DM.__setFetch(() => Promise.resolve(mkRes(200, () => Promise.resolve({ responseData: { translatedText: "" }, responseStatus: 200 }))));
+  vtr = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("V5b blank response is empty", vtr.status === "empty" && !vtr.text);
+
+  /* rate limit: HTTP 429 and 200-with-warning are honest errors */
+  DM.__cacheClear();
+  DM.__setFetch(() => Promise.resolve(mkRes(429, () => Promise.resolve({}))));
+  vtr = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("V6a HTTP 429 rate-limited", vtr.status === "error" && vtr.error === "rate-limited", vtr.error);
+  DM.__cacheClear();
+  DM.__setFetch(() => Promise.resolve(mkRes(200, () => Promise.resolve({
+    responseData: { translatedText: "MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY" },
+    responseStatus: 200
+  }))));
+  vtr = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("V6b warning text rate-limited", vtr.status === "error" && vtr.error === "rate-limited", vtr.error);
+
+  /* 500-byte guard: no request, no truncation */
+  DM.__cacheClear();
+  let longCalls = 0;
+  DM.__setFetch(() => { longCalls++; return Promise.resolve(mkRes(200, () => Promise.resolve({}))); });
+  vtr = await DM.mymemoryTranslate("你".repeat(200), "de", "ar");
+  ok("V7 too-long rejected before fetch", vtr.status === "error" && vtr.error === "too-long" && longCalls === 0,
+    "calls=" + longCalls);
+
+  /* cache dedup + explicit retry bypass */
+  DM.__cacheClear();
+  let forceCalls = 0;
+  DM.__setFetch(() => {
+    forceCalls++;
+    return Promise.resolve(mkRes(200, () => Promise.resolve({ responseData: { translatedText: "بيت" }, responseStatus: 200 })));
+  });
+  await DM.mymemoryTranslate("Haus", "de", "ar");
+  await DM.mymemoryTranslate("Haus", "de", "ar");
+  const cachedCalls = forceCalls;
+  await DM.mymemoryTranslate("Haus", "de", "ar", null, true);
+  ok("V8 cache dedup + retry refetch", cachedCalls === 1 && forceCalls === 2,
+    "cached=" + cachedCalls + " force=" + forceCalls);
+
+  /* direction-aware cache: same text, opposite pair = two requests */
+  DM.__cacheClear();
+  let pairCalls = 0;
+  DM.__setFetch((url) => {
+    pairCalls++;
+    const u = String(url);
+    const ar = u.indexOf("langpair=ar|de") >= 0;
+    return Promise.resolve(mkRes(200, () => Promise.resolve({
+      responseData: { translatedText: ar ? "Haus" : "بيت" }, responseStatus: 200
+    })));
+  });
+  await DM.mymemoryTranslate("Test", "de", "ar");
+  await DM.mymemoryTranslate("Test", "ar", "de");
+  ok("V9 direction-aware cache keys", pairCalls === 2, "calls=" + pairCalls);
+
+  /* network failure + timeout + cancellation */
+  DM.__cacheClear();
+  DM.__setFetch(() => Promise.reject(new Error("network down")));
+  vtr = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("V10a network failure contained", vtr.status === "error" && vtr.error === "network", vtr.error);
+  DM.__cacheClear();
+  DM.__setFetch(() => new Promise(() => {}));
+  const timeoutStart = Date.now();
+  vtr = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("V10b timeout terminates", vtr.status === "error" && vtr.error === "timeout" && Date.now() - timeoutStart < 12000,
+    vtr.error + " " + (Date.now() - timeoutStart) + "ms");
+  DM.__cacheClear();
+  DM.__setFetch(() => new Promise(() => {}));
+  const vctrl = new AbortController();
+  const vp = DM.mymemoryTranslate("Haus", "de", "ar", vctrl.signal);
+  setTimeout(() => { try { vctrl.abort(); } catch (e) {} }, 20);
+  vtr = await vp;
+  ok("V10c cancellation is aborted", vtr.status === "aborted", vtr.status);
+
+  /* i18n labels exist in ar/en/de */
+  ok("V11 vocab fallback i18n ar/en/de", (() => {
+    const srcV = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return ["dm_vocab_ext_title", "dm_vocab_external_badge", "dm_vocab_translation",
+      "dm_vocab_links", "dm_vocab_no_translation", "dm_vocab_rate_limited",
+      "dm_vocab_timeout", "dm_vocab_too_long"].every(k => {
+      const c = (srcV.match(new RegExp(k, "g")) || []).length; return c >= 3;
+    });
+  })());
+
+  /* static guarantees: exact query via textContent, sibling panel, safe links */
+  ok("V12 fallback UI safety", (() => {
+    const srcV = fs.readFileSync(path.join(ROOT, "client/dm-search.js"), "utf8");
+    return /grid\.parentNode/.test(srcV) && /dm-vocab-query/.test(srcV) &&
+      /setAttribute\("dir", "auto"\)/.test(srcV) &&
+      /noopener noreferrer/.test(srcV) && !/dmVocabExt[\s\S]{0,500}\.innerHTML\s*=/.test(srcV);
+  })());
+
+  /* restore the shared fixture for the remaining timeout test */
+  DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
+
+
   DM.__cacheClear(); mode = "com-hang";
   const t0 = Date.now();
   r = await DM.search("Haus");
