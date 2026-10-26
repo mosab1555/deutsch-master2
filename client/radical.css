@@ -274,7 +274,7 @@ html[data-theme="light"] .topbar{background:rgba(255,255,255,.82)}
   transition:border-color var(--rx-micro) var(--rx-ease),box-shadow var(--rx-micro) var(--rx-ease),transform var(--rx-micro) var(--rx-ease);
 }
 .search-wrap input:focus{border-color:var(--rx-cyan);box-shadow:0 0 0 3px rgba(63,214,245,.20),0 0 22px rgba(63,214,245,.25);transform:translateY(-1px)}
-.search-results{border-radius:14px;box-shadow:0 24px 60px rgba(2,6,20,.6);border-color:var(--rx-line-strong);overflow:hidden}
+.search-results{border-radius:14px;box-shadow:0 24px 60px rgba(2,6,20,.6);border-color:var(--rx-line-strong)}
 .search-hit{border-bottom:1px solid var(--rx-line)}
 .icon-btn{border-radius:12px;border-color:var(--rx-line);background:rgba(148,178,255,.07)}
 .icon-btn:hover{border-color:rgba(63,214,245,.55);box-shadow:0 0 18px rgba(63,214,245,.35)}

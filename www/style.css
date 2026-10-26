@@ -85,7 +85,7 @@ html,body{overflow-x:hidden;overflow-x:clip}
 html[data-theme="light"] .search-wrap input{background:#fff}
 .search-ico{position:absolute;right:12px;transition:opacity .25s ease,transform .25s ease,visibility .25s;pointer-events:none}
 .search-wrap.has-text .search-ico{opacity:0;transform:scale(.6);visibility:hidden}
-.search-results{position:absolute;top:110%;right:0;left:0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
+.search-results{position:absolute;top:110%;right:0;left:0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-height:300px;max-height:min(300px,calc(100dvh - 80px));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:none;z-index:100}
 .search-results.show{display:block}
 #notifDrop{position:absolute;top:110%;left:0;min-width:260px;max-width:90vw;background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-height:300px;overflow:auto;display:none;z-index:100}
 #notifDrop.show{display:block}

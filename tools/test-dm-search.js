@@ -913,6 +913,87 @@ DM.__setFetch(stubFetch);
   ok("R7b timeout no dictionary substitute", r.remote.wiktionary &&
     r.remote.wiktionary.status === "empty" && wikSeen === 0, "wikCalls=" + wikSeen);
 
+  /* Exact reported sentence: the provider result must survive the full
+   * search pipeline with every Arabic character intact. */
+  const SENT_EXACT = "Ich lerne jeden Tag Deutsch, weil ich in Deutschland arbeiten m\u00f6chte.";
+  const AR_EXACT = "\u0623\u062a\u0639\u0644\u0645 \u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 \u0643\u0644 \u064a\u0648\u0645 \u0644\u0623\u0646\u0646\u064a \u0623\u0631\u064a\u062f \u0627\u0644\u0639\u0645\u0644 \u0641\u064a \u0623\u0644\u0645\u0627\u0646\u064a\u0627.";
+  let exactQ = [];
+  DM.__cacheClear();
+  DM.__setFetch(function (url, opts) {
+    const u = String(url);
+    if (u.indexOf("api.mymemory.translated.net") >= 0) {
+      const qm = u.match(/[?&]q=([^&]*)/);
+      exactQ.push(qm ? decodeURIComponent(qm[1]) : "");
+      return Promise.resolve(mkRes(200, () => Promise.resolve({
+        responseData: { translatedText: AR_EXACT, match: "0.85" }, responseStatus: 200
+      })));
+    }
+    return origFetch(url, opts);
+  });
+  r = await DM.search(SENT_EXACT);
+  ok("R8a exact sentence classified", r.isSentence === true && exactQ.length === 1 && exactQ[0] === SENT_EXACT,
+    JSON.stringify(exactQ));
+  ok("R8b exact Arabic translation complete", r.remote.mymemory && r.remote.mymemory.status === "ok" &&
+    r.remote.mymemory.text === AR_EXACT && r.remote.mymemory.machine === true,
+    (r.remote.mymemory && r.remote.mymemory.text) || "no-mt");
+  /* No silent truncation: long valid translations are shown in full. */
+  const AR_LONG = "\u0637".repeat(700);
+  DM.__cacheClear();
+  DM.__setFetch(function (url, opts) {
+    const u = String(url);
+    if (u.indexOf("api.mymemory.translated.net") >= 0) {
+      return Promise.resolve(mkRes(200, () => Promise.resolve({
+        responseData: { translatedText: AR_LONG, match: "0.7" }, responseStatus: 200
+      })));
+    }
+    return origFetch(url, opts);
+  });
+  const longTr = await DM.mymemoryTranslate(SENT_EXACT, "de", "ar");
+  ok("R8c long translation not truncated", longTr.status === "ok" && longTr.text.length === 700,
+    longTr.status + " len=" + (longTr.text || "").length);
+
+  /* Provider-level failure statuses must never be rendered as success. */
+  DM.__cacheClear();
+  DM.__setFetch(() => Promise.resolve(mkRes(200, () => Promise.resolve({
+    responseData: { translatedText: AR_EXACT }, responseStatus: 503
+  }))));
+  let badStatus = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("R8d provider status 503 is error", badStatus.status === "error" && badStatus.error === "api-503" &&
+    !badStatus.text, badStatus.error || badStatus.status);
+  DM.__cacheClear();
+  DM.__setFetch(() => Promise.resolve(mkRes(200, () => Promise.resolve({
+    responseData: { translatedText: AR_EXACT }
+  }))));
+  badStatus = await DM.mymemoryTranslate("Haus", "de", "ar");
+  ok("R8e missing responseStatus is invalid", badStatus.status === "error" &&
+    badStatus.error === "bad-response" && !badStatus.text, badStatus.error || badStatus.status);
+
+  /* Empty response followed by an explicit retry: the retry must bypass the
+   * cached empty answer and render the valid translation for the full
+   * sentence (never a token). */
+  let emptyCalls = 0;
+  DM.__cacheClear(); mmSeen = [];
+  DM.__setFetch(function (url, opts) {
+    const u = String(url);
+    if (u.indexOf("api.mymemory.translated.net") >= 0) {
+      emptyCalls++;
+      const qm = u.match(/[?&]q=([^&]*)/);
+      mmSeen.push(qm ? decodeURIComponent(qm[1]) : "");
+      const body = emptyCalls === 1
+        ? { responseData: { translatedText: "" }, responseStatus: 200 }
+        : { responseData: { translatedText: AR_EXACT, match: "0.85" }, responseStatus: 200 };
+      return Promise.resolve(mkRes(200, () => Promise.resolve(body)));
+    }
+    return origFetch(url, opts);
+  });
+  r = await DM.search(SENT_EXACT);
+  ok("R8f empty response is honest", r.remote.mymemory && r.remote.mymemory.status === "empty" &&
+    !r.remote.mymemory.text, r.remote.mymemory && r.remote.mymemory.status);
+  const emptyRetry = await DM.search(SENT_EXACT, { only: ["mymemory"], prior: r });
+  ok("R8g retry after empty succeeds", emptyCalls === 2 && emptyRetry.remote.mymemory &&
+    emptyRetry.remote.mymemory.status === "ok" && emptyRetry.remote.mymemory.text === AR_EXACT &&
+    mmSeen.length === 2 && mmSeen[1] === SENT_EXACT, "calls=" + emptyCalls + " " + JSON.stringify(mmSeen));
+
   /* restore the shared fixture for the remaining timeout test */
   DM.__setFetch(origFetch); DM.__cacheClear(); mode = "normal";
 

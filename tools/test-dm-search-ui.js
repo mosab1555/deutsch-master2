@@ -590,6 +590,233 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
         o.tr ? o.tr.slice(0, 80) : ("retry=" + o.retry));
     } catch (e) { ok("U16 live full-input MT requested", false, u16 + " parse-err"); }
 
+    /* U17 exact reported sentence + duplicate same-query trigger while the
+     * translation is still in flight. The deferred MT fixture makes the old
+     * stale-generation bug deterministic: the final translation used to be
+     * dropped after the second trigger, leaving the panel stuck on loading. */
+    const SENT_EXACT_UI = "Ich lerne jeden Tag Deutsch, weil ich in Deutschland arbeiten m\u00f6chte.";
+    const AR_EXACT_UI = "\u0623\u062a\u0639\u0644\u0645 \u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 \u0643\u0644 \u064a\u0648\u0645 \u0644\u0623\u0646\u0646\u064a \u0623\u0631\u064a\u062f \u0627\u0644\u0639\u0645\u0644 \u0641\u064a \u0623\u0644\u0645\u0627\u0646\u064a\u0627.";
+    const u17arm = await E("(()=>{try{" +
+      "window.__realFetch=window.fetch.bind(window);window.__u17={mm:0};" +
+      "var AR=" + JSON.stringify(AR_EXACT_UI) + ";" +
+      "function res(s,b){return Promise.resolve({status:s,json:function(){return Promise.resolve(b);}});}" +
+      "window.__u17fetch=function(url,opts){var u=String(url);" +
+      "if(u.indexOf('api.mymemory.translated.net')>=0){window.__u17.mm++;" +
+      "return new Promise(function(resolve){setTimeout(function(){" +
+      "resolve(res(200,{responseData:{translatedText:AR,match:'0.85'},responseStatus:200}));},1200);});}" +
+      "if(u.indexOf('api.tatoeba.org')>=0)return res(200,{data:[]});" +
+      "if(u.indexOf('wiktionary.org')>=0)return res(200,{query:{search:[]}});" +
+      "if(u.indexOf('commons.wikimedia.org')>=0)return res(200,{query:{allimages:[]}});" +
+      "if(u.indexOf('openthesaurus.de')>=0)return res(200,{synsets:[]});" +
+      "return window.__realFetch(url,opts);};" +
+      "DMSearch.__setFetch(window.__u17fetch);DMSearch.__cacheClear();return 'armed';" +
+      "}catch(e){return 'arm-err:'+e.message}})()");
+    ok("U17 fixture armed", u17arm === '"armed"', u17arm);
+    await typeQuery(SENT_EXACT_UI);
+    await sleep(750);
+    await typeQuery(SENT_EXACT_UI);
+    const u17settled = await settleExt(o => o.q === SENT_EXACT_UI && o.loading === 0, 20);
+    const u17 = await E("(()=>{var o={mt:false,orig:'',tr:'',machine:false,retry:false,note:'',mm:window.__u17?window.__u17.mm:0};" +
+      "try{var mt=document.querySelector('#dmExt [data-dm-sec=mt]');o.mt=!!mt;if(mt){" +
+      "var q=mt.querySelector('.dm-ext-query'),t=mt.querySelector('.dm-ext-translation');" +
+      "o.orig=q?q.textContent:'';o.tr=t?t.textContent:'';o.machine=!!mt.querySelector('.dm-mt');" +
+      "o.retry=!!mt.querySelector('.dm-mt-retry');var n=mt.querySelector('.dm-ext-note');o.note=n?n.textContent:'';}" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U17 exact " + u17settled + " state=" + u17);
+    try {
+      const o = JSON.parse(JSON.parse(u17));
+      ok("U17 exact original preserved", o.mt === true && o.orig === SENT_EXACT_UI, o.orig);
+      ok("U17 exact translation survives duplicate trigger", o.tr === AR_EXACT_UI && o.machine === true,
+        o.tr || ("retry=" + o.retry + " note=" + o.note));
+      ok("U17 no misleading retry/failure", o.retry === false && o.note === "", o.note);
+      ok("U17 MT requested once (dedup)", o.mm === 1, "mm=" + o.mm);
+    } catch (e) { ok("U17 exact translation survives duplicate trigger", false, u17 + " parse-err"); }
+
+    /* U18 empty provider response: honest Arabic message + no translation
+     * node + working retry that bypasses the cached empty answer. */
+    const SENT_RETRY_UI = "Ich lerne heute Deutsch.";
+    const AR_RETRY_UI = "\u0623\u062a\u0639\u0644\u0645 \u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 \u0627\u0644\u064a\u0648\u0645.";
+    const u18arm = await E("(()=>{try{" +
+      "window.__realFetch=window.fetch.bind(window);window.__u18={mm:0};" +
+      "var AR=" + JSON.stringify(AR_RETRY_UI) + ";" +
+      "function res(s,b){return Promise.resolve({status:s,json:function(){return Promise.resolve(b);}});}" +
+      "window.__u18fetch=function(url,opts){var u=String(url);" +
+      "if(u.indexOf('api.mymemory.translated.net')>=0){window.__u18.mm++;" +
+      "var body=window.__u18.mm===1?{responseData:{translatedText:''},responseStatus:200}" +
+      ":{responseData:{translatedText:AR,match:'0.8'},responseStatus:200};" +
+      "return res(200,body);}" +
+      "if(u.indexOf('api.tatoeba.org')>=0)return res(200,{data:[]});" +
+      "if(u.indexOf('wiktionary.org')>=0)return res(200,{query:{search:[]}});" +
+      "if(u.indexOf('commons.wikimedia.org')>=0)return res(200,{query:{allimages:[]}});" +
+      "if(u.indexOf('openthesaurus.de')>=0)return res(200,{synsets:[]});" +
+      "return window.__realFetch(url,opts);};" +
+      "DMSearch.__setFetch(window.__u18fetch);DMSearch.__cacheClear();return 'armed';" +
+      "}catch(e){return 'arm-err:'+e.message}})()");
+    ok("U18 fixture armed", u18arm === '"armed"', u18arm);
+    await typeQuery(SENT_RETRY_UI);
+    await settleExt(o => o.q === SENT_RETRY_UI && o.loading === 0, 20);
+    const u18a = await E("(()=>{var o={tr:false,retry:false,note:'',orig:'',mm:window.__u18?window.__u18.mm:0};try{" +
+      "var mt=document.querySelector('#dmExt [data-dm-sec=mt]');if(mt){" +
+      "o.tr=!!mt.querySelector('.dm-ext-translation');o.retry=!!mt.querySelector('.dm-mt-retry');" +
+      "var n=mt.querySelector('.dm-ext-note');o.note=n?n.textContent:'';" +
+      "var q=mt.querySelector('.dm-ext-query');o.orig=q?q.textContent:'';}" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U18 empty " + u18a);
+    try {
+      const o = JSON.parse(JSON.parse(u18a));
+      ok("U18 empty shows no translation", o.tr === false, "translationNode=" + o.tr);
+      ok("U18 empty Arabic error + retry", o.retry === true && /[\u0600-\u06FF]/.test(o.note) && o.note.length > 0, o.note);
+      ok("U18 empty keeps complete original", o.orig === SENT_RETRY_UI, o.orig);
+    } catch (e) { ok("U18 empty Arabic error + retry", false, u18a + " parse-err"); }
+    await E("(()=>{try{var b=document.querySelector('#dmExt .dm-mt-retry');if(b)b.click();return 'clicked';}catch(e){return 'err';}})()");
+    let u18b = null;
+    for (let i = 0; i < 16; i++) {
+      await sleep(500);
+      u18b = await E("(()=>{var o={tr:'',retry:false,mm:window.__u18?window.__u18.mm:0};try{" +
+        "var mt=document.querySelector('#dmExt [data-dm-sec=mt]');if(mt){" +
+        "var t=mt.querySelector('.dm-ext-translation');o.tr=t?t.textContent:'';" +
+        "o.retry=!!mt.querySelector('.dm-mt-retry');}}catch(e){}return JSON.stringify(o);})()");
+      try { if (JSON.parse(JSON.parse(u18b)).tr) break; } catch (e) {}
+    }
+    console.log("INFO U18 retry " + u18b);
+    try {
+      const o = JSON.parse(JSON.parse(u18b));
+      ok("U18 retry shows translation", o.tr === AR_RETRY_UI && o.retry === false, o.tr || "no-tr");
+      ok("U18 retry actually refetched", o.mm === 2, "mm=" + o.mm);
+    } catch (e) { ok("U18 retry shows translation", false, u18b + " parse-err"); }
+
+    /* U19 long result panel must scroll to its lower content (wheel + touch
+     * + keys) and stay inside the viewport, including a short mobile viewport.
+     * Dismiss the first-run welcome overlay first: it is intentionally
+     * modal (z-index 99999) and would intercept real wheel input. */
+    const u19welcome = await E("(()=>{try{var w=document.getElementById('dmWelcome');" +
+      "if(!w)return 'none';var b=document.getElementById('dmStartBtn');" +
+      "if(b){b.click();return 'start-clicked';}w.click();return 'backdrop-clicked';" +
+      "}catch(e){return 'err:'+e.message;}})()");
+    await sleep(700);
+    const u19welcomeGone = await E("!document.getElementById('dmWelcome')");
+    ok("U19 onboarding overlay dismissed before interaction", u19welcomeGone === "true",
+      u19welcome + " gone=" + u19welcomeGone);
+    await cdp.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+    const SENT_LONG_UI = "Ich lerne jeden Tag Deutsch, weil ich in Deutschland arbeiten m\u00f6chte, und ich m\u00f6chte auch in \u00d6sterreich und in der Schweiz arbeiten, weil ich meine Kenntnisse verbessern und viele neue Leute kennenlernen m\u00f6chte.";
+    const AR_LONG_UI = "\u0623\u062a\u0639\u0644\u0645 \u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 \u0643\u0644 \u064a\u0648\u0645 \u0644\u0623\u0646\u0646\u064a \u0623\u0631\u064a\u062f \u0627\u0644\u0639\u0645\u0644 \u0641\u064a \u0623\u0644\u0645\u0627\u0646\u064a\u0627\u060c \u0648\u0623\u0631\u064a\u062f \u0623\u064a\u0636\u064b\u0627 \u0627\u0644\u0639\u0645\u0644 \u0641\u064a \u0627\u0644\u0646\u0645\u0633\u0627 \u0648\u0633\u0648\u064a\u0633\u0631\u0627\u060c \u0644\u0623\u0646\u0646\u064a \u0623\u0631\u064a\u062f \u062a\u062d\u0633\u064a\u0646 \u0645\u0647\u0627\u0631\u0627\u062a\u064a \u0648\u0645\u0642\u0627\u0628\u0644\u0629 \u0623\u0634\u062e\u0627\u0635 \u062c\u062f\u062f.";
+    const u19arm = await E("(()=>{try{" +
+      "window.__realFetch=window.fetch.bind(window);" +
+      "var AR=" + JSON.stringify(AR_LONG_UI) + ";" +
+      "var items=[];for(var i=1;i<=6;i++){items.push({id:8000+i,text:'Langer Beispielsatz Nummer '+i+" +
+      "' f\u00fcr die Scrollpr\u00fcfung des Ergebnisbereichs.',owner:'u'+i,license:'CC BY 2.0 FR',audios:[]," +
+      "translations:[{id:9000+i,text:AR,lang:'ara',owner:'ua'+i}]});}" +
+      "function res(s,b){return Promise.resolve({status:s,json:function(){return Promise.resolve(b);}});}" +
+      "window.__u19fetch=function(url,opts){var u=String(url);" +
+      "if(u.indexOf('api.mymemory.translated.net')>=0)return res(200,{responseData:{translatedText:AR,match:'0.9'},responseStatus:200});" +
+      "if(u.indexOf('api.tatoeba.org')>=0)return res(200,{data:items});" +
+      "if(u.indexOf('wiktionary.org')>=0)return res(200,{query:{search:[]}});" +
+      "if(u.indexOf('commons.wikimedia.org')>=0)return res(200,{query:{allimages:[]}});" +
+      "if(u.indexOf('openthesaurus.de')>=0)return res(200,{synsets:[]});" +
+      "return window.__realFetch(url,opts);};" +
+      "DMSearch.__setFetch(window.__u19fetch);DMSearch.__cacheClear();return 'armed';" +
+      "}catch(e){return 'arm-err:'+e.message}})()");
+    ok("U19 fixture armed", u19arm === '"armed"', u19arm);
+    await typeQuery(SENT_LONG_UI);
+    await settleExt(o => o.q === SENT_LONG_UI && o.loading === 0 && o.cards >= 6, 20);
+    const u19a = await E("(()=>{var o={};try{var b=document.getElementById('searchResults');var cs=getComputedStyle(b);" +
+      "var r=b.getBoundingClientRect();o.overflowY=cs.overflowY;o.overflowX=cs.overflowX;o.overscroll=cs.overscrollBehaviorY;" +
+      "o.maxH=cs.maxHeight;o.scrollH=b.scrollHeight;o.clientH=b.clientHeight;o.bottom=Math.round(r.bottom);o.vh=innerHeight;" +
+      "o.top=Math.round(r.top);o.left=Math.round(r.left);o.right=Math.round(r.right);" +
+      "o.scrollable=b.scrollHeight>b.clientHeight+2;o.before=window.scrollY;" +
+      "b.focus();b.scrollTop=0;}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U19 layout " + u19a);
+    let u19layout = null;
+    try {
+      u19layout = JSON.parse(JSON.parse(u19a));
+      const o = u19layout;
+      ok("U19 panel is scrollable", o.scrollable === true && (o.overflowY === "auto" || o.overflowY === "scroll"), u19a);
+      ok("U19 panel stays in viewport", o.bottom <= o.vh + 1 && o.top >= 0, "top=" + o.top + " bottom=" + o.bottom + " vh=" + o.vh);
+      ok("U19 scroll chaining contained", /contain/.test(o.overscroll || ""), o.overscroll);
+    } catch (e) { ok("U19 panel is scrollable", false, u19a + " parse-err"); }
+    /* Real wheel input over the panel (targeted at its actual center). */
+    const wx = u19layout ? Math.round((u19layout.left + u19layout.right) / 2) : 195;
+    const wy = u19layout ? Math.round(u19layout.top + 20) : 80;
+    await cdp.send("Input.dispatchMouseEvent", {
+      type: "mouseWheel", x: wx, y: wy, deltaX: 0, deltaY: 700,
+      modifiers: 0, pointerType: "mouse", button: "none", clickCount: 0
+    });
+    await sleep(450);
+    const u19wheel = await E("(()=>{var o={};try{var b=document.getElementById('searchResults');" +
+      "var e=document.elementFromPoint(" + wx + "," + wy + ");" +
+      "o.scrollTop=b.scrollTop;o.pageScroll=window.scrollY;" +
+      "o.hit=e?(e.id||e.className||e.tagName):'none';o.inside=!!(e&&e.closest&&e.closest('#searchResults'));" +
+      "}catch(x){o.err=String(x&&x.message);}return JSON.stringify(o);})()");
+    console.log("INFO U19 wheel " + u19wheel);
+    try {
+      const o = JSON.parse(JSON.parse(u19wheel));
+      ok("U19 wheel scrolls panel, not page", o.inside === true && o.scrollTop > 0 && o.pageScroll === 0,
+        "inside=" + o.inside + " top=" + o.scrollTop + " pageY=" + o.pageScroll + " hit=" + o.hit);
+    } catch (e) { ok("U19 wheel scrolls panel, not page", false, u19wheel + " parse-err"); }
+    /* Keyboard scroll after focusing the panel (tabindex=0), then go to the
+     * absolute bottom and prove the last section is inside the visible box. */
+    await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "PageDown", code: "PageDown", windowsVirtualKeyCode: 34, nativeVirtualKeyCode: 34 });
+    await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "PageDown", code: "PageDown", windowsVirtualKeyCode: 34, nativeVirtualKeyCode: 34 });
+    await sleep(350);
+    const u19b = await E("(()=>{var o={};try{var b=document.getElementById('searchResults');" +
+      "o.keyScroll=b.scrollTop;o.maxScroll=b.scrollHeight-b.clientHeight;" +
+      "b.scrollTop=b.scrollHeight;var r=b.getBoundingClientRect();var last=b.lastElementChild;" +
+      "o.scrollTop=b.scrollTop;o.lastBottom=last?Math.round(last.getBoundingClientRect().bottom):0;" +
+      "o.panelBottom=Math.round(r.bottom);o.pageScroll=window.scrollY;" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U19 scroll " + u19b);
+    try {
+      const o = JSON.parse(JSON.parse(u19b));
+      ok("U19 keyboard scroll works", o.keyScroll > 0, "keyScroll=" + o.keyScroll);
+      ok("U19 scroll reaches lower content", o.scrollTop > 0 && o.maxScroll > 0 &&
+        o.lastBottom <= o.panelBottom + 2, "top=" + o.scrollTop + " max=" + o.maxScroll +
+        " lastBottom=" + o.lastBottom + " panelBottom=" + o.panelBottom);
+      ok("U19 keyboard scroll does not move page", o.pageScroll === 0, "pageY=" + o.pageScroll);
+    } catch (e) { ok("U19 scroll reaches lower content", false, u19b + " parse-err"); }
+    /* Touch gesture over the panel: mobile users must scroll the results, not
+     * the page behind them. Use an inner content point (not the level <select>)
+     * because a touch on a form control can activate it instead of scrolling. */
+    const ty = u19layout ? Math.round(u19layout.top + 140) : 196;
+    await E("(()=>{try{var b=document.getElementById('searchResults');b.scrollTop=0;window.scrollTo(0,0);return 'reset';}catch(e){return 'err';}})()");
+    await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+    const tp = y => [{ x: wx, y: y, radiusX: 2, radiusY: 2, force: 1, id: 1 }];
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: tp(ty) });
+    for (let i = 1; i <= 8; i++) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: tp(ty - i * 40) });
+      await sleep(30);
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await sleep(600);
+    const u19touch = await E("(()=>{var o={};try{var b=document.getElementById('searchResults');" +
+      "var e=document.elementFromPoint(" + wx + "," + ty + ");" +
+      "o.scrollTop=b.scrollTop;o.pageScroll=window.scrollY;" +
+      "o.hit=e?(e.id||e.className||e.tagName):'none';o.inside=!!(e&&e.closest&&e.closest('#searchResults'));" +
+      "}catch(x){o.err=String(x&&x.message);}return JSON.stringify(o);})()");
+    console.log("INFO U19 touch " + u19touch);
+    try {
+      const o = JSON.parse(JSON.parse(u19touch));
+      ok("U19 touch gesture scrolls panel, not page", o.inside === true && o.scrollTop > 0 && o.pageScroll === 0,
+        "inside=" + o.inside + " top=" + o.scrollTop + " pageY=" + o.pageScroll + " hit=" + o.hit);
+    } catch (e) { ok("U19 touch gesture scrolls panel, not page", false, u19touch + " parse-err"); }
+    await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: false, maxTouchPoints: 1 });
+    /* Short viewport: max-height must shrink instead of extending off-screen. */
+    await cdp.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 480, deviceScaleFactor: 1, mobile: true });
+    await sleep(400);
+    const u19c = await E("(()=>{var o={};try{var b=document.getElementById('searchResults');var cs=getComputedStyle(b);" +
+      "var r=b.getBoundingClientRect();b.scrollTop=b.scrollHeight;var last=b.lastElementChild;" +
+      "o.bottom=Math.round(r.bottom);o.vh=innerHeight;o.maxH=cs.maxHeight;o.scrollTop=b.scrollTop;" +
+      "o.lastBottom=last?Math.round(last.getBoundingClientRect().bottom):0;o.panelBottom=Math.round(r.bottom);" +
+      "}catch(e){o.err=String(e&&e.message);}return JSON.stringify(o);})()");
+    console.log("INFO U19 short viewport " + u19c);
+    try {
+      const o = JSON.parse(JSON.parse(u19c));
+      ok("U19 short viewport keeps panel visible", o.bottom <= o.vh + 1 && o.scrollTop > 0 &&
+        o.lastBottom <= o.panelBottom + 2, "bottom=" + o.bottom + " vh=" + o.vh + " maxH=" + o.maxH);
+    } catch (e) { ok("U19 short viewport keeps panel visible", false, u19c + " parse-err"); }
+    await E("(()=>{try{if(window.DMSearch&&window.__realFetch)" +
+      "{DMSearch.__setFetch(function(u,op){return window.__realFetch(u,op);});DMSearch.__cacheClear();}" +
+      "return 'restored';}catch(e){return 'restore-err';}})()");
+
     console.log("----");
     console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
     cdp.close(); chrome.kill(); srv.close();

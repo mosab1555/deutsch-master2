@@ -917,7 +917,16 @@
         if (quota || MM_LIMIT.test(details) || MM_LIMIT.test(txt)) {
           return { status: "error", provider: "mymemory", error: "rate-limited" };
         }
-        if (!txt || MM_BAD.test(txt) || (st !== 200 && st !== "200")) {
+        /* Missing or non-200 provider status is an API failure even if a text
+         * field is present: surface it as an error (with retry), never as
+         * success. */
+        if (st === null || st === undefined) {
+          return { status: "error", provider: "mymemory", error: "bad-response" };
+        }
+        if (st !== 200 && st !== "200") {
+          return { status: "error", provider: "mymemory", error: "api-" + sstr(st) };
+        }
+        if (!txt || MM_BAD.test(txt)) {
           return { status: "empty", provider: "mymemory" };
         }
         /* A 200 response that echoes the source is not a translation. */
@@ -926,7 +935,7 @@
         }
         var match = 0;
         try { match = parseFloat(r.data.responseData && r.data.responseData.match) || 0; } catch (e) {}
-        return { status: "ok", provider: "mymemory", text: txt.slice(0, 500), match: match,
+        return { status: "ok", provider: "mymemory", text: txt, match: match,
           machine: true, from: from, to: to };
       });
     }
@@ -1128,10 +1137,20 @@
           }
           if (wantMT && !isOffline()) {
             var mmPrevOk = state.remote.mymemory && state.remote.mymemory.status === "ok";
+            /* Explicit retry of an empty/failed MT result must bypass the
+             * cached empty answer; otherwise Retry would re-render the same
+             * cached failure without contacting MyMemory again. */
+            var forceMT = !!opts.forceMT || !!(
+              mtInOnly && opts.prior && opts.prior.remote && opts.prior.remote.mymemory &&
+              opts.prior.remote.mymemory.status !== "ok");
             if (!(mmPrevOk && !mtInOnly)) {
               state.remote.mymemory = { status: "loading", provider: "mymemory" };
               try { if (typeof opts.onUpdate === "function") opts.onUpdate("mymemory", state); } catch (e) {}
-              return Promise.resolve().then(function () { return ADAPTERS.mymemory(q, sig); }).then(function (mr) {
+              return Promise.resolve().then(function () {
+                return forceMT
+                  ? mymemoryTranslate(q, "de", "ar", sig, true)
+                  : ADAPTERS.mymemory(q, sig);
+              }).then(function (mr) {
                 state.remote.mymemory = mr;
                 try { if (typeof opts.onUpdate === "function") opts.onUpdate("mymemory", state); } catch (e) {}
                 return state;
@@ -2120,12 +2139,15 @@
      * refreshes keep triggering enhancement exactly once. */
     try { installEnhance(); } catch (e) {}
     try { if (debounceT) clearTimeout(debounceT); } catch (e) {}
-    var myGen = ++gen;
+    /* Generation ownership belongs to enhance(), which increments it only
+     * when it actually starts a NEW query. Duplicate triggers for the same
+     * in-flight query (wrapper + direct input + lazy-refresh callbacks) must
+     * not invalidate that search's pending onUpdate/final callbacks. */
     if (immediate) {
-      try { enhance(myGen); } catch (e) {}
+      try { enhance(); } catch (e) {}
       return;
     }
-    debounceT = setTimeout(function () { enhance(myGen); }, 450);
+    debounceT = setTimeout(function () { enhance(); }, 450);
   }
   function viewAlive() {
     try {
@@ -2236,6 +2258,7 @@
     searchAll(q, {
       only: failed,
       prior: lastState,
+      forceMT: true,
       onUpdate: function (pid, st) {
         /* Old retry must never overwrite a newer query. */
         if (g !== gen) return;
