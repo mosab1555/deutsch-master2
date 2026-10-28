@@ -1995,7 +1995,8 @@ function markStudyDay(real){
 }
 function renderStreak(){
   $("topStreak").textContent="🔥 "+(S.streak.count||0);
-  $("sideStreak").textContent="🔥 "+(S.streak.count||0)+" "+window.t("sc_streak_u");
+  var unit=(typeof window.t==="function")?window.t("sc_streak_u"):"";
+  $("sideStreak").textContent="🔥 "+(S.streak.count||0)+(unit?" "+unit:"");
 }
 
 /* ============ NAV ============ */
@@ -2868,24 +2869,123 @@ function bumpReview(id,ok){
 }
 /* ============ FLASHCARDS ============ */
 let flashList=[],flashIdx=0;
-/* Type filter = German noun article (w.art), same convention as the
-   vocabulary article filter (filterArticle):
-   - "der"/"die"/"das" -> only words with exactly that article
-   - "-"               -> only words that genuinely take no article in the
-                          data (verbs, adjectives, countries, ...), never
-                          words with missing/broken data */
-function flashTypeMatch(w,ft){
-  if(!ft)return true;
-  return (w.art||"")===ft;
+/* Deck modes: "" (All), der/die/das, verbs, mixed.
+   #flashType remains the persisted state store (page-state.js) so existing
+   saved selections and detail-page deep links keep working; the visible
+   control is the category chip bar above the card. */
+const FLASH_MODES=["","der","die","das","verbs","mixed"];
+function flashMode(){
+  try{
+    const el=$("flashType");const v=el?String(el.value||""):"";
+    if(v==="-")return "";
+    return FLASH_MODES.indexOf(v)>=0?v:"";
+  }catch(e){return "";}
 }
-/* ONE dataset, ONE pipeline: applies all four filters cumulatively
-   (Category + Kapitel + Level + Type=article). */
-function getFilteredFlashcards(){
+function setFlashMode(mode){
+  mode=FLASH_MODES.indexOf(mode)>=0?mode:"";
+  try{const el=$("flashType");if(el&&el.value!==mode)el.value=mode;}catch(e){}
+  return mode;
+}
+/* Old saved decks used "-" for the retired "no article" filter. Normalize the
+   persisted <select> itself (not just the read path) so page-state snapshots
+   and detail-page deep links never write a stale value back. */
+function normalizeFlashModeField(){try{const el=$("flashType");if(el&&FLASH_MODES.indexOf(String(el.value||""))<0)el.value="";}catch(e){}}
+/* Verb detection is EXPLICIT only: the existing type field (Arabic, or the
+   raw English value lazy packs may carry). Never guess from an -en suffix. */
+function isFlashVerb(w){
+  if(!w)return false;
+  const t=String(w.type||"").toLowerCase();
+  if(t==="فعل"||t==="verb")return true;
+  const lt=String(w.libType||"").toLowerCase();
+  return lt==="فعل"||lt==="verb";
+}
+/* Article detection: explicit w.art first, then a leading der/die/das in the
+   German form (some legacy/library rows store the article in de with art "-").
+   Verbs are never article-bearing, and a bare word is never guessed. */
+function flashArticle(w){
+  if(!w||isFlashVerb(w))return "";
+  const art=String(w.art||"").trim().toLowerCase();
+  if(art==="der"||art==="die"||art==="das")return art;
+  const de=String(w.de||"").trim();
+  const m=de.match(/^(der|die|das)\s+/i);
+  return m?m[1].toLowerCase():"";
+}
+function flashGerman(w){
+  const de=String((w&&w.de)||"").trim();
+  if(!de)return "";
+  const art=flashArticle(w);
+  if(art&&!new RegExp("^"+art+"\\s+","i").test(de))return art+" "+de;
+  return de;
+}
+function flashBaseGerman(w){
+  let de=String((w&&w.de)||"").trim();
+  if(!isFlashVerb(w))de=de.replace(/^(der|die|das)\s+/i,"");
+  return de;
+}
+function flashModeMatch(w,mode){
+  if(!mode)return true;
+  if(mode==="mixed")return true;
+  if(mode==="verbs")return isFlashVerb(w);
+  return flashArticle(w)===mode;
+}
+function flashTypeMatch(w,ft){
+  /* Single predicate for both deck builders. Legacy "-" (the old
+     "no article" filter) normalizes to All so saved state keeps working. */
+  return flashModeMatch(w,ft==="-"? "":ft);
+}
+function flashAdvancedMatch(w,c,k,lv){
+  return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&(!lv||(w.level||"A1")===lv);
+}
+/* Pool after the secondary filters (Category + Kapitel + Level). Mode chips
+   count this pool, so their numbers always match what the card can show. */
+function flashPool(){
   const c=$("flashCategory")?$("flashCategory").value:"";
   const k=$("flashKapitel")?$("flashKapitel").value:"";
-  const ft=$("flashType")?$("flashType").value:"";
   const lv=$("flashLevel")?$("flashLevel").value:"";
-  return dmWords().filter(w=>(!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&flashTypeMatch(w,ft)&&(!lv||(w.level||"A1")===lv));
+  return dmWords().filter(w=>flashAdvancedMatch(w,c,k,lv));
+}
+function getFilteredFlashcards(){
+  const mode=flashMode();
+  return flashPool().filter(w=>flashModeMatch(w,mode));
+}
+function flashCounts(pool){
+  const base=pool||flashPool();
+  const counts={"":base.length,der:0,die:0,das:0,verbs:0,mixed:base.length};
+  base.forEach(function(w){
+    const a=flashArticle(w);if(a)counts[a]++;
+    if(isFlashVerb(w))counts.verbs++;
+  });
+  return counts;
+}
+function updateFlashModeUI(counts){
+  try{
+    const c=counts||flashCounts();
+    const mode=flashMode();
+    document.querySelectorAll("[data-flash-count]").forEach(function(el){
+      const key=el.getAttribute("data-flash-count")||"";
+      el.textContent=String(c[key]!==undefined?c[key]:0);
+    });
+    document.querySelectorAll("[data-flash-mode]").forEach(function(el){
+      const on=(el.getAttribute("data-flash-mode")||"")===mode;
+      el.classList.toggle("active",on);
+      el.setAttribute("aria-selected",on?"true":"false");
+    });
+    const total=$("flashDeckTotal");if(total)total.textContent=String(c[""]);
+  }catch(e){}
+}
+function wireFlashModeChips(){
+  try{
+    const box=$("flashModeChips");
+    if(box&&!box._dmFlashWired){
+      box._dmFlashWired=true;
+      box.addEventListener("click",function(e){
+        const btn=e.target&&e.target.closest?e.target.closest("[data-flash-mode]"):null;
+        if(!btn)return;
+        setFlashMode(btn.getAttribute("data-flash-mode")||"");
+        buildFlash();
+      });
+    }
+  }catch(e){}
 }
 /* If a level dataset (e.g. A2) is not loaded yet, load it on demand and
    rebuild the deck when it arrives. Returns true when a load started. */
@@ -2900,62 +3000,75 @@ function flashEnsureLevel(){
   return false;
 }
 function buildFlash(){
+  normalizeFlashModeField();
   try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   if(flashEnsureLevel())return;
-  flashList=shuffle(getFilteredFlashcards());
+  const pool=flashPool();
+  const mode=flashMode();
+  const filtered=pool.filter(w=>flashModeMatch(w,mode));
+  /* All / article / verb decks keep bank order; Mixed is the only deck that
+     shuffles on build. No data or SRS progress is touched by either path. */
+  flashList=(mode==="mixed")?shuffle(filtered):filtered.slice();
   try{refreshFlashList._seen=null;refreshFlashList._key=null;}catch(e){}
-  flashIdx=0;renderFlash();
+  flashIdx=0;renderFlash();updateFlashModeUI(flashCounts(pool));
 }
 /* Keep the flashcard deck in sync when vocabulary grows or shrinks (custom
    words, studio import/delete, lazy A2/B1/B2 merge) WITHOUT disturbing the
    session: matching new words are appended (shuffled), removed words are
    dropped, and the current card position is preserved when possible. */
 function refreshFlashList(){
+  normalizeFlashModeField();
   try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   try{
     if(!flashList)flashList=[];
-    /* Perf 104k bank: the 4 filter inputs were read from the DOM on EVERY
-       word (~424k getElementById per refresh - top profiler sample). Hoisted
-       once per call; predicate is byte-identical. */
+    /* Perf 104k bank: filter inputs are hoisted once per call, never read
+       inside the per-word predicate. */
     const fc=$("flashCategory")?$("flashCategory").value:"";
     const fk=$("flashKapitel")?$("flashKapitel").value:"";
-    const ft=$("flashType")?$("flashType").value:"";
     const fl=$("flashLevel")?$("flashLevel").value:"";
-    const pass=function(w){return (!fc||w.cat===fc)&&(!fk||(w.kap||"KX")===fk)&&flashTypeMatch(w,ft)&&(!fl||(w.level||"A1")===fl);};
-    const bank=dmWords();
+    const mode=flashMode();
+    const bank=flashPool();
+    const pass=function(w){return flashModeMatch(w,mode);};
     let customKey="";try{customKey=(S.customWords||[]).map(w=>w.id).join(",");}catch(e){}
-    const key=fc+"|"+fk+"|"+ft+"|"+fl+"#"+VOCAB.length+"#"+customKey;
+    const sig=fc+"|"+fk+"|"+fl+"|"+mode;
+    const key=sig+"#"+VOCAB.length+"#"+customKey;
     const cur=flashList.length?flashList[flashIdx%flashList.length]:null;
     const curId=cur&&cur.id;
     /* Incremental fast path: library merges only ever append to VOCAB and
        custom-word edits are fingerprinted in the key, so when the key is
        unchanged nothing changed at all (just re-render). When only VOCAB
-       grew, only unseen words are filtered+shuffled (O(new) shuffle instead
-       of O(bank)). Deck order of existing cards stays stable, matching the
-       documented append intent; any filter change, bank shrink, or custom
-       edit takes the full path, byte-identical to before. */
-    if(refreshFlashList._key===key){renderFlash();return;}
-    const seen=refreshFlashList._seen;
-    if(seen&&refreshFlashList._sig===fc+"|"+fk+"|"+ft+"|"+fl&&refreshFlashList._ckey===customKey&&VOCAB.length>=(refreshFlashList._vlen||0)){
-      const fresh=shuffle(bank.filter(w=>!seen[w.id]&&pass(w)));
-      fresh.forEach(w=>{seen[w.id]=1;});
-      if(fresh.length)flashList=flashList.concat(fresh);
-      refreshFlashList._key=key;refreshFlashList._vlen=VOCAB.length;
-      if(curId){const ix=flashList.findIndex(w=>w.id===curId);flashIdx=ix>=0?ix:0;}
-      else if(flashIdx>=flashList.length)flashIdx=0;
-      renderFlash();return;
+       grew, only unseen words are filtered (and shuffled for Mixed) - O(new)
+       instead of O(bank). Deck order of existing cards stays stable. */
+    if(refreshFlashList._key===key){renderFlash();updateFlashModeUI(flashCounts(bank));return;}
+    const sigChanged=refreshFlashList._sig!==undefined&&refreshFlashList._sig!==sig;
+    if(sigChanged){
+      flashList=bank.filter(pass);
+      if(mode==="mixed")flashList=shuffle(flashList);
+    }else{
+      const seen=refreshFlashList._seen;
+      if(seen&&refreshFlashList._ckey===customKey&&VOCAB.length>=(refreshFlashList._vlen||0)){
+        let fresh=bank.filter(w=>!seen[w.id]&&pass(w));
+        if(mode==="mixed")fresh=shuffle(fresh);
+        fresh.forEach(w=>{seen[w.id]=1;});
+        if(fresh.length)flashList=flashList.concat(fresh);
+        refreshFlashList._key=key;refreshFlashList._vlen=VOCAB.length;
+        if(curId){const ix=flashList.findIndex(w=>w.id===curId);flashIdx=ix>=0?ix:0;}
+        else if(flashIdx>=flashList.length)flashIdx=0;
+        renderFlash();updateFlashModeUI(flashCounts(bank));return;
+      }
+      const live={};bank.forEach(w=>{live[w.id]=1;});
+      const s2={};flashList.forEach(w=>{s2[w.id]=1;});
+      let fresh=bank.filter(w=>!s2[w.id]&&pass(w));
+      if(mode==="mixed")fresh=shuffle(fresh);
+      let list=flashList.filter(w=>live[w.id]&&pass(w));
+      if(fresh.length)list=list.concat(fresh);
+      flashList=list;
     }
-    const live={};bank.forEach(w=>{live[w.id]=1;});
-    const s2={};flashList.forEach(w=>{s2[w.id]=1;});
-    const fresh=shuffle(bank.filter(w=>!s2[w.id]&&pass(w)));
-    let list=flashList.filter(w=>live[w.id]&&pass(w));
-    if(fresh.length)list=list.concat(fresh);
-    flashList=list;
     refreshFlashList._seen={};flashList.forEach(w=>{refreshFlashList._seen[w.id]=1;});
-    refreshFlashList._sig=fc+"|"+fk+"|"+ft+"|"+fl;refreshFlashList._vlen=VOCAB.length;refreshFlashList._ckey=customKey;refreshFlashList._key=key;
+    refreshFlashList._sig=sig;refreshFlashList._vlen=VOCAB.length;refreshFlashList._ckey=customKey;refreshFlashList._key=key;
     if(curId){const ix=flashList.findIndex(w=>w.id===curId);flashIdx=ix>=0?ix:0;}
     else if(flashIdx>=flashList.length)flashIdx=0;
-    renderFlash();
+    renderFlash();updateFlashModeUI(flashCounts(bank));
   }catch(e){}
 }
 /* Flashcard direction: 'de-ar' (German front, default) or 'ar-de' (Arabic front).
@@ -2964,6 +3077,9 @@ function refreshFlashList(){
 function flashDir(){try{if(S&&S.flashDir==="ar-de")return "ar-de";}catch(e){}return "de-ar";}
 function updateFlashDirBtn(){try{var b=$("flashDir");if(!b)return;var d=flashDir();var k=d==="ar-de"?"flash_dir_ar_de":"flash_dir_de_ar";var label=(typeof t==="function")?t(k):null;b.textContent=label||(d==="ar-de"?"🔄 عربي → ألماني":"🔄 ألماني → عربي");}catch(e){}}
 function toggleFlashDir(){try{if(typeof ensureStudy==="function")ensureStudy();S.flashDir=flashDir()==="ar-de"?"de-ar":"ar-de";try{save();}catch(e){}}catch(e){}updateFlashDirBtn();renderFlash();}
+function flashLabel(key,fallback){
+  try{return (typeof t==="function")?t(key):fallback;}catch(e){return fallback;}
+}
 function renderFlash(){
   /* Zero-results: never show a broken/empty card — show the empty state. */
   if(!flashList.length){
@@ -2979,95 +3095,112 @@ function renderFlash(){
   try{$("flashcard").style.display="";}catch(e){}
   try{const fc=document.querySelector("#page-flashcards .flash-controls");if(fc)fc.style.display="";}catch(e){}
   const w=flashList[flashIdx%flashList.length];
+  if(!w)return;
   $("flashcard").classList.remove("flipped");
   updateFlashDirBtn();
-  setTimeout(()=>{
-    const frontDe=(flashDir()!=="ar-de");
-    const deWord=(w.art!=="-"?w.art+" ":"")+w.de;
-    /* --- front face: German block or Arabic block --- */
-    if(frontDe){
-      $("flashArticle").style.display="";
-      $("flashArticle").textContent=w.art==="-"?"A1":w.art;
-      $("flashArticle").className="flash-article article "+(w.art==="-"?"none":w.art);
+  const frontDe=(flashDir()!=="ar-de");
+  const deWord=flashGerman(w);
+  const art=flashArticle(w);
+  const verb=isFlashVerb(w);
+  const level=w.level||"A1";
+  const frontTag=$("flashFrontTag"),backTag=$("flashBackTag");
+  if(frontTag)frontTag.textContent=frontDe?"DE":"AR";
+  if(backTag)backTag.textContent=frontDe?"AR":"DE";
+  const frontLabel=$("flashFrontLabel"),backLabel=$("flashBackLabel");
+  if(frontLabel)frontLabel.textContent=frontDe?flashLabel("flash_face_de","الألمانية"):flashLabel("flash_face_ar","العربية");
+  if(backLabel)backLabel.textContent=frontDe?flashLabel("flash_face_ar","العربية"):flashLabel("flash_face_de","الألمانية");
+  /* --- front face: German block or Arabic block --- */
+  if(frontDe){
+    $("flashArticle").style.display="";
+    $("flashArticle").textContent=verb?flashLabel("flash_verb_badge","فعل"):(art?art.toUpperCase():level);
+    $("flashArticle").className="flash-article article "+(verb?"verb":(art||"none"));
+    /* The article is shown once, as the colored badge. Keep the full phrase in
+       #flashWord (textContent contract + audio/duplicate logic) but visually
+       hide the redundant leading article span. */
+    if(art&&deWord.toLowerCase().indexOf(art+" ")===0){
+      $("flashWord").innerHTML='<span class="flash-word-art" aria-hidden="true">'+escapeHtml(deWord.slice(0,art.length))+'</span> '+escapeHtml(deWord.slice(art.length+1));
+    }else{
       $("flashWord").textContent=deWord;
-      $("flashWord").setAttribute("dir","ltr");
-      $("flashPlural").textContent=pluralFull(w);
-      $("flashPlural").style.display="";
-      $("flashExFront").textContent=w.ex||"";
-      $("flashExFront").setAttribute("dir","ltr");
-      $("flashExFront").style.display=w.ex?"":"none";
-      $("flashSaySFront").style.display=w.ex?"":"none";
-    }else{
-      $("flashArticle").style.display="none";
-      $("flashWord").textContent=w.ar;
-      $("flashWord").setAttribute("dir","auto");
-      $("flashPlural").textContent="";
-      $("flashPlural").style.display="none";
-      $("flashExFront").textContent=w.exAr||"";
-      $("flashExFront").setAttribute("dir","auto");
-      $("flashExFront").style.display=w.exAr?"":"none";
-      $("flashSaySFront").style.display=w.exAr?"":"none";
     }
-    /* --- back face: always the other language --- */
-    if(frontDe){
-      $("flashAr").textContent=wordMeaning(w);
-      $("flashAr").setAttribute("dir","auto");
-      $("flashPron").textContent=t("sc_pron")+w.pron;
-      $("flashEx").innerHTML=escapeHtml(wordExMeaning(w)||"");
-      $("flashEx").setAttribute("dir","auto");
-      $("flashEx").style.display=w.exAr?"":"none";
-      $("flashSaySBack").style.display=w.exAr?"":"none";
-    }else{
-      $("flashAr").textContent=deWord;
-      $("flashAr").setAttribute("dir","ltr");
-      $("flashPron").textContent=t("sc_pron")+w.pron;
-      $("flashEx").innerHTML=escapeHtml(w.ex||"");
-      $("flashEx").setAttribute("dir","ltr");
-      $("flashEx").style.display=w.ex?"":"none";
-      $("flashSaySBack").style.display=w.ex?"":"none";
-    }
-    $("flashcard").dataset.wid=w.id;
-    $("flashCounter").textContent=(flashIdx%flashList.length+1)+" / "+flashList.length;
-    $("flashBar").style.width=((flashIdx%flashList.length+1)/flashList.length*100)+"%";
+    $("flashWord").setAttribute("dir","ltr");
+    $("flashPlural").textContent=pluralFull(w);
+    $("flashPlural").style.display="";
+    $("flashExFront").textContent=w.ex||"";
+    $("flashExFront").setAttribute("dir","ltr");
+    $("flashExFront").style.display=w.ex?"":"none";
+    $("flashSaySFront").style.display=w.ex?"":"none";
+  }else{
+    $("flashArticle").style.display="none";
+    $("flashWord").textContent=wordMeaning(w)||w.ar||"";
+    $("flashWord").setAttribute("dir","auto");
+    $("flashPlural").textContent="";
+    $("flashPlural").style.display="none";
+    $("flashExFront").textContent=w.exAr||"";
+    $("flashExFront").setAttribute("dir","auto");
+    $("flashExFront").style.display=w.exAr?"":"none";
+    $("flashSaySFront").style.display=w.exAr?"":"none";
+  }
+  /* --- back face: always the other language --- */
+  if(frontDe){
+    $("flashAr").textContent=wordMeaning(w);
+    $("flashAr").setAttribute("dir","auto");
+    $("flashPron").textContent=flashLabel("sc_pron","النطق: ")+(w.pron||"");
+    $("flashEx").innerHTML=escapeHtml(wordExMeaning(w)||"");
+    $("flashEx").setAttribute("dir","auto");
+    $("flashEx").style.display=w.exAr?"":"none";
+    $("flashSaySBack").style.display=w.exAr?"":"none";
+  }else{
+    $("flashAr").textContent=deWord;
+    $("flashAr").setAttribute("dir","ltr");
+    $("flashPron").textContent=flashLabel("sc_pron","النطق: ")+(w.pron||"");
+    $("flashEx").innerHTML=escapeHtml(w.ex||"");
+    $("flashEx").setAttribute("dir","ltr");
+    $("flashEx").style.display=w.ex?"":"none";
+    $("flashSaySBack").style.display=w.ex?"":"none";
+  }
+  $("flashcard").dataset.wid=w.id;
+  $("flashCounter").textContent=(flashIdx%flashList.length+1)+" / "+flashList.length;
+  $("flashBar").style.width=((flashIdx%flashList.length+1)/flashList.length*100)+"%";
 
-    // Populate content connections
-    const connBox=$("flashConnButtons");
-    if(connBox){
-      const relatedSentences=SENTENCES.filter(s=>s.de.includes(w.de)).slice(0,2);
-      const relatedGrammar=GRAMMAR.filter(g=>g.body.includes(w.de) || (g.ex&&g.ex.some(e=>e[0].includes(w.de)))).slice(0,1);
-      const isMistake=S.mistakes&&S.mistakes[w.id];
-      const isDue=dueWords().some(dw=>dw.id===w.id);
+  // Populate content connections
+  const connBox=$("flashConnButtons");
+  if(connBox){
+    const sentences=(typeof SENTENCES!=="undefined"&&SENTENCES)||[];
+    const grammar=(typeof GRAMMAR!=="undefined"&&GRAMMAR)||[];
+    const relatedSentences=sentences.filter(s=>s.de&&s.de.includes(w.de)).slice(0,2);
+    const relatedGrammar=grammar.filter(g=>g.body&&g.body.includes(w.de) || (g.ex&&g.ex.some(e=>e[0].includes(w.de)))).slice(0,1);
+    const isMistake=S.mistakes&&S.mistakes[w.id];
+    const isDue=(typeof dueWords==="function")?dueWords().some(dw=>dw.id===w.id):false;
 
-      let connHtml='';
-      if(relatedSentences.length)connHtml+='<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' '+t("sc_u_sent")+'</button>';
-      if(relatedGrammar.length)connHtml+='<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' '+t("sc_u_rule")+'</button>';
-      if(w.type==="اسم")connHtml+='<button class="btn btn-ghost sm" data-goto="vocab" data-search="'+escapeHtml(w.de)+'">📚 '+t("sc_u_word")+'</button>';
-      if(isMistake)connHtml+='<button class="btn btn-red sm" data-goto="mistakes">❌ '+t("sc_u_err")+' ('+isMistake.n+'x)</button>';
-      if(isDue)connHtml+='<button class="btn btn-green sm" data-goto="review">🧠 '+t("sc_u_due")+'</button>';
-      connHtml+='<button class="btn btn-primary sm" data-goto="practice">'+t("sc_practice")+'</button>';
+    let connHtml='';
+    if(relatedSentences.length)connHtml+='<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' '+flashLabel("sc_u_sent","جملة")+'</button>';
+    if(relatedGrammar.length)connHtml+='<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' '+flashLabel("sc_u_rule","قاعدة")+'</button>';
+    if(isNounType(w.type)||art)connHtml+='<button class="btn btn-ghost sm" data-goto="vocab" data-search="'+escapeHtml(w.de)+'">📚 '+flashLabel("sc_u_word","كلمة")+'</button>';
+    if(isMistake)connHtml+='<button class="btn btn-red sm" data-goto="mistakes">❌ '+flashLabel("sc_u_err","خطأ")+' ('+isMistake.n+'x)</button>';
+    if(isDue)connHtml+='<button class="btn btn-green sm" data-goto="review">🧠 '+flashLabel("sc_u_due","مستحقة")+'</button>';
+    connHtml+='<button class="btn btn-primary sm" data-goto="practice">'+flashLabel("sc_practice","🎯 تدريب")+'</button>';
 
-      connBox.innerHTML=connHtml;
-      connBox.querySelectorAll("[data-goto]").forEach(btn=>{
-        btn.addEventListener("click",()=>{
-          const page=btn.getAttribute("data-goto");
-          const search=btn.getAttribute("data-search");
-          showPage(page);
-          if(search){
-            setTimeout(()=>{
-              if(page==="sentences"){$("sentenceSearch").value=search;renderSentences();}
-              else if(page==="grammar"){renderGrammar();}
-              else if(page==="vocab"){$("vocabSearch").value=search;renderVocab();}
-            },100);
-          }
-        });
+    connBox.innerHTML=connHtml;
+    connBox.querySelectorAll("[data-goto]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const page=btn.getAttribute("data-goto");
+        const search=btn.getAttribute("data-search");
+        showPage(page);
+        if(search){
+          setTimeout(()=>{
+            if(page==="sentences"){$("sentenceSearch").value=search;renderSentences();}
+            else if(page==="grammar"){renderGrammar();}
+            else if(page==="vocab"){$("vocabSearch").value=search;renderVocab();}
+          },100);
+        }
       });
-      const connEl=$("flashConnections");
-      if(connEl){
-        connEl.style.display=connHtml?"flex":"none";
-        connEl.classList.toggle("hidden",!connHtml);
-      }
+    });
+    const connEl=$("flashConnections");
+    if(connEl){
+      connEl.style.display=connHtml?"flex":"none";
+      connEl.classList.toggle("hidden",!connHtml);
     }
-  },150);
+  }
 }
 /* Face language: front shows German unless direction is ar-de (and vice versa). */
 function flashFaceLang(face){try{const frontDe=(flashDir()!=="ar-de");return ((face==="front")===frontDe)?"de":"ar";}catch(e){return "de";}}
@@ -3078,7 +3211,7 @@ function flashSayFace(face,kind){
     const id=$("flashcard").dataset.wid;const w=id?wordById(id):null;if(!w)return false;
     const lang=flashFaceLang(face);
     let text="";
-    if(lang==="de")text=(kind==="word")?((w.art&&w.art!=="-"?w.art+" ":"")+w.de):(w.ex||"");
+    if(lang==="de")text=(kind==="word")?flashGerman(w):(w.ex||"");
     else text=(kind==="word")?wordMeaning(w):wordExMeaning(w);
     if(!text)return false;
     if(lang==="de")speak(text);else speakAr(text);
@@ -3117,10 +3250,32 @@ $("flashPlural").addEventListener("click",e=>{e.stopPropagation();pulseFlashSayB
 $("flashPlural").style.cursor="pointer";$("flashPlural").title=__t("sc_hear_plural","اضغط لسماع الجمع 🔊");
 $("flashNext").addEventListener("click",()=>{if(!flashList.length)return;flashIdx++;renderFlash();});
 $("flashPrev").addEventListener("click",()=>{if(!flashList.length)return;flashIdx=(flashIdx-1+flashList.length)%flashList.length;renderFlash();});
-$("flashShuffle").addEventListener("click",()=>{buildFlash();toast(window.t("sc_shuffled"),"ok");});
+/* Shuffle is an explicit, session-only action: it reorders the CURRENT deck
+   and resets to the first card. It never touches VOCAB, custom words, SRS
+   progress, or the saved mode. Mixed decks also shuffle when rebuilt. */
+$("flashShuffle").addEventListener("click",()=>{
+  if(!flashList.length){toast(window.t("flash_no_results"),"err");return;}
+  flashList=shuffle(flashList);flashIdx=0;renderFlash();
+  toast(window.t("sc_shuffled"),"ok");
+});
 $("flashDir").addEventListener("click",e=>{e.stopPropagation();toggleFlashDir();});
+/* Keyboard: Space/Enter flips, arrows move through the deck. Only when the
+   card itself is focused — never hijack Space/Enter on the audio buttons. */
+$("flashcard").addEventListener("keydown",e=>{
+  if(e.target!==e.currentTarget)return;
+  if(e.key===" "||e.key==="Spacebar"||e.key==="Enter"){
+    e.preventDefault();$("flashcard").classList.toggle("flipped");
+  }else if(e.key==="ArrowRight"&&flashList.length){
+    e.preventDefault();flashIdx++;renderFlash();
+  }else if(e.key==="ArrowLeft"&&flashList.length){
+    e.preventDefault();flashIdx=(flashIdx-1+flashList.length)%flashList.length;renderFlash();
+  }
+});
 ["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.addEventListener("change",buildFlash);});
-function resetFlashFilters(){["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.value="";});buildFlash();}
+function resetFlashFilters(){
+  ["flashCategory","flashKapitel","flashLevel"].forEach(function(id){const el=$(id);if(el)el.value="";});
+  setFlashMode("");buildFlash();
+}
 try{const fr=$("flashReset");if(fr)fr.addEventListener("click",resetFlashFilters);}catch(e){}
 try{const fre=$("flashResetEmpty");if(fre)fre.addEventListener("click",resetFlashFilters);}catch(e){}
 document.querySelectorAll("[data-flash-rate]").forEach(b=>b.addEventListener("click",()=>{
@@ -4404,22 +4559,107 @@ try{
 }catch(e){ try{ $("globalSearch").addEventListener("input",()=>{try{clearTimeout(gsTimer);}catch(e2){}gsTimer=setTimeout(runGlobalSearch,120);}); }catch(_){} }
 
 /* ============ ADD WORD ============ */
-$("openAddWord").addEventListener("click",()=>$("wordModal").classList.remove("hidden"));
+let _addWordBusy=false;
+function setAddWordStatus(kind,msg){
+  const el=$("addWordStatus");if(!el)return;
+  const text=msg||"";
+  el.textContent=text;
+  el.className="add-word-status"+(text?" "+(kind||"info"):" hidden");
+}
+/* Duplicate identity uses the normalized base form + article/verb kind.
+   Missing articles (legacy rows with art "-" and a bare word) still match a
+   classified entry, while genuine homographs with different articles stay
+   distinct. A word is never classified from spelling alone. */
+function findAddWordDuplicate(w){
+  try{
+    const base=dmNorm(flashBaseGerman(w));
+    if(!base)return null;
+    const verb=isFlashVerb(w);
+    const art=flashArticle(w);
+    return allWords().find(function(x){
+      if(dmNorm(flashBaseGerman(x))!==base)return false;
+      if(isFlashVerb(x)!==verb)return false;
+      const xa=flashArticle(x);
+      return !art||!xa||art===xa;
+    })||null;
+  }catch(e){return null;}
+}
+$("openAddWord").addEventListener("click",()=>{
+  setAddWordStatus("","");
+  $("wordModal").classList.remove("hidden");
+  try{const de=$("nwDe");if(de)de.focus();}catch(e){}
+});
 $("closeModal").addEventListener("click",()=>$("wordModal").classList.add("hidden"));
 $("wordModal").addEventListener("click",e=>{if(e.target===$("wordModal"))$("wordModal").classList.add("hidden");});
 $("addWordBtn").addEventListener("click",()=>{
-  const de=$("nwDe").value.trim(),ar=$("nwAr").value.trim();
-  if(!de||!ar){toast(window.t("sc_add_need"),"err");return;}
+  if(_addWordBusy)return;
+  const btn=$("addWordBtn");
+  let de=($("nwDe").value||"").trim();
+  const ar=($("nwAr").value||"").trim();
+  if(!de||!ar){
+    setAddWordStatus("err",window.t("sc_add_need"));
+    toast(window.t("sc_add_need"),"err");
+    return;
+  }
+  const type=$("nwType").value||"اسم";
+  const verb=(type==="فعل"||String(type).toLowerCase()==="verb");
+  let art=$("nwArt").value||"-";
+  /* A typed article is explicit input: trust it, strip it from the stored
+     word, and sync the selector so the next word keeps a useful choice. */
+  const typed=de.match(/^(der|die|das)\s+/i);
+  if(typed){
+    art=typed[1].toLowerCase();
+    de=de.replace(/^(der|die|das)\s+/i,"").trim();
+    try{$("nwArt").value=art;}catch(e){}
+  }
+  if(verb)art="-";
+  const candidate={de:de,art:art,type:type};
+  const dup=findAddWordDuplicate(candidate);
+  if(dup){
+    const msg=window.t("sc_add_dup")+flashGerman(dup)+" ⚠️";
+    setAddWordStatus("err",msg);toast(msg,"err");return;
+  }
+  const w={id:"c"+Date.now()+(S.customWords?S.customWords.length:0),de:de,art:art,ar:ar,pron:$("nwPron").value||de,ex:$("nwEx").value||de+".",exAr:$("nwExAr").value||ar,cat:$("nwCat").value||"Food",type:type,level:$("nwLevel").value||"A1"};
+  w.kap="KX";
+  if(!Array.isArray(S.customWords))S.customWords=[];
+  const prevLen=S.customWords.length;
+  _addWordBusy=true;
+  if(btn){btn.disabled=true;btn.setAttribute("aria-busy","true");}
+  setAddWordStatus("pending",window.t("add_word_saving"));
+  let ok=false;
   try{
-    const dup=allWords().find(w=>dmNorm(w.de)===dmNorm(de));
-    if(dup){toast(window.t("sc_add_dup")+dup.de+" ⚠️","err");return;}
-  }catch(e){}
-  const w={id:"c"+Date.now(),de:de,art:$("nwArt").value,ar:ar,pron:$("nwPron").value||de,ex:$("nwEx").value||de+".",exAr:$("nwExAr").value||ar,cat:$("nwCat").value||"Food",type:$("nwType").value||"اسم",level:$("nwLevel").value||"A1"};
-  w.kap="KX";S.customWords.push(w);save();
+    S.customWords.push(w);
+    ok=saveFlushed();
+  }catch(e){ok=false;}
+  if(!ok){
+    /* Confirmed failure: roll the in-memory list back and keep every input. */
+    try{S.customWords.length=prevLen;}catch(e){}
+    _addWordBusy=false;
+    if(btn){btn.disabled=false;btn.removeAttribute("aria-busy");}
+    const msg=window.t("add_word_fail");
+    setAddWordStatus("err",msg);toast(msg,"err");
+    return;
+  }
+  /* Save is confirmed: only now clear word-specific fields. Category, level,
+     type, and the article selector stay selected for the next word. */
+  _addWordBusy=false;
+  if(btn){btn.disabled=false;btn.removeAttribute("aria-busy");}
   try{if(window.DMDataRev){window.DMDataRev.vocab++;window.DMDataRev.sentences++;}}catch(e){}
-  $("wordModal").classList.add("hidden");
-  ["nwDe","nwAr","nwPron","nwEx","nwExAr"].forEach(id=>$(id).value="");
-  renderAll();refreshFlashList();markStudyDay();toast(window.t("sc_added"),"ok");
+  ["nwDe","nwAr","nwPron","nwEx","nwExAr"].forEach(id=>{const el=$(id);if(el)el.value="";});
+  setAddWordStatus("ok",window.t("add_word_saved_next"));
+  try{markStudyDay();}catch(e){}
+  try{renderAll();}catch(e){}
+  try{refreshFlashList();}catch(e){try{buildFlash();}catch(e2){}}
+  try{fillKapitels();}catch(e){}
+  toast(window.t("sc_added"),"ok");
+  try{const d=$("nwDe");if(d)d.focus();}catch(e){}
+});
+["nwDe","nwAr"].forEach(function(id){
+  const el=$(id);
+  if(el&&!el._dmAddWordWired){
+    el._dmAddWordWired=true;
+    el.addEventListener("input",function(){if(!_addWordBusy)setAddWordStatus("","");});
+  }
 });
 
 /* ============ SETTINGS DATA ============ */
@@ -4464,6 +4704,10 @@ function openWordDetail(id){
   const relatedGrammar=GRAMMAR.filter(g=>g.body.includes(w.de) || (g.ex&&g.ex.some(e=>e[0].includes(w.de)))).slice(0,2);
   const isMistake=S.mistakes&&S.mistakes[w.id];
   const isDue=dueWords().some(dw=>dw.id===w.id);
+  /* Deck deep link follows the same classification as the cards: explicit
+     verb type first, then a reliable article. Uncertain words stay in All. */
+  const flashFilter=isFlashVerb(w)?"verbs":(flashArticle(w)||"");
+  const showFlashLink=isFlashVerb(w)||!!flashArticle(w)||isNounType(w.type);
 
   const connectionsHtml=`
     <div class="detail-connections glass" style="margin-top:12px;padding:12px;border-radius:12px">
@@ -4471,7 +4715,7 @@ function openWordDetail(id){
       <div class="row-flex" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
         ${relatedSentences.length?'<button class="btn btn-ghost sm" data-goto="sentences" data-search="'+escapeHtml(w.de)+'">💬 '+relatedSentences.length+' '+window.t("sc_u_sent")+'</button>':''}
         ${relatedGrammar.length?'<button class="btn btn-ghost sm" data-goto="grammar" data-search="'+escapeHtml(w.de)+'">📐 '+relatedGrammar.length+' '+window.t("sc_u_rule")+'</button>':''}
-        ${w.type==="اسم"?'<button class="btn btn-ghost sm" data-goto="flashcards" data-filter-type="'+(w.art||'')+'">'+window.t("sc_conn_flash")+'</button>':''}
+        ${showFlashLink?'<button class="btn btn-ghost sm" data-goto="flashcards" data-filter-type="'+flashFilter+'">'+window.t("sc_conn_flash")+'</button>':''}
         ${isMistake?'<button class="btn btn-red sm" data-goto="mistakes">'+window.t("sc_conn_mist")+' ('+isMistake.n+'x)</button>':''}
         ${isDue?'<button class="btn btn-green sm" data-goto="review">'+window.t("sc_conn_due")+'</button>':''}
         <button class="btn btn-ghost sm" data-goto="practice">🎯 ${window.t("practice")}</button>
@@ -4510,9 +4754,10 @@ function openWordDetail(id){
             else if(page==="grammar"){$("grammarKapitel").value="";renderGrammar();}
           },100);
         }
-        if(filterType){
+        if(page==="flashcards"){
           setTimeout(()=>{
-            if(page==="flashcards"){$("flashType").value=filterType;buildFlash();}
+            setFlashMode(filterType||"");
+            buildFlash();
           },100);
         }
         $("detailModal").classList.add("hidden");
@@ -4545,7 +4790,11 @@ try{populateGermanVoiceSelect();}catch(e){}
 /* Deferred to DOMContentLoaded (not setTimeout: timers can fire mid-parse,
    before later scripts like study.js define t/uilang/wordMeaning). Same
    idempotent renders in the same order, zero behavior change. */
-function dmBootRenders(){try{renderAll();}catch(e){console.error(e);}try{buildFlash();}catch(e){console.error(e);}}
+function dmBootRenders(){
+  try{wireFlashModeChips();}catch(e){console.error(e);}
+  try{renderAll();}catch(e){console.error(e);}
+  try{buildFlash();}catch(e){console.error(e);}
+}
 if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){dmBootRenders();},{once:true});}
 else{dmBootRenders();}
 typingLoop();

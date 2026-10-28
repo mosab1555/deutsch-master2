@@ -396,12 +396,39 @@
 
       <!-- FLASHCARDS -->
       <section class="page" id="page-flashcards">
-        <div class="page-head"><h2 data-i18n="title_flash">🃏 Flashcards</h2>
+        <div class="flash-hero">
+          <div class="flash-hero-copy">
+            <span class="flash-kicker" data-i18n="flash_kicker">مدرّب المفردات</span>
+            <h2 data-i18n="title_flash">🃏 Flashcards</h2>
+            <p data-i18n="flash_hero_sub">راجع مفرداتك بسرعة — اختر مجموعة البطاقات، ثم اقلب البطاقة لتثبيت الكلمة.</p>
+          </div>
+          <div class="flash-hero-stat" aria-hidden="true"><strong id="flashDeckTotal">0</strong><span data-i18n="flash_deck_total">بطاقة في المجموعة</span></div>
+        </div>
+        <div class="flash-filterbar">
+          <div class="flash-mode-head">
+            <span class="flash-mode-label" id="flashModeLabel" data-i18n="flash_mode_label">اختر مجموعة البطاقات</span>
+            <span class="flash-mode-note" data-i18n="flash_mode_note">الأعداد تتحدّث فورًا مع الفلاتر</span>
+          </div>
+          <div class="flash-mode-chips" id="flashModeChips" role="tablist" aria-labelledby="flashModeLabel">
+            <button type="button" class="flash-chip active" data-flash-mode="" role="tab" aria-selected="true"><span class="flash-chip-name" data-i18n="flash_mode_all">الكل / All</span><b class="flash-chip-count" data-flash-count="">0</b></button>
+            <button type="button" class="flash-chip" data-flash-mode="der" role="tab" aria-selected="false"><span class="flash-chip-name">der</span><b class="flash-chip-count" data-flash-count="der">0</b></button>
+            <button type="button" class="flash-chip" data-flash-mode="die" role="tab" aria-selected="false"><span class="flash-chip-name">die</span><b class="flash-chip-count" data-flash-count="die">0</b></button>
+            <button type="button" class="flash-chip" data-flash-mode="das" role="tab" aria-selected="false"><span class="flash-chip-name">das</span><b class="flash-chip-count" data-flash-count="das">0</b></button>
+            <button type="button" class="flash-chip" data-flash-mode="verbs" role="tab" aria-selected="false"><span class="flash-chip-name" data-i18n="flash_mode_verbs">الأفعال / Verbs</span><b class="flash-chip-count" data-flash-count="verbs">0</b></button>
+            <button type="button" class="flash-chip" data-flash-mode="mixed" role="tab" aria-selected="false"><span class="flash-chip-name" data-i18n="flash_mode_mixed">مختلط / Mixed</span><b class="flash-chip-count" data-flash-count="mixed">0</b></button>
+          </div>
+          <select id="flashType" class="flash-mode-store" tabindex="-1" aria-hidden="true">
+            <option value="" data-i18n="flash_mode_all">الكل / All</option>
+            <option value="der">der</option>
+            <option value="die">die</option>
+            <option value="das">das</option>
+            <option value="verbs" data-i18n="flash_mode_verbs">الأفعال / Verbs</option>
+            <option value="mixed" data-i18n="flash_mode_mixed">مختلط / Mixed</option>
+          </select>
           <div class="flash-filters">
             <label class="flash-filter"><span data-i18n="flash_cat">التصنيف</span><select id="flashCategory"><option value="" data-i18n="f_allcats">كل التصنيفات</option></select></label>
             <label class="flash-filter"><span data-i18n="flash_kap">الفصل</span><select id="flashKapitel"><option value="" data-i18n="f_allkap">كل الكبيتلات</option></select></label>
             <label class="flash-filter"><span data-i18n="flash_level">المستوى</span><select id="flashLevel"><option value="" data-i18n="f_alllevels">كل المستويات</option><option value="A1">A1</option><option value="A2">A2</option></select></label>
-            <label class="flash-filter"><span data-i18n="flash_type">النوع</span><select id="flashType"><option value="" data-i18n="flash_type_all">الكل</option><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="-" data-i18n="f_noart">بدون أداة</option></select></label>
           </div>
           <div class="row-flex flash-actions">
             <button class="btn btn-ghost sm" id="flashShuffle" data-i18n="flash_shuffle">🔀 خلط</button>
@@ -410,15 +437,45 @@
           </div>
         </div>
         <div class="flash-wrap">
-          <div class="flash-progress"><span id="flashCounter">1 / 1</span><div class="progress"><div class="progress-fill" id="flashBar"></div></div></div>
-          <div class="flash-empty hidden" id="flashEmpty"><div data-i18n="flash_no_results">لا توجد بطاقات مطابقة للفلاتر المحددة.</div><button class="btn btn-ghost sm" id="flashResetEmpty" data-i18n="flash_reset">↺ إعادة تعيين الفلاتر</button></div>
-          <div class="flashcard" id="flashcard">
+          <div class="flash-progress">
+            <div class="flash-progress-top"><span class="flash-progress-label" data-i18n="flash_progress_label">التقدّم</span><span id="flashCounter">1 / 1</span></div>
+            <div class="progress"><div class="progress-fill" id="flashBar"></div></div>
+          </div>
+          <div class="flash-empty hidden" id="flashEmpty">
+            <div class="flash-empty-ico" aria-hidden="true">🃏</div>
+            <strong data-i18n="flash_empty_title">لا توجد بطاقات هنا بعد</strong>
+            <div data-i18n="flash_no_results">لا توجد بطاقات مطابقة للفلاتر المحددة.</div>
+            <button class="btn btn-ghost sm" id="flashResetEmpty" data-i18n="flash_reset">↺ إعادة تعيين الفلاتر</button>
+          </div>
+          <div class="flashcard" id="flashcard" role="button" tabindex="0" data-i18n-aria="flash_card_aria" aria-label="بطاقة مفردات — اضغط للقلب">
             <div class="flash-inner" id="flashInner">
-              <div class="flash-face flash-front"><div class="flash-article" id="flashArticle">der</div><div class="flash-word" id="flashWord">Tisch</div><div><button class="btn btn-ghost sm" id="flashSayWFront" data-say-word data-i18n="flash_say_word">🔊 الكلمة</button></div><div class="flash-plural" id="flashPlural"></div><div class="flash-ex" id="flashExFront" dir="auto"></div><div><button class="btn btn-ghost sm" id="flashSaySFront" data-say-sent data-i18n="flash_say_sent">🔊 الجملة</button></div><div class="flash-hint" data-i18n="flash_hint">اضغط للقلب 🔄</div></div>
-              <div class="flash-face flash-back"><div class="flash-ar" id="flashAr">الطاولة</div><div><button class="btn btn-ghost sm" id="flashSayWBack" data-say-word data-i18n="flash_say_word">🔊 الكلمة</button></div><div class="flash-pron" id="flashPron">دير تيش</div><div class="flash-ex" id="flashEx"></div><div><button class="btn btn-ghost sm" id="flashSaySBack" data-say-sent data-i18n="flash_say_sent">🔊 الجملة</button></div></div>
+              <div class="flash-face flash-front">
+                <span class="flash-face-tag" id="flashFrontTag">DE</span>
+                <span class="flash-face-label" id="flashFrontLabel" data-i18n="flash_face_de">الألمانية</span>
+                <div class="flash-word-row"><div class="flash-article" id="flashArticle">DER</div><div class="flash-word" id="flashWord">der Tisch</div></div>
+                <div class="flash-plural" id="flashPlural">die Tische</div>
+                <div class="flash-ex" id="flashExFront" dir="auto"></div>
+                <div class="flash-sayrow">
+                  <button class="btn btn-ghost sm" id="flashSayWFront" data-say-word data-i18n="flash_say_word">🔊 الكلمة</button>
+                  <button class="btn btn-ghost sm" id="flashSaySFront" data-say-sent data-i18n="flash_say_sent">🔊 الجملة</button>
+                </div>
+                <div class="flash-hint" data-i18n="flash_hint">اضغط للقلب 🔄</div>
+              </div>
+              <div class="flash-face flash-back">
+                <span class="flash-face-tag" id="flashBackTag">AR</span>
+                <span class="flash-face-label" id="flashBackLabel" data-i18n="flash_face_ar">العربية</span>
+                <div class="flash-ar" id="flashAr">الطاولة</div>
+                <div class="flash-pron" id="flashPron">النطق: دير تيش</div>
+                <div class="flash-ex" id="flashEx"></div>
+                <div class="flash-sayrow">
+                  <button class="btn btn-ghost sm" id="flashSayWBack" data-say-word data-i18n="flash_say_word">🔊 الكلمة</button>
+                  <button class="btn btn-ghost sm" id="flashSaySBack" data-say-sent data-i18n="flash_say_sent">🔊 الجملة</button>
+                </div>
+                <div class="flash-hint" data-i18n="flash_hint">اضغط للقلب 🔄</div>
+              </div>
             </div>
           </div>
-<div class="flash-controls">
+          <div class="flash-controls">
             <button class="btn btn-ghost" id="flashPrev" data-i18n="flash_prev">⏮ السابق</button>
             <button class="btn btn-green" data-flash-rate="known" data-i18n="rate_easy">😊 سهل</button>
             <button class="btn btn-gold" data-flash-rate="review" data-i18n="rate_mid">😐 متوسط</button>
@@ -960,20 +1017,28 @@
 
 <!-- Add Word Modal -->
 <div class="modal-overlay hidden" id="wordModal">
-  <div class="modal glass">
-    <h3 data-i18n="modal_add">➕ إضافة كلمة جديدة</h3>
-    <div class="form-grid">
-      <label><span data-i18n="f_de">الكلمة بالألمانية (بدون أداة)</span><input id="nwDe" placeholder="Haus"></label>
-      <label><span data-i18n="f_art">الأداة</span><select id="nwArt"><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="-" data-i18n="f_noart2">بدون أداة (فعل/صفة)</option></select></label>
-      <label><span data-i18n="f_ar">الترجمة بالعربية</span><input id="nwAr" placeholder="بيت"></label>
-      <label><span data-i18n="f_pron">النطق بالعربي</span><input id="nwPron" placeholder="هاوس"></label>
-      <label><span data-i18n="f_ex">مثال بالألمانية</span><input id="nwEx" placeholder="Das Haus ist groß."></label>
-      <label><span data-i18n="f_exar">ترجمة المثال</span><input id="nwExAr" placeholder="البيت كبير."></label>
-      <label><span data-i18n="f_cat">التصنيف</span><select id="nwCat"></select></label>
-      <label><span data-i18n="f_type">النوع</span><select id="nwType"><option value="اسم" data-i18n="t_noun">اسم</option><option value="فعل" data-i18n="t_verb">فعل</option><option value="صفة" data-i18n="t_adj">صفة</option><option value="ضمير" data-i18n="t_pron">ضمير</option><option value="أداة" data-i18n="t_part">أداة</option><option value="مفردات" data-i18n="t_vocabw">مفردات</option></select></label>
-      <label><span data-i18n="f_level">المستوى</span><select id="nwLevel"><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select></label>
+  <div class="modal glass add-word-modal">
+    <div class="add-word-head">
+      <div>
+        <h3 data-i18n="modal_add">➕ إضافة كلمة جديدة</h3>
+        <p class="add-word-sub" data-i18n="add_word_sub">أضف كلماتك الخاصة — تبقى الشاشة مفتوحة لإضافة المزيد.</p>
+      </div>
+      <span class="add-word-badge" data-i18n="add_word_badge">كلماتي</span>
     </div>
-    <div class="row-flex"><button class="btn btn-primary" id="addWordBtn" data-i18n="modal_addbtn">Add Word ✅</button><button class="btn btn-ghost" id="closeModal" data-i18n="modal_cancel">إلغاء</button></div>
+    <div class="add-word-status hidden" id="addWordStatus" role="status" aria-live="polite"></div>
+    <div class="form-grid add-word-grid">
+      <label class="add-word-field add-word-de"><span data-i18n="f_de">الكلمة بالألمانية</span><input id="nwDe" placeholder="Haus" autocomplete="off" dir="ltr"></label>
+      <label class="add-word-field"><span data-i18n="f_art">الأداة</span><select id="nwArt"><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="-" data-i18n="f_noart2">بدون أداة (فعل/صفة)</option></select></label>
+      <label class="add-word-field"><span data-i18n="f_type">النوع</span><select id="nwType"><option value="اسم" data-i18n="t_noun">اسم</option><option value="فعل" data-i18n="t_verb">فعل</option><option value="صفة" data-i18n="t_adj">صفة</option><option value="ضمير" data-i18n="t_pron">ضمير</option><option value="أداة" data-i18n="t_part">أداة</option><option value="مفردات" data-i18n="t_vocabw">مفردات</option></select></label>
+      <label class="add-word-field"><span data-i18n="f_ar">الترجمة بالعربية</span><input id="nwAr" placeholder="بيت" autocomplete="off" dir="rtl"></label>
+      <label class="add-word-field"><span data-i18n="f_pron">النطق بالعربي</span><input id="nwPron" placeholder="هاوس" autocomplete="off"></label>
+      <label class="add-word-field"><span data-i18n="f_cat">التصنيف</span><select id="nwCat"></select></label>
+      <label class="add-word-field"><span data-i18n="f_ex">مثال بالألمانية</span><input id="nwEx" placeholder="Das Haus ist groß." autocomplete="off" dir="ltr"></label>
+      <label class="add-word-field"><span data-i18n="f_exar">ترجمة المثال</span><input id="nwExAr" placeholder="البيت كبير." autocomplete="off" dir="rtl"></label>
+      <label class="add-word-field"><span data-i18n="f_level">المستوى</span><select id="nwLevel"><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select></label>
+    </div>
+    <div class="add-word-tip" data-i18n="add_word_tip">💡 اختر الأداة أو النوع «فعل» — وسيتم تصنيف البطاقة تلقائيًا.</div>
+    <div class="row-flex add-word-actions"><button class="btn btn-primary" id="addWordBtn" data-i18n="modal_addbtn">Add Word ✅</button><button class="btn btn-ghost" id="closeModal" data-i18n="modal_cancel">إلغاء</button></div>
   </div>
 </div>
 
