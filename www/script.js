@@ -2364,7 +2364,10 @@ function fillKapitels(){
     const n=k.id==="KX"?kx:(counts[k.id]||0);
     return '<option value="'+k.id+'">'+kapName(k.id)+" ("+n+")</option>";
   }).join("");
-  ["filterKapitel","flashKapitel","sentenceKapitel","verbKapitel","grammarKapitel","explainKapitel"].forEach(function(id){const el=$(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="">'+__t("f_allkap","كل الكبيتلات")+'</option>'+opts;el.value=cur;});
+  ["filterKapitel","sentenceKapitel","verbKapitel","grammarKapitel","explainKapitel"].forEach(function(id){const el=$(id);if(!el)return;const cur=el.value;el.innerHTML='<option value="">'+__t("f_allkap","كل الكيبات")+'</option>'+opts;el.value=cur;});
+  /* The flashcard deck has its own eligible pool (image-sourced rows only),
+     so it must never inherit the full-bank counts above. */
+  try{fillFlashKapitels();}catch(e){console.error(e);}
 }
 function filteredVocab(){
   const raw=($("vocabSearch").value||"");
@@ -2939,26 +2942,112 @@ function flashTypeMatch(w,ft){
 function flashAdvancedMatch(w,c,k,lv){
   return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&(!lv||(w.level||"A1")===lv);
 }
-/* Pool after the secondary filters (Category + Kapitel + Level). Mode chips
-   count this pool, so their numbers always match what the card can show.
-   Default deck: ONLY the explicitly image-sourced bank (RAW_K0..RAW_K5).
+/* Default deck: ONLY the explicitly image-sourced bank (RAW_K0..RAW_K5).
    Generated/curriculum/library rows and S.customWords never enter it. The
    Kapitel filter "KX" is an explicit, separate deck for the user's own added
    words, so they stay practiceable without being mixed into the image deck. */
+const FLASH_CHAPTERS=["K0","K1","K2","K3","K4","K5"];
+const FLASH_CHAPTER_KEY="dm_flash_chapter_v1";
+function flashImageBase(){
+  const seen={};
+  return dmWords().filter(function(w){
+    if(!w||w.flashSource!=="image"||!w.id||seen[w.id])return false;
+    seen[w.id]=1;return true;
+  });
+}
+function flashCustomBase(){
+  const seen={};
+  return (Array.isArray(S.customWords)?S.customWords:[]).filter(function(w){
+    if(!w||!w.id||seen[w.id])return false;
+    seen[w.id]=1;return true;
+  });
+}
+function flashChapterValid(k){
+  if(!k)return true;
+  if(k==="KX")return flashCustomBase().length>0;
+  if(FLASH_CHAPTERS.indexOf(k)<0)return false;
+  /* A chapter that no longer has eligible image rows must not keep hiding
+     the rest of the deck after a source update. */
+  return flashImageBase().some(function(w){return w.kap===k;});
+}
+function flashReadSavedChapter(){
+  try{return String(localStorage.getItem(FLASH_CHAPTER_KEY)||"");}catch(e){return "";}
+}
+function flashSaveChapter(k){
+  try{
+    if(k&&flashChapterValid(k))localStorage.setItem(FLASH_CHAPTER_KEY,k);
+    else localStorage.removeItem(FLASH_CHAPTER_KEY);
+  }catch(e){}
+}
+function flashChapterValue(){
+  const el=$("flashKapitel");
+  let k=el?String(el.value||""):"";
+  /* A stale K6+/retired/non-image value must never keep hiding the deck. */
+  if(!flashChapterValid(k)){
+    k="";
+    try{if(el)el.value="";}catch(e){}
+  }
+  return k;
+}
+function flashAllChaptersLabel(){
+  try{
+    const lang=(typeof uilang==="function")?uilang():"ar";
+    if(lang==="en")return "All chapters";
+    if(lang==="de")return "Alle Kapitel";
+  }catch(e){}
+  return "كل الكيبات";
+}
+/* Rebuild only the flashcard chapter select from the same pool that feeds the
+   deck. Counts follow the active category/level/article mode so every option
+   matches the cards it would open; chapter itself is intentionally excluded
+   from the per-option count (otherwise only the selected chapter would count). */
+function flashChapterCounts(){
+  const c=$("flashCategory")?$("flashCategory").value:"";
+  const lv=$("flashLevel")?$("flashLevel").value:"";
+  const mode=flashMode();
+  const pass=function(w){
+    return (!c||w.cat===c)&&(!lv||(w.level||"A1")===lv)&&flashModeMatch(w,mode);
+  };
+  const counts={};
+  flashImageBase().forEach(function(w){
+    if(!pass(w))return;
+    const k=w.kap||"";
+    if(FLASH_CHAPTERS.indexOf(k)>=0)counts[k]=(counts[k]||0)+1;
+  });
+  counts.KX=flashCustomBase().filter(pass).length;
+  return counts;
+}
+function fillFlashKapitels(){
+  const el=$("flashKapitel");if(!el)return;
+  const first=!el._dmFlashChapterReady;
+  let cur=String(el.value||"");
+  if(!flashChapterValid(cur))cur="";
+  /* Restore an intentional choice after reload; no saved choice => All, even
+     if the browser itself tried to restore a stale <select> value. */
+  if(first){
+    const saved=flashReadSavedChapter();
+    cur=flashChapterValid(saved)?saved:"";
+  }
+  try{el._dmFlashChapterReady=true;}catch(e){}
+  const counts=flashChapterCounts();
+  let html='<option value="">'+flashAllChaptersLabel()+'</option>';
+  FLASH_CHAPTERS.forEach(function(k){
+    html+='<option value="'+k+'">'+kapName(k)+" ("+(counts[k]||0)+")</option>";
+  });
+  if(flashCustomBase().length){
+    html+='<option value="KX">'+kapName("KX")+" ("+(counts.KX||0)+")</option>";
+  }
+  el.innerHTML=html;
+  el.value=cur;
+  flashSaveChapter(cur);
+}
+/* Pool after the secondary filters (Category + Kapitel + Level). Mode chips
+   count this pool, so their numbers always match what the card can show. */
 function flashPool(){
   const c=$("flashCategory")?$("flashCategory").value:"";
-  const k=$("flashKapitel")?$("flashKapitel").value:"";
+  const k=flashChapterValue();
   const lv=$("flashLevel")?$("flashLevel").value:"";
-  let base;
-  if(k==="KX"){
-    const seen={};
-    base=(Array.isArray(S.customWords)?S.customWords:[]).filter(function(w){
-      if(!w||!w.id||seen[w.id])return false;
-      seen[w.id]=1;return true;
-    });
-  }else{
-    base=dmWords().filter(function(w){return !!(w&&w.flashSource==="image");});
-  }
+  const base=(k==="KX")?flashCustomBase():flashImageBase();
   return base.filter(function(w){return flashAdvancedMatch(w,c,k,lv);});
 }
 function getFilteredFlashcards(){
@@ -3010,7 +3099,7 @@ function flashEnsureLevel(){
   try{
     /* KX is the separate user-words deck: it never needs the generated
        A2/B1/B2 curriculum packs, so don't load them for it. */
-    const k=$("flashKapitel")?$("flashKapitel").value:"";
+    const k=flashChapterValue();
     if(k==="KX")return false;
     const lv=$("flashLevel")?$("flashLevel").value:"";
     if(lv&&lv!=="A1"&&typeof Curriculum!=="undefined"&&Curriculum&&Curriculum.loaded&&!Curriculum.loaded[lv]&&Curriculum.ensure){
@@ -3022,6 +3111,8 @@ function flashEnsureLevel(){
 }
 function buildFlash(){
   normalizeFlashModeField();
+  try{fillFlashKapitels();}catch(e){}
+  try{flashSaveChapter(flashChapterValue());}catch(e){}
   try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   if(flashEnsureLevel())return;
   const pool=flashPool();
@@ -3039,13 +3130,15 @@ function buildFlash(){
    dropped, and the current card position is preserved when possible. */
 function refreshFlashList(){
   normalizeFlashModeField();
+  try{fillFlashKapitels();}catch(e){}
+  try{flashSaveChapter(flashChapterValue());}catch(e){}
   try{if(typeof backfillWordEn==="function")backfillWordEn();}catch(e){}
   try{
     if(!flashList)flashList=[];
     /* Perf 104k bank: filter inputs are hoisted once per call, never read
        inside the per-word predicate. */
     const fc=$("flashCategory")?$("flashCategory").value:"";
-    const fk=$("flashKapitel")?$("flashKapitel").value:"";
+    const fk=flashChapterValue();
     const fl=$("flashLevel")?$("flashLevel").value:"";
     const mode=flashMode();
     const bank=flashPool();
@@ -3295,7 +3388,7 @@ $("flashcard").addEventListener("keydown",e=>{
 ["flashCategory","flashKapitel","flashType","flashLevel"].forEach(function(id){const el=$(id);if(el)el.addEventListener("change",buildFlash);});
 function resetFlashFilters(){
   ["flashCategory","flashKapitel","flashLevel"].forEach(function(id){const el=$(id);if(el)el.value="";});
-  setFlashMode("");buildFlash();
+  setFlashMode("");flashSaveChapter("");buildFlash();
 }
 try{const fr=$("flashReset");if(fr)fr.addEventListener("click",resetFlashFilters);}catch(e){}
 try{const fre=$("flashResetEmpty");if(fre)fre.addEventListener("click",resetFlashFilters);}catch(e){}

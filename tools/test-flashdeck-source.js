@@ -198,6 +198,89 @@ try {
   check("Mixed/refresh did not mutate saved data", JSON.stringify(json("S")) === JSON.stringify(beforeS));
 } catch (e) { check("Mixed/refresh", false, e.message); }
 
+/* ---------- F. Chapter options use the image-only deck, not the full bank ---------- */
+function flashChapterOptions() {
+  const html = $("flashKapitel")._html || "";
+  const out = [];
+  const re = /<option value="([^"]*)">([^<]*)<\/option>/g;
+  let m;
+  while ((m = re.exec(html))) {
+    const count = /\((\d+)\)\s*$/.exec(m[2]);
+    out.push({ value: m[1], text: m[2], count: count ? Number(count[1]) : null });
+  }
+  return out;
+}
+try {
+  act(`
+    document.getElementById("flashCategory").value="";
+    document.getElementById("flashLevel").value="";
+    document.getElementById("flashType").value="";
+    document.getElementById("flashKapitel").value="";
+    KAPITEL.push({id:"K6",name:"Generated",icon:""});
+    VOCAB.push({id:"lv999996",de:"generiert6",art:"der",ar:"مولّد",pron:"",type:"اسم",cat:"Home",ex:"",exAr:"",kap:"K6",level:"A2"});
+    buildFlash();
+  `);
+  const opts = flashChapterOptions();
+  check("chapter option 1 is All chapters", opts[0] && opts[0].value === "" && /كل الكيبات/.test(opts[0].text), JSON.stringify(opts[0]));
+  const byChapter = {};
+  opts.slice(1).forEach(o => { byChapter[o.value] = o.count; });
+  check("chapter options list only K0..K5 plus the separate KX deck",
+    JSON.stringify(Object.keys(byChapter)) === JSON.stringify(["K0", "K1", "K2", "K3", "K4", "K5", "KX"]),
+    JSON.stringify(Object.keys(byChapter)));
+  check("generated K6/KX chapters never appear", !byChapter.K6, JSON.stringify(byChapter));
+  const expectedChapters = json("(function(){var c={};VOCAB.forEach(function(w){if(w.flashSource==='image'){c[w.kap]=(c[w.kap]||0)+1;}});return c;})()");
+  check("chapter counts match eligible image rows, not the general bank",
+    ["K0", "K1", "K2", "K3", "K4", "K5"].every(k => byChapter[k] === expectedChapters[k]),
+    JSON.stringify({ shown: byChapter, expected: expectedChapters }));
+  check("K2 option shows 211 image words (not 534 general words)", byChapter.K2 === 211, String(byChapter.K2));
+  check("KX option counts only the user's saved word", byChapter.KX === 1, String(byChapter.KX));
+
+  act(`document.getElementById("flashKapitel").value="K2"; buildFlash();`);
+  check("selecting K2 yields exactly its 211 image words", json("flashList.length") === 211, String(json("flashList.length")));
+  check("K2 deck count and All chip agree", json("flashCounts()")[""] === 211 && $("flashDeckTotal").textContent === "211", $("flashDeckTotal").textContent);
+  check("intentional K2 choice is remembered for a reload", store.dm_flash_chapter_v1 === "K2", store.dm_flash_chapter_v1);
+
+  act(`document.getElementById("flashKapitel").value=""; buildFlash();`);
+  check("returning to All chapters restores all 845 words", json("flashList.length") === 845, String(json("flashList.length")));
+  check("All chapters clears the remembered choice", !store.dm_flash_chapter_v1);
+
+  act(`document.getElementById("flashKapitel").value="K2"; buildFlash(); resetFlashFilters();`);
+  check("reset filters returns to All chapters and 845 words",
+    json("flashList.length") === 845 &&
+    act(`document.getElementById("flashKapitel").value`) === "" &&
+    act(`document.getElementById("flashType").value`) === "",
+    json("flashList.length") + "/" + act(`document.getElementById("flashKapitel").value`));
+  check("reset filters clears the remembered chapter", !store.dm_flash_chapter_v1);
+
+  act(`document.getElementById("flashKapitel").value="K6"; buildFlash();`);
+  check("stale K6 selection falls back to All chapters",
+    act(`document.getElementById("flashKapitel").value`) === "" && json("flashList.length") === 845,
+    act(`document.getElementById("flashKapitel").value`) + "/" + json("flashList.length"));
+
+  store.dm_flash_chapter_v1 = "K6";
+  act(`document.getElementById("flashKapitel")._dmFlashChapterReady=false; document.getElementById("flashKapitel").value="K2"; fillFlashKapitels();`);
+  check("stale saved chapter cannot hide the deck on reload",
+    act(`document.getElementById("flashKapitel").value`) === "" && !store.dm_flash_chapter_v1,
+    act(`document.getElementById("flashKapitel").value`));
+
+  store.dm_flash_chapter_v1 = "K2";
+  act(`document.getElementById("flashKapitel")._dmFlashChapterReady=false; document.getElementById("flashKapitel").value=""; fillFlashKapitels(); buildFlash();`);
+  check("valid saved K2 choice survives a reload",
+    act(`document.getElementById("flashKapitel").value`) === "K2" && json("flashList.length") === 211,
+    act(`document.getElementById("flashKapitel").value`) + "/" + json("flashList.length"));
+
+  act(`document.getElementById("flashKapitel").value=""; document.getElementById("flashCategory").value="Home"; buildFlash();`);
+  const homeCounts = json("flashChapterCounts()");
+  const homeOpts = flashChapterOptions();
+  const homeByChapter = {};
+  homeOpts.slice(1).forEach(o => { homeByChapter[o.value] = o.count; });
+  check("chapter counts follow the active category filter with image-only rows",
+    ["K0", "K1", "K2", "K3", "K4", "K5"].every(k => homeByChapter[k] === homeCounts[k]) &&
+    homeByChapter.K2 === json("VOCAB.filter(function(w){return w.flashSource==='image'&&w.cat==='Home'&&w.kap==='K2';}).length"),
+    JSON.stringify({ shown: homeByChapter, expected: homeCounts }));
+  act(`document.getElementById("flashCategory").value=""; document.getElementById("flashKapitel").value=""; buildFlash();`);
+} catch (e) { check("chapter options / All reset", false, (e && e.message) + " @ " + ((e && e.stack || "").split("\n")[1] || "")); }
+
 console.log("----");
 console.log("TOTAL pass=" + pass + " fail=" + fail + (fail ? " RESULT: FAIL" : " RESULT: PASS"));
 process.exit(fail ? 1 : 0);
