@@ -144,8 +144,8 @@ try {
     Object.assign(S, defaultState());
     VOCAB.length = 0;
     VOCAB.push(
-      {id:"w1",de:"Tisch",art:"der",ar:"الطاولة",pron:"تيش",type:"اسم",cat:"Home",ex:"Der Tisch ist neu.",exAr:"الطاولة جديدة.",kap:"K5",level:"A1",plural:"die Tische",img:""},
-      {id:"w2",de:"gehen",art:"-",ar:"يذهب",pron:"جيهِن",type:"فعل",cat:"Common Verbs",ex:"Wir gehen.",exAr:"نحن نذهب.",kap:"K1",level:"A1",plural:"",img:""}
+      {id:"w1",de:"Tisch",art:"der",ar:"الطاولة",pron:"تيش",type:"اسم",cat:"Home",ex:"Der Tisch ist neu.",exAr:"الطاولة جديدة.",kap:"K5",level:"A1",plural:"die Tische",img:"",flashSource:"image"},
+      {id:"w2",de:"gehen",art:"-",ar:"يذهب",pron:"جيهِن",type:"فعل",cat:"Common Verbs",ex:"Wir gehen.",exAr:"نحن نذهب.",kap:"K1",level:"A1",plural:"",img:"",flashSource:"image"}
     );
     if (typeof ensureStudy === "function") ensureStudy();
   `, ctx);

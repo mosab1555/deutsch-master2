@@ -1165,7 +1165,10 @@ function buildVocab(){
       const key=r[0]+"|"+r[1];
       if(seen[key])return;seen[key]=1;n++;
       const auto=autoExample(r[0],r[1],r[4],r[5],r[2],n);
-      out.push({id:"k"+kap.toLowerCase()+"w"+n,de:r[0],art:r[1],ar:r[2],pron:r[3],type:r[4],cat:r[5],ex:r[6]||auto[0],exAr:r[7]||auto[1],kap:kap,level:"A1",plural:PLURAL[r[0]+"|"+r[1]]||"",img:WORD_IMG[r[0]+"|"+r[1]]||""});
+      /* RAW_K0..RAW_K5 is the explicit image-sourced bank (see the data
+         comment above). flashSource is the deck-scoping marker: generated,
+         curriculum, library and user-added rows never receive it. */
+      out.push({id:"k"+kap.toLowerCase()+"w"+n,de:r[0],art:r[1],ar:r[2],pron:r[3],type:r[4],cat:r[5],ex:r[6]||auto[0],exAr:r[7]||auto[1],kap:kap,level:"A1",plural:PLURAL[r[0]+"|"+r[1]]||"",img:WORD_IMG[r[0]+"|"+r[1]]||"",flashSource:"image"});
     });
   });
   return out;
@@ -2937,12 +2940,26 @@ function flashAdvancedMatch(w,c,k,lv){
   return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&(!lv||(w.level||"A1")===lv);
 }
 /* Pool after the secondary filters (Category + Kapitel + Level). Mode chips
-   count this pool, so their numbers always match what the card can show. */
+   count this pool, so their numbers always match what the card can show.
+   Default deck: ONLY the explicitly image-sourced bank (RAW_K0..RAW_K5).
+   Generated/curriculum/library rows and S.customWords never enter it. The
+   Kapitel filter "KX" is an explicit, separate deck for the user's own added
+   words, so they stay practiceable without being mixed into the image deck. */
 function flashPool(){
   const c=$("flashCategory")?$("flashCategory").value:"";
   const k=$("flashKapitel")?$("flashKapitel").value:"";
   const lv=$("flashLevel")?$("flashLevel").value:"";
-  return dmWords().filter(w=>flashAdvancedMatch(w,c,k,lv));
+  let base;
+  if(k==="KX"){
+    const seen={};
+    base=(Array.isArray(S.customWords)?S.customWords:[]).filter(function(w){
+      if(!w||!w.id||seen[w.id])return false;
+      seen[w.id]=1;return true;
+    });
+  }else{
+    base=dmWords().filter(function(w){return !!(w&&w.flashSource==="image");});
+  }
+  return base.filter(function(w){return flashAdvancedMatch(w,c,k,lv);});
 }
 function getFilteredFlashcards(){
   const mode=flashMode();
@@ -2991,6 +3008,10 @@ function wireFlashModeChips(){
    rebuild the deck when it arrives. Returns true when a load started. */
 function flashEnsureLevel(){
   try{
+    /* KX is the separate user-words deck: it never needs the generated
+       A2/B1/B2 curriculum packs, so don't load them for it. */
+    const k=$("flashKapitel")?$("flashKapitel").value:"";
+    if(k==="KX")return false;
     const lv=$("flashLevel")?$("flashLevel").value:"";
     if(lv&&lv!=="A1"&&typeof Curriculum!=="undefined"&&Curriculum&&Curriculum.loaded&&!Curriculum.loaded[lv]&&Curriculum.ensure){
       Curriculum.ensure(lv,function(){try{if(document.querySelector("#page-flashcards.active"))buildFlash();}catch(e){}});

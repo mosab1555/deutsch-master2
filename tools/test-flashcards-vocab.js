@@ -156,6 +156,9 @@ try {
       {id:"w7",de:"Wasser",art:"-",ar:"ماء",pron:"فاسر",type:"اسم",cat:"Food",ex:"Wasser ist wichtig.",exAr:"الماء مهم.",kap:"K4",level:"A1",plural:""},
       {id:"w8",de:"schnell",art:"-",ar:"سريع",pron:"شنيل",type:"صفة",cat:"Adjectives",ex:"Er ist schnell.",exAr:"هو سريع.",kap:"K1",level:"A1",plural:""}
     );
+    /* These fixtures stand in for the image bank; the deck now deliberately
+       excludes rows without this explicit source marker. */
+    VOCAB.forEach(function(w){ w.flashSource="image"; });
     document.getElementById("flashCategory").value="";
     document.getElementById("flashKapitel").value="";
     document.getElementById("flashLevel").value="";
@@ -205,6 +208,19 @@ try {
 
   act(`document.getElementById("flashType").value="-"; buildFlash();`);
   check("legacy '-' normalizes to All", act(`document.getElementById("flashType").value`) === "" && json("flashList.length") === 8);
+
+  /* Regression: unrelated/generated rows and user-added rows are not silently
+     mixed into the image deck. They stay in the full bank (and S.customWords). */
+  act(`
+    VOCAB.push({id:"lv999999",de:"generiert",art:"der",ar:"مولّد",pron:"",type:"اسم",cat:"Home",ex:"",exAr:"",kap:"K1",level:"A1"});
+    S.customWords=[{id:"c999999",de:"MeinWort",art:"das",ar:"كلمتي",pron:"",type:"اسم",cat:"Home",ex:"",exAr:"",kap:"KX",level:"A1"}];
+    document.getElementById("flashType").value=""; buildFlash();
+  `);
+  check("default deck excludes generated vocabulary", json("flashList.every(function(w){return w.id!=='lv999999';})"));
+  check("default deck excludes user-added words", json("flashList.every(function(w){return w.id!=='c999999';})"));
+  check("default deck stays at the 8 image fixtures", json("flashList.length") === 8 && json("flashCounts()")[""] === 8);
+  check("generated/user rows remain in the full bank", json("VOCAB.some(function(w){return w.id==='lv999999';}) && S.customWords.some(function(w){return w.id==='c999999';})"));
+  act(`VOCAB.pop(); S.customWords=[]; buildFlash();`);
 
   act(`document.getElementById("flashType").value=""; buildFlash();`);
   chips["die"]._listeners.click = [];
@@ -257,24 +273,30 @@ try {
   setFields({ nwDe: "rennen", nwAr: "يركض", nwArt: "der", nwType: "فعل", nwCat: "Common Verbs", nwLevel: "A1" });
   $("addWordBtn")._listeners.click[0]({});
   check("verb marking saves art '-'", json("S.customWords[2].art") === "-" && json("S.customWords[2].type") === "فعل");
-  check("verb count updates after save", json("flashCounts().verbs") === 3, json("flashCounts().verbs"));
-  check("chip count text updates after save", countEls.verbs.textContent === "3", countEls.verbs.textContent);
+  check("saved user words stay out of the default image deck", json("flashList.every(function(w){return w.de!=='Schrank'&&w.de!=='Blume'&&w.de!=='rennen';})"));
+  check("default verb count stays at 2", json("flashCounts().verbs") === 2 && countEls.verbs.textContent === "2", json("flashCounts().verbs") + "/" + countEls.verbs.textContent);
+  act(`document.getElementById("flashKapitel").value="KX"; buildFlash();`);
+  check("KX separate deck contains all three saved words", json("flashList.length") === 3, String(json("flashList.length")));
+  check("KX deck verb count is 1", json("flashCounts().verbs") === 1 && countEls.verbs.textContent === "1", json("flashCounts().verbs") + "/" + countEls.verbs.textContent);
+  act(`document.getElementById("flashKapitel").value=""; buildFlash();`);
 
   /* Regression: non-noun types must never inherit the preserved article
-     selector. Existing bank adjectives/pronouns/particles all store art "-"
-     and must only appear in All/Mixed. */
+     selector. The default image deck excludes all user words, so the rule is
+     verified in the explicit KX user-words deck. */
+  act(`document.getElementById("flashKapitel").value="KX"; buildFlash();`);
   const beforeAdj = json("flashCounts()");
   setFields({ nwDe: "schnelltest", nwAr: "اختبار سريع", nwArt: "die", nwType: "صفة", nwCat: "Adjectives", nwLevel: "A1" });
   $("addWordBtn")._listeners.click[0]({});
+  act(`document.getElementById("flashKapitel").value="KX"; buildFlash();`);
   const adj = json("S.customWords[S.customWords.length-1] || null");
   check("non-noun marking saves art '-'", !!adj && adj.de === "schnelltest" && adj.art === "-" && adj.type === "صفة", JSON.stringify(adj));
   check("non-noun keeps article selector for the next word", act(`document.getElementById("nwArt").value`) === "die");
   check("non-noun is not article-bearing", js(`flashArticle(S.customWords[S.customWords.length-1])`) === "");
   const afterAdj = json("flashCounts()");
   check("non-noun leaves der/die/das counts unchanged", afterAdj.der === beforeAdj.der && afterAdj.die === beforeAdj.die && afterAdj.das === beforeAdj.das, JSON.stringify({ before: beforeAdj, after: afterAdj }));
-  check("non-noun increments All and Mixed only", afterAdj[""] === beforeAdj[""] + 1 && afterAdj.mixed === beforeAdj.mixed + 1, JSON.stringify({ before: beforeAdj, after: afterAdj }));
+  check("non-noun increments KX All and Mixed only", afterAdj[""] === beforeAdj[""] + 1 && afterAdj.mixed === beforeAdj.mixed + 1, JSON.stringify({ before: beforeAdj, after: afterAdj }));
   const adjDecks = json(`(function(){var w=S.customWords[S.customWords.length-1];var out={};["der","die","das","verbs","","mixed"].forEach(function(m){out[m||"all"]=flashPool().filter(function(x){return flashModeMatch(x,m)&&x.id===w.id;}).length;});return out;})()`);
-  check("non-noun enters All and Mixed exactly once", adjDecks.all === 1 && adjDecks.mixed === 1, JSON.stringify(adjDecks));
+  check("non-noun enters KX All and Mixed exactly once", adjDecks.all === 1 && adjDecks.mixed === 1, JSON.stringify(adjDecks));
   check("non-noun never enters article/verb decks", adjDecks.der === 0 && adjDecks.die === 0 && adjDecks.das === 0 && adjDecks.verbs === 0, JSON.stringify(adjDecks));
   check("non-noun is not duplicated into the bank", json("VOCAB.some(function(w){return w.de==='schnelltest';})") === false && json("flashPool().filter(function(w){return w.de==='schnelltest';}).length") === 1);
   check("non-noun chip counts match classification", countEls.die.textContent === String(afterAdj.die) && countEls[""].textContent === String(afterAdj[""]) && countEls.mixed.textContent === String(afterAdj.mixed), countEls.die.textContent + "/" + countEls[""].textContent + "/" + countEls.mixed.textContent);
@@ -296,6 +318,7 @@ try {
   const beforePron = json("flashCounts()");
   setFields({ nwDe: "meinwort", nwAr: "كلمتي", nwArt: "der", nwType: "ضمير", nwCat: "General", nwLevel: "A1" });
   $("addWordBtn")._listeners.click[0]({});
+  act(`document.getElementById("flashKapitel").value="KX"; buildFlash();`);
   const pron = json("S.customWords[S.customWords.length-1] || null");
   check("pronoun marking saves art '-'", !!pron && pron.art === "-" && pron.type === "ضمير", JSON.stringify(pron));
   const afterPron = json("flashCounts()");
@@ -306,6 +329,7 @@ try {
   const beforeDas = json("flashCounts()");
   setFields({ nwDe: "das Testkissen", nwAr: "وسادة اختبار", nwArt: "der", nwType: "اسم", nwCat: "Home", nwLevel: "A1" });
   $("addWordBtn")._listeners.click[0]({});
+  act(`document.getElementById("flashKapitel").value="KX"; buildFlash();`);
   const dasWord = json("S.customWords[S.customWords.length-1] || null");
   check("typed neuter article is stored", !!dasWord && dasWord.de === "Testkissen" && dasWord.art === "das", JSON.stringify(dasWord));
   const afterDas = json("flashCounts()");
@@ -316,12 +340,16 @@ try {
   const beforeBare = json("flashCounts()");
   setFields({ nwDe: "Testwasser", nwAr: "ماء اختبار", nwArt: "-", nwType: "اسم", nwCat: "Food", nwLevel: "A1" });
   $("addWordBtn")._listeners.click[0]({});
+  act(`document.getElementById("flashKapitel").value="KX"; buildFlash();`);
   const bare = json("S.customWords[S.customWords.length-1] || null");
   check("article-less noun stays unclassified", !!bare && bare.art === "-" && js(`flashArticle(S.customWords[S.customWords.length-1])`) === "", JSON.stringify(bare));
   const afterBare = json("flashCounts()");
   check("article-less noun is not counted as a verb", afterBare.verbs === beforeBare.verbs && afterBare.der === beforeBare.der && afterBare.die === beforeBare.die && afterBare.das === beforeBare.das, JSON.stringify({ before: beforeBare, after: afterBare }));
   const bareDecks = json(`(function(){var w=S.customWords[S.customWords.length-1];var out={};["der","die","das","verbs","","mixed"].forEach(function(m){out[m||"all"]=flashPool().filter(function(x){return flashModeMatch(x,m)&&x.id===w.id;}).length;});return out;})()`);
-  check("article-less noun only enters All/Mixed", bareDecks.all === 1 && bareDecks.mixed === 1 && bareDecks.der === 0 && bareDecks.die === 0 && bareDecks.das === 0 && bareDecks.verbs === 0, JSON.stringify(bareDecks));
+  check("article-less noun only enters KX All/Mixed", bareDecks.all === 1 && bareDecks.mixed === 1 && bareDecks.der === 0 && bareDecks.die === 0 && bareDecks.das === 0 && bareDecks.verbs === 0, JSON.stringify(bareDecks));
+
+  act(`document.getElementById("flashKapitel").value=""; buildFlash();`);
+  check("default image deck still excludes adapted non-nouns", json("flashList.every(function(w){return ['schnelltest','meinwort','Testkissen','Testwasser'].indexOf(w.de)<0;})"));
 
   const beforeDup = json("S.customWords.length");
   setFields({ nwDe: "der Schrank", nwAr: "خزانة", nwArt: "der", nwType: "اسم" });
@@ -346,7 +374,10 @@ try {
   $("addWordBtn")._listeners.click[0]({});
   check("double submit adds only one word", json("S.customWords.length") === beforeDouble + 1, json("S.customWords.length"));
 
-  check("new words are in the All deck", json("flashList.some(function(w){return w.de==='Schrank';})") === true);
+  check("new words are NOT mixed into the image All deck", json("flashList.some(function(w){return w.de==='Schrank';})") === false);
+  act(`document.getElementById("flashKapitel").value="KX"; buildFlash();`);
+  check("new words are in the separate KX deck", json("flashList.some(function(w){return w.de==='Schrank';})") === true);
+  act(`document.getElementById("flashKapitel").value=""; buildFlash();`);
   check("add-word does not auto-close modal", $("wordModal").classList.contains("hidden") === false);
 } catch (e) {
   check("add-word behavior", false, (e && e.message) + " @ " + ((e && e.stack || "").split("\n")[1] || ""));

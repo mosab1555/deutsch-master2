@@ -66,6 +66,8 @@ const SUITES = [
   { id: "test-push", args: ["tools/test-push.js"] },
   { id: "test-labsx", args: ["tools/test-labsx.js"] },
   { id: "test-flashdir", args: ["tools/test-flashdir.js"] },
+  { id: "test-flashcards-vocab", args: ["tools/test-flashcards-vocab.js"] },
+  { id: "test-flashdeck-source", args: ["tools/test-flashdeck-source.js"] },
   { id: "test-languages", args: ["tools/test-languages.js"] },
   { id: "check-translations", args: ["tools/check-translations.js"] },
   { id: "check-reference", args: ["tools/check-reference.js"] },
