@@ -3076,7 +3076,8 @@ function updateFlashModeUI(counts){
       el.classList.toggle("active",on);
       el.setAttribute("aria-selected",on?"true":"false");
     });
-    const total=$("flashDeckTotal");if(total)total.textContent=String(c[""]);
+    const shown=c[mode]!==undefined?c[mode]:c[""];
+    const total=$("flashDeckTotal");if(total)total.textContent=String(shown);
   }catch(e){}
 }
 function wireFlashModeChips(){

@@ -168,6 +168,7 @@ try {
 
   act(`document.getElementById("flashLevel").value=""; document.getElementById("flashType").value="der"; buildFlash();`);
   check("der deck has exactly 167 image words", json("flashList.length") === 167, String(json("flashList.length")));
+  check("der deck total label follows the active article filter", $("flashDeckTotal").textContent === "167", $("flashDeckTotal").textContent);
   check("der deck contains no generated/custom IDs", json("flashList.every(function(w){return w.flashSource==='image';})"));
 } catch (e) { check("secondary filters", false, e.message); }
 
