@@ -260,6 +260,69 @@ try {
   check("verb count updates after save", json("flashCounts().verbs") === 3, json("flashCounts().verbs"));
   check("chip count text updates after save", countEls.verbs.textContent === "3", countEls.verbs.textContent);
 
+  /* Regression: non-noun types must never inherit the preserved article
+     selector. Existing bank adjectives/pronouns/particles all store art "-"
+     and must only appear in All/Mixed. */
+  const beforeAdj = json("flashCounts()");
+  setFields({ nwDe: "schnelltest", nwAr: "اختبار سريع", nwArt: "die", nwType: "صفة", nwCat: "Adjectives", nwLevel: "A1" });
+  $("addWordBtn")._listeners.click[0]({});
+  const adj = json("S.customWords[S.customWords.length-1] || null");
+  check("non-noun marking saves art '-'", !!adj && adj.de === "schnelltest" && adj.art === "-" && adj.type === "صفة", JSON.stringify(adj));
+  check("non-noun keeps article selector for the next word", act(`document.getElementById("nwArt").value`) === "die");
+  check("non-noun is not article-bearing", js(`flashArticle(S.customWords[S.customWords.length-1])`) === "");
+  const afterAdj = json("flashCounts()");
+  check("non-noun leaves der/die/das counts unchanged", afterAdj.der === beforeAdj.der && afterAdj.die === beforeAdj.die && afterAdj.das === beforeAdj.das, JSON.stringify({ before: beforeAdj, after: afterAdj }));
+  check("non-noun increments All and Mixed only", afterAdj[""] === beforeAdj[""] + 1 && afterAdj.mixed === beforeAdj.mixed + 1, JSON.stringify({ before: beforeAdj, after: afterAdj }));
+  const adjDecks = json(`(function(){var w=S.customWords[S.customWords.length-1];var out={};["der","die","das","verbs","","mixed"].forEach(function(m){out[m||"all"]=flashPool().filter(function(x){return flashModeMatch(x,m)&&x.id===w.id;}).length;});return out;})()`);
+  check("non-noun enters All and Mixed exactly once", adjDecks.all === 1 && adjDecks.mixed === 1, JSON.stringify(adjDecks));
+  check("non-noun never enters article/verb decks", adjDecks.der === 0 && adjDecks.die === 0 && adjDecks.das === 0 && adjDecks.verbs === 0, JSON.stringify(adjDecks));
+  check("non-noun is not duplicated into the bank", json("VOCAB.some(function(w){return w.de==='schnelltest';})") === false && json("flashPool().filter(function(w){return w.de==='schnelltest';}).length") === 1);
+  check("non-noun chip counts match classification", countEls.die.textContent === String(afterAdj.die) && countEls[""].textContent === String(afterAdj[""]) && countEls.mixed.textContent === String(afterAdj.mixed), countEls.die.textContent + "/" + countEls[""].textContent + "/" + countEls.mixed.textContent);
+  const storedAdj = (function () {
+    for (const k of Object.keys(store)) {
+      try {
+        const p = JSON.parse(store[k]);
+        if (p && Array.isArray(p.customWords)) {
+          const hit = p.customWords.filter(w => w.de === "schnelltest");
+          if (hit.length) return hit[hit.length - 1];
+        }
+      } catch (e) {}
+    }
+    return null;
+  })();
+  check("non-noun persisted with art '-'", !!storedAdj && storedAdj.art === "-" && storedAdj.type === "صفة", JSON.stringify(storedAdj));
+
+  /* Same rule for another non-noun category (pronoun). */
+  const beforePron = json("flashCounts()");
+  setFields({ nwDe: "meinwort", nwAr: "كلمتي", nwArt: "der", nwType: "ضمير", nwCat: "General", nwLevel: "A1" });
+  $("addWordBtn")._listeners.click[0]({});
+  const pron = json("S.customWords[S.customWords.length-1] || null");
+  check("pronoun marking saves art '-'", !!pron && pron.art === "-" && pron.type === "ضمير", JSON.stringify(pron));
+  const afterPron = json("flashCounts()");
+  check("pronoun leaves article counts unchanged", afterPron.der === beforePron.der && afterPron.die === beforePron.die && afterPron.das === beforePron.das, JSON.stringify({ before: beforePron, after: afterPron }));
+  check("pronoun never enters der deck", json("flashPool().filter(function(w){return flashModeMatch(w,'der')&&w.de==='meinwort';}).length") === 0);
+
+  /* Nouns still classify by article, including a typed article override. */
+  const beforeDas = json("flashCounts()");
+  setFields({ nwDe: "das Testkissen", nwAr: "وسادة اختبار", nwArt: "der", nwType: "اسم", nwCat: "Home", nwLevel: "A1" });
+  $("addWordBtn")._listeners.click[0]({});
+  const dasWord = json("S.customWords[S.customWords.length-1] || null");
+  check("typed neuter article is stored", !!dasWord && dasWord.de === "Testkissen" && dasWord.art === "das", JSON.stringify(dasWord));
+  const afterDas = json("flashCounts()");
+  check("neuter noun increments das count", afterDas.das === beforeDas.das + 1 && afterDas.der === beforeDas.der && afterDas.die === beforeDas.die, JSON.stringify({ before: beforeDas, after: afterDas }));
+  check("neuter noun enters das deck exactly once", json("flashPool().filter(function(w){return flashModeMatch(w,'das')&&w.de==='Testkissen';}).length") === 1);
+
+  /* An article-less noun stays unclassified: not a verb, not an article deck. */
+  const beforeBare = json("flashCounts()");
+  setFields({ nwDe: "Testwasser", nwAr: "ماء اختبار", nwArt: "-", nwType: "اسم", nwCat: "Food", nwLevel: "A1" });
+  $("addWordBtn")._listeners.click[0]({});
+  const bare = json("S.customWords[S.customWords.length-1] || null");
+  check("article-less noun stays unclassified", !!bare && bare.art === "-" && js(`flashArticle(S.customWords[S.customWords.length-1])`) === "", JSON.stringify(bare));
+  const afterBare = json("flashCounts()");
+  check("article-less noun is not counted as a verb", afterBare.verbs === beforeBare.verbs && afterBare.der === beforeBare.der && afterBare.die === beforeBare.die && afterBare.das === beforeBare.das, JSON.stringify({ before: beforeBare, after: afterBare }));
+  const bareDecks = json(`(function(){var w=S.customWords[S.customWords.length-1];var out={};["der","die","das","verbs","","mixed"].forEach(function(m){out[m||"all"]=flashPool().filter(function(x){return flashModeMatch(x,m)&&x.id===w.id;}).length;});return out;})()`);
+  check("article-less noun only enters All/Mixed", bareDecks.all === 1 && bareDecks.mixed === 1 && bareDecks.der === 0 && bareDecks.die === 0 && bareDecks.das === 0 && bareDecks.verbs === 0, JSON.stringify(bareDecks));
+
   const beforeDup = json("S.customWords.length");
   setFields({ nwDe: "der Schrank", nwAr: "خزانة", nwArt: "der", nwType: "اسم" });
   $("addWordBtn")._listeners.click[0]({});

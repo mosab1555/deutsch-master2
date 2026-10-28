@@ -4602,7 +4602,6 @@ $("addWordBtn").addEventListener("click",()=>{
     return;
   }
   const type=$("nwType").value||"اسم";
-  const verb=(type==="فعل"||String(type).toLowerCase()==="verb");
   let art=$("nwArt").value||"-";
   /* A typed article is explicit input: trust it, strip it from the stored
      word, and sync the selector so the next word keeps a useful choice. */
@@ -4612,7 +4611,10 @@ $("addWordBtn").addEventListener("click",()=>{
     de=de.replace(/^(der|die|das)\s+/i,"").trim();
     try{$("nwArt").value=art;}catch(e){}
   }
-  if(verb)art="-";
+  /* Only nouns carry an article. Non-noun types must never inherit the
+     preserved selector (bank adjectives/pronouns/particles all use "-"),
+     otherwise they leak into der/die/das decks. */
+  if(!isNounType(type))art="-";
   const candidate={de:de,art:art,type:type};
   const dup=findAddWordDuplicate(candidate);
   if(dup){
