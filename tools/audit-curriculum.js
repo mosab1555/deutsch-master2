@@ -30,9 +30,13 @@ for (const [f, k] of FILES) {
 }
 
 // ---- existing A1 keys from script.js RAW blocks ----
+/* K6/K7 image-deck rows are a separate A1 flashcard deck and intentionally
+   repeat curriculum vocabulary (chapter-scoped dedupe keeps every printed
+   row). They are therefore not part of the curriculum duplicate baseline;
+   including them would flag every shared A2/B1 word as a duplicate. */
 const script = RD("client/script.js");
 const existKeys = new Set();
-for (const m of script.matchAll(/const (RAW_K\d+)\s*=\s*\[([\s\S]*?)\n\];/g)) {
+for (const m of script.matchAll(/const (RAW_K[0-5])\s*=\s*\[([\s\S]*?)\n\];/g)) {
   const rows = m[2].matchAll(/\[\s*"([^"]+)"\s*,\s*"([^"]+)"/g);
   for (const r of rows) existKeys.add((r[1] + "|" + r[2]).toLowerCase());
 }
