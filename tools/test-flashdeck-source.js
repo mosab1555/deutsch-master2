@@ -1,7 +1,7 @@
 /* Flashcard deck source restriction regression test.
  *
  * Contract: the default flashcard deck is the explicit image-sourced bank
- * (RAW_K0..RAW_K5 => buildVocab's flashSource==="image" rows) and nothing else.
+ * (RAW_K0..RAW_K7 => buildVocab's flashSource==="image" rows) and nothing else.
  * Generated lazy/library/curriculum vocabulary must never appear in All,
  * article, verb, Mixed, category or Kapitel decks. The user's own words stay
  * safe and are available only through the explicit KX deck.
@@ -103,11 +103,11 @@ try {
 /* ---------- A. The base bank itself is explicitly image-sourced ---------- */
 try {
   const base = json("VOCAB.map(function(w){return {id:w.id,de:w.de,art:w.art,kap:w.kap,level:w.level,flashSource:w.flashSource};})");
-  check("base bank has exactly 845 unique image words", base.length === 845, String(base.length));
+  check("base bank has exactly 1116 unique image words", base.length === 1116, String(base.length));
   check("every base row is tagged flashSource=image", base.every(w => w.flashSource === "image"));
-  check("base IDs are buildVocab image IDs", base.every(w => /^kk[0-5]w\d+$/.test(w.id)));
+  check("base IDs are buildVocab image IDs", base.every(w => /^kk[0-7]w\d+$/.test(w.id)));
   check("base IDs are unique", new Set(base.map(w => w.id)).size === base.length);
-  check("base bank keeps every chapter K0..K5", ["K0", "K1", "K2", "K3", "K4", "K5"].every(k => base.some(w => w.kap === k)));
+  check("base bank keeps every chapter K0..K7", ["K0", "K1", "K2", "K3", "K4", "K5", "K6", "K7"].every(k => base.some(w => w.kap === k)));
   const mapped = json("Object.keys(WORD_IMG).map(function(k){var p=k.split('|');return VOCAB.some(function(w){return w.de===p[0]&&w.art===p[1]&&w.flashSource==='image';});})");
   check("all 26 words explicitly mapped to image files are in the image deck", mapped.every(Boolean), JSON.stringify(mapped));
 } catch (e) { check("base bank audit", false, e.message); }
@@ -133,20 +133,20 @@ try {
     buildFlash();
   `);
   const all = json("flashList.map(function(w){return w.id;})");
-  check("default All deck has exactly the 845 image words", all.length === 845, String(all.length));
+  check("default All deck has exactly the 1,116 image words", all.length === 1116, String(all.length));
   check("All deck excludes generated/curriculum/custom IDs", ["lv999990", "c999991", "lv999992", "c-user-1"].every(id => all.indexOf(id) < 0), all.slice(-5).join(","));
   check("All deck rows all carry flashSource=image", json("flashList.every(function(w){return w.flashSource==='image';})"));
   const counts = json("flashCounts()");
-  check("All count is 845", counts[""] === 845 && counts.mixed === 845, JSON.stringify(counts));
-  check("der count is 167", counts.der === 167, String(counts.der));
-  check("die count is 175", counts.die === 175, String(counts.die));
-  check("das count is 115", counts.das === 115, String(counts.das));
-  check("verbs count is 121", counts.verbs === 121, String(counts.verbs));
-  check("deck total UI shows 845", $("flashDeckTotal").textContent === "845", $("flashDeckTotal").textContent);
-  check("counter shows 1 / 845", $("flashCounter").textContent === "1 / 845", $("flashCounter").textContent);
+  check("All count is 1,116", counts[""] === 1116 && counts.mixed === 1116, JSON.stringify(counts));
+  check("der count is 216", counts.der === 216, String(counts.der));
+  check("die count is 237", counts.die === 237, String(counts.die));
+  check("das count is 149", counts.das === 149, String(counts.das));
+  check("verbs count is 182", counts.verbs === 182, String(counts.verbs));
+  check("deck total UI shows 1,116", $("flashDeckTotal").textContent === "1116", $("flashDeckTotal").textContent);
+  check("counter shows 1 / 1,116", $("flashCounter").textContent === "1 / 1116", $("flashCounter").textContent);
   check("unrelated rows are still in the full bank", json("VOCAB.some(function(w){return w.id==='lv999990';})") && json("VOCAB.some(function(w){return w.id==='c999991';})") && json("VOCAB.some(function(w){return w.id==='lv999992';})"));
   check("user words are still saved", json("S.customWords.length===1 && S.customWords[0].de==='Schrank'"));
-  check("allWords still exposes every row", json("allWords().length") === 849, String(json("allWords().length")));
+  check("allWords still exposes every row", json("allWords().length") === 1120, String(json("allWords().length")));
 } catch (e) { check("default deck source restriction", false, e.message); }
 
 /* ---------- C. Secondary filters count only the image deck ---------- */
@@ -167,8 +167,8 @@ try {
   check("A2 counter is 0 / 0", $("flashCounter").textContent === "0 / 0", $("flashCounter").textContent);
 
   act(`document.getElementById("flashLevel").value=""; document.getElementById("flashType").value="der"; buildFlash();`);
-  check("der deck has exactly 167 image words", json("flashList.length") === 167, String(json("flashList.length")));
-  check("der deck total label follows the active article filter", $("flashDeckTotal").textContent === "167", $("flashDeckTotal").textContent);
+  check("der deck has exactly 216 image words", json("flashList.length") === 216, String(json("flashList.length")));
+  check("der deck total label follows the active article filter", $("flashDeckTotal").textContent === "216", $("flashDeckTotal").textContent);
   check("der deck contains no generated/custom IDs", json("flashList.every(function(w){return w.flashSource==='image';})"));
 } catch (e) { check("secondary filters", false, e.message); }
 
@@ -186,14 +186,14 @@ try {
 try {
   act(`document.getElementById("flashType").value="mixed"; buildFlash();`);
   const mixed = json("flashList.map(function(w){return w.id;})");
-  check("Mixed deck has exactly 845 image words", mixed.length === 845, String(mixed.length));
+  check("Mixed deck has exactly 1,116 image words", mixed.length === 1116, String(mixed.length));
   check("Mixed deck has no unrelated rows", ["lv999990", "c999991", "lv999992", "c-user-1"].every(id => mixed.indexOf(id) < 0));
   check("Mixed deck has no duplicates", new Set(mixed).size === mixed.length);
 
   const beforeVocab = json("VOCAB.map(function(w){return w.id;})");
   const beforeS = json("S");
   act(`VOCAB.push({id:"lv999993",de:"nochgeneriert",art:"die",ar:"مولّد",pron:"",type:"اسم",cat:"Home",ex:"",exAr:"",kap:"K1",level:"A1"}); refreshFlashList();`);
-  check("refresh keeps the image deck at 845", json("flashList.length") === 845, String(json("flashList.length")));
+  check("refresh keeps the image deck at 1,116", json("flashList.length") === 1116, String(json("flashList.length")));
   check("refresh does not admit the new generated row", json("flashList.every(function(w){return w.id!=='lv999993';})"));
   check("refresh keeps bank order/rows intact", JSON.stringify(json("VOCAB.map(function(w){return w.id;})")) === JSON.stringify(beforeVocab.concat(["lv999993"])));
   check("Mixed/refresh did not mutate saved data", JSON.stringify(json("S")) === JSON.stringify(beforeS));
@@ -217,21 +217,23 @@ try {
     document.getElementById("flashLevel").value="";
     document.getElementById("flashType").value="";
     document.getElementById("flashKapitel").value="";
-    KAPITEL.push({id:"K6",name:"Generated",icon:""});
-    VOCAB.push({id:"lv999996",de:"generiert6",art:"der",ar:"مولّد",pron:"",type:"اسم",cat:"Home",ex:"",exAr:"",kap:"K6",level:"A2"});
+    KAPITEL.push({id:"K8",name:"Generated",icon:""});
+    VOCAB.push({id:"lv999996",de:"generiert8",art:"der",ar:"مولّد",pron:"",type:"اسم",cat:"Home",ex:"",exAr:"",kap:"K8",level:"A2"});
     buildFlash();
   `);
   const opts = flashChapterOptions();
   check("chapter option 1 is All chapters", opts[0] && opts[0].value === "" && /كل الكيبات/.test(opts[0].text), JSON.stringify(opts[0]));
   const byChapter = {};
   opts.slice(1).forEach(o => { byChapter[o.value] = o.count; });
-  check("chapter options list only K0..K5 plus the separate KX deck",
-    JSON.stringify(Object.keys(byChapter)) === JSON.stringify(["K0", "K1", "K2", "K3", "K4", "K5", "KX"]),
+  check("chapter options list K0..K7 plus the separate KX deck",
+    JSON.stringify(Object.keys(byChapter)) === JSON.stringify(["K0", "K1", "K2", "K3", "K4", "K5", "K6", "K7", "KX"]),
     JSON.stringify(Object.keys(byChapter)));
-  check("generated K6/KX chapters never appear", !byChapter.K6, JSON.stringify(byChapter));
+  check("K6 option shows 138 image words", byChapter.K6 === 138, String(byChapter.K6));
+  check("K7 option shows 133 image words", byChapter.K7 === 133, String(byChapter.K7));
+  check("generated K8/KX chapters never appear", !byChapter.K8, JSON.stringify(byChapter));
   const expectedChapters = json("(function(){var c={};VOCAB.forEach(function(w){if(w.flashSource==='image'){c[w.kap]=(c[w.kap]||0)+1;}});return c;})()");
   check("chapter counts match eligible image rows, not the general bank",
-    ["K0", "K1", "K2", "K3", "K4", "K5"].every(k => byChapter[k] === expectedChapters[k]),
+    ["K0", "K1", "K2", "K3", "K4", "K5", "K6", "K7"].every(k => byChapter[k] === expectedChapters[k]),
     JSON.stringify({ shown: byChapter, expected: expectedChapters }));
   check("K2 option shows 211 image words (not 534 general words)", byChapter.K2 === 211, String(byChapter.K2));
   check("KX option counts only the user's saved word", byChapter.KX === 1, String(byChapter.KX));
@@ -241,24 +243,63 @@ try {
   check("K2 deck count and All chip agree", json("flashCounts()")[""] === 211 && $("flashDeckTotal").textContent === "211", $("flashDeckTotal").textContent);
   check("intentional K2 choice is remembered for a reload", store.dm_flash_chapter_v1 === "K2", store.dm_flash_chapter_v1);
 
+  act(`document.getElementById("flashKapitel").value="K6"; buildFlash();`);
+  const k6deck = json("flashList.map(function(w){return {de:w.de,ar:w.ar,type:w.type,art:w.art,kap:w.kap};})");
+  check("K6 chapter deck has exactly 138 words", k6deck.length === 138, String(k6deck.length));
+  check("K6 chapter deck is chapter-scoped", k6deck.every(w => w.kap === "K6"));
+  check("K6 verbs deck has exactly 34 verbs and no non-verbs",
+    (function(){var r=json(`(function(){var rows=flashList.filter(function(w){return isFlashVerb(w);});return {n:rows.length,all:rows.every(function(w){return w.type==="فعل";})};})()`);return r.n===34&&r.all;})(),
+    "K6 verbs");
+  check("K6 keeps all 138 printed image words, including the final 27 image-5 rows",
+    (function(){
+      const raw = (function(){const m=/const RAW_K6 = \[([\s\S]*?)\n\];/.exec(RD("client/script.js"));return m?eval("["+m[1]+"]"):[];})();
+      const tail = raw.slice(-27);
+      return raw.length === 138 && raw.every(r => k6deck.some(w => w.de === r[0] && w.ar === r[2])) &&
+        tail.every(r => k6deck.some(w => w.de === r[0] && w.ar === r[2]));
+    })(),
+    "K6 image-5 rows");
+
+  act(`document.getElementById("flashKapitel").value="K7"; buildFlash();`);
+  const k7deck = json("flashList.map(function(w){return {de:w.de,ar:w.ar,type:w.type,art:w.art,kap:w.kap};})");
+  check("K7 chapter deck has exactly 133 words", k7deck.length === 133, String(k7deck.length));
+  check("K7 chapter deck is chapter-scoped", k7deck.every(w => w.kap === "K7"));
+  check("K7 verbs deck has exactly 27 verbs and no non-verbs",
+    json(`(function(){var rows=flashList.filter(function(w){return isFlashVerb(w);});return {n:rows.length,all:rows.every(function(w){return w.type==="فعل";})};})()`).n === 27 &&
+      json(`(function(){var rows=flashList.filter(function(w){return isFlashVerb(w);});return rows.every(function(w){return w.type==="فعل";});})()`) === true,
+    "K7 verbs");
+  check("K7 keeps all 133 printed image words, including the final 35 image-6 rows",
+    (function(){
+      const raw = (function(){const m=/const RAW_K7 = \[([\s\S]*?)\n\];/.exec(RD("client/script.js"));return m?eval("["+m[1]+"]"):[];})();
+      const tail = raw.slice(-35);
+      return raw.length === 133 && raw.every(r => k7deck.some(w => w.de === r[0] && w.ar === r[2])) &&
+        tail.every(r => k7deck.some(w => w.de === r[0] && w.ar === r[2]));
+    })(),
+    "K7 image-6 rows");
+
+  act(`document.getElementById("flashKapitel").value="K6"; setFlashMode("verbs"); buildFlash();`);
+  check("K6 Verbs filter shows only the 34 actual verbs", json("flashList.length") === 34 && json("flashList.every(function(w){return w.type==='فعل';})") === true);
+  act(`document.getElementById("flashKapitel").value="K7"; setFlashMode("verbs"); buildFlash();`);
+  check("K7 Verbs filter shows only the 27 actual verbs", json("flashList.length") === 27 && json("flashList.every(function(w){return w.type==='فعل';})") === true);
+  act(`document.getElementById("flashKapitel").value=""; setFlashMode(""); buildFlash();`);
+
   act(`document.getElementById("flashKapitel").value=""; buildFlash();`);
-  check("returning to All chapters restores all 845 words", json("flashList.length") === 845, String(json("flashList.length")));
+  check("returning to All chapters restores all 1,116 words", json("flashList.length") === 1116, String(json("flashList.length")));
   check("All chapters clears the remembered choice", !store.dm_flash_chapter_v1);
 
   act(`document.getElementById("flashKapitel").value="K2"; buildFlash(); resetFlashFilters();`);
-  check("reset filters returns to All chapters and 845 words",
-    json("flashList.length") === 845 &&
+  check("reset filters returns to All chapters and 1,116 words",
+    json("flashList.length") === 1116 &&
     act(`document.getElementById("flashKapitel").value`) === "" &&
     act(`document.getElementById("flashType").value`) === "",
     json("flashList.length") + "/" + act(`document.getElementById("flashKapitel").value`));
   check("reset filters clears the remembered chapter", !store.dm_flash_chapter_v1);
 
-  act(`document.getElementById("flashKapitel").value="K6"; buildFlash();`);
-  check("stale K6 selection falls back to All chapters",
-    act(`document.getElementById("flashKapitel").value`) === "" && json("flashList.length") === 845,
+  act(`document.getElementById("flashKapitel").value="K8"; buildFlash();`);
+  check("stale K8 selection falls back to All chapters",
+    act(`document.getElementById("flashKapitel").value`) === "" && json("flashList.length") === 1116,
     act(`document.getElementById("flashKapitel").value`) + "/" + json("flashList.length"));
 
-  store.dm_flash_chapter_v1 = "K6";
+  store.dm_flash_chapter_v1 = "K8";
   act(`document.getElementById("flashKapitel")._dmFlashChapterReady=false; document.getElementById("flashKapitel").value="K2"; fillFlashKapitels();`);
   check("stale saved chapter cannot hide the deck on reload",
     act(`document.getElementById("flashKapitel").value`) === "" && !store.dm_flash_chapter_v1,
@@ -276,7 +317,7 @@ try {
   const homeByChapter = {};
   homeOpts.slice(1).forEach(o => { homeByChapter[o.value] = o.count; });
   check("chapter counts follow the active category filter with image-only rows",
-    ["K0", "K1", "K2", "K3", "K4", "K5"].every(k => homeByChapter[k] === homeCounts[k]) &&
+    ["K0", "K1", "K2", "K3", "K4", "K5", "K6", "K7"].every(k => homeByChapter[k] === homeCounts[k]) &&
     homeByChapter.K2 === json("VOCAB.filter(function(w){return w.flashSource==='image'&&w.cat==='Home'&&w.kap==='K2';}).length"),
     JSON.stringify({ shown: homeByChapter, expected: homeCounts }));
   act(`document.getElementById("flashCategory").value=""; document.getElementById("flashKapitel").value=""; buildFlash();`);

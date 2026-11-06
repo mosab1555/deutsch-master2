@@ -40,9 +40,13 @@ const CATEGORIES = ["Family","Food","Drinks","Home","School","University","Work"
 const CAT_AR = {Family:"العائلة",Food:"الطعام",Drinks:"المشروبات",Home:"البيت",School:"المدرسة",University:"الجامعة",Work:"العمل",Travel:"السفر",Shopping:"التسوق",Body:"الجسم",Time:"الوقت",Days:"الأيام",Months:"الشهور",Numbers:"الأرقام",Colors:"الألوان",Animals:"الحيوانات",Clothes:"الملابس",Languages:"اللغات",General:"عام","Common Verbs":"أفعال شائعة",Adjectives:"صفات"};
 
 /* ============================================================
-   بيانات الكلمات من صورك - مقسمة لكل Kapitel
-   الصيغة: [الكلمة, الأداة, المعنى, النطق, النوع, التصنيف, (مثال), (ترجمته)]
-   المثال يُولّد تلقائيًا حسب النوع لو لم يُكتب
+   بيانات الكلمات النشطة - ACTIVE BANK
+   المصدر النشط للبطاقات هو RAW_K0..RAW_K7 أدناه (1,116 صفًا فريدًا).
+   K6 (زمن الأصدقاء) وK7 (يوم العمل) مأخوذان حرفيًا من صور المستخدم
+   1.jpeg + 2.jpeg و4.jpeg + 3.jpeg على الترتيب.
+   ملف client/flash-book-vocab.js (K1–K6، 981 صفًا) محفوظ كبيانات
+   مرشحة للمراجعة فقط: غير محمّل في أي صفحة ولا يدخل بطاقات SRS.
+   الصيغة: [الكلمة, الأداة, المعنى, النطق, النوع, التصنيف, (مثال), (ترجمته), (الجمع)]
    ============================================================ */
 const RAW_K0 = [
 ["Freund","der","الصديق","فرويند","اسم","General"],
@@ -912,6 +916,283 @@ const RAW_K5 = [
 ["auf Wiederhören","-","إلى اللقاء (تليفونيا)","أوف فيدر هورن","مفردات","General","Auf Wiederhören! Bis morgen!","إلى اللقاء! إلى الغد!"],
 ["Liebe Grüße","-","تحياتي القلبية","ليبه جروسه","مفردات","General","Liebe Grüße, dein Ali","تحياتي القلبية، علي"]
 ];
+
+const RAW_K6 = [
+["abholen","-","يحضر - يستلم","","فعل","Common Verbs"],
+["anfangen","-","يبدأ","","فعل","Common Verbs"],
+["anrufen","-","يتصل تليفونيًا بـ","","فعل","Common Verbs"],
+["aufhören","-","يتوقف","","فعل","Common Verbs"],
+["aufpassen","-","ينتبه - يحذر","","فعل","Common Verbs"],
+["aufstellen","-","يقف","","فعل","Common Verbs"],
+["beginnen","-","يبدأ","","فعل","Common Verbs"],
+["bestellen","-","يطلب (في مطعم أو متجر)","","فعل","Common Verbs"],
+["bezahlen","-","يدفع","","فعل","Common Verbs"],
+["bringen","-","يحضر","","فعل","Common Verbs"],
+["einladen","-","يدعو","","فعل","Common Verbs"],
+["einsammeln","-","يجمع","","فعل","Common Verbs"],
+["enden","-","ينتهي","","فعل","Common Verbs"],
+["fehlen","-","ينقص - يفتقد","","فعل","Common Verbs"],
+["feiern","-","يحتفل بـ","","فعل","Common Verbs"],
+["geben","-","يعطي","","فعل","Common Verbs"],
+["gehen","-","يذهب","جين","فعل","Common Verbs"],
+["genießen","-","يستمتع بـ","","فعل","Common Verbs"],
+["glauben","-","يعتقد - يظن","","فعل","Common Verbs"],
+["klettern","-","يتسلق","","فعل","Common Verbs"],
+["klingen","-","يبدو","","فعل","Common Verbs"],
+["laufen","-","يجري - يسير","","فعل","Common Verbs"],
+["los sein","-","يحدث / حر - مفكوك","","مفردات","General"],
+["mitbringen","-","يحضر معه","","فعل","Common Verbs"],
+["mitkommen","-","يأتي مع","","فعل","Common Verbs"],
+["mitmachen","-","يشارك (يعمل مع)","","فعل","Common Verbs"],
+["ordnen","-","ينظم - يرتب","","فعل","Common Verbs"],
+["passieren","-","يحدث","","فعل","Common Verbs"],
+["schenken","-","يعطي هدية","","فعل","Common Verbs"],
+["schicken","-","يرسل","","فعل","Common Verbs"],
+["stimmen","-","يصح","شتمن","فعل","Common Verbs"],
+["wandern","-","يتجول","","فعل","Common Verbs"],
+["werden","-","يُصبح","فيردن","فعل","Common Verbs"],
+["wissen","-","يعرف","","فعل","Common Verbs"],
+["zahlen","-","يدفع / يعد","","فعل","Common Verbs"],
+["Beisl","das","حانة (في النمسا)","","اسم","Food"],
+["Datum","das","تاريخ","","اسم","General"],
+["Double Feature","das","ميزة مزدوجة","","اسم","General"],
+["Eis","das","ثلج / آيس كريم","","اسم","Food"],
+["Ereignis","das","حدث - واقعة","","اسم","General"],
+["Fest","das","احتفال - عيد","","اسم","General"],
+["Fitness-Studio","das","صالة للياقة بدنية","","اسم","General"],
+["Fußballspiel","das","مباراة كرة قدم","","اسم","General"],
+["Geschenk","das","هدية","","اسم","General"],
+["Kaffeehaus","das","مقهى","","اسم","Food"],
+["Lokal","das","مطعم صغير","","اسم","Food"],
+["Messer","das","سكين","","اسم","Home"],
+["Open-Air-Kino","das","سينما الهواء الطلق","","اسم","General"],
+["Picknick","das","نزهة (مع وجبة في الخلاء)","","اسم","Food"],
+["Programm","das","برنامج","","اسم","General"],
+["Rätselbild","das","صورة للتخمين","","اسم","General"],
+["Schnitzel","das","شريحة لحم محمرة","","اسم","Food"],
+["Trinkgeld","das","بقشيش","","اسم","Food"],
+["Wetter","das","الطقس","","اسم","General"],
+["Ausflug","der","نزهة - فسحة","","اسم","Travel"],
+["Beginn","der","بداية","","اسم","General"],
+["Besuch","der","زيارة","","اسم","General"],
+["Betreff","der","الموضوع - الشأن","","اسم","General"],
+["Biergarten","der","حديقة عامة (فيها بيرة ومشروبات)","","اسم","Food"],
+["Durst","der","العطش","","اسم","Food"],
+["Eintritt","der","الدخول","","اسم","General"],
+["Franken","der","الفرنك السويسري (عملة)","","اسم","Shopping"],
+["Halbmarathon","der","نصف ماراثون","","اسم","General"],
+["Hunger","der","الجوع","","اسم","Food"],
+["Konzertbeginn","der","بداية الحفلة الموسيقية","","اسم","General"],
+["Löffel","der","ملعقة","","اسم","Home"],
+["Marathon","der","ماراثون","","اسم","General"],
+["Regen","der","مطر","","اسم","General"],
+["Ski","der","التزحلق على الجليد / الزلاجة","","اسم","Travel"],
+["Spielplatz","der","ساحة لعب","","اسم","General"],
+["Teil","der","جزء","","اسم","General"],
+["Teller","der","طبق - صحن","","اسم","Home"],
+["Treffpunkt","der","مكان الالتقاء","","اسم","General"],
+["Überraschungstag","der","يوم المفاجأة","","اسم","General"],
+["Sandwich","der","ساندويتش","","اسم","Food"],
+["Salami","die","سجق مدخن","","اسم","Food"],
+["Aktivität","die","نشاط - فاعلية","","اسم","General"],
+["Anmeldung","die","تسجيل (في موقع أو استمارة)","آن ملدونج","اسم","General"],
+["Anrede","die","تحية افتتاحية","","اسم","General"],
+["Anzeige","die","إعلان","","اسم","General"],
+["Apfelsaftschorle","die","عصير تفاح بالمياه الغازية","","اسم","Drinks"],
+["Was ist los?","-","ماذا يحدث؟","","مفردات","General"],
+["Zahlen, bitte","-","الحساب، من فضلك","","مفردات","Food"],
+["Atmosphäre","die","الجو العام / المناخ","","اسم","General"],
+["Bank","die","مقعد / دكة","","اسم","General"],
+["Bestellung","die","طلب (في مطعم أو متجر)","","اسم","Food"],
+["Einladungs-Mail","die","إيميل الدعوة","","اسم","General"],
+["Fahrradtour","die","جولة بالدراجات","","اسم","Travel"],
+["Freizeitaktivität","die","نشاط في وقت الفراغ","","اسم","General"],
+["Gabel","die","شوكة","","اسم","Home"],
+["Karte","die","كارت - تذكرة","كارته","اسم","General"],
+["Kneipe","die","حانة","","اسم","Food"],
+["Beiz","die","حانة (في سويسرا)","","اسم","Food"],
+["Kultur-Nacht","die","ليلة ثقافية","","اسم","General"],
+["Lust","die","مزاج - رغبة","","اسم","General"],
+["Mail","die","إيميل","","اسم","General"],
+["Museumsnacht","die","ليلة في متحف (فعالية بأسعار مخفضة)","","اسم","General"],
+["Nacht","die","الليل","","اسم","Time"],
+["Natur","die","الطبيعة","","اسم","General"],
+["Ordinalzahl","die","عدد ترتيبي","","اسم","School"],
+["Pantomime","die","تمثيل صامت (بالحركات)","","اسم","General"],
+["Pommes","die","بطاطس مقلية","","اسم","Food"],
+["Präposition","die","حرف جر","","اسم","School"],
+["Selbstbedienung","die","خدمة نفسك بنفسك","","اسم","Food"],
+["Serviette","die","منديل أو فوطة السفرة","","اسم","Food"],
+["Sonne","die","الشمس","","اسم","General"],
+["Speisekarte","die","منيو","","اسم","Food"],
+["Strandbar","die","بار على الشاطئ","","اسم","Travel"],
+["Tasse","die","فنجان - كوب","","اسم","Home"],
+["Tomatensuppe","die","شوربة طماطم","","اسم","Food"],
+["Überraschung","die","مفاجأة","","اسم","General"],
+["Achtung","-","الانتباه - الحذر","","مفردات","General"],
+["an (+D.)","-","بجانب","","أداة","General"],
+["besonder-","-","خاص - مميز","","صفة","Adjectives"],
+["besonders","-","خصوصا","","مفردات","General"],
+["Co","-","وشركاه / ومن على شاكلته","","مفردات","General"],
+["danke schön","-","شكرا جزيلا","","مفردات","General"],
+["denn","-","لأن / إذا","","أداة","General"],
+["draußen","-","بالخارج","","مفردات","General"],
+["echt","-","حقيقي - أصلي / حقا","إشت","صفة","Adjectives"],
+["früh","-","مبكرا","","مفردات","Time"],
+["geöffnet","-","مفتوح","","صفة","Adjectives"],
+["getrennt","-","منفصل","","صفة","Adjectives"],
+["herzlich","-","قلبي - ودّي","","صفة","Adjectives"],
+["hi","-","أهلا","","مفردات","General"],
+["hoffentlich","-","يا حبذا - على أمل (يا ريت)","","مفردات","General"],
+["kalt","-","بارد","","صفة","Adjectives"],
+["klar","-","واضح - مفهوم - بالطبع","","صفة","Adjectives"],
+["natürlich","-","طبيعي / بالطبع","ناتورلِش","مفردات","General"],
+["selbst","-","بنفسه","","مفردات","General"],
+["trennbar","-","منفصل","","صفة","School"],
+["typisch","-","نموذجي - مثالي","","صفة","Adjectives"],
+["überall","-","في كل مكان","","مفردات","General"],
+["verboten","-","ممنوع - محرم","","صفة","Adjectives"],
+["voll","-","ممتلئ","","صفة","Adjectives"],
+["warm","-","دافئ","","صفة","Adjectives"],
+["warum","-","لماذا","","أداة","General"],
+["wieder","-","مرة أخرى","","مفردات","General"]
+];
+
+const RAW_K7 = [
+["anmachen","-","يشغل (نار أو نور)","","فعل","Common Verbs"],
+["ausmachen","-","يطفئ (نار أو نور)","","فعل","Common Verbs"],
+["aufmachen","-","يفتح (شيء له جانبان: باب، ...)","","فعل","Common Verbs"],
+["zumachen","-","يغلق (شيء له جانبان: باب، ...)","","فعل","Common Verbs"],
+["annehmen","-","يستلم - يقبل - يفترض","","فعل","Common Verbs"],
+["bedeuten","-","يعني","","فعل","Common Verbs"],
+["dauern","-","يستمر","","فعل","Common Verbs"],
+["denken","-","يفكر - يعتقد","","فعل","Common Verbs"],
+["diskutieren","-","يناقش","","فعل","Common Verbs"],
+["drucken","-","يطبع","","فعل","Common Verbs"],
+["eingeben","-","يدخل (بيانات، كلمة سر)","","فعل","Common Verbs"],
+["erklären","-","يوضح","","فعل","Common Verbs"],
+["formulieren","-","يُصيغ","","فعل","Common Verbs"],
+["hochfahren","-","يُشغّل (كمبيوتر)","","فعل","Common Verbs"],
+["holen","-","يُحضر","","فعل","Common Verbs"],
+["interessieren","-","يهتم بـ","","فعل","Common Verbs"],
+["kennen lernen","-","يتعرف على","","فعل","Common Verbs"],
+["korrigieren","-","يصحح","","فعل","Common Verbs"],
+["mitnehmen","-","يأخذ معه","","فعل","Common Verbs"],
+["öffnen","-","يفتح (ملفًا)","","فعل","Common Verbs"],
+["reden","-","يتكلم","","فعل","Common Verbs"],
+["regnen","-","يمطر","","فعل","Common Verbs"],
+["schreiben an","-","يكتب إلى","","فعل","Common Verbs"],
+["speichern","-","يسيّف - يحفظ (على الكمبيوتر)","","فعل","Common Verbs"],
+["überweisen","-","يحول نقدًا","","فعل","Common Verbs"],
+["verwenden","-","يستخدم","","فعل","Common Verbs"],
+["zeigen","-","يُري - يعرض","","فعل","Common Verbs"],
+["Fernsehen","das","تليفزيون","","اسم","General"],
+["Gesprächsthema","das","موضوع النقاش","","اسم","General"],
+["Jahrestreffen","das","اللقاء السنوي","","اسم","General"],
+["Konto","das","الحساب البنكي","","اسم","Work"],
+["Leben","das","الحياة","","اسم","General"],
+["Lied","das","الأغنية","","اسم","General"],
+["Mitglied","das","عضو (في حزب، عائلة ...)","","اسم","General"],
+["Netz","das","الشبكة","","اسم","General"],
+["Paket","das","الطرد - الحزمة","","اسم","Shopping"],
+["Passwort","das","كلمة المرور","","اسم","School"],
+["Praktikum","das","التدريب العملي","","اسم","Work"],
+["Sommerfest","das","حفلة صيفية","","اسم","General"],
+["Sprachinstitut","das","معهد اللغة","","اسم","School"],
+["WLAN","das","واي فاي [في لان]","","اسم","General"],
+["Wortinnere","das","داخل الكلمة","","اسم","School"],
+["Absender","der","المُرسل","","اسم","Work"],
+["Akku","der","بطارية","","اسم","General"],
+["Arbeitstag","der","العمل اليومي","","اسم","Work"],
+["Aufzug","der","اسانسير","","اسم","Home"],
+["Automat","der","الماكينة الأتوماتيكية / ATM","","اسم","Shopping"],
+["Bäcker","der","خباز","","اسم","Work"],
+["Bericht","der","تقرير","","اسم","Work"],
+["Blog","der","مدونة في الإنترنت (بلوج)","","اسم","General"],
+["Brief","der","خطاب","","اسم","General"],
+["Briefstandard","der","معيار الخطاب","","اسم","School"],
+["Drucker","der","طابعة (برنتر)","","اسم","Work"],
+["Empfänger","der","المستلم","","اسم","Work"],
+["Fehler","der","خطأ","","اسم","School"],
+["Hausmeister","der","بواب","","اسم","Work"],
+["Kontakt","der","تواصل","","اسم","General"],
+["Kundenbesuch","der","زيارة العملاء","","اسم","Work"],
+["Mist","der","روث / اللعنة!","","اسم","General"],
+["Mitarbeiter","der","زميل في العمل","","اسم","Work"],
+["Nachbar","der","جار","","اسم","General"],
+["Silbenanfang","der","بداية مقطع (في كلمة)","","اسم","School"],
+["Small Talk","der","محادثة قصيرة","","اسم","General"],
+["Stadtpark","der","حديقة المدينة","","اسم","Travel"],
+["Ticketkauf","der","شراء التذاكر","","اسم","Travel"],
+["Urlaub","der","أجازة - عطلة","","اسم","Travel"],
+["Wortanfang","der","بداية الكلمة","","اسم","School"],
+["Zahnarzt","der","طبيب أسنان","","اسم","Work"],
+["Zufall","der","صدفة","","اسم","General"],
+["Erwachsene","der","الشخص (البالغ)","","اسم","General"],
+["Anredeformel","die","صيغة التحية","","اسم","School"],
+["Apfelschorle","die","عصير تفاح بالمياه الغازية","","اسم","Drinks"],
+["Aussprache","die","النطق","","اسم","School"],
+["Bank","die","بنك","","اسم","Shopping",null,null,"Banken"],
+["Bank","die","مقعد - دكة","","اسم","Home",null,null,"Bänke"],
+["Computerarbeit","die","العمل على كمبيوتر","","اسم","Work"],
+["Dame","die","سيدة","","اسم","General"],
+["Datei","die","ملف","","اسم","School"],
+["Grußformel","die","التحية","","اسم","School"],
+["Kontonummer","die","رقم الحساب البنكي","","اسم","Work"],
+["Krankheit","die","مرض","","اسم","Body"],
+["Kreditkarte","die","بطاقة ائتمان","","اسم","Shopping"],
+["Kurzform","die","صيغة موجزة","","اسم","School"],
+["Medien","die","الميديا","","اسم","General"],
+["Meisten","die","الغالبية","","اسم","General"],
+["Mittagspause","die","استراحة الغذاء","","اسم","Time"],
+["Musikgruppe","die","فرقة موسيقية","","اسم","General"],
+["Ortsangabe","die","بيانات المكان - العنوان","","اسم","School"],
+["Pause","die","استراحة - فسحة","","اسم","Time"],
+["Politik","die","سياسة","","اسم","General"],
+["Post","die","البريد","","اسم","General"],
+["Präsentation","die","بريزينتيشن","","اسم","Work"],
+["Reihenfolge","die","ترتيب - تسلسل","","اسم","School"],
+["Religion","die","الدين","","اسم","General"],
+["Serie","die","مسلسل تليفزيوني - سلسلة","","اسم","General"],
+["Spezialität","die","خصوصية / أكلة مميزة","","اسم","Food"],
+["Unterschrift","die","التوقيع","","اسم","Work"],
+["Zahnärztin","die","طبيبة أسنان","","اسم","Work"],
+["aktuell","-","حالي - الوقت الراهن","","صفة","Adjectives"],
+["als","-","كـ (في المقارنة) = as","","أداة","General"],
+["anders","-","مختلف","","مفردات","General"],
+["argentinisch","-","أرجنتيني","","صفة","Adjectives"],
+["auswendig","-","عن ظهر قلب","","مفردات","General"],
+["bar","-","نقدًا","","مفردات","Shopping"],
+["beliebt","-","محبوب - مفضل","","صفة","Adjectives"],
+["bis dann","-","أراك لاحقًا","","مفردات","General"],
+["doch","-","بلى (إزالة/إثبات)","","أداة","General"],
+["eigentlich","-","في الواقع","","مفردات","General"],
+["endlich","-","في النهاية","","مفردات","General"],
+["freundlich","-","لطيف - ودود","","صفة","Adjectives"],
+["ganz","-","كل (من جميع أنحاء العالم)","","مفردات","General"],
+["gar","-","إطلاقًا - أبدًا","","مفردات","General"],
+["geehrt","-","مبجل - موقر","","صفة","Adjectives"],
+["genug","-","كافٍ","","مفردات","General"],
+["gestern","-","أمس","","مفردات","Time"],
+["heiß","-","ساخن","","صفة","Adjectives"],
+["klar","-","واضح","","صفة","Adjectives"],
+["langweilig","-","ممل","","صفة","Adjectives"],
+["leer","-","فارغ","","صفة","Adjectives"],
+["leicht","-","سهل - خفيف","","صفة","Adjectives"],
+["nach Hause","-","إلى البيت","","مفردات","Home"],
+["neutral","-","محايد - حيادي","","صفة","Adjectives"],
+["oder","-","أو / (oder?) أليس كذلك؟","","أداة","General"],
+["offline","-","غير متصل","","صفة","General"],
+["samstags","-","كل يوم سبت","","مفردات","Time"],
+["schon wieder","-","مرة أخرى","","مفردات","General"],
+["schrecklich","-","مرعب، فظيع","","صفة","Adjectives"],
+["schwer","-","صعب - ثقيل","","صفة","Adjectives"],
+["später","-","فيما بعد","","مفردات","Time"],
+["Südamerika","-","أمريكا الجنوبية","","اسم","Travel"],
+["supernett","-","في منتهى الروعة","","صفة","Adjectives"],
+["wem","-","مَن (تسأل عن الداتيف)","","أداة","General"],
+["wohin","-","إلى أين","","أداة","General"]
+];
 /* ============ الجمع الكامل لكل اسم "De|art" -> الجمع ============ */
 const PLURAL_A = {
 "Freund|der":"Freunde","Straße|die":"Straßen","Land|das":"Länder","Arbeiter|der":"Arbeiter","Information|die":"Informationen","Mädchen|das":"Mädchen","Name|der":"Namen","Karte|die":"Karten","Bus|der":"Busse","Klub|der":"Klubs","Kurs|der":"Kurse","Krokodil|das":"Krokodile","Wolf|der":"Wölfe","Thema|das":"Themen","Läufer|der":"Läufer","Tür|die":"Türen","Mann|der":"Männer","Wort|das":"Wörter","Apfel|der":"Äpfel","Kollege|der":"Kollegen","Tomate|die":"Tomaten","Student|der":"Studenten","Schule|die":"Schulen","Buch|das":"Bücher","Räuber|der":"Räuber","Bett|das":"Betten","Öl|das":"Öle","Morgen|der":"Morgen",
@@ -923,7 +1204,36 @@ const PLURAL_B = {
 "Fleisch|das":"Fleisch","Obst|das":"Obst","Gemüse|das":"Gemüse","Abendessen|das":"Abendessen","Brot|das":"Brote","Brötchen|das":"Brötchen","Dessert|das":"Desserts","Ei|das":"Eier","Essen|das":"Essen","Fett|das":"Fette","Fischgericht|das":"Fischgerichte","Frühstück|das":"Frühstücke","Gericht|das":"Gerichte","Geschäft|das":"Geschäfte","Getränk|das":"Getränke","Hähnchen|das":"Hähnchen","Huhn|das":"Hühner","Lebensmittel|das":"Lebensmittel","Maß|das":"Maße","Mittagessen|das":"Mittagessen","Müsli|das":"Müslis","Paar|das":"Paare","Salz|das":"Salze","Stück|das":"Stücke","Sushi|das":"Sushis","Team|das":"Teams","Joghurt|der":"Joghurts","Keks|der":"Kekse","Hahn|der":"Hähne","Becher|der":"Becher","Cent|der":"Cents","Champignon|der":"Champignons","Chef|der":"Chefs","Döner|der":"Döner","Einkauf|der":"Einkäufe","Einkaufswagen|der":"Einkaufswagen","Einkaufszettel|der":"Einkaufszettel","Kassenzettel|der":"Kassenzettel","Emmentaler|der":"Emmentaler","Essig|der":"Essige","Fisch|der":"Fische","Kaffee|der":"Kaffees","Käse|der":"Käse","Kuchen|der":"Kuchen","Mittag|der":"Mittage","Orangensaft|der":"Orangensäfte","Preis|der":"Preise","Saft|der":"Säfte","Salat|der":"Salate","Schinken|der":"Schinken","Spaß|der":"Späße","Supermarkt|der":"Supermärkte","Tee|der":"Tees","Altstadt|die":"Altstädte","Arbeit|die":"Arbeiten","Arbeitszeit|die":"Arbeitszeiten","Assoziation|die":"Assoziationen","Bäckerei|die":"Bäckereien","Banane|die":"Bananen","Birne|die":"Birnen","Dose|die":"Dosen","Einladung|die":"Einladungen","Grillparty|die":"Grillpartys","Gurke|die":"Gurken","Henne|die":"Hennen","Kantine|die":"Kantinen","Kartoffel|die":"Kartoffeln","Limonade|die":"Limonaden","Mahlzeit|die":"Mahlzeiten","Marmelade|die":"Marmeladen","Methode|die":"Methoden","Metzgerei|die":"Metzgereien","Mindmap|die":"Mindmaps","Muttersprache|die":"Muttersprachen","Nachricht|die":"Nachrichten","Olive|die":"Oliven","Packung|die":"Packungen","Pizza|die":"Pizzen","Pommes frites|die":"Pommes frites","Schokolade|die":"Schokoladen","Suppe|die":"Suppen","Tüte|die":"Tüten","Uhr|die":"Uhren","Verpackung|die":"Verpackungen","Vorliebe|die":"Vorlieben","Wortgruppe|die":"Wortgruppen","Wurst|die":"Würste","Zeit|die":"Zeiten","Zwiebel|die":"Zwiebeln","Cola|die":"Colas",
 "Baby|das":"Babys","Büro|das":"Büros","Gästebuch|das":"Gästebücher","Kind|das":"Kinder","Modalverb|das":"Modalverben","Problem|das":"Probleme","Pronomen|das":"Pronomen","Satzende|das":"Satzenden","Saxofon|das":"Saxofone","Spiel|das":"Spiele","Telefongespräch|das":"Telefongespräche","Training|das":"Trainings","Viertel|das":"Viertel","Alltag|der":"Alltage","Ball|der":"Bälle","Eintrag|der":"Einträge","Englisch-Test|der":"Englisch-Tests","Geburtstag|der":"Geburtstage","Hamster|der":"Hamster","Hund|der":"Hunde","Junge|der":"Jungen","Kalender|der":"Kalender","Kunde|der":"Kunden","Mathe-Test|der":"Mathe-Tests","Sonntagnachmittag|der":"Sonntagnachmittage","Sprachkurs|der":"Sprachkurse","Stapel|der":"Stapel","Techniker|der":"Techniker","Vater|der":"Väter","Verwandte|der":"Verwandten","Großvater|der":"Großväter","Opa|der":"Opas","Sohn|der":"Söhne","Bruder|der":"Brüder","Enkel|der":"Enkel","Ehemann|der":"Ehemänner","Onkel|der":"Onkel","Neffe|der":"Neffen","Cousin|der":"Cousins","Aussage|die":"Aussagen","Bar|die":"Bars","Besprechung|die":"Besprechungen","Bibliothek|die":"Bibliotheken","Familie|die":"Familien","Fantasie|die":"Fantasien","Geige|die":"Geigen","halbe Stunde|die":"halbe Stunden","Hausaufgabe|die":"Hausaufgaben","Höflichkeit|die":"Höflichkeiten","Homepage|die":"Homepages","Idee|die":"Ideen","Maus|die":"Mäuse","Mensa|die":"Mensen","Minute|die":"Minuten","Musikschule|die":"Musikschulen","Party|die":"Partys","Praxis|die":"Praxen","Regel|die":"Regeln","Rollenkarte|die":"Rollenkarten","Satzklammer|die":"Satzklammern","Sekunde|die":"Sekunden","Sprachschule|die":"Sprachschulen","Großmutter|die":"Großmütter","Oma|die":"Omas","Mutter|die":"Mütter","Tochter|die":"Töchter","Schwester|die":"Schwestern","Enkelin|die":"Enkelinnen","Ehefrau|die":"Ehefrauen","Tante|die":"Tanten","Nichte|die":"Nichten","Cousine|die":"Cousinen","Eltern|die":"Eltern","Großeltern|die":"Großeltern","Geschwister|die":"Geschwister","Kinder|die":"Kinder","Enkelkinder|die":"Enkelkinder","Verwandten|die":"Verwandten","Eheleute|die":"Eheleute","Tageszeit|die":"Tageszeiten","Tour|die":"Touren","Trompete|die":"Trompeten","Uhrzeit|die":"Uhrzeiten","Uni|die":"Unis","Verspätung|die":"Verspätungen","Zeitangabe|die":"Zeitangaben","Zeitung|die":"Zeitungen","Grüße|die":"Grüße","Theater-Festival|das":"Theater-Festivals"
 };
-const PLURAL = Object.assign({},PLURAL_A,PLURAL_B);
+/* K6/K7 image packets. Keys are article-qualified for the same reason as
+   PLURAL_A/B: bare "Bank|die" cannot represent both printed meanings, so the
+   two "die Bank" rows carry their plural explicitly on the row instead. */
+const PLURAL_K67 = {
+"Beisl|das":"Beisl","Datum|das":"Daten","Double Feature|das":"Double Features","Eis|das":"","Ereignis|das":"Ereignisse","Fest|das":"Feste",
+"Fitness-Studio|das":"Fitness-Studios","Fußballspiel|das":"Fußballspiele","Geschenk|das":"Geschenke","Kaffeehaus|das":"Kaffeehäuser","Lokal|das":"Lokale","Messer|das":"Messer",
+"Open-Air-Kino|das":"Open-Air-Kinos","Picknick|das":"Picknicks","Programm|das":"Programme","Rätselbild|das":"Rätselbilder","Schnitzel|das":"Schnitzel","Trinkgeld|das":"Trinkgelder",
+"Wetter|das":"Wetter","Ausflug|der":"Ausflüge","Beginn|der":"","Besuch|der":"Besuche","Betreff|der":"Betreffe","Biergarten|der":"Biergärten",
+"Durst|der":"","Eintritt|der":"Eintritte","Franken|der":"Franken","Halbmarathon|der":"Halbmarathons","Hunger|der":"","Konzertbeginn|der":"",
+"Löffel|der":"Löffel","Marathon|der":"Marathons","Regen|der":"Regen","Ski|der":"Ski","Spielplatz|der":"Spielplätze","Teil|der":"Teile",
+"Teller|der":"Teller","Treffpunkt|der":"Treffpunkte","Überraschungstag|der":"Überraschungstage","Sandwich|der":"Sandwichs","Salami|die":"Salamis","Aktivität|die":"Aktivitäten",
+"Anmeldung|die":"Anmeldungen","Anrede|die":"Anreden","Anzeige|die":"Anzeigen","Apfelsaftschorle|die":"Apfelsaftschorlen","Apfelschorle|die":"Apfelschorlen","Atmosphäre|die":"","Bank|die":"Bänke",
+"Bestellung|die":"Bestellungen","Einladungs-Mail|die":"Einladungs-Mails","Fahrradtour|die":"Fahrradtouren","Freizeitaktivität|die":"Freizeitaktivitäten","Gabel|die":"Gabeln","Karte|die":"Karten",
+"Kneipe|die":"Kneipen","Beiz|die":"Beizen","Kultur-Nacht|die":"Kultur-Nächte","Lust|die":"","Mail|die":"Mails","Museumsnacht|die":"Museumsnächte",
+"Nacht|die":"Nächte","Natur|die":"","Ordinalzahl|die":"Ordinalzahlen","Pantomime|die":"","Pommes|die":"Pommes","Präposition|die":"Präpositionen",
+"Selbstbedienung|die":"","Serviette|die":"Servietten","Sonne|die":"","Speisekarte|die":"Speisekarten","Strandbar|die":"Strandbars","Tasse|die":"Tassen",
+"Tomatensuppe|die":"Tomatensuppen","Überraschung|die":"Überraschungen","Fernsehen|das":"","Gesprächsthema|das":"Gesprächsthemen","Jahrestreffen|das":"Jahrestreffen","Konto|das":"Konten",
+"Leben|das":"Leben","Lied|das":"Lieder","Mitglied|das":"Mitglieder","Netz|das":"","Paket|das":"Pakete","Passwort|das":"Passwörter",
+"Praktikum|das":"Praktika","Sommerfest|das":"Sommerfeste","Sprachinstitut|das":"Sprachinstitute","WLAN|das":"","Wortinnere|das":"","Absender|der":"Absender",
+"Akku|der":"Akkus","Arbeitstag|der":"","Aufzug|der":"Aufzüge","Automat|der":"Automaten","Bäcker|der":"Bäcker","Bericht|der":"Berichte",
+"Blog|der":"Blogs","Brief|der":"Briefe","Briefstandard|der":"Briefstandards","Drucker|der":"Drucker","Empfänger|der":"Empfänger","Fehler|der":"Fehler",
+"Hausmeister|der":"Hausmeister","Kontakt|der":"Kontakte","Kundenbesuch|der":"Kundenbesuche","Mist|der":"","Mitarbeiter|der":"Mitarbeiter","Nachbar|der":"Nachbarn",
+"Silbenanfang|der":"Silbenanfänge","Small Talk|der":"Small Talks","Stadtpark|der":"Stadtparks","Ticketkauf|der":"Ticketkäufe","Urlaub|der":"Urlaube","Wortanfang|der":"Wortanfänge",
+"Zahnarzt|der":"Zahnärzte","Zufall|der":"Zufälle","Erwachsene|der":"Erwachsenen","Anredeformel|die":"Anredeformeln","Aussprache|die":"","Computerarbeit|die":"",
+"Dame|die":"Damen","Datei|die":"Dateien","Grußformel|die":"Grußformeln","Kontonummer|die":"Kontonummern","Krankheit|die":"Krankheiten","Kreditkarte|die":"Kreditkarten",
+"Kurzform|die":"Kurzformen","Medien|die":"Medien","Meisten|die":"Meisten","Mittagspause|die":"Mittagspausen","Musikgruppe|die":"Musikgruppen","Ortsangabe|die":"Ortsangaben",
+"Pause|die":"Pausen","Politik|die":"","Post|die":"","Präsentation|die":"Präsentationen","Reihenfolge|die":"Reihenfolgen","Religion|die":"Religionen",
+"Serie|die":"Serien","Spezialität|die":"Spezialitäten","Unterschrift|die":"Unterschriften","Zahnärztin|die":"Zahnärztinnen"
+};
+const PLURAL = Object.assign({},PLURAL_A,PLURAL_B,PLURAL_K67);
 /* Word -> sheet image (only for words added from the doutsch sheets; others have none) */
 const WORD_IMG = {
 "gut|-":"img/words/6.jpeg","langsam|-":"img/words/6.jpeg","minus|-":"img/words/6.jpeg",
@@ -946,6 +1256,8 @@ const KAPITEL = [
 {id:"K3",name:"Kapitel 3 – In Hamburg",icon:"🏙️"},
 {id:"K4",name:"Kapitel 4 – Guten Appetit",icon:"🍽️"},
 {id:"K5",name:"Kapitel 5 – Alltag und Familie",icon:"🏠"},
+{id:"K6",name:"Kapitel 6 – Zeit mit Freunden",icon:"🎉"},
+{id:"K7",name:"Kapitel 7 – Arbeitsalltag",icon:"💼"},
 {id:"KX",name:"➕ كلماتي المضافة",icon:"⭐"}
 ];
 function kapName(k){
@@ -1157,18 +1469,24 @@ function autoExample(de,art,type,cat,ar,n){
 }
 function simplePick(frames,de,ar,H){const f=frames[H%frames.length];return [f.de.split("{de}").join(de).split("{ar}").join(ar),f.ar.split("{de}").join(de).split("{ar}").join(ar)];}
 function buildVocab(){
-  const blocks=[["K0",RAW_K0],["K1",RAW_K1],["K2",RAW_K2],["K3",RAW_K3],["K4",RAW_K4],["K5",RAW_K5]];
+  const blocks=[["K0",RAW_K0],["K1",RAW_K1],["K2",RAW_K2],["K3",RAW_K3],["K4",RAW_K4],["K5",RAW_K5],["K6",RAW_K6],["K7",RAW_K7]];
   const out=[],seen={};let n=0;
   blocks.forEach(function(b){
     const kap=b[0];
+    /* K1-K5 keep the historical de+article dedupe. K6/K7 are new image
+       packets whose printed lists intentionally repeat a few words from
+       earlier chapters (gehen, Karte, zeigen ...). Scope their dedupe to the
+       chapter + Arabic meaning so every printed row survives and the two
+       different "die Bank" meanings stay distinct. */
+    const scoped=kap==="K6"||kap==="K7";
     b[1].forEach(function(r){
-      const key=r[0]+"|"+r[1];
+      const key=scoped?kap+"|"+r[0]+"|"+r[1]+"|"+r[2]:r[0]+"|"+r[1];
       if(seen[key])return;seen[key]=1;n++;
       const auto=autoExample(r[0],r[1],r[4],r[5],r[2],n);
-      /* RAW_K0..RAW_K5 is the explicit image-sourced bank (see the data
+      /* RAW_K0..RAW_K7 is the explicit image-sourced bank (see the data
          comment above). flashSource is the deck-scoping marker: generated,
          curriculum, library and user-added rows never receive it. */
-      out.push({id:"k"+kap.toLowerCase()+"w"+n,de:r[0],art:r[1],ar:r[2],pron:r[3],type:r[4],cat:r[5],ex:r[6]||auto[0],exAr:r[7]||auto[1],kap:kap,level:"A1",plural:PLURAL[r[0]+"|"+r[1]]||"",img:WORD_IMG[r[0]+"|"+r[1]]||"",flashSource:"image"});
+      out.push({id:"k"+kap.toLowerCase()+"w"+n,de:r[0],art:r[1],ar:r[2],pron:r[3],type:r[4],cat:r[5],ex:r[6]||auto[0],exAr:r[7]||auto[1],kap:kap,level:"A1",plural:r[8]||PLURAL[r[0]+"|"+r[1]]||"",img:WORD_IMG[r[0]+"|"+r[1]]||"",flashSource:"image"});
     });
   });
   return out;
@@ -2942,11 +3260,11 @@ function flashTypeMatch(w,ft){
 function flashAdvancedMatch(w,c,k,lv){
   return (!c||w.cat===c)&&(!k||(w.kap||"KX")===k)&&(!lv||(w.level||"A1")===lv);
 }
-/* Default deck: ONLY the explicitly image-sourced bank (RAW_K0..RAW_K5).
+/* Default deck: ONLY the explicitly image-sourced bank (RAW_K0..RAW_K7).
    Generated/curriculum/library rows and S.customWords never enter it. The
    Kapitel filter "KX" is an explicit, separate deck for the user's own added
    words, so they stay practiceable without being mixed into the image deck. */
-const FLASH_CHAPTERS=["K0","K1","K2","K3","K4","K5"];
+const FLASH_CHAPTERS=["K0","K1","K2","K3","K4","K5","K6","K7"];
 const FLASH_CHAPTER_KEY="dm_flash_chapter_v1";
 function flashImageBase(){
   const seen={};
